@@ -1,4 +1,4 @@
-# School registration system
+# -- School registration system --
 
 ### Used modules
 * **common** - module with declared abstract service model and facades.
