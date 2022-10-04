@@ -1,0 +1,8 @@
+rootProject.name = 'OT-Metadata-TestTask'
+
+include 'common'
+include 'endpoint'
+include 'business-logic'
+include 'application'
+include 'persistence'
+

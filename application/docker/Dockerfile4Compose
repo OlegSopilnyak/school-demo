@@ -1,0 +1,7 @@
+FROM amazoncorretto:17-alpine
+
+RUN apk --no-cache add curl
+
+COPY schoolApplication.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]

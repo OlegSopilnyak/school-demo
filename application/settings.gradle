@@ -1,0 +1,8 @@
+include 'common'
+include 'endpoint'
+include 'business-logic'
+include 'persistence'
+project(':common').projectDir = "$rootDir/../common" as File
+project(':endpoint').projectDir = "$rootDir/../endpoint" as File
+project(':persistence').projectDir = "$rootDir/../persistence" as File
+project(':business-logic').projectDir = "$rootDir/../business-logic" as File

@@ -1,0 +1,42 @@
+version: '3.9'
+services:
+  school:
+    container_name: school-application
+    build:
+      context: .
+      dockerfile: Dockerfile4Compose
+    image: ot-metadata/school-test:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - MYSQL_HOST=school_mysql_server
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/school/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - school_mysql_server
+
+  school_mysql_server:
+    container_name: school-database-mysql-8
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_USER=director
+      - MYSQL_PASSWORD=director_password
+      - MYSQL_DATABASE=school_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - mysql_config:/etc/mysql/conf.d
+    healthcheck:
+      test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
+      interval: 1s
+      timeout: 3s
+      retries: 30
+volumes:
+  mysql_data:
+  mysql_config:

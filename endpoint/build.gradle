@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation project(":common")
+
+    implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"
+    compileOnly group: 'org.mapstruct', name: 'mapstruct-jdk8', version: "${mapstructVersion}"
+    compileOnly group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
+    annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+}
+bootJar {
+    enabled = false
+}
+test {
+    useJUnitPlatform()
+}
+description = 'REST Endpoints for students and courses of the school'

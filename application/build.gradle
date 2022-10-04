@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
+    id 'pl.allegro.tech.build.axion-release' version '1.13.6'
+    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'com.palantir.docker-run' version "${dockerPluginVersion}"
+    id 'com.avast.gradle.docker-compose' version "${dockerComposePluginVersion}"
+}
+
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation project(":common")
+    implementation project(":endpoint")
+    implementation project(":business-logic")
+    implementation project(":persistence")
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+}
+
+clean.doLast {
+    fileTree('docker').include('**/*.jar').each { jarFile -> jarFile.delete() }
+}
+
+bootJar {
+    archiveFileName = "schoolApplication.${archiveExtension.get()}"
+}
+
+task copyToDocker(type: Copy) {
+    from bootJar
+    into 'docker'
+}
+
+build.finalizedBy copyToDocker
+
+String builtArtifact = bootJar.archiveFileName.get()
+String imageName = "ot-metadata/school-test:$version"
+
+docker {
+    dockerfile file('docker/Dockerfile')
+    name imageName
+    files "build/libs/${builtArtifact}"
+    buildArgs([JAR_FILE: builtArtifact])
+}
+dockerRun {
+    name "school-container"
+    image imageName
+    ports '8080:8080'
+    env 'MYSQL_HOST': 'school-mysql'
+    clean true
+    arguments '--network=school-docker-network'
+
+}
+
+dockerCompose {
+    useComposeFiles = ['docker/docker-compose.school.yml']
+    projectName = 'school-application-test-composed'
+    startedServices = ['school']
+}
+
+tasks.getByPath('composeBuild').dependsOn('build')
+tasks.getByPath('docker').dependsOn('build')
+tasks.getByPath('dockerRun').dependsOn('docker')
+
+description = 'Main-Application module for students and courses of the school'

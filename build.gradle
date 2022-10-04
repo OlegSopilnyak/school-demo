@@ -1,0 +1,25 @@
+allprojects {
+
+    repositories {
+        mavenCentral()
+    }
+    group = 'oleg.sopilnyak.test'
+    version = '0.0.1-SNAPSHOT'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+
+    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    jar {
+        enabled = true
+    }
+
+}
