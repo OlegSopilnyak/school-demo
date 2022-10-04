@@ -12,10 +12,12 @@ To run application in:
 * **Docker** mode use **gradlew dockerRun**
 * **Docker-Compose** mode use **gradlew composeUp**
 
-For **Standalone** and **Docker** modes I would recommend to run separate mysql image locally using command<BR>
-_docker run --rm -d --name school-mysql --network=school-docker-network -p 3306:3306 -e MYSQL_ROOT_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=true -e MYSQL_USER=director -e MYSQL_PASSWORD=director_password -e MYSQL_DATABASE=school_db mysql:8.0_
-For **Docker** mode you need to create network in order to communicate application docker with mysql docker before start<BR> 
-_docker network create school-docker-network_<BR>_
+For **Standalone** and **Docker** modes I would recommend to run separate mysql image locally using command:<BR>
+_$ docker run --rm -d --name school-mysql --network=school-docker-network -p 3306:3306 -e MYSQL_ROOT_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=true -e MYSQL_USER=director -e MYSQL_PASSWORD=director_password -e MYSQL_DATABASE=school_db mysql:8.0_
+
+First of all you need to create **docker network** in order to make 
+communication between application docker-container and mysql docker-container, before you start **school-mysql** container using command:<BR> 
+_$ docker network create school-docker-network_<BR>
 
 In order to support application's health-check in **Docker-Compose** mode there is running **SpringActuator** which provides some endpoints.
 One of them (**GET** http://localhost:8080/school/actuator/health) is used for health-check support.
