@@ -1,4 +1,4 @@
-rootProject.name = 'OT-Metadata-TestTask'
+rootProject.name = 'BasicSchool-TestTask'
 
 include 'common'
 include 'endpoint'
