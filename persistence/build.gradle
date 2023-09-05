@@ -24,12 +24,6 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.17.3'
     testImplementation group: 'org.testcontainers', name: 'mysql', version: '1.17.3'
 
-//            <dependency>
-//            <groupId>org.testcontainers</groupId>
-//            <artifactId>junit-jupiter</artifactId>
-//    <scope>test</scope>
-//        </dependency>
-//            <dependency>
 }
 bootJar {
     enabled = false
