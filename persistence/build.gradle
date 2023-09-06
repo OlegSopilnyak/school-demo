@@ -20,9 +20,9 @@ dependencies {
     runtimeOnly group: 'mysql', name: 'mysql-connector-java'
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    testImplementation group: 'org.testcontainers', name: 'testcontainers', version: '1.17.3'
-    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.17.3'
-    testImplementation group: 'org.testcontainers', name: 'mysql', version: '1.17.3'
+    testImplementation group: 'org.testcontainers', name: 'testcontainers', version: "${testcontainersVersion}"
+    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: "${testcontainersVersion}"
+    testImplementation group: 'org.testcontainers', name: 'mysql', version: "${testcontainersVersion}"
 
 }
 bootJar {
