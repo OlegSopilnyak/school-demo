@@ -34,8 +34,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @Rollback
 class PersistenceFacadeImplTest {
+    private static final String TEST_DB_DOCKER_IMAGE_NAME = "mysql:8.0";
+    private static final String TEST_DB_DOCKER_CONTAINER_NAME = "school-test-database";
     @Container
-    private static final MySQLContainer<?> database = new MySQLContainer<>("mysql:8.0");
+    private static final MySQLContainer<?> database = new MySQLContainer<>(TEST_DB_DOCKER_IMAGE_NAME)
+            .withCreateContainerCmdModifier(cmd -> cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME));
 
     @DynamicPropertySource
     static void databaseProperties(DynamicPropertyRegistry registry) {
@@ -141,7 +144,7 @@ class PersistenceFacadeImplTest {
         facade.save(student);
         course.add(student);
 
-        Optional<Course> saved = facade.save(course);
+        facade.save(course);
 
         Optional<Course> received = facade.findCourseById(course.getId());
         assertThat(course).isEqualTo(received.get());
