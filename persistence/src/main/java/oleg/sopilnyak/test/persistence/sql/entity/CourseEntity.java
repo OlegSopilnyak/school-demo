@@ -73,7 +73,7 @@ public class CourseEntity implements Course {
 
         final Set<CourseEntity> courses;
         if (isNull(courses = student.getCourseSet()) || !courses.contains(this)) {
-            boolean success = student.add(this);
+            return student.add(this) || true;
         }
         return true;
     }
@@ -92,7 +92,7 @@ public class CourseEntity implements Course {
         studentSet.remove(student);
         final Set<CourseEntity> courses;
         if (nonNull(courses = student.getCourseSet()) && courses.contains(this)) {
-            boolean success = student.remove(this);
+            return student.remove(this) || true;
         }
         return true;
     }
