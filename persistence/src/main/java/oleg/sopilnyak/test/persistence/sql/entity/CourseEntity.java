@@ -9,6 +9,9 @@ import org.mapstruct.factory.Mappers;
 import javax.persistence.*;
 import java.util.*;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 @Data
 @EqualsAndHashCode(exclude = {"studentSet"})
 @ToString(exclude = {"studentSet"})
@@ -32,49 +35,75 @@ public class CourseEntity implements Course {
     /**
      * To get the list of students enrolled to the course
      *
-     * @return list of students
+     * @return list of students (ordered by student::id)
      */
     @Override
     public List<Student> getStudents() {
-        return studentSet == null ? Collections.EMPTY_LIST :
+        return isNull(studentSet) ? Collections.emptyList() :
                 studentSet.stream()
                         .map(student -> (Student) student)
                         .sorted(Comparator.comparingLong(Student::getId))
                         .toList();
     }
 
+    /**
+     * To enroll the students to the course
+     *
+     * @param students students list to enroll
+     */
     public void setStudents(List<Student> students) {
-        studentSet = studentSet == null ? new HashSet<>() : studentSet;
+        refreshCourseStudents();
         studentSet.clear();
         students.forEach(student -> {
-            StudentEntity entity = mapper.toEntity(student);
-            studentSet.add(entity);
-            entity.add(this);
+            final StudentEntity courseStudent;
+            studentSet.add(courseStudent = mapper.toEntity(student));
+            courseStudent.add(this);
         });
     }
 
+    /**
+     * To enroll the student to the course
+     *
+     * @param student to enroll
+     * @return true if success
+     */
     public boolean add(StudentEntity student) {
-        if (studentSet == null) {
-            studentSet = new HashSet<>();
-        }
+        refreshCourseStudents();
         studentSet.add(student);
-        Set<CourseEntity> courses = student.getCourseSet();
-        if (courses == null || !courses.contains(this)) {
-            student.add(this);
+
+        final Set<CourseEntity> courses;
+        if (isNull(courses = student.getCourseSet()) || !courses.contains(this)) {
+            boolean success = student.add(this);
         }
         return true;
     }
 
+    /**
+     * To un-enroll the student from the course
+     *
+     * @param student to un-enroll
+     * @return true if success
+     */
     public boolean remove(StudentEntity student) {
-        if (studentSet == null) {
-            studentSet = new HashSet<>();
-            return false;
-        }
+        return isNull(studentSet) ? cannotUnEnrollStudent() : studentUnEnrolled(student);
+    }
+
+    private boolean studentUnEnrolled(StudentEntity student) {
         studentSet.remove(student);
-        Set<CourseEntity> courses = student.getCourseSet();
-        if (courses != null && courses.contains(this)) {
-            student.remove(this);
+        final Set<CourseEntity> courses;
+        if (nonNull(courses = student.getCourseSet()) && courses.contains(this)) {
+            boolean success = student.remove(this);
         }
         return true;
     }
+
+    private boolean cannotUnEnrollStudent() {
+        studentSet = new HashSet<>();
+        return false;
+    }
+
+    private void refreshCourseStudents() {
+        if (isNull(studentSet)) studentSet = new HashSet<>();
+    }
+
 }
