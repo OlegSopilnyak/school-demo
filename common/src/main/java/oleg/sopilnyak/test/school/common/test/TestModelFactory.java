@@ -102,6 +102,16 @@ public class TestModelFactory {
                 .firstName("firstName-" + i).lastName("lastName-" + i).gender("gender-" + i)
                 .build();
     }
+    protected AuthorityPerson makeTestAuthorityPerson(Long personId) {
+        String firstName = "firstName";
+        String lastName = "lastName";
+        String gender = "gender";
+        String title = "assistant";
+        return FakeAuthorityPerson.builder()
+                .id(personId).title(title).firstName(firstName).lastName(lastName).gender(gender)
+                .build();
+    }
+
 
     protected Collection<AuthorityPerson> makeAuthorityPersons(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeAuthorityPerson(i + 1))

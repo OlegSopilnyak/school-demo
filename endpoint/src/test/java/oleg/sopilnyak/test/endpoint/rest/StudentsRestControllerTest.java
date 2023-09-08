@@ -59,7 +59,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long id = 100L;
         Student student = makeTestStudent(id);
         when(facade.findById(id)).thenReturn(Optional.of(student));
-        String requestPath = "/students/" + id;
+        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
 
         MvcResult result =
                 mockMvc.perform(
@@ -88,7 +88,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long studentsAmount = 40L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         when(facade.findEnrolledTo(courseId)).thenReturn(students);
-        String requestPath = "/students/enrolled/" + courseId;
+        String requestPath = RequestMappingRoot.STUDENTS + "/enrolled/" + courseId;
 
         MvcResult result =
                 mockMvc.perform(
@@ -113,7 +113,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long studentsAmount = 5L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         when(facade.findNotEnrolled()).thenReturn(students);
-        String requestPath = "/students/empty";
+        String requestPath = RequestMappingRoot.STUDENTS + "/empty";
 
         MvcResult result =
                 mockMvc.perform(
@@ -143,7 +143,7 @@ class StudentsRestControllerTest extends TestModelFactory {
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
         }).when(facade).createOrUpdate(any(Student.class));
-        String requestPath = "/students";
+        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
@@ -177,7 +177,7 @@ class StudentsRestControllerTest extends TestModelFactory {
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
         }).when(facade).createOrUpdate(any(Student.class));
-        String requestPath = "/students";
+        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
 
@@ -205,7 +205,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotUpdateInvalidStudent_NullId() throws Exception {
         Student student = makeTestStudent(null);
-        String requestPath = "/students";
+        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
@@ -230,7 +230,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldNotUpdateInvalidStudent_NegativeId() throws Exception {
         Long id = -1001L;
         Student student = makeTestStudent(id);
-        String requestPath = "/students";
+        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
@@ -254,7 +254,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldDeleteStudentValidId() throws Exception {
         Long id = 102L;
-        String requestPath = "/students/" + id;
+        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -268,7 +268,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentValidId_StudentNotExistsException() throws Exception {
         Long id = 103L;
-        String requestPath = "/students/" + id;
+        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
         doThrow(new StudentNotExistsException("Wrong student")).when(facade).delete(id);
 
         MvcResult result =
@@ -290,7 +290,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentValidId_StudentWithCoursesException() throws Exception {
         Long id = 104L;
-        String requestPath = "/students/" + id;
+        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
         doThrow(new StudentWithCoursesException("Not empty courses set")).when(facade).delete(id);
         MvcResult result =
                 mockMvc.perform(

@@ -82,11 +82,14 @@ public class AuthorityPersonsRestController {
     }
 
     @DeleteMapping("/{" + VAR_NAME + "}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable(VAR_NAME) String personId) {
+    public ResponseEntity<Void> deletePerson(@PathVariable(VAR_NAME) String personId) {
         log.debug("Trying to delete authority person for Id: '{}'", personId);
         try {
             Long id = Long.parseLong(personId);
             log.debug("Deleting course for id: {}", id);
+            if (isInvalid(id)) {
+                throw new NumberFormatException();
+            }
 
             facade.deleteAuthorityPersonById(id);
 
