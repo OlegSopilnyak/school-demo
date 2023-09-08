@@ -28,7 +28,7 @@ public class AuthorityPersonsRestController {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @GetMapping
-    public ResponseEntity<List<AuthorityPersonDto>> findAllAuthorities() {
+    public ResponseEntity<List<AuthorityPersonDto>> findAll() {
         log.debug("Trying to get all school's authorities");
         try {
             return ResponseEntity.ok(resultToDto(facade.findAllAuthorityPerson()));
@@ -59,6 +59,7 @@ public class AuthorityPersonsRestController {
     public ResponseEntity<AuthorityPersonDto> createPerson(@RequestBody AuthorityPersonDto personDto) {
         log.debug("Trying to create the authority person {}", personDto);
         try {
+            personDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateAuthorityPerson(personDto)));
         } catch (Exception e) {
             throw new RuntimeException("Cannot create new authority person " + personDto.toString(), e);
@@ -86,7 +87,7 @@ public class AuthorityPersonsRestController {
         log.debug("Trying to delete authority person for Id: '{}'", personId);
         try {
             Long id = Long.parseLong(personId);
-            log.debug("Deleting course for id: {}", id);
+            log.debug("Deleting authority person for id: {}", id);
             if (isInvalid(id)) {
                 throw new NumberFormatException();
             }

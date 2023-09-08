@@ -140,7 +140,7 @@ public interface OrganizationFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<StudentsGroup> createOrUpdateFaculty(StudentsGroup instance);
+    Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance);
     /**
      * To delete students group instance from the school
      *

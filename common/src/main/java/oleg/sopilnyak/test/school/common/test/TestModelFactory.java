@@ -137,6 +137,40 @@ public class TestModelFactory {
         Assertions.assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         Assertions.assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
+    protected Faculty makeTestFaculty(Long id){
+        return FakeFaculty.builder()
+                .id(id).name("faculty-id-" + id)
+                .dean(makeAuthorityPerson((int)(id-200)))
+                .courses(makeCourses(2))
+                .build();
+    }
+    protected Faculty makeFaculty(int i) {
+        return FakeFaculty.builder()
+                .id(i + 400L).name("faculty-" + i)
+                .dean(makeAuthorityPerson(i))
+                .courses(makeCourses(5))
+                .build();
+    }
+    protected Collection<Faculty> makeFaculties(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeFaculty(i + 1))
+                .sorted(Comparator.comparing(Faculty::getName))
+                .toList();
+    }
+    protected void assertFacultyEquals(Faculty expected, Faculty result) {
+        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
+        assertAuthorityPersonEquals(expected.getDean(), result.getDean());
+        assertCourseLists(expected.getCourses(), result.getCourses());
+    }
+    protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result) {
+        if (ObjectUtils.isEmpty(expected)) {
+            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
+            return;
+        }
+        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i)));
+    }
+
 
     @Data
     @Builder

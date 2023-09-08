@@ -69,7 +69,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).findAllAuthorities();
+        verify(controller).findAll();
         verify(facade).findAllAuthorityPerson();
         String responseString = result.getResponse().getContentAsString();
 
@@ -163,6 +163,55 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 
         assertAuthorityPersonEquals(person, personDto);
+    }
+
+    @Test
+    void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
+        Long id = -301L;
+        AuthorityPerson person = makeTestAuthorityPerson(id);
+        String requestPath = RequestMappingRoot.AUTHORITIES;
+        String jsonContent = MAPPER.writeValueAsString(person);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(404).isEqualTo(error.getErrorCode());
+        assertThat("Wrong authority-person-id: '-301'").isEqualTo(error.getErrorMessage());
+    }
+
+    @Test
+    void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
+        AuthorityPerson person = makeTestAuthorityPerson(null);
+        String requestPath = RequestMappingRoot.AUTHORITIES;
+        String jsonContent = MAPPER.writeValueAsString(person);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(404).isEqualTo(error.getErrorCode());
+        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
     }
 
     @Test

@@ -75,12 +75,13 @@ public class CoursesRestController {
     }
 
     @PostMapping
-    public ResponseEntity<CourseDto> createCourse(@RequestBody CourseDto newCourse) {
-        log.debug("Trying to create the course {}", newCourse);
+    public ResponseEntity<CourseDto> createCourse(@RequestBody CourseDto courseDto) {
+        log.debug("Trying to create the course {}", courseDto);
         try {
-            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(newCourse)));
+            courseDto.setId(null);
+            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(courseDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new course " + newCourse.toString());
+            throw new RuntimeException("Cannot create new course " + courseDto.toString());
         }
     }
 

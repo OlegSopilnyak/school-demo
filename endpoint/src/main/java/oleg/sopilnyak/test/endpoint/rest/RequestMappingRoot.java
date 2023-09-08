@@ -7,4 +7,5 @@ public interface RequestMappingRoot {
     String COURSES = "/courses";
     String STUDENTS = "/students";
     String AUTHORITIES = "/authorities";
+    String FACULTIES = "/faculties";
 }

@@ -75,28 +75,29 @@ public class StudentsRestController {
     }
 
     @PostMapping
-    public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto newStudent) {
-        log.debug("Trying to create the student {}", newStudent);
+    public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto studentDto) {
+        log.debug("Trying to create the student {}", studentDto);
         try {
-            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(newStudent)));
+            studentDto.setId(null);
+            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(studentDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new Student " + newStudent.toString());
+            throw new RuntimeException("Cannot create new Student " + studentDto.toString());
         }
     }
 
     @PutMapping
-    public ResponseEntity<StudentDto> updateStudent(@RequestBody StudentDto student) {
-        log.debug("Trying to update the student {}", student);
+    public ResponseEntity<StudentDto> updateStudent(@RequestBody StudentDto studentDto) {
+        log.debug("Trying to update the student {}", studentDto);
         try {
-            Long id = student.getId();
+            Long id = studentDto.getId();
             if (isInvalid(id)) {
                 throw new ResourceNotFoundException("Wrong student-id: '" + id + "'");
             }
-            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(student)));
+            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(studentDto)));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update student " + student.toString());
+            throw new RuntimeException("Cannot update student " + studentDto.toString());
         }
     }
 
