@@ -15,17 +15,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static java.util.Objects.isNull;
+
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping("/courses")
+@RequestMapping(RequestMappingRoot.COURSES)
 public class CoursesRestController {
+    public static final String COURSE_VAR_NAME = "courseId";
+    public static final String STUDENT_VAR_NAME = "studentId";
     // delegate for requests processing
     private final CoursesFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
-    @GetMapping("/{courseId}")
-    public ResponseEntity<CourseDto> findCourse(@PathVariable("courseId") String courseId) {
+    @GetMapping("/{" + COURSE_VAR_NAME + "}")
+    public ResponseEntity<CourseDto> findCourse(@PathVariable(COURSE_VAR_NAME) String courseId) {
         log.debug("Trying to get course by Id: '{}'", courseId);
         try {
             Long id = Long.parseLong(courseId);
@@ -42,8 +46,8 @@ public class CoursesRestController {
         }
     }
 
-    @GetMapping("/registered/{studentId}")
-    public ResponseEntity<List<CourseDto>> findRegisteredFor(@PathVariable("studentId") String studentId) {
+    @GetMapping("/registered/{" + STUDENT_VAR_NAME + "}")
+    public ResponseEntity<List<CourseDto>> findRegisteredFor(@PathVariable(STUDENT_VAR_NAME) String studentId) {
         log.debug("Trying to get courses for student Id: '{}'", studentId);
         try {
             Long id = Long.parseLong(studentId);
@@ -85,20 +89,20 @@ public class CoursesRestController {
         log.debug("Trying to update the course {}", courseDto);
         try {
             Long id = courseDto.getId();
-            if (id == null || id <= 0) {
+            if (isInvalid(id)) {
                 throw new ResourceNotFoundException("Wrong course-id: '" + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(courseDto)));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update new course " + courseDto.toString());
+            throw new RuntimeException("Cannot update the course " + courseDto.toString(), e);
         }
     }
 
-    @DeleteMapping("/{courseId}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable("courseId") String courseId) {
-        log.debug("Trying to delete course by Id: '{}'", courseId);
+    @DeleteMapping("/{" + COURSE_VAR_NAME + "}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable(COURSE_VAR_NAME) String courseId) {
+        log.debug("Trying to delete course for Id: '{}'", courseId);
         try {
             Long id = Long.parseLong(courseId);
             log.debug("Deleting course for id: {}", id);
@@ -126,7 +130,8 @@ public class CoursesRestController {
         return registeredFor.stream()
                 .map(mapper::toDto)
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(CourseDto::getName)).toList();
+                .sorted(Comparator.comparing(CourseDto::getName))
+                .toList();
     }
 
     private CourseDto resultToDto(String courseId, Optional<Course> course) {
@@ -134,5 +139,9 @@ public class CoursesRestController {
         return mapper.toDto(
                 course.orElseThrow(() -> new ResourceNotFoundException("Course with id: " + courseId + " is not found"))
         );
+    }
+
+    private static boolean isInvalid(Long id) {
+        return isNull(id) || id <= 0;
     }
 }

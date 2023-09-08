@@ -1,5 +1,10 @@
 plugins {
     id 'java'
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
+}
+dependencies {
+
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
 }
 //bootJar {
 //    enabled = false

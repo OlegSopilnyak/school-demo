@@ -6,25 +6,27 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
 import java.util.List;
 
 /**
- * DataTransportObject: POJO for Course type
+ * DataTransportObject: POJO for StudentGroup type
  *
- * @see Course
+ * @see StudentsGroup
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CourseDto implements Course {
+public class StudentsGroupDto implements StudentsGroup {
     private Long id;
     private String name;
-    private String description;
+
+    @JsonDeserialize(as= StudentDto.class)
+    private Student leader;
     @JsonDeserialize(contentAs= StudentDto.class)
     private List<Student> students;
 }

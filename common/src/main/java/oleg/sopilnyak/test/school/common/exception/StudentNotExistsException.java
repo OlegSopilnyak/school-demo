@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.exception;
 
 /**
- * Exception: throws when you want to delete course which not created before
+ * Exception: throws when you want to delete student who is not exists
  */
 public class StudentNotExistsException extends Exception {
     /**

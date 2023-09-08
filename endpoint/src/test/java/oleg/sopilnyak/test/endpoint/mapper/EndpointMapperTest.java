@@ -1,27 +1,20 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
-import lombok.Builder;
-import lombok.Data;
-import oleg.sopilnyak.test.endpoint.dto.CourseDto;
-import oleg.sopilnyak.test.endpoint.dto.StudentDto;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.endpoint.dto.*;
+import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import org.springframework.util.ObjectUtils;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class EndpointMapperTest {
-
+class EndpointMapperTest extends TestModelFactory {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @Test
-    void shouldTransferStudentToDto() {
+    void shouldTransformStudentToDto() {
         Long id = 100L;
         String firstName = "firstName";
         String lastName = "lastName";
@@ -44,7 +37,7 @@ class EndpointMapperTest {
     }
 
     @Test
-    void shouldTransferCourseToDto() {
+    void shouldTransformCourseToDto() {
         Long id = 101L;
         String name = "courseName";
         String description = "description";
@@ -60,81 +53,73 @@ class EndpointMapperTest {
         assertStudentLists(students, dto.getStudents());
     }
 
-    private void assertStudentLists(List<Student> expected, List<Student> result) {
-        if (ObjectUtils.isEmpty(expected)) {
-            assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i)));
-    }
-
-    private void assertCourseLists(List<Course> expected, List<Course> result) {
-        if (ObjectUtils.isEmpty(expected)) {
-            assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i)));
-    }
-
-    private void assertCourseEquals(Course expected, Course result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getName()).isEqualTo(result.getName());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private void assertStudentEquals(Student expected, Student result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
-        assertThat(expected.getLastName()).isEqualTo(result.getLastName());
-        assertThat(expected.getGender()).isEqualTo(result.getGender());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private List<Course> makeCourses(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1)).toList();
-    }
-
-    private Course makeCourse(int i) {
-        return FakeCourse.builder()
-                .id(i + 200L)
-                .name("name-" + i)
-                .description("description-" + i)
-                .students(Collections.emptyList())
+    @Test
+    void shouldTransformAuthorityPersonToDto() {
+        Long id = 102L;
+        String firstName = "Mary";
+        String lastName = "Bell";
+        String title = "Professor";
+        String gender = "Mrs.";
+        AuthorityPerson person = FakeAuthorityPerson.builder()
+                .id(id)
+                .title(title)
+                .firstName(firstName)
+                .lastName(lastName)
+                .gender(gender)
                 .build();
+
+        AuthorityPersonDto dto = mapper.toDto(person);
+
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(title).isEqualTo(dto.getTitle());
+        assertThat(firstName).isEqualTo(dto.getFirstName());
+        assertThat(lastName).isEqualTo(dto.getLastName());
+        assertThat(gender).isEqualTo(dto.getGender());
     }
 
-    private List<Student> makeStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
-    }
-
-    private Student makeStudent(int i) {
-        return FakeStudent.builder()
-                .id(i + 200L).firstName("firstName-" + i).lastName("lastName-" + i)
-                .gender("gender-" + i).description("description-" + i)
-                .courses(Collections.emptyList())
+    @Test
+    void shouldTransformFacultyToDto() {
+        Long id = 103L;
+        String name = "English";
+        AuthorityPerson dean = FakeAuthorityPerson.builder()
+                .id(-101L).title("title").firstName("firstName").lastName("lastName").gender("gender")
                 .build();
+        List<Course> courses = makeCourses(5);
+
+        Faculty faculty = FakeFaculty.builder()
+                .id(id)
+                .name(name)
+                .dean(dean)
+                .courses(courses)
+                .build();
+
+        FacultyDto dto = mapper.toDto(faculty);
+
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(name).isEqualTo(dto.getName());
+        assertAuthorityPersonEquals(dean, dto.getDean());
+        assertCourseLists(courses, dto.getCourses());
     }
 
+    @Test
+    void shouldTransformStudentsGroupToDto() {
+        Long id = 104L;
+        String name = "Hawks-2020";
+        Student leader = makeStudent(100);
+        List<Student> students = makeStudents(20);
 
-    @Data
-    @Builder
-    private static class FakeStudent implements Student {
-        private Long id;
-        private String firstName;
-        private String lastName;
-        private String gender;
-        private String description;
-        private List<Course> courses;
-    }
+        StudentsGroup group = FakeStudentsGroup.builder()
+                .id(id)
+                .name(name)
+                .leader(leader)
+                .students(students)
+                .build();
 
-    @Data
-    @Builder
-    private static class FakeCourse implements Course {
-        private Long id;
-        private String name;
-        private String description;
-        private List<Student> students;
+        StudentsGroupDto dto = mapper.toDto(group);
+
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(name).isEqualTo(dto.getName());
+        assertStudentEquals(leader, dto.getLeader());
+        assertStudentLists(students, dto.getStudents());
     }
 }

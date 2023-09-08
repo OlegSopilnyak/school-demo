@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Objects.isNull;
+
 /**
  * Service-Facade: Service for manage courses in the school
  */
@@ -17,6 +19,7 @@ public interface CoursesFacade {
      *
      * @param id system-id of the course
      * @return student instance or empty() if not exists
+     * @see Course
      * @see Optional
      * @see Optional#empty()
      */
@@ -37,7 +40,7 @@ public interface CoursesFacade {
      * @return set of courses
      */
     default Set<Course> findRegisteredFor(Student student) {
-        return student == null || student.getId() == null ? Collections.emptySet() : findRegisteredFor(student.getId());
+        return isInvalid(student) ? Collections.emptySet() : findRegisteredFor(student.getId());
     }
 
     /**
@@ -74,7 +77,7 @@ public interface CoursesFacade {
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
     default void delete(Course course) throws CourseNotExistsException, CourseWithStudentsException {
-        if (course == null || course.getId() == null) {
+        if (isInvalid(course)) {
             throw new CourseNotExistsException("Wrong " + course + " to delete.");
         }
         delete(course.getId());
@@ -107,10 +110,9 @@ public interface CoursesFacade {
     default void register(Student student, Course course) throws
             StudentNotExistsException, CourseNotExistsException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
-        if (student == null || student.getId() == null) {
+        if (isInvalid(student)) {
             throw new StudentNotExistsException("Wrong student " + student + " for registration.");
-        }
-        if (course == null || course.getId() == null) {
+        } else if (isInvalid(course)) {
             throw new CourseNotExistsException("Wrong course " + course + " for registration.");
         }
         register(student.getId(), course.getId());
@@ -121,8 +123,8 @@ public interface CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws StudentNotExistsException     throws when student is not exists
-     * @throws CourseNotExistsException      throws if course is not exists
+     * @throws StudentNotExistsException throws when student is not exists
+     * @throws CourseNotExistsException  throws if course is not exists
      */
     void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException;
 
@@ -131,17 +133,24 @@ public interface CoursesFacade {
      *
      * @param student student instance
      * @param course  course instance
-     * @throws StudentNotExistsException     throws when student is not exists
-     * @throws CourseNotExistsException      throws if course is not exists
+     * @throws StudentNotExistsException throws when student is not exists
+     * @throws CourseNotExistsException  throws if course is not exists
      */
-    default void unRegister(Student student, Course course) throws StudentNotExistsException, CourseNotExistsException{
-        if (student == null || student.getId() == null) {
+    default void unRegister(Student student, Course course) throws StudentNotExistsException, CourseNotExistsException {
+        if (isInvalid(student)) {
             throw new StudentNotExistsException("Wrong student " + student + " for un-registration.");
-        }
-        if (course == null || course.getId() == null) {
+        } else if (isInvalid(course)) {
             throw new CourseNotExistsException("Wrong course " + course + " for un-registration.");
         }
         unRegister(student.getId(), course.getId());
+    }
+
+    private static boolean isInvalid(final Course course) {
+        return isNull(course) || isNull(course.getId());
+    }
+
+    private static boolean isInvalid(final Student student) {
+        return isNull(student) || isNull(student.getId());
     }
 }
 

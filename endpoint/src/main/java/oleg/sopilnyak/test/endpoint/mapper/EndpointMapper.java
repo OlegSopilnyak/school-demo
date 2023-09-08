@@ -1,9 +1,7 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
-import oleg.sopilnyak.test.endpoint.dto.CourseDto;
-import oleg.sopilnyak.test.endpoint.dto.StudentDto;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.endpoint.dto.*;
+import oleg.sopilnyak.test.school.common.model.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -34,6 +32,7 @@ public interface EndpointMapper {
      * @param course instance to convert
      * @return DTO instance
      */
+    @Named("toShortCourse")
     @Mapping(expression = "java(null)", target = "students")
     CourseDto toDtoShort(Course course);
 
@@ -47,11 +46,38 @@ public interface EndpointMapper {
     StudentDto toDto(Student student);
 
     /**
+     * Convert model-type to DTO
+     *
+     * @param person instance to convert
+     * @return DTO instance
+     */
+    AuthorityPersonDto toDto(AuthorityPerson person);
+
+    /**
+     * Convert model-type to DTO
+     *
+     * @param faculty instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
+    FacultyDto toDto(Faculty faculty);
+    /**
+     * Convert model-type to DTO
+     *
+     * @param group instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentDtos")
+    @Mapping(source = "leader", target = "leader", qualifiedByName = "toShortStudent")
+    StudentsGroupDto toDto(StudentsGroup group);
+
+    /**
      * Convert model-type to DTO without  courses-list (to avoid recursion)
      *
      * @param student instance to convert
      * @return DTO instance
      */
+    @Named("toShortStudent")
     @Mapping(expression = "java(null)", target = "courses")
     StudentDto toDtoShort(Student student);
 

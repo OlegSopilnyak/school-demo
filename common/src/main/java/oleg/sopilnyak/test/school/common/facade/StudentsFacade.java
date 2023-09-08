@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Objects.isNull;
+
 /**
  * Service-Facade: Service for manage students in the school
  */
@@ -18,6 +20,7 @@ public interface StudentsFacade {
      *
      * @param id system-id of the student
      * @return student instance or empty() if not exists
+     * @see Student
      * @see Optional
      * @see Optional#empty()
      */
@@ -38,7 +41,7 @@ public interface StudentsFacade {
      * @return set of students
      */
     default Set<Student> findEnrolledTo(Course course) {
-        return course == null || course.getId() == null ? Collections.emptySet() : findEnrolledTo(course.getId());
+        return isInvalid(course) ? Collections.emptySet() : findEnrolledTo(course.getId());
     }
 
     /**
@@ -53,6 +56,7 @@ public interface StudentsFacade {
      *
      * @param student student should be created or updated
      * @return student instance or empty() if not exists
+     * @see Student
      * @see Optional
      * @see Optional#empty()
      */
@@ -77,6 +81,15 @@ public interface StudentsFacade {
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     default boolean delete(Student student) throws StudentNotExistsException, StudentWithCoursesException {
-        return student != null && student.getId() != null && delete(student.getId());
+        return !isInvalid(student) && delete(student.getId());
     }
+
+    private static boolean isInvalid(Student student) {
+        return isNull(student) || isNull(student.getId());
+    }
+
+    private static boolean isInvalid(Course course) {
+        return isNull(course) || isNull(course.getId());
+    }
+
 }

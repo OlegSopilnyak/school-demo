@@ -20,6 +20,7 @@ public interface PersistenceFacade {
      *
      * @param id system-id of the student
      * @return student instance or empty() if not exists
+     * @see Student
      * @see Optional
      * @see Optional#empty()
      */
@@ -45,6 +46,7 @@ public interface PersistenceFacade {
      *
      * @param student student instance to store
      * @return student instance or empty(), if instance couldn't store
+     * @see Student
      * @see Optional
      * @see Optional#empty()
      */
@@ -63,6 +65,7 @@ public interface PersistenceFacade {
      *
      * @param id system-id of the course
      * @return student instance or empty() if not exists
+     * @see Course
      * @see Optional
      * @see Optional#empty()
      */
@@ -88,6 +91,7 @@ public interface PersistenceFacade {
      *
      * @param course course instance to store
      * @return course instance or empty(), if instance couldn't store
+     * @see Course
      * @see Optional
      * @see Optional#empty()
      */

@@ -2,14 +2,12 @@ package oleg.sopilnyak.test.endpoint.rest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
-import lombok.Data;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,14 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.ObjectUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-class CoursesRestControllerTest {
+class CoursesRestControllerTest extends TestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
@@ -104,11 +99,11 @@ class CoursesRestControllerTest {
 
         verify(controller).findRegisteredFor(studentId.toString());
         String responseString = result.getResponse().getContentAsString();
-        List<CourseDto> courseDtos = MAPPER.readValue(responseString, new TypeReference<>() {
-        });
+        List<Course> courseDtos = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
+        }).stream().map(course -> (Course)course).toList();
 
         assertThat(courseDtos).hasSize(coursesAmount.intValue());
-        assertCoursesList(courses, courseDtos);
+        assertCourseLists(courses.stream().toList(), courseDtos);
     }
 
     @Test
@@ -129,11 +124,11 @@ class CoursesRestControllerTest {
 
         verify(controller).findEmptyCourses();
         String responseString = result.getResponse().getContentAsString();
-        List<CourseDto> courseDtos = MAPPER.readValue(responseString, new TypeReference<>() {
-        });
+        List<Course> courseDtos = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
+        }).stream().map(course -> (Course)course).toList();
 
         assertThat(courseDtos).hasSize(coursesAmount.intValue());
-        assertCoursesList(courses, courseDtos);
+        assertCourseLists(courses.stream().toList(), courseDtos);
     }
 
     @Test
@@ -305,77 +300,4 @@ class CoursesRestControllerTest {
         assertThat("Cannot delete course for id = 104").isEqualTo(error.getErrorMessage());
     }
 
-    private void assertCoursesList(Set<Course> expected, List<CourseDto> result) {
-        result.forEach(dto -> assertCourseForSet(expected, dto));
-    }
-
-    private void assertCourseForSet(Set<Course> expected, CourseDto dto) {
-        Optional<Course> courseExpected = expected.stream().filter(course -> course.getId().equals(dto.getId())).findFirst();
-        assertThat(courseExpected).isNotEmpty();
-        assertCourseEquals(dto, courseExpected.get());
-    }
-
-    private void assertStudentLists(List<Student> expected, List<Student> result) {
-        if (ObjectUtils.isEmpty(expected)) {
-            assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i)));
-    }
-
-    private void assertCourseEquals(Course expected, Course result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getName()).isEqualTo(result.getName());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private void assertStudentEquals(Student expected, Student result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
-        assertThat(expected.getLastName()).isEqualTo(result.getLastName());
-        assertThat(expected.getGender()).isEqualTo(result.getGender());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private Course makeTestCourse(Long id) {
-        String name = "courseName";
-        String description = "description";
-        List<Student> students = makeStudents(50);
-        return FakeCourse.builder()
-                .id(id).name(name).description(description).students(students)
-                .build();
-    }
-
-    private List<Student> makeStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
-    }
-
-    private Student makeStudent(int i) {
-        return FakeStudent.builder()
-                .id(i + 200L).firstName("firstName-" + i).lastName("lastName-" + i)
-                .gender("gender-" + i).description("description-" + i)
-                .courses(Collections.emptyList())
-                .build();
-    }
-
-    @Data
-    @Builder
-    private static class FakeStudent implements Student {
-        private Long id;
-        private String firstName;
-        private String lastName;
-        private String gender;
-        private String description;
-        private List<Course> courses;
-    }
-
-    @Data
-    @Builder
-    private static class FakeCourse implements Course {
-        private Long id;
-        private String name;
-        private String description;
-        private List<Student> students;
-    }
 }

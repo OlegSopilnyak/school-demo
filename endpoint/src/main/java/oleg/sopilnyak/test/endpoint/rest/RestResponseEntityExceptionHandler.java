@@ -1,6 +1,9 @@
 package oleg.sopilnyak.test.endpoint.rest;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.CannotRegisterToCourseException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;

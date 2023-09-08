@@ -2,14 +2,12 @@ package oleg.sopilnyak.test.endpoint.rest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
-import lombok.Data;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,14 +20,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.ObjectUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-class StudentsRestControllerTest {
+class StudentsRestControllerTest extends TestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
@@ -106,11 +101,11 @@ class StudentsRestControllerTest {
 
         verify(controller).findEnrolledTo(courseId.toString());
         String responseString = result.getResponse().getContentAsString();
-        List<StudentDto> studentDtos = MAPPER.readValue(responseString, new TypeReference<>() {
-        });
+        List<Student> studentDtos = MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
+        }).stream().map(student -> (Student) student).toList();
 
         assertThat(studentDtos).hasSize(studentsAmount.intValue());
-        assertStudentsList(students, studentDtos);
+        assertStudentLists(students.stream().toList(), studentDtos);
     }
 
     @Test
@@ -131,11 +126,11 @@ class StudentsRestControllerTest {
 
         verify(controller).findNotEnrolledStudents();
         String responseString = result.getResponse().getContentAsString();
-        List<StudentDto> studentDtos = MAPPER.readValue(responseString, new TypeReference<>() {
-        });
+        List<Student> studentDtos = MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
+        }).stream().map(student -> (Student) student).toList();
 
         assertThat(studentDtos).hasSize(studentsAmount.intValue());
-        assertStudentsList(students, studentDtos);
+        assertStudentLists(students.stream().toList(), studentDtos);
     }
 
     @Test
@@ -311,96 +306,5 @@ class StudentsRestControllerTest {
 
         assertThat(409).isEqualTo(error.getErrorCode());
         assertThat("Cannot delete student for id = 104").isEqualTo(error.getErrorMessage());
-    }
-
-    private void assertStudentsList(Set<Student> expected, List<StudentDto> result) {
-        result.forEach(dto -> assertStudentsForSet(expected, dto));
-    }
-
-    private void assertStudentsForSet(Set<Student> expected, StudentDto dto) {
-        Optional<Student> courseExpected = expected.stream().filter(course -> course.getId().equals(dto.getId())).findFirst();
-        assertThat(courseExpected).isNotEmpty();
-        assertStudentEquals(dto, courseExpected.get());
-    }
-
-    private void assertCourseLists(List<Course> expected, List<Course> result) {
-        if (ObjectUtils.isEmpty(expected)) {
-            assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i)));
-    }
-
-    private void assertCourseEquals(Course expected, Course result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getName()).isEqualTo(result.getName());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private void assertStudentEquals(Student expected, Student result) {
-        assertThat(expected.getId()).isEqualTo(result.getId());
-        assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
-        assertThat(expected.getLastName()).isEqualTo(result.getLastName());
-        assertThat(expected.getGender()).isEqualTo(result.getGender());
-        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-    }
-
-    private List<Student> makeStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
-    }
-
-    private Student makeStudent(int i) {
-        return FakeStudent.builder()
-                .id(i + 110L).firstName("firstName-" + i).lastName("lastName-" + i)
-                .gender("gender-" + i).description("description-" + i)
-                .courses(Collections.emptyList())
-                .build();
-    }
-
-    private Student makeTestStudent(Long id) {
-        String firstName = "firstName";
-        String lastName = "lastName";
-        String gender = "gender";
-        String description = "description";
-        List<Course> courses = makeCourses(5);
-        return FakeStudent.builder()
-                .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
-                .courses(courses)
-                .build();
-    }
-
-    private List<Course> makeCourses(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1)).toList();
-    }
-
-    private Course makeCourse(int i) {
-        return FakeCourse.builder()
-                .id(i + 200L)
-                .name("name-" + i)
-                .description("description-" + i)
-                .students(Collections.emptyList())
-                .build();
-    }
-
-
-    @Data
-    @Builder
-    private static class FakeStudent implements Student {
-        private Long id;
-        private String firstName;
-        private String lastName;
-        private String gender;
-        private String description;
-        private List<Course> courses;
-    }
-
-    @Data
-    @Builder
-    private static class FakeCourse implements Course {
-        private Long id;
-        private String name;
-        private String description;
-        private List<Student> students;
     }
 }

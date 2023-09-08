@@ -15,17 +15,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+import static java.util.Objects.isNull;
+
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping("/students")
+@RequestMapping(RequestMappingRoot.STUDENTS)
 public class StudentsRestController {
+    public static final String COURSE_VAR_NAME = "courseId";
+    public static final String STUDENT_VAR_NAME = "studentId";
     // delegate for requests processing
     private final StudentsFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
-    @GetMapping("/{studentId}")
-    public ResponseEntity<StudentDto> findStudent(@PathVariable("studentId") String studentId) {
+    @GetMapping("/{" + STUDENT_VAR_NAME + "}")
+    public ResponseEntity<StudentDto> findStudent(@PathVariable(STUDENT_VAR_NAME) String studentId) {
         log.debug("Trying to get student by Id: '{}'", studentId);
         try {
             Long id = Long.parseLong(studentId);
@@ -42,8 +46,8 @@ public class StudentsRestController {
         }
     }
 
-    @GetMapping("/enrolled/{courseId}")
-    public ResponseEntity<List<StudentDto>> findEnrolledTo(@PathVariable("courseId") String courseId) {
+    @GetMapping("/enrolled/{" + COURSE_VAR_NAME + "}")
+    public ResponseEntity<List<StudentDto>> findEnrolledTo(@PathVariable(COURSE_VAR_NAME) String courseId) {
         log.debug("Trying to get students for course Id: '{}'", courseId);
         try {
             Long id = Long.parseLong(courseId);
@@ -85,7 +89,7 @@ public class StudentsRestController {
         log.debug("Trying to update the student {}", student);
         try {
             Long id = student.getId();
-            if (id == null || id <= 0) {
+            if (isInvalid(id)) {
                 throw new ResourceNotFoundException("Wrong student-id: '" + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(student)));
@@ -96,8 +100,8 @@ public class StudentsRestController {
         }
     }
 
-    @DeleteMapping("/{studentId}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable("studentId") String studentId) {
+    @DeleteMapping("/{" + STUDENT_VAR_NAME + "}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable(STUDENT_VAR_NAME) String studentId) {
         log.debug("Trying to delete student by Id: '{}'", studentId);
         try {
             Long id = Long.parseLong(studentId);
@@ -127,14 +131,20 @@ public class StudentsRestController {
         return registeredFor.stream()
                 .map(mapper::toDto)
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(StudentDto::getFullName)).toList();
+                .sorted(Comparator.comparing(StudentDto::getFullName))
+                .toList();
     }
 
     private StudentDto resultToDto(String studentId, Optional<Student> student) {
         log.debug("Converting {} to DTO for student-id '{}'", student, studentId);
         return mapper.toDto(
-                student.orElseThrow(() -> new ResourceNotFoundException("Course with id: " + studentId + " is not found"))
+                student.orElseThrow(() -> new ResourceNotFoundException("Student with id: " + studentId + " is not found"))
         );
     }
+
+    private static boolean isInvalid(Long id) {
+        return isNull(id) || id <= 0;
+    }
+
 
 }
