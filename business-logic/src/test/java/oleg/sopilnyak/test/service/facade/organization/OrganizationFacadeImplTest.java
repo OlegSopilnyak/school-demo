@@ -100,9 +100,9 @@ class OrganizationFacadeImplTest {
     private CommandsFactory buildFactory() {
         return new SchoolCommandsFactory(
                 Map.of(
-                        AuthorityPersonCommandFacade.FIND_ALL, spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
-                        FacultyCommandFacade.FIND_ALL, spy(new FindAllFacultiesCommand(persistenceFacade)),
-                        StudentsGroupCommandFacade.FIND_ALL, spy(new FindAllStudentsGroupsCommand(persistenceFacade))
+                        AuthorityPersonCommandFacade.FIND_ALL, new FindAllAuthorityPersonsCommand(persistenceFacade),
+                        FacultyCommandFacade.FIND_ALL, new FindAllFacultiesCommand(persistenceFacade),
+                        StudentsGroupCommandFacade.FIND_ALL, new FindAllStudentsGroupsCommand(persistenceFacade)
                 )
         );
     }

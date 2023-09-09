@@ -35,8 +35,10 @@ public class CreateOrUpdateCourseCommand implements SchoolCommand<Optional<Cours
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
+            log.error("Cannot create or update course by ID:{}", parameter, e);
+            return CommandResult.<Optional<Course>>builder()
+                    .result(Optional.of(Optional.empty()))
+                    .exception(e).success(false).build();
         }
     }
 }
