@@ -12,6 +12,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static java.util.Objects.isNull;
+
 /**
  * Class-Utility: common classes and method to test model behavior
  */
@@ -102,6 +104,7 @@ public class TestModelFactory {
                 .firstName("firstName-" + i).lastName("lastName-" + i).gender("gender-" + i)
                 .build();
     }
+
     protected AuthorityPerson makeTestAuthorityPerson(Long personId) {
         String firstName = "firstName";
         String lastName = "lastName";
@@ -137,13 +140,15 @@ public class TestModelFactory {
         Assertions.assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         Assertions.assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
-    protected Faculty makeTestFaculty(Long id){
+
+    protected Faculty makeTestFaculty(Long id) {
         return FakeFaculty.builder()
                 .id(id).name("faculty-id-" + id)
-                .dean(makeAuthorityPerson((int)(id-200)))
+                .dean(makeAuthorityPerson((int) (isNull(id) ? 401 : id - 200)))
                 .courses(makeCourses(2))
                 .build();
     }
+
     protected Faculty makeFaculty(int i) {
         return FakeFaculty.builder()
                 .id(i + 400L).name("faculty-" + i)
@@ -151,17 +156,20 @@ public class TestModelFactory {
                 .courses(makeCourses(5))
                 .build();
     }
+
     protected Collection<Faculty> makeFaculties(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeFaculty(i + 1))
                 .sorted(Comparator.comparing(Faculty::getName))
                 .toList();
     }
+
     protected void assertFacultyEquals(Faculty expected, Faculty result) {
         Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
         assertAuthorityPersonEquals(expected.getDean(), result.getDean());
         assertCourseLists(expected.getCourses(), result.getCourses());
     }
+
     protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result) {
         if (ObjectUtils.isEmpty(expected)) {
             Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
@@ -169,6 +177,46 @@ public class TestModelFactory {
         }
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i)));
+    }
+
+    protected StudentsGroup makeTestStudentsGroup(Long id) {
+        List<Student> students = makeStudents(2);
+        return FakeStudentsGroup.builder()
+                .id(id).name("students-group-id-" + id)
+                .leader(students.get(0))
+                .students(students)
+                .build();
+    }
+
+    protected StudentsGroup makeStudentsGroup(int i) {
+        List<Student> students = makeStudents(5);
+        return FakeStudentsGroup.builder()
+                .id(i + 500L).name("students-group-" + i)
+                .leader(students.get(0))
+                .students(students)
+                .build();
+    }
+
+    protected Collection<StudentsGroup> makeStudentsGroups(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeStudentsGroup(i + 1))
+                .sorted(Comparator.comparing(StudentsGroup::getName))
+                .toList();
+    }
+
+    protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result) {
+        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
+        assertStudentEquals(expected.getLeader(), result.getLeader());
+        assertStudentLists(expected.getStudents(), result.getStudents());
+    }
+
+    protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result) {
+        if (ObjectUtils.isEmpty(expected)) {
+            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
+            return;
+        }
+        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i)));
     }
 
 

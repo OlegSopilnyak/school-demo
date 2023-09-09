@@ -57,7 +57,7 @@ public class FacultiesRestController {
 
     @PostMapping
     public ResponseEntity<FacultyDto> create(@RequestBody FacultyDto facultyDto) {
-        log.debug("Trying to create the authority person {}", facultyDto);
+        log.debug("Trying to create the faculty {}", facultyDto);
         try {
             facultyDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateFaculty(facultyDto)));

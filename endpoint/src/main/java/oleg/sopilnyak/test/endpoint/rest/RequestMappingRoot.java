@@ -8,4 +8,5 @@ public interface RequestMappingRoot {
     String STUDENTS = "/students";
     String AUTHORITIES = "/authorities";
     String FACULTIES = "/faculties";
+    String STUDENT_GROUPS = "/student-groups";
 }
