@@ -31,7 +31,7 @@ public class FacultiesRestController {
     public ResponseEntity<List<FacultyDto>> findAll() {
         log.debug("Trying to get all school's faculties");
         try {
-            return ResponseEntity.ok(resultToDto(facade.findAllFaculty()));
+            return ResponseEntity.ok(resultToDto(facade.findAllFaculties()));
         } catch (Exception e) {
             throw new RuntimeException("Cannot get all school's faculties", e);
         }

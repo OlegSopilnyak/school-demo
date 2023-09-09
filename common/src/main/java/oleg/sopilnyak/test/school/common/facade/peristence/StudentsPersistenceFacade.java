@@ -1,0 +1,37 @@
+package oleg.sopilnyak.test.school.common.facade.peristence;
+
+import oleg.sopilnyak.test.school.common.model.Student;
+
+import java.util.Optional;
+
+public interface StudentsPersistenceFacade {
+    /**
+     * To find student by id
+     *
+     * @param id system-id of the student
+     * @return student instance or empty() if not exists
+     * @see Student
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<Student> findStudentById(Long id);
+
+    /**
+     * Create or update student
+     *
+     * @param student student instance to store
+     * @return student instance or empty(), if instance couldn't store
+     * @see Student
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<Student> save(Student student);
+
+    /**
+     * Delete student by id
+     *
+     * @param studentId system-id of the student
+     * @return true if student deletion successfully
+     */
+    boolean deleteStudent(Long studentId);
+}

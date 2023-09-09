@@ -55,7 +55,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldFindAllFaculties() throws Exception {
         int personsAmount = 10;
         Collection<Faculty> faculties = makeFaculties(personsAmount);
-        when(facade.findAllFaculty()).thenReturn(faculties);
+        when(facade.findAllFaculties()).thenReturn(faculties);
         String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
@@ -68,7 +68,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).findAllFaculty();
+        verify(facade).findAllFaculties();
         String responseString = result.getResponse().getContentAsString();
 
         List<Faculty> facultyDtos = MAPPER.readValue(responseString, new TypeReference<List<FacultyDto>>() {

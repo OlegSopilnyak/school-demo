@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.student;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
@@ -16,7 +16,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 public class FindEnrolledStudentsCommand implements SchoolCommand<Set<Student>> {
-    private final PersistenceFacade persistenceFacade;
+    private final RegisterPersistenceFacade persistenceFacade;
 
     /**
      * To find enrolled students by course-id

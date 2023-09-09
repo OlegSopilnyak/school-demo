@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.course;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
@@ -15,7 +15,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 public class CreateOrUpdateCourseCommand implements SchoolCommand<Optional<Course>> {
-    private final PersistenceFacade persistenceFacade;
+    private final CoursesPersistenceFacade persistenceFacade;
 
     /**
      * To find student by id

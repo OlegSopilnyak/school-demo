@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 public class DeleteStudentCommand implements SchoolCommand<Boolean> {
-    private final PersistenceFacade persistenceFacade;
+    private final StudentsPersistenceFacade persistenceFacade;
 
     /**
      * To find enrolled students by course-id

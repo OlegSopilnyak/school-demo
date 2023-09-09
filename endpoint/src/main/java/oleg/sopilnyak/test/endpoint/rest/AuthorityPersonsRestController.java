@@ -31,7 +31,7 @@ public class AuthorityPersonsRestController {
     public ResponseEntity<List<AuthorityPersonDto>> findAll() {
         log.debug("Trying to get all school's authorities");
         try {
-            return ResponseEntity.ok(resultToDto(facade.findAllAuthorityPerson()));
+            return ResponseEntity.ok(resultToDto(facade.findAllAuthorityPersons()));
         } catch (Exception e) {
             throw new RuntimeException("Cannot get all school's authorities", e);
         }

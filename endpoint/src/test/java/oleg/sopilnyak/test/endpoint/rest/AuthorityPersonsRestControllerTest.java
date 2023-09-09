@@ -57,7 +57,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldFindAllAuthorities() throws Exception {
         int personsAmount = 10;
         Collection<AuthorityPerson> staff = makeAuthorityPersons(personsAmount);
-        when(facade.findAllAuthorityPerson()).thenReturn(staff);
+        when(facade.findAllAuthorityPersons()).thenReturn(staff);
         String requestPath = RequestMappingRoot.AUTHORITIES;
 
         MvcResult result =
@@ -70,7 +70,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).findAllAuthorityPerson();
+        verify(facade).findAllAuthorityPersons();
         String responseString = result.getResponse().getContentAsString();
 
         List<AuthorityPerson> authorityPersonDtos = MAPPER.readValue(responseString, new TypeReference<List<AuthorityPersonDto>>() {

@@ -20,7 +20,7 @@ public interface OrganizationFacade {
      * @see AuthorityPerson
      * @return list of persons
      */
-    Collection<AuthorityPerson> findAllAuthorityPerson();
+    Collection<AuthorityPerson> findAllAuthorityPersons();
 
     /**
      * To get the authorityPerson by ID
@@ -70,7 +70,7 @@ public interface OrganizationFacade {
      * @see Faculty
      * @return list of faculties
      */
-    Collection<Faculty> findAllFaculty();
+    Collection<Faculty> findAllFaculties();
 
     /**
      * To get the faculty by ID
@@ -120,7 +120,7 @@ public interface OrganizationFacade {
      * @see StudentsGroup
      * @return list of faculties
      */
-    Collection<StudentsGroup> findAllStudentsGroup();
+    Collection<StudentsGroup> findAllStudentsGroups();
     /**
      * To get the students group by ID
      *

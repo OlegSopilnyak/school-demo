@@ -31,7 +31,7 @@ public class StudentsGroupsRestController {
     public ResponseEntity<List<StudentsGroupDto>> findAll() {
         log.debug("Trying to get all school's students groups");
         try {
-            return ResponseEntity.ok(resultToDto(facade.findAllStudentsGroup()));
+            return ResponseEntity.ok(resultToDto(facade.findAllStudentsGroups()));
         } catch (Exception e) {
             throw new RuntimeException("Cannot get all school's students groups", e);
         }

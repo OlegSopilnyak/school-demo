@@ -54,7 +54,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     void shouldFindAllStudentsGroups() throws Exception {
         int groupsAmount = 5;
         Collection<StudentsGroup> studentsGroups = makeStudentsGroups(groupsAmount);
-        when(facade.findAllStudentsGroup()).thenReturn(studentsGroups);
+        when(facade.findAllStudentsGroups()).thenReturn(studentsGroups);
         String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
@@ -67,7 +67,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).findAllStudentsGroup();
+        verify(facade).findAllStudentsGroups();
         String responseString = result.getResponse().getContentAsString();
 
         List<StudentsGroup> studentsGroupDtos = MAPPER.readValue(responseString, new TypeReference<List<StudentsGroupDto>>() {
