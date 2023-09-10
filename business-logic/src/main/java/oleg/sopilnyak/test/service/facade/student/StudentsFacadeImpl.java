@@ -13,7 +13,8 @@ import oleg.sopilnyak.test.service.command.SchoolCommand;
 import java.util.Optional;
 import java.util.Set;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.executeSimpleCommand;
+import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
 
 /**
  * Service: To process command for school's student-facade
@@ -81,8 +82,8 @@ public class StudentsFacadeImpl implements StudentCommandFacade {
     @Override
     public boolean delete(Long studentId) throws StudentNotExistsException, StudentWithCoursesException {
         String commandId = DELETE;
-        SchoolCommand<Boolean> command = factory.command(commandId);
-        CommandResult<Boolean> cmdResult = command.execute(studentId);
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> cmdResult = command.execute(studentId);
         if (cmdResult.isSuccess()) {
             return cmdResult.getResult().orElseThrow(CommandExecutor.throwFor(commandId));
         } else {

@@ -99,19 +99,23 @@ public class TestModelFactory {
     }
 
     protected AuthorityPerson makeAuthorityPerson(int i) {
+        Faculty faculty = makeFacultyNoDean(0);
         return FakeAuthorityPerson.builder()
                 .id(i + 300L).title("assistant-" + i)
                 .firstName("firstName-" + i).lastName("lastName-" + i).gender("gender-" + i)
+                .faculties(List.of(faculty))
                 .build();
     }
 
     protected AuthorityPerson makeTestAuthorityPerson(Long personId) {
+        Faculty faculty = makeFacultyNoDean(1);
         String firstName = "firstName";
         String lastName = "lastName";
         String gender = "gender";
         String title = "assistant";
         return FakeAuthorityPerson.builder()
                 .id(personId).title(title).firstName(firstName).lastName(lastName).gender(gender)
+                .faculties(List.of(faculty))
                 .build();
     }
 
@@ -156,6 +160,13 @@ public class TestModelFactory {
                 .courses(makeCourses(5))
                 .build();
     }
+    private Faculty makeFacultyNoDean(int i) {
+        return FakeFaculty.builder()
+                .id(i + 400L).name("faculty-" + i)
+                .courses(makeCourses(5))
+                .build();
+    }
+
 
     protected Collection<Faculty> makeFaculties(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeFaculty(i + 1))
@@ -248,6 +259,7 @@ public class TestModelFactory {
         private String firstName;
         private String lastName;
         private String gender;
+        List<Faculty> faculties;
     }
 
     @Data

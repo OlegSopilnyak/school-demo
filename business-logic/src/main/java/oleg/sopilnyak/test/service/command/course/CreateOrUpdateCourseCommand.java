@@ -20,7 +20,7 @@ public class CreateOrUpdateCourseCommand implements SchoolCommand<Optional<Cours
     /**
      * To find student by id
      *
-     * @param parameter system student-id
+     * @param parameter student instance
      * @return execution's result
      */
     @Override
@@ -29,7 +29,7 @@ public class CreateOrUpdateCourseCommand implements SchoolCommand<Optional<Cours
             log.debug("Trying to create or update course {}", parameter);
             Course updated = (Course) parameter;
             Optional<Course> course = persistenceFacade.save(updated);
-            log.debug("Got stored student {} from parameter {}", course, updated);
+            log.debug("Got stored course {} from parameter {}", course, updated);
             return CommandResult.<Optional<Course>>builder()
                     .result(Optional.ofNullable(course))
                     .success(true)

@@ -21,9 +21,9 @@ public class DeleteCourseCommand implements SchoolCommand<Boolean> {
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**
-     * To find student by id
+     * To delete course by id
      *
-     * @param parameter system student-id
+     * @param parameter system course-id
      * @return execution's result
      */
     @Override

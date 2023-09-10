@@ -17,7 +17,8 @@ import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupComma
 import java.util.Collection;
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.executeSimpleCommand;
+import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
 
 /**
  * Service: To process commands for school's organization structure
@@ -75,8 +76,8 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
     @Override
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotExistsException, AuthorityPersonManageFacultyException {
         String commandId = AuthorityPersonCommandFacade.DELETE;
-        SchoolCommand<Boolean> command = factory.command(commandId);
-        CommandResult<Boolean> cmdResult = command.execute(id);
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
             log.warn("Something went wrong", executionException);
@@ -85,7 +86,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
             } else if (executionException instanceof AuthorityPersonManageFacultyException) {
                 throw (AuthorityPersonManageFacultyException) executionException;
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                throwFor(commandId, cmdResult.getException());
             }
         }
     }
@@ -149,7 +150,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
             } else if (executionException instanceof FacultyIsNotEmptyException) {
                 throw (FacultyIsNotEmptyException) executionException;
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                throwFor(commandId, cmdResult.getException());
             }
         }
     }
@@ -213,7 +214,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
             } else if (executionException instanceof StudentGroupWithStudentsException) {
                 throw (StudentGroupWithStudentsException) executionException;
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                throwFor(commandId, cmdResult.getException());
             }
         }
     }

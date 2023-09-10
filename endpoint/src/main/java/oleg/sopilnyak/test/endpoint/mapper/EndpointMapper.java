@@ -51,6 +51,7 @@ public interface EndpointMapper {
      * @param person instance to convert
      * @return DTO instance
      */
+    @Mapping(source = "faculties", target = "faculties", qualifiedByName = "toFacultyDtos")
     AuthorityPersonDto toDto(AuthorityPerson person);
 
     /**
@@ -61,6 +62,7 @@ public interface EndpointMapper {
      */
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
     FacultyDto toDto(Faculty faculty);
+
     /**
      * Convert model-type to DTO
      *
@@ -81,6 +83,9 @@ public interface EndpointMapper {
     @Mapping(expression = "java(null)", target = "courses")
     StudentDto toDtoShort(Student student);
 
+    @Mapping(expression = "java(null)", target = "courses")
+    FacultyDto toDtoShort(Faculty faculty);
+
     @Named("toCourseDtos")
     default List<Course> toCoursesDto(List<Course> courses) {
         return courses == null ? Collections.emptyList() : courses.stream().map(course -> (Course) toDtoShort(course)).toList();
@@ -91,4 +96,8 @@ public interface EndpointMapper {
         return students == null ? Collections.emptyList() : students.stream().map(student -> (Student) toDtoShort(student)).toList();
     }
 
+    @Named("toFacultyDtos")
+    default List<Faculty> toFacultyDto(List<Faculty> faculties) {
+        return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toDtoShort(faculty)).toList();
+    }
 }

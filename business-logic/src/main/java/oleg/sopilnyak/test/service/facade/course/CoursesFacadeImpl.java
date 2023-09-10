@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static oleg.sopilnyak.test.service.command.CommandExecutor.executeSimpleCommand;
+import static oleg.sopilnyak.test.service.command.CommandExecutor.takeValidCommand;
 
 /**
  * Service: To process command for school's student-facade
@@ -80,8 +81,8 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
     @Override
     public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
         String commandId = DELETE;
-        SchoolCommand<Boolean> command = factory.command(commandId);
-        CommandResult<Boolean> cmdResult = command.execute(courseId);
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> cmdResult = command.execute(courseId);
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
             log.warn("Something went wrong", executionException);

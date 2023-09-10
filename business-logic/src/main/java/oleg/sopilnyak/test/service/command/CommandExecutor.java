@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.service.CommandsFactory;
 
 import java.util.function.Supplier;
 
-import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Class-utility: School command executor
@@ -23,15 +23,25 @@ public final class CommandExecutor {
      * @return result of command execution
      */
     public static <T> T executeSimpleCommand(String commandId, Object option, CommandsFactory factory) {
+        final SchoolCommand<T> command = takeValidCommand(commandId, factory);
+        final CommandResult<T> cmdResult = command.execute(option);
+        return cmdResult.isSuccess() ?
+                cmdResult.getResult().orElseThrow(throwFor(commandId)) :
+                throwFor(commandId, cmdResult.getException());
+    }
+
+    /**
+     * To valid command from factory or throw RuntimeException
+     *
+     * @param commandId id of the command to take
+     * @param factory commands factory
+     * @return valid taken command
+     * @param <T> type of command result
+     */
+    public static <T> SchoolCommand<T> takeValidCommand(String commandId, CommandsFactory factory) {
         final SchoolCommand<T> command = factory.command(commandId);
-        if (isNull(command)) {
-            return throwFor(commandId, new Exception("Command '" + commandId + "' is not registered in factory."));
-        } else {
-            final CommandResult<T> cmdResult = command.execute(option);
-            return cmdResult.isSuccess() ?
-                    cmdResult.getResult().orElseThrow(throwFor(commandId)) :
-                    throwFor(commandId, cmdResult.getException());
-        }
+        return nonNull(command) ? command :
+                throwFor(commandId, new Exception("Command '" + commandId + "' is not registered in factory."));
     }
 
     /**

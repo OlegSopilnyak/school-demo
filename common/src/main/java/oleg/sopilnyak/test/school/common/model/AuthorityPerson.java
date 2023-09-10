@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import java.util.List;
+
 /**
  * Model: Type for the authority person in the school
  */
@@ -38,6 +40,13 @@ public interface AuthorityPerson {
      * @return gender value
      */
     String getGender();
+
+    /**
+     * To get the list of faculties where person is a dean
+     *
+     * @return list of faculties
+     */
+    List<Faculty> getFaculties();
 
     /**
      * To get full-name of the student
