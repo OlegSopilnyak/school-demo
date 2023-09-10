@@ -13,14 +13,13 @@ dependencies {
     implementation project(":common")
 
     implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"
-    testImplementation project(path: ':common')
-    testImplementation project(path: ':common')
     compileOnly group: 'org.mapstruct', name: 'mapstruct-jdk8', version: "${mapstructVersion}"
     compileOnly group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
     annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
 
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
 
+    testImplementation testFixtures(project(":common"))
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 }
 bootJar {

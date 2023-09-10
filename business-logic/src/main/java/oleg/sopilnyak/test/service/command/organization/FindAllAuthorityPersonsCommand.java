@@ -36,7 +36,9 @@ public class FindAllAuthorityPersonsCommand implements SchoolCommand<Set<Authori
                     .build();
         } catch (Exception e) {
             log.error("Cannot find any authority person", e);
-            return CommandResult.<Set<AuthorityPerson>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Set<AuthorityPerson>>builder()
+                    .result(Optional.of(Set.of()))
+                    .exception(e).success(false).build();
         }
     }
 }

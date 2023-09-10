@@ -1,10 +1,10 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'java-test-fixtures' // to export java test helper/data "fixture" classes for other projects to re-use in their tests...
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 dependencies {
-
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
+    testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
 }
 //bootJar {
 //    enabled = false

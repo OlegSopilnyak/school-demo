@@ -26,7 +26,7 @@ public class CreateOrUpdateStudentCommand implements SchoolCommand<Optional<Stud
     @Override
     public CommandResult<Optional<Student>> execute(Object parameter) {
         try {
-            log.debug("Trying to find enrolled students by the course ID:{}", parameter);
+            log.debug("Trying to update student:{}", parameter);
             Student student = (Student) parameter;
             Optional<Student> resultStudent = persistenceFacade.save(student);
             log.debug("Got student {}", resultStudent);
@@ -35,8 +35,10 @@ public class CreateOrUpdateStudentCommand implements SchoolCommand<Optional<Stud
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Optional<Student>>builder().result(Optional.empty()).exception(e).success(false).build();
+            log.error("Cannot update the student:{}", parameter, e);
+            return CommandResult.<Optional<Student>>builder()
+                    .result(Optional.of(Optional.empty()))
+                    .exception(e).success(false).build();
         }
     }
 }
