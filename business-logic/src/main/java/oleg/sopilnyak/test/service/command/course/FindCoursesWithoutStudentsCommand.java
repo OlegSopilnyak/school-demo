@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
 import java.util.Optional;
 import java.util.Set;
@@ -39,5 +40,15 @@ public class FindCoursesWithoutStudentsCommand implements SchoolCommand<Set<Cour
             return CommandResult.<Set<Course>>builder()
                     .result(Optional.of(Set.of())).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CourseCommandsFacade.FIND_NOT_REGISTERED;
     }
 }

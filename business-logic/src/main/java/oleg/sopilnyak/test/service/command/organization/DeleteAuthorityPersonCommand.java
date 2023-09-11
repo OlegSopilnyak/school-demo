@@ -4,19 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
-import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
-import org.springframework.util.ObjectUtils;
+import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 
 import java.util.Optional;
-
-import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * Command-Implementation: command to delete the authority person by id
@@ -42,7 +36,7 @@ public class DeleteAuthorityPersonCommand implements SchoolCommand<Boolean> {
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new AuthorityPersonIsNotExistsException("AuthorityPerson with ID:" + id + " is not exists."))
                         .success(false).build();
-            }else if (!person.get().getFaculties().isEmpty()) {
+            } else if (!person.get().getFaculties().isEmpty()) {
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new AuthorityPersonManageFacultyException("AuthorityPerson with ID:" + id + " is managing faculties."))
                         .success(false).build();
@@ -60,5 +54,15 @@ public class DeleteAuthorityPersonCommand implements SchoolCommand<Boolean> {
             return CommandResult.<Boolean>builder().result(Optional.empty())
                     .exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return AuthorityPersonCommandFacade.DELETE;
     }
 }

@@ -4,19 +4,16 @@ import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
-import oleg.sopilnyak.test.service.command.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.course.*;
 import oleg.sopilnyak.test.service.command.student.*;
-import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
-import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Map;
+import java.util.Set;
 
 @Configuration
 public class BusinessLogicConfiguration {
@@ -30,12 +27,13 @@ public class BusinessLogicConfiguration {
     @Bean
     public SchoolCommandsFactory studentsCommandFactory() {
         return new SchoolCommandsFactory(
-                Map.of(
-                        StudentCommandFacade.FIND_BY_ID, new FindStudentCommand(persistenceFacade),
-                        StudentCommandFacade.FIND_ENROLLED, new FindEnrolledStudentsCommand(persistenceFacade),
-                        StudentCommandFacade.FIND_NOT_ENROLLED, new FindNotEnrolledStudentsCommand(persistenceFacade),
-                        StudentCommandFacade.CREATE_OR_UPDATE, new CreateOrUpdateStudentCommand(persistenceFacade),
-                        StudentCommandFacade.DELETE, new DeleteStudentCommand(persistenceFacade)
+                Set.of(
+                        new CreateOrUpdateStudentCommand(persistenceFacade),
+                        new DeleteStudentCommand(persistenceFacade),
+                        new FindStudentCommand(persistenceFacade),
+                        new FindEnrolledStudentsCommand(persistenceFacade),
+                        new FindNotEnrolledStudentsCommand(persistenceFacade),
+                        new FindStudentCommand(persistenceFacade)
                 )
         );
     }
@@ -48,14 +46,14 @@ public class BusinessLogicConfiguration {
     @Bean
     public SchoolCommandsFactory coursesCommandFactory() {
         return new SchoolCommandsFactory(
-                Map.of(
-                        CourseCommandsFacade.FIND_BY_ID, new FindCourseCommand(persistenceFacade),
-                        CourseCommandsFacade.FIND_REGISTERED, new FindRegisteredCoursesCommand(persistenceFacade),
-                        CourseCommandsFacade.FIND_NOT_REGISTERED, new FindCoursesWithoutStudentsCommand(persistenceFacade),
-                        CourseCommandsFacade.CREATE_OR_UPDATE, new CreateOrUpdateCourseCommand(persistenceFacade),
-                        CourseCommandsFacade.DELETE, new DeleteCourseCommand(persistenceFacade),
-                        CourseCommandsFacade.REGISTER, new RegisterStudentToCourseCommand(persistenceFacade, maximumRooms, coursesExceed),
-                        CourseCommandsFacade.UN_REGISTER, new UnRegisterStudentFromCourseCommand(persistenceFacade)
+                Set.of(
+                        new CreateOrUpdateCourseCommand(persistenceFacade),
+                        new DeleteCourseCommand(persistenceFacade),
+                        new FindCourseCommand(persistenceFacade),
+                        new FindCoursesWithoutStudentsCommand(persistenceFacade),
+                        new FindRegisteredCoursesCommand(persistenceFacade),
+                        new RegisterStudentToCourseCommand(persistenceFacade, maximumRooms, coursesExceed),
+                        new UnRegisterStudentFromCourseCommand(persistenceFacade)
                 )
         );
     }

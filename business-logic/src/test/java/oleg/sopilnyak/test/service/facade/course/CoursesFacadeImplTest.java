@@ -117,14 +117,14 @@ class CoursesFacadeImplTest {
 
     private CommandsFactory buildFactory() {
         return new SchoolCommandsFactory(
-                Map.of(
-                        CourseCommandsFacade.FIND_BY_ID, spy(new FindCourseCommand(persistenceFacade)),
-                        CourseCommandsFacade.FIND_REGISTERED, spy(new FindRegisteredCoursesCommand(persistenceFacade)),
-                        CourseCommandsFacade.FIND_NOT_REGISTERED, spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
-                        CourseCommandsFacade.CREATE_OR_UPDATE, spy(new CreateOrUpdateCourseCommand(persistenceFacade)),
-                        CourseCommandsFacade.DELETE, spy(new DeleteCourseCommand(persistenceFacade)),
-                        CourseCommandsFacade.REGISTER, spy(new RegisterStudentToCourseCommand(persistenceFacade, 50, 5)),
-                        CourseCommandsFacade.UN_REGISTER, spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
+                Set.of(
+                        new FindCourseCommand(persistenceFacade),
+                        new FindRegisteredCoursesCommand(persistenceFacade),
+                        new FindCoursesWithoutStudentsCommand(persistenceFacade),
+                        new CreateOrUpdateCourseCommand(persistenceFacade),
+                        new DeleteCourseCommand(persistenceFacade),
+                        new RegisterStudentToCourseCommand(persistenceFacade, 50, 5),
+                        new UnRegisterStudentFromCourseCommand(persistenceFacade)
                 )
         );
     }

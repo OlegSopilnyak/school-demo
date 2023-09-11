@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
 
 import java.util.Optional;
 import java.util.Set;
@@ -38,5 +39,15 @@ public class FindAllStudentsGroupsCommand implements SchoolCommand<Set<StudentsG
             log.error("Cannot find any students group", e);
             return CommandResult.<Set<StudentsGroup>>builder().result(Optional.empty()).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return StudentsGroupCommandFacade.FIND_ALL;
     }
 }

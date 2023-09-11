@@ -2,12 +2,11 @@ package oleg.sopilnyak.test.service.command.organization;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 
 import java.util.Optional;
 
@@ -42,5 +41,15 @@ public class CreateOrUpdateAuthorityPersonCommand implements SchoolCommand<Optio
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return AuthorityPersonCommandFacade.CREATE_OR_UPDATE;
     }
 }

@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
 import java.util.Optional;
 
@@ -77,6 +78,16 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             log.error("Cannot link student to course {}", parameter, e);
             return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CourseCommandsFacade.REGISTER;
     }
 
     private static boolean isLinked(Student studentInstance, Course courseInstance) {

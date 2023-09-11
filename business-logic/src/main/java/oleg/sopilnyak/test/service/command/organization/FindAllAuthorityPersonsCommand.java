@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 
 import java.util.Optional;
 import java.util.Set;
@@ -40,5 +41,15 @@ public class FindAllAuthorityPersonsCommand implements SchoolCommand<Set<Authori
                     .result(Optional.of(Set.of()))
                     .exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return AuthorityPersonCommandFacade.FIND_ALL;
     }
 }

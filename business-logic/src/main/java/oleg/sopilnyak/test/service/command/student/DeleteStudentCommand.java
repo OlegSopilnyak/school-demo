@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
@@ -52,5 +53,15 @@ public class DeleteStudentCommand implements SchoolCommand<Boolean> {
             log.error("Cannot delete the student by ID:{}", parameter, e);
             return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return StudentCommandFacade.DELETE;
     }
 }

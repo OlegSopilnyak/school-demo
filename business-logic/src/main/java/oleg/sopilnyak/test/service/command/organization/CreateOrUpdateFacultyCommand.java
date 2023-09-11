@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
 
 import java.util.Optional;
 
@@ -38,5 +39,15 @@ public class CreateOrUpdateFacultyCommand implements SchoolCommand<Optional<Facu
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return FacultyCommandFacade.CREATE_OR_UPDATE;
     }
 }

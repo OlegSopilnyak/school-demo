@@ -91,12 +91,12 @@ class StudentsFacadeImplTest {
 
     private CommandsFactory buildFactory() {
         return new SchoolCommandsFactory(
-                Map.of(
-                        StudentCommandFacade.FIND_BY_ID, spy(new FindStudentCommand(persistenceFacade)),
-                        StudentCommandFacade.FIND_ENROLLED, spy(new FindEnrolledStudentsCommand(persistenceFacade)),
-                        StudentCommandFacade.FIND_NOT_ENROLLED, spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
-                        StudentCommandFacade.CREATE_OR_UPDATE, spy(new CreateOrUpdateStudentCommand(persistenceFacade)),
-                        StudentCommandFacade.DELETE, spy(new DeleteStudentCommand(persistenceFacade))
+                Set.of(
+                        new FindStudentCommand(persistenceFacade),
+                        new FindEnrolledStudentsCommand(persistenceFacade),
+                        new FindNotEnrolledStudentsCommand(persistenceFacade),
+                        new CreateOrUpdateStudentCommand(persistenceFacade),
+                        new DeleteStudentCommand(persistenceFacade)
                 )
         );
     }

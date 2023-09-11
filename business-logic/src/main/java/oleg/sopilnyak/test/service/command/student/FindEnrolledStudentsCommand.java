@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 
 import java.util.Optional;
 import java.util.Set;
@@ -39,5 +40,15 @@ public class FindEnrolledStudentsCommand implements SchoolCommand<Set<Student>> 
             log.error("Cannot find the student by ID:{}", parameter, e);
             return CommandResult.<Set<Student>>builder().result(Optional.empty()).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return StudentCommandFacade.FIND_ENROLLED;
     }
 }

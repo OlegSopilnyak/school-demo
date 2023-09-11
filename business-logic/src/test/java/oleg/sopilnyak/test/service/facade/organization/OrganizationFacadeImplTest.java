@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -122,13 +123,13 @@ class OrganizationFacadeImplTest {
     }
     private CommandsFactory buildFactory() {
         return new SchoolCommandsFactory(
-                Map.of(
-                        AuthorityPersonCommandFacade.FIND_ALL, new FindAllAuthorityPersonsCommand(persistenceFacade),
-                        AuthorityPersonCommandFacade.FIND_BY_ID, new FindAuthorityPersonCommand(persistenceFacade),
-                        AuthorityPersonCommandFacade.CREATE_OR_UPDATE, new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
-                        AuthorityPersonCommandFacade.DELETE, new DeleteAuthorityPersonCommand(persistenceFacade),
-                        FacultyCommandFacade.FIND_ALL, new FindAllFacultiesCommand(persistenceFacade),
-                        StudentsGroupCommandFacade.FIND_ALL, new FindAllStudentsGroupsCommand(persistenceFacade)
+                Set.of(
+                        new FindAllAuthorityPersonsCommand(persistenceFacade),
+                        new FindAuthorityPersonCommand(persistenceFacade),
+                        new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
+                        new DeleteAuthorityPersonCommand(persistenceFacade),
+                        new FindAllFacultiesCommand(persistenceFacade),
+                        new FindAllStudentsGroupsCommand(persistenceFacade)
                 )
         );
     }

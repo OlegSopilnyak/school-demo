@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -12,7 +14,11 @@ import java.util.Map;
 @Slf4j
 @AllArgsConstructor
 public class SchoolCommandsFactory implements CommandsFactory {
-    private final Map<String, SchoolCommand<?>> commandsMap;
+    private final Map<String, SchoolCommand<?>> commandsMap = new HashMap<>();
+
+    public SchoolCommandsFactory(Collection<SchoolCommand<?>> commands) {
+        commands.forEach(command -> commandsMap.put(command.getId(), command));
+    }
 
     /**
      * To get command instance by commandId

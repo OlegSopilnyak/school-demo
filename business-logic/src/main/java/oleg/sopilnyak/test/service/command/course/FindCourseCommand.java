@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFac
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
 import java.util.Optional;
 
@@ -38,5 +39,15 @@ public class FindCourseCommand implements SchoolCommand<Optional<Course>> {
             log.error("Cannot find the course by ID:{}", parameter, e);
             return CommandResult.<Optional<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
         }
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CourseCommandsFacade.FIND_BY_ID;
     }
 }

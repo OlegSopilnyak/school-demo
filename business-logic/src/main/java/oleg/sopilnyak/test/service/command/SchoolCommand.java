@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command;
 
 /**
- * Command: entity to execute command
+ * Command: entity to execute the business-logic command
  */
 public interface SchoolCommand<T> {
     /**
@@ -11,4 +11,11 @@ public interface SchoolCommand<T> {
      * @return execution's result
      */
     CommandResult<T> execute(Object parameter);
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    String getId();
 }
