@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Command-Implementation: command to get students registered to the course
+ * Command-Implementation: command to find courses registered to student
  */
 @Slf4j
 @AllArgsConstructor
@@ -19,7 +19,7 @@ public class FindRegisteredCoursesCommand implements SchoolCommand<Set<Course>> 
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
-     * To find student by id
+     * To find courses registered to student by id
      *
      * @param parameter system student-id
      * @return execution's result
@@ -27,17 +27,18 @@ public class FindRegisteredCoursesCommand implements SchoolCommand<Set<Course>> 
     @Override
     public CommandResult<Set<Course>> execute(Object parameter) {
         try {
-            log.debug("Trying to find courses registered to student: {}", parameter);
+            log.debug("Trying to find courses registered to student ID: {}", parameter);
             Long id = (Long) parameter;
             Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
-            log.debug("Got courses {} for student:{}", courses, id);
+            log.debug("Got courses {} for student ID:{}", courses, id);
             return CommandResult.<Set<Course>>builder()
                     .result(Optional.ofNullable(courses))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Set<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
+            log.error("Cannot find courses registered to student ID:{}", parameter, e);
+            return CommandResult.<Set<Course>>builder()
+                    .result(Optional.of(Set.of())).exception(e).success(false).build();
         }
     }
 }

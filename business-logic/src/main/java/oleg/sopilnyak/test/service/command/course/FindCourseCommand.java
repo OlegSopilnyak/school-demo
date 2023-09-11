@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.service.command.SchoolCommand;
 import java.util.Optional;
 
 /**
- * Command-Implementation: command to get student by id
+ * Command-Implementation: command to get course by id
  */
 @Slf4j
 @AllArgsConstructor
@@ -18,9 +18,9 @@ public class FindCourseCommand implements SchoolCommand<Optional<Course>> {
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**
-     * To find student by id
+     * To find course by id
      *
-     * @param parameter system student-id
+     * @param parameter system course-id
      * @return execution's result
      */
     @Override
@@ -29,13 +29,13 @@ public class FindCourseCommand implements SchoolCommand<Optional<Course>> {
             log.debug("Trying to find course by ID:{}", parameter);
             Long id = (Long) parameter;
             Optional<Course> course = persistenceFacade.findCourseById(id);
-            log.debug("Got student {} by ID:{}", course, id);
+            log.debug("Got course {} by ID:{}", course, id);
             return CommandResult.<Optional<Course>>builder()
                     .result(Optional.ofNullable(course))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
+            log.error("Cannot find the course by ID:{}", parameter, e);
             return CommandResult.<Optional<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
         }
     }

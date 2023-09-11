@@ -37,14 +37,14 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             Long[] ids = (Long[]) parameter;
             Long studentId = ids[0];
             Long courseId = ids[1];
-            Optional<Student> student = persistenceFacade.findStudentById(studentId);
-            Optional<Course> course = persistenceFacade.findCourseById(courseId);
+            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new StudentNotExistsException("Student with ID:" + studentId + " is not exists."))
                         .success(false).build();
             }
+            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
                 return CommandResult.<Boolean>builder().result(Optional.empty())
@@ -53,10 +53,7 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             }
             if (isLinked(student.get(), course.get())) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(true))
-                        .success(true)
-                        .build();
+                return CommandResult.<Boolean>builder().result(Optional.of(true)).success(true).build();
             }
             if (course.get().getStudents().size() >= maximumRooms) {
                 log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
@@ -72,23 +69,20 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             }
 
             log.debug("Linking student:{} to course {}", studentId, courseId);
-            boolean success = persistenceFacade.link(student.get(), course.get());
-            log.debug("Linked student:{} to course {} {}", studentId, courseId, success);
+            boolean linked = persistenceFacade.link(student.get(), course.get());
+            log.debug("Linked student:{} to course {} {}", studentId, courseId, linked);
 
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(success))
-                    .success(true)
-                    .build();
+            return CommandResult.<Boolean>builder().result(Optional.of(linked)).success(true).build();
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
         }
     }
 
-    private boolean isLinked(Student student, Course course) {
-        Long studentId = student.getId(), courseId = course.getId();
-        return student.getCourses().stream().anyMatch(c -> studentId.equals(c.getId())) &&
-                course.getStudents().stream().anyMatch(s -> courseId.equals(s.getId()))
+    private static boolean isLinked(Student studentInstance, Course courseInstance) {
+        final Long studentId = studentInstance.getId(), courseId = courseInstance.getId();
+        return studentInstance.getCourses().stream().anyMatch(course -> studentId.equals(course.getId())) &&
+                courseInstance.getStudents().stream().anyMatch(student -> courseId.equals(student.getId()))
                 ;
     }
 }

@@ -29,18 +29,18 @@ public class UnRegisterStudentFromCourseCommand implements SchoolCommand<Boolean
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {
-            log.debug("Trying to un-register student from course: {}", parameter);
+            log.debug("Trying to un-link student from course: {}", parameter);
             Long[] ids = (Long[]) parameter;
             Long studentId = ids[0];
             Long courseId = ids[1];
-            Optional<Student> student = persistenceFacade.findStudentById(studentId);
-            Optional<Course> course = persistenceFacade.findCourseById(courseId);
+            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new StudentNotExistsException("Student with ID:" + studentId + " is not exists."))
                         .success(false).build();
             }
+            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
                 return CommandResult.<Boolean>builder().result(Optional.empty())
@@ -48,14 +48,11 @@ public class UnRegisterStudentFromCourseCommand implements SchoolCommand<Boolean
                         .success(false).build();
             }
 
-            log.debug("Un-linking student:{} from course {}", studentId, courseId);
-            boolean success = persistenceFacade.unLink(student.get(), course.get());
-            log.debug("Un-linked student:{} from course {} {}", studentId, courseId, success);
+            log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
+            boolean unLinked = persistenceFacade.unLink(student.get(), course.get());
+            log.debug("Un-linked student:{} from course-id:{} {}", studentId, courseId, unLinked);
 
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(success))
-                    .success(true)
-                    .build();
+            return CommandResult.<Boolean>builder().result(Optional.of(unLinked)).success(true).build();
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();

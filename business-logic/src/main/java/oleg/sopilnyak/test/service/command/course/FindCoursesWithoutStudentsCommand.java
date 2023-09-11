@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Command-Implementation: command to get students not registered to any course
+ * Command-Implementation: command to find courses without students
  */
 @Slf4j
 @AllArgsConstructor
@@ -19,9 +19,9 @@ public class FindCoursesWithoutStudentsCommand implements SchoolCommand<Set<Cour
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
-     * To find student by id
+     * To find course by id
      *
-     * @param parameter system student-id
+     * @param parameter not used
      * @return execution's result
      */
     @Override
@@ -35,8 +35,9 @@ public class FindCoursesWithoutStudentsCommand implements SchoolCommand<Set<Cour
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Set<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
+            log.error("Cannot find courses without students.", e);
+            return CommandResult.<Set<Course>>builder()
+                    .result(Optional.of(Set.of())).exception(e).success(false).build();
         }
     }
 }
