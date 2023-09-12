@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.CommandExecutor;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
@@ -17,7 +16,6 @@ import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupComma
 import java.util.Collection;
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
 import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
 
 /**
@@ -140,7 +138,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
     @Override
     public void deleteFacultyById(Long id) throws FacultyNotExistsException, FacultyIsNotEmptyException {
         String commandId = FacultyCommandFacade.DELETE;
-        SchoolCommand<Boolean> command = factory.command(commandId);
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
@@ -204,7 +202,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
     @Override
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
         String commandId = StudentsGroupCommandFacade.DELETE;
-        SchoolCommand<Boolean> command = factory.command(commandId);
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();

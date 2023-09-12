@@ -33,11 +33,13 @@ public class DeleteAuthorityPersonCommand implements SchoolCommand<Boolean> {
             Long id = (Long) parameter;
             Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
             if (person.isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new AuthorityPersonIsNotExistsException("AuthorityPerson with ID:" + id + " is not exists."))
                         .success(false).build();
             } else if (!person.get().getFaculties().isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new AuthorityPersonManageFacultyException("AuthorityPerson with ID:" + id + " is managing faculties."))
                         .success(false).build();
             }
@@ -51,7 +53,8 @@ public class DeleteAuthorityPersonCommand implements SchoolCommand<Boolean> {
                     .build();
         } catch (Exception e) {
             log.error("Cannot delete the authority person by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty())
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(false))
                     .exception(e).success(false).build();
         }
     }

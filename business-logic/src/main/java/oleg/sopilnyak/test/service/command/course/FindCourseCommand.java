@@ -37,7 +37,8 @@ public class FindCourseCommand implements SchoolCommand<Optional<Course>> {
                     .build();
         } catch (Exception e) {
             log.error("Cannot find the course by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Optional<Course>>builder()
+                    .result(Optional.of(Optional.empty())).exception(e).success(false).build();
         }
     }
 

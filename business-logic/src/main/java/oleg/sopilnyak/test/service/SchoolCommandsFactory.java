@@ -17,7 +17,7 @@ public class SchoolCommandsFactory implements CommandsFactory {
     private final Map<String, SchoolCommand<?>> commandsMap = new HashMap<>();
 
     public SchoolCommandsFactory(Collection<SchoolCommand<?>> commands) {
-        commands.forEach(command -> commandsMap.put(command.getId(), command));
+        commands.forEach(command -> commandsMap.putIfAbsent(command.getId(), command));
     }
 
     /**
@@ -25,8 +25,9 @@ public class SchoolCommandsFactory implements CommandsFactory {
      *
      * @param commandId command-id
      * @return command instance
+     * @param <T> type of command execution result
      */
-    @SuppressWarnings("unchecked")
+     @SuppressWarnings("unchecked")
     @Override
     public <T> SchoolCommand<T> command(String commandId) {
         return (SchoolCommand<T>) commandsMap.get(commandId);

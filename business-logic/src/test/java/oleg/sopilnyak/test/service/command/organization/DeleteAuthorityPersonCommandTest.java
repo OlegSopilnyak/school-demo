@@ -15,10 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +42,7 @@ class DeleteAuthorityPersonCommandTest {
         assertThat(result.getResult().get()).isTrue();
         assertThat(result.getException()).isNull();
     }
+
     @Test
     void shouldNotExecuteCommand_NoPerson() {
         Long id = 311L;
@@ -52,9 +51,10 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
+        assertThat(result.getResult().get()).isFalse();
         assertThat(result.getException()).isInstanceOf(AuthorityPersonIsNotExistsException.class);
     }
+
     @Test
     void shouldNotExecuteCommand_PersonBusy() {
         Long id = 312L;
@@ -65,11 +65,12 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
+        assertThat(result.getResult().get()).isFalse();
         assertThat(result.getException()).isInstanceOf(AuthorityPersonManageFacultyException.class);
     }
+
     @Test
-    void shouldNotExecuteCommand_CannotDelete() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    void shouldNotExecuteCommand() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
         Long id = 313L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
         doThrow(cannotExecute).when(persistenceFacade).deleteAuthorityPerson(id);
@@ -79,7 +80,7 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
+        assertThat(result.getResult().get()).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

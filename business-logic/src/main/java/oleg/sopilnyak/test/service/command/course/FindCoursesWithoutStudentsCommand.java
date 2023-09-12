@@ -30,7 +30,7 @@ public class FindCoursesWithoutStudentsCommand implements SchoolCommand<Set<Cour
         try {
             log.debug("Trying to find courses without students");
             Set<Course> courses = persistenceFacade.findCoursesWithoutStudents();
-            log.debug("Got empty courses {}", courses);
+            log.debug("Got courses without student {}", courses);
             return CommandResult.<Set<Course>>builder()
                     .result(Optional.ofNullable(courses))
                     .success(true)

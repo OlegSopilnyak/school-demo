@@ -33,11 +33,13 @@ public class DeleteStudentsGroupCommand implements SchoolCommand<Boolean> {
             Long id = (Long) parameter;
             Optional<StudentsGroup> group = persistenceFacade.findStudentsGroupById(id);
             if (group.isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentsGroupNotExistsException("StudentsGroup with ID:" + id + " is not exists."))
                         .success(false).build();
             } else if (!group.get().getStudents().isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentGroupWithStudentsException("StudentsGroup with ID:" + id + " has students."))
                         .success(false).build();
             }
@@ -48,7 +50,8 @@ public class DeleteStudentsGroupCommand implements SchoolCommand<Boolean> {
             return CommandResult.<Boolean>builder().result(Optional.of(true)).success(true).build();
         } catch (Exception e) {
             log.error("Cannot delete the students group by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty())
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(false))
                     .exception(e).success(false).build();
         }
     }

@@ -1,12 +1,170 @@
 package oleg.sopilnyak.test.service.command.course;
 
+import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
+import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.CommandResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class RegisterStudentToCourseCommandTest {
+    @Mock
+    PersistenceFacade persistenceFacade;
+    @Mock
+    Course course;
+    @Mock
+    Student student;
+    RegisterStudentToCourseCommand command;
+
+    @BeforeEach
+    void setUp() {
+        command = new RegisterStudentToCourseCommand(persistenceFacade, 2, 2);
+    }
 
     @Test
-    void execute() {
+    void shouldExecuteCommand() {
+        Long id = 120L;
+        Long[] ids = new Long[]{id, id};
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+        when(persistenceFacade.link(student, course)).thenReturn(true);
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).link(student, course);
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getException()).isNull();
+    }
+
+    @Test
+    void shouldNotExecuteCommand() {
+        Long id = 123L;
+        Long[] ids = new Long[]{id, id};
+        RuntimeException cannotExecute = new RuntimeException("Cannot link");
+        doThrow(cannotExecute).when(persistenceFacade).link(student, course);
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).link(student, course);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getException()).isEqualTo(cannotExecute);
+    }
+
+    @Test
+    void shouldExecuteCommand_AlreadyLinked() {
+        Long id = 125L;
+        Long[] ids = new Long[]{id, id};
+        when(student.getId()).thenReturn(id);
+        when(student.getCourses()).thenReturn(List.of(course));
+        when(course.getId()).thenReturn(id);
+        when(course.getStudents()).thenReturn(List.of(student));
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade, never()).link(student, course);
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getException()).isNull();
+    }
+
+    @Test
+    void shouldNotExecuteCommand_NoStudent() {
+        Long id = 121L;
+        Long[] ids = new Long[]{id, id};
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getException()).isInstanceOf(StudentNotExistsException.class);
+    }
+
+    @Test
+    void shouldNotExecuteCommand_NoCourse() {
+        Long id = 122L;
+        Long[] ids = new Long[]{id, id};
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getException()).isInstanceOf(CourseNotExistsException.class);
+    }
+
+    @Test
+    void shouldNotExecuteCommand_MaximumRooms() {
+        Long id = 126L;
+        Long[] ids = new Long[]{id, id};
+        when(student.getId()).thenReturn(id);
+        when(student.getCourses()).thenReturn(List.of(course));
+        when(course.getStudents()).thenReturn(List.of(student, student));
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade, never()).link(student, course);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getException()).isInstanceOf(NoRoomInTheCourseException.class);
+    }
+
+    @Test
+    void shouldNotExecuteCommand_CoursesExceed() {
+        Long id = 127L;
+        Long[] ids = new Long[]{id, id};
+        when(student.getId()).thenReturn(id);
+        when(student.getCourses()).thenReturn(List.of(course, course));
+        when(course.getStudents()).thenReturn(List.of(student));
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+
+        CommandResult<Boolean> result = command.execute(ids);
+
+        verify(persistenceFacade).findStudentById(id);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade, never()).link(student, course);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getException()).isInstanceOf(StudentCoursesExceedException.class);
     }
 }

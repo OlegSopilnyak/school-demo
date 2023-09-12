@@ -41,30 +41,36 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentNotExistsException("Student with ID:" + studentId + " is not exists."))
                         .success(false).build();
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new CourseNotExistsException("Course with ID:" + courseId + " is not exists."))
                         .success(false).build();
             }
             if (isLinked(student.get(), course.get())) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
-                return CommandResult.<Boolean>builder().result(Optional.of(true)).success(true).build();
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(true))
+                        .success(true).build();
             }
             if (course.get().getStudents().size() >= maximumRooms) {
                 log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new NoRoomInTheCourseException("Course with ID:" + courseId + " does not have enough rooms."))
                         .success(false).build();
             }
             if (student.get().getCourses().size() >= coursesExceed) {
                 log.debug("Student with id:{} has more than {} courses", studentId, coursesExceed);
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentCoursesExceedException("Student with ID:" + studentId + " exceeds maximum courses."))
                         .success(false).build();
             }
@@ -76,7 +82,8 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
             return CommandResult.<Boolean>builder().result(Optional.of(linked)).success(true).build();
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(false)).exception(e).success(false).build();
         }
     }
 

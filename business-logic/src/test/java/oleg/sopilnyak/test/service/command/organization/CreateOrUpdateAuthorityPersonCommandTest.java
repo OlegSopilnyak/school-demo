@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.service.command.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +37,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(result.getResult().get()).isEqualTo(updated);
         assertThat(result.getException()).isNull();
     }
+
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
