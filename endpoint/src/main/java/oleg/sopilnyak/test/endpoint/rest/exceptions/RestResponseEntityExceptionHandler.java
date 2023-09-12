@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.endpoint.rest;
+package oleg.sopilnyak.test.endpoint.rest.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 /**
- * Exception handler adviser
+ * Exception handler advise (wrap all annotated rest-controller methods)
  */
 @RestControllerAdvice
 public class RestResponseEntityExceptionHandler {

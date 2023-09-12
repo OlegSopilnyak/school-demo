@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.facade.CoursesFacade;

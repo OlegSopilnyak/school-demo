@@ -1,12 +1,14 @@
 package oleg.sopilnyak.test.service.configuration;
 
 import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.course.*;
 import oleg.sopilnyak.test.service.command.student.*;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
+import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,4 +64,18 @@ public class BusinessLogicConfiguration {
     public CoursesFacade coursesFacade() {
         return new CoursesFacadeImpl(coursesCommandFactory());
     }
+
+    @Bean
+    public SchoolCommandsFactory organizationCommandFactory() {
+        return new SchoolCommandsFactory(
+                Set.of(
+                )
+        );
+    }
+
+    @Bean
+    public OrganizationFacade organizationFacade() {
+        return new OrganizationFacadeImpl(organizationCommandFactory());
+    }
+
 }
