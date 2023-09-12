@@ -37,7 +37,8 @@ public class FindAllStudentsGroupsCommand implements SchoolCommand<Set<StudentsG
                     .build();
         } catch (Exception e) {
             log.error("Cannot find any students group", e);
-            return CommandResult.<Set<StudentsGroup>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Set<StudentsGroup>>builder()
+                    .result(Optional.of(Set.of())).exception(e).success(false).build();
         }
     }
 

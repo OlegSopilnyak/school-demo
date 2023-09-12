@@ -37,7 +37,9 @@ public class FindNotEnrolledStudentsCommand implements SchoolCommand<Set<Student
                     .build();
         } catch (Exception e) {
             log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Set<Student>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Set<Student>>builder()
+                    .result(Optional.of(Set.of()))
+                    .exception(e).success(false).build();
         }
     }
 

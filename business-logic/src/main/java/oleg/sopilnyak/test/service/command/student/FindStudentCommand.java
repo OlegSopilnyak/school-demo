@@ -37,7 +37,8 @@ public class FindStudentCommand implements SchoolCommand<Optional<Student>> {
                     .build();
         } catch (Exception e) {
             log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Optional<Student>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Optional<Student>>builder()
+                    .result(Optional.of(Optional.empty())).exception(e).success(false).build();
         }
     }
 

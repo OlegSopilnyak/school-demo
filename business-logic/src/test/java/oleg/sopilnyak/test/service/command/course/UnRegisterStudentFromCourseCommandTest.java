@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +48,7 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(result.getResult().get()).isTrue();
         assertThat(result.getException()).isNull();
     }
+
     @Test
     void shouldNotExecuteCommand() {
         Long id = 131L;
@@ -68,6 +68,7 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(result.getResult().get()).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
+
     @Test
     void shouldNotExecuteCommand_NoStudent() {
         Long id = 132L;

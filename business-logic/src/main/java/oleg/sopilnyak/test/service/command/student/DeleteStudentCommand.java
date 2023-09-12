@@ -34,12 +34,14 @@ public class DeleteStudentCommand implements SchoolCommand<Boolean> {
             Long id = (Long) parameter;
             Optional<Student> student = persistenceFacade.findStudentById(id);
             if (student.isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentNotExistsException("Student with ID:" + id + " is not exists."))
                         .success(false).build();
             }
             if (!ObjectUtils.isEmpty(student.get().getCourses())) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder()
+                        .result(Optional.of(false))
                         .exception(new StudentWithCoursesException("Student with ID:" + id + " has registered courses."))
                         .success(false).build();
             }
@@ -51,7 +53,9 @@ public class DeleteStudentCommand implements SchoolCommand<Boolean> {
                     .build();
         } catch (Exception e) {
             log.error("Cannot delete the student by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(false))
+                    .exception(e).success(false).build();
         }
     }
 

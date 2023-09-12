@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +40,7 @@ class DeleteCourseCommandTest {
         assertThat(result.getResult().get()).isFalse();
         assertThat(result.getException()).isNull();
     }
+
     @Test
     void shouldNotExecuteCommand() {
         Long id = 101L;

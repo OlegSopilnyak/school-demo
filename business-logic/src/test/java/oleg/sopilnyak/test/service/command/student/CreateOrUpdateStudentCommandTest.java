@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.student;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,7 +21,7 @@ class CreateOrUpdateStudentCommandTest {
     @Mock
     StudentsPersistenceFacade persistenceFacade;
     @Mock
-    Student student;
+    Student instance;
     @Spy
     @InjectMocks
     CreateOrUpdateStudentCommand command;
@@ -31,21 +29,22 @@ class CreateOrUpdateStudentCommandTest {
     @Test
     void shouldExecuteCommand() {
 
-        CommandResult<Optional<Student>> result = command.execute(student);
+        CommandResult<Optional<Student>> result = command.execute(instance);
 
-        verify(persistenceFacade).save(student);
+        verify(persistenceFacade).save(instance);
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isNull();
     }
+
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).save(student);
+        doThrow(cannotExecute).when(persistenceFacade).save(instance);
 
-        CommandResult<Optional<Student>> result = command.execute(student);
+        CommandResult<Optional<Student>> result = command.execute(instance);
 
-        verify(persistenceFacade).save(student);
+        verify(persistenceFacade).save(instance);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);

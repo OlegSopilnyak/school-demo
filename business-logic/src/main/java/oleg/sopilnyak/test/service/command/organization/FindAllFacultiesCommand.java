@@ -37,7 +37,9 @@ public class FindAllFacultiesCommand implements SchoolCommand<Set<Faculty>> {
                     .build();
         } catch (Exception e) {
             log.error("Cannot find any faculty", e);
-            return CommandResult.<Set<Faculty>>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Set<Faculty>>builder()
+                    .result(Optional.of(Set.of()))
+                    .exception(e).success(false).build();
         }
     }
 

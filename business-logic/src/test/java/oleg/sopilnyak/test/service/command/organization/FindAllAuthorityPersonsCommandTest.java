@@ -36,7 +36,7 @@ class FindAllAuthorityPersonsCommandTest {
 
     @Test
     void shouldNotExecuteCommand() {
-        RuntimeException cannotExecute = new RuntimeException("Cannot get");
+        RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistenceFacade).findAllAuthorityPersons();
 
         CommandResult<Set<AuthorityPerson>> result = command.execute(null);
