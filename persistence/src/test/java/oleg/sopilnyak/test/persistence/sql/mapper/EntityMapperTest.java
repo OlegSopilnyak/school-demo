@@ -12,7 +12,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EntityMapperTest extends TestModelFactory {
-    private final EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
+    private final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Test
     void shouldTransformStudentToEntity() {

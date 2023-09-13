@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
@@ -13,7 +13,6 @@ import javax.persistence.*;
 import java.util.*;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 @Data
 @Builder
@@ -22,7 +21,7 @@ import static java.util.Objects.nonNull;
 @Entity
 @Table(name = "faculties")
 public class FacultyEntity implements Faculty {
-    private static final EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
+    private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -2,7 +2,9 @@ package oleg.sopilnyak.test.persistence.configuration;
 
 import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.persistence.sql.PersistenceFacadeImpl;
+import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -21,6 +23,11 @@ import java.util.Properties;
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")
 public class PersistenceConfiguration {
     private final Environment env;
+
+    @Bean
+    public SchoolEntityMapper entityMapper() {
+        return Mappers.getMapper(SchoolEntityMapper.class);
+    }
 
     @Bean
     public PersistenceFacade persistenceFacade() {

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
@@ -21,7 +21,7 @@ import static java.util.Objects.isNull;
 @Entity
 @Table(name = "authorities")
 public class AuthorityPersonEntity implements AuthorityPerson {
-    private static final EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
+    private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", unique = true, nullable = false)

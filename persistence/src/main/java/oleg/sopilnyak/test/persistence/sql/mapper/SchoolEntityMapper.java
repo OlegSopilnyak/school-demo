@@ -11,7 +11,7 @@ import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
 /**
- * Mapper to transform model-types to entities
+ * Mapper to transform school's model-types to entities
  */
 @Mapper(
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
@@ -19,7 +19,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
         nullValueCheckStrategy = ALWAYS,
         builder = @Builder(disableBuilder = true)
 )
-public interface EntityMapper {
+public interface SchoolEntityMapper {
     /**
      * Convert model-type to Entity
      *

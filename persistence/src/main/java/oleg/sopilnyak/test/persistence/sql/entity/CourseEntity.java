@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
 import lombok.*;
-import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
 @Entity
 @Table(name = "courses")
 public class CourseEntity implements Course {
-    private static EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
+    private static SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
