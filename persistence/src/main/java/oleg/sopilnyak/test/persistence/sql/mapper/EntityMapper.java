@@ -1,9 +1,7 @@
 package oleg.sopilnyak.test.persistence.sql.mapper;
 
-import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.persistence.sql.entity.*;
+import oleg.sopilnyak.test.school.common.model.*;
 import org.mapstruct.*;
 
 import java.util.Collections;
@@ -40,6 +38,31 @@ public interface EntityMapper {
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities")
     StudentEntity toEntity(Student student);
 
+    /**
+     * Convert model-type to DTO
+     *
+     * @param person instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "faculties", target = "faculties", qualifiedByName = "toFacultyEntities")
+    AuthorityPersonEntity toEntity(AuthorityPerson person);
+    /**
+     * Convert model-type to DTO
+     *
+     * @param faculty instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities")
+    FacultyEntity toEntity(Faculty faculty);
+    /**
+     * Convert model-type to DTO
+     *
+     * @param group instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
+    StudentsGroupEntity toEntity(StudentsGroup group);
+
     @Named("toCourseEntities")
     default List<Course> toCourses(List<Course> courses) {
         return courses == null ? Collections.emptyList() : courses.stream().map(course -> (Course) toEntity(course)).toList();
@@ -48,6 +71,10 @@ public interface EntityMapper {
     @Named("toStudentEntities")
     default List<Student> toStudents(List<Student> students) {
         return students == null ? Collections.emptyList() : students.stream().map(student -> (Student) toEntity(student)).toList();
+    }
+    @Named("toFacultyEntities")
+    default List<Faculty> toFaculties(List<Faculty> faculties) {
+        return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toEntity(faculty)).toList();
     }
 
 }

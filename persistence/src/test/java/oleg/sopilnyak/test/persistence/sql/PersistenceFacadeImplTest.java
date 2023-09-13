@@ -24,6 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +39,9 @@ class PersistenceFacadeImplTest {
     private static final String TEST_DB_DOCKER_CONTAINER_NAME = "school-test-database";
     @Container
     private static final MySQLContainer<?> database = new MySQLContainer<>(TEST_DB_DOCKER_IMAGE_NAME)
-            .withCreateContainerCmdModifier(cmd -> cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME));
+            .withCreateContainerCmdModifier(cmd ->
+                    cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME + "-" + UUID.randomUUID()))
+            ;
 
     @DynamicPropertySource
     static void databaseProperties(DynamicPropertyRegistry registry) {

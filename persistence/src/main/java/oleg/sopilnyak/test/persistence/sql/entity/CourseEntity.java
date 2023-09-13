@@ -29,7 +29,7 @@ public class CourseEntity implements Course {
     private Long id;
     private String name;
     private String description;
-    @ManyToMany(mappedBy = "courseSet")
+    @ManyToMany(mappedBy = "courseSet", fetch = FetchType.LAZY)
     private Set<StudentEntity> studentSet;
 
     /**

@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.persistence.configuration;
 
+import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.persistence.sql.PersistenceFacadeImpl;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -15,12 +15,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 import java.util.Properties;
 
+@AllArgsConstructor
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")
 public class PersistenceConfiguration {
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
     @Bean
     public PersistenceFacade persistenceFacade() {

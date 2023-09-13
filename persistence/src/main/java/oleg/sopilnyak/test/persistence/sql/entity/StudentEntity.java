@@ -31,7 +31,7 @@ public class StudentEntity implements Student {
     private String lastName;
     private String gender;
     private String description;
-    @ManyToMany(cascade = {CascadeType.ALL})
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinTable(name = "student_course",
             joinColumns = {@JoinColumn(referencedColumnName = "ID")},
             inverseJoinColumns = {@JoinColumn(referencedColumnName = "ID")}
