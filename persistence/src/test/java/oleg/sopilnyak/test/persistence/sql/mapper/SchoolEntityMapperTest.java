@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class EntityMapperTest extends TestModelFactory {
+class SchoolEntityMapperTest extends TestModelFactory {
     private final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Test
@@ -42,7 +42,8 @@ class EntityMapperTest extends TestModelFactory {
         Long id = 101L;
         String name = "courseName";
         String description = "description";
-        List<Student> students = makeStudents(50);
+        List<Student> students =
+                makeStudents(50).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
         Course course = FakeCourse.builder()
                 .id(id).name(name).description(description).students(students)
                 .build();
@@ -104,7 +105,8 @@ class EntityMapperTest extends TestModelFactory {
         Long id = 104L;
         String name = "Hawks-2020";
         Student leader = makeStudent(100);
-        List<Student> students = makeStudents(20);
+        List<Student> students =
+                makeStudents(20).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
 
         StudentsGroup group = FakeStudentsGroup.builder()
                 .id(id).name(name)
