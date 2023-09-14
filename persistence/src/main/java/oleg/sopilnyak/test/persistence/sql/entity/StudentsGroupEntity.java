@@ -19,7 +19,7 @@ import static java.util.Objects.isNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "student_groups")
+@Table(name = "studentsGroups")
 public class StudentsGroupEntity implements StudentsGroup {
     private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
     @Id
@@ -29,7 +29,7 @@ public class StudentsGroupEntity implements StudentsGroup {
     private String name;
     @ManyToOne
     private StudentEntity leader;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "group")
     private Set<StudentEntity> studentEntitySet;
 
     /**
@@ -50,7 +50,7 @@ public class StudentsGroupEntity implements StudentsGroup {
         return isNull(studentEntitySet) ? Collections.emptyList() :
                 studentEntitySet.stream()
                         .map(student -> (Student) student)
-                        .sorted(Comparator.comparingLong(Student::getId))
+                        .sorted(Comparator.comparing(Student::getFullName))
                         .toList();
     }
 

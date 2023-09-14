@@ -28,11 +28,11 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     @Test
     void shouldExecuteCommand() {
         Optional<AuthorityPerson> updated = Optional.of(person);
-        when(persistenceFacade.saveAuthorityPerson(person)).thenReturn(updated);
+        when(persistenceFacade.save(person)).thenReturn(updated);
 
         CommandResult<Optional<AuthorityPerson>> result = command.execute(person);
 
-        verify(persistenceFacade).saveAuthorityPerson(person);
+        verify(persistenceFacade).save(person);
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult().get()).isEqualTo(updated);
         assertThat(result.getException()).isNull();
@@ -41,11 +41,11 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).saveAuthorityPerson(person);
+        doThrow(cannotExecute).when(persistenceFacade).save(person);
 
         CommandResult<Optional<AuthorityPerson>> result = command.execute(person);
 
-        verify(persistenceFacade).saveAuthorityPerson(person);
+        verify(persistenceFacade).save(person);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);

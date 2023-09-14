@@ -76,7 +76,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         }).stream().map(course -> (Faculty) course).toList();
 
         assertThat(facultyDtos).hasSize(personsAmount);
-        assertFacultyLists(faculties.stream().toList(), facultyDtos);
+        assertFacultyLists(faculties.stream().toList(), facultyDtos, false);
     }
 
     @Test

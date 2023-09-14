@@ -29,7 +29,7 @@ public class CreateOrUpdateStudentsGroupCommand implements SchoolCommand<Optiona
         try {
             log.debug("Trying to create or update students group {}", parameter);
             StudentsGroup instance = (StudentsGroup) parameter;
-            Optional<StudentsGroup> studentsGroup = persistenceFacade.saveStudentsGroup(instance);
+            Optional<StudentsGroup> studentsGroup = persistenceFacade.save(instance);
             log.debug("Got stored students group {} from parameter {}", studentsGroup, instance);
             return CommandResult.<Optional<StudentsGroup>>builder()
                     .result(Optional.ofNullable(studentsGroup)).success(true).build();

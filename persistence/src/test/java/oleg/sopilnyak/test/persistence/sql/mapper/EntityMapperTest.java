@@ -76,7 +76,7 @@ class EntityMapperTest extends TestModelFactory {
         assertThat(firstName).isEqualTo(entity.getFirstName());
         assertThat(lastName).isEqualTo(entity.getLastName());
         assertThat(gender).isEqualTo(entity.getGender());
-        assertFacultyLists(faculties, entity.getFaculties());
+        assertFacultyLists(faculties, entity.getFaculties(), false);
     }
 
     @Test

@@ -70,7 +70,7 @@ class OrganizationFacadeImplTest {
 
         assertThat(person).isEmpty();
         verify(factory).command(AuthorityPersonCommandFacade.CREATE_OR_UPDATE);
-        verify(persistenceFacade).saveAuthorityPerson(mockPerson);
+        verify(persistenceFacade).save(mockPerson);
     }
 
     @Test
@@ -145,7 +145,7 @@ class OrganizationFacadeImplTest {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(FacultyCommandFacade.CREATE_OR_UPDATE);
-        verify(persistenceFacade).saveFaculty(mockFaculty);
+        verify(persistenceFacade).save(mockFaculty);
     }
 
     @Test
@@ -218,7 +218,7 @@ class OrganizationFacadeImplTest {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(StudentsGroupCommandFacade.CREATE_OR_UPDATE);
-        verify(persistenceFacade).saveStudentsGroup(mockGroup);
+        verify(persistenceFacade).save(mockGroup);
     }
 
     @Test

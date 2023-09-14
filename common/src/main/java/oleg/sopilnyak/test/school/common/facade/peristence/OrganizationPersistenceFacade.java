@@ -37,7 +37,7 @@ public interface OrganizationPersistenceFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<AuthorityPerson> saveAuthorityPerson(AuthorityPerson authorityPerson);
+    Optional<AuthorityPerson> save(AuthorityPerson authorityPerson);
 
     /**
      * To delete authority person by id
@@ -77,7 +77,7 @@ public interface OrganizationPersistenceFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<Faculty> saveFaculty(Faculty instance);
+    Optional<Faculty> save(Faculty instance);
     /**
      * To delete faculty by id
      *
@@ -116,7 +116,7 @@ public interface OrganizationPersistenceFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<StudentsGroup> saveStudentsGroup(StudentsGroup instance);
+    Optional<StudentsGroup> save(StudentsGroup instance);
     /**
      * To delete students group by id
      *

@@ -31,6 +31,8 @@ public class CourseEntity implements Course {
     private String description;
     @ManyToMany(mappedBy = "courseSet", fetch = FetchType.LAZY)
     private Set<StudentEntity> studentSet;
+    @ManyToOne(fetch=FetchType.LAZY)
+    private FacultyEntity faculty;
 
     /**
      * To get the list of students enrolled to the course
@@ -42,7 +44,7 @@ public class CourseEntity implements Course {
         return isNull(studentSet) ? Collections.emptyList() :
                 studentSet.stream()
                         .map(student -> (Student) student)
-                        .sorted(Comparator.comparingLong(Student::getId))
+                        .sorted(Comparator.comparing(Student::getFullName))
                         .toList();
     }
 

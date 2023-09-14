@@ -129,15 +129,16 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     /**
      * Create or update student
      *
-     * @param student student instance to store
+     * @param instance student instance to store
      * @return student instance or empty(), if instance couldn't store
      * @see Optional
      * @see Optional#empty()
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Optional<Student> save(Student student) {
-        final StudentEntity entity = mapper.toEntity(student);
+    public Optional<Student> save(Student instance) {
+        final StudentEntity entity =
+                instance instanceof StudentEntity ? (StudentEntity) instance : mapper.toEntity(instance);
         return Optional.of(studentRepository.saveAndFlush(entity));
     }
 
@@ -151,6 +152,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean deleteStudent(Long studentId) {
         studentRepository.deleteById(studentId);
+        studentRepository.flush();
         return true;
     }
 
@@ -197,15 +199,16 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     /**
      * Create or update course
      *
-     * @param course course instance to store
+     * @param instance course instance to store
      * @return course instance or empty(), if instance couldn't store
      * @see Optional
      * @see Optional#empty()
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Optional<Course> save(Course course) {
-        final CourseEntity entity = mapper.toEntity(course);
+    public Optional<Course> save(Course instance) {
+        final CourseEntity entity =
+                instance instanceof CourseEntity ? (CourseEntity) instance : mapper.toEntity(instance);
         return Optional.of(courseRepository.saveAndFlush(entity));
     }
 
@@ -219,6 +222,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean deleteCourse(Long courseId) {
         courseRepository.deleteById(courseId);
+        courseRepository.flush();
         return true;
     }
 
@@ -308,7 +312,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     /**
      * Create or update authority person
      *
-     * @param authorityPerson authority person instance to store
+     * @param instance authority person instance to store
      * @return authority person instance or empty(), if instance couldn't store
      * @see AuthorityPerson
      * @see Optional
@@ -316,8 +320,9 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Optional<AuthorityPerson> saveAuthorityPerson(AuthorityPerson authorityPerson) {
-        final AuthorityPersonEntity entity = mapper.toEntity(authorityPerson);
+    public Optional<AuthorityPerson> save(AuthorityPerson instance) {
+        final AuthorityPersonEntity entity =
+                instance instanceof AuthorityPersonEntity ? (AuthorityPersonEntity) instance : mapper.toEntity(instance);
         return Optional.of(authorityPersonRepository.saveAndFlush(entity));
     }
 
@@ -339,6 +344,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
             throw new AuthorityPersonManageFacultyException("Authorization person with ID:" + id + " is not empty");
         }
         authorityPersonRepository.deleteById(id);
+        authorityPersonRepository.flush();
     }
 
     /**
@@ -379,8 +385,9 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Optional<Faculty> saveFaculty(Faculty instance) {
-        final FacultyEntity entity = mapper.toEntity(instance);
+    public Optional<Faculty> save(Faculty instance) {
+        final FacultyEntity entity =
+                instance instanceof FacultyEntity ? (FacultyEntity) instance : mapper.toEntity(instance);
         return Optional.of(facultyRepository.saveAndFlush(entity));
     }
 
@@ -402,6 +409,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
             throw new FacultyIsNotEmptyException("Faculty with ID:" + id + " is not empty");
         }
         facultyRepository.deleteById(id);
+        facultyRepository.flush();
     }
 
     /**
@@ -442,8 +450,9 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public Optional<StudentsGroup> saveStudentsGroup(StudentsGroup instance) {
-        final StudentsGroupEntity entity = mapper.toEntity(instance);
+    public Optional<StudentsGroup> save(StudentsGroup instance) {
+        final StudentsGroupEntity entity =
+                instance instanceof StudentsGroupEntity ? (StudentsGroupEntity) instance : mapper.toEntity(instance);
         return Optional.of(studentsGroupRepository.saveAndFlush(entity));
     }
 
@@ -464,8 +473,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
         } else if (!faculty.get().getStudents().isEmpty()) {
             throw new StudentGroupWithStudentsException("Students group with ID:" + id + " is not empty");
         }
-        facultyRepository.deleteById(id);
-
+        studentsGroupRepository.deleteById(id);
+        studentsGroupRepository.flush();
     }
 
     // private methods

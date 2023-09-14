@@ -28,10 +28,12 @@ public class FacultyEntity implements Faculty {
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String name;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     private AuthorityPersonEntity dean;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "faculty")
     private Set<CourseEntity> courseEntitySet;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AuthorityPersonEntity group;
 
     /**
      * To get the list of courses, provided by faculty
@@ -42,9 +44,10 @@ public class FacultyEntity implements Faculty {
         return isNull(courseEntitySet) ? Collections.emptyList() :
                 courseEntitySet.stream()
                         .map(course -> (Course) course)
-                        .sorted(Comparator.comparingLong(Course::getId))
+                        .sorted(Comparator.comparing(Course::getName))
                         .toList();
     }
+
     /**
      * To replace the faculty's courses list by new one
      *

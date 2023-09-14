@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.persistence.sql;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.*;
+import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,7 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,14 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Rollback
-class PersistenceFacadeImplTest {
+class PersistenceFacadeImplTest extends TestModelFactory {
     private static final String TEST_DB_DOCKER_IMAGE_NAME = "mysql:8.0";
     private static final String TEST_DB_DOCKER_CONTAINER_NAME = "school-test-database";
     @Container
     private static final MySQLContainer<?> database = new MySQLContainer<>(TEST_DB_DOCKER_IMAGE_NAME)
             .withCreateContainerCmdModifier(cmd ->
-                    cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME + "-" + UUID.randomUUID()))
-            ;
+                    cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME + "-" + UUID.randomUUID()));
 
     @DynamicPropertySource
     static void databaseProperties(DynamicPropertyRegistry registry) {
@@ -69,7 +66,7 @@ class PersistenceFacadeImplTest {
 
         Optional<Student> received = facade.findStudentById(id);
 
-        assertThat(saved).isEqualTo(received);
+        assertThat(received).isNotEmpty();
         assertThat(saved.get()).isEqualTo(received.get());
     }
 
@@ -266,6 +263,312 @@ class PersistenceFacadeImplTest {
         assertThat(courseOptional.get().getStudents()).isEmpty();
     }
 
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindAllAuthorityPersons() {
+        int count = 10;
+        Collection<AuthorityPerson> personCollection = makeAuthorityPersons(count);
+        personCollection.forEach(person -> facade.save(person));
+
+        Set<AuthorityPerson> persons = facade.findAllAuthorityPersons();
+
+        assertThat(persons).isNotEmpty();
+        assertThat(persons.size()).isEqualTo(personCollection.size());
+        assertAuthorityPersonLists(toList(personCollection), toList(persons), false);
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindAuthorityPersonById() {
+        AuthorityPerson person = makeTestAuthorityPerson(null);
+        Optional<AuthorityPerson> saved = facade.save(person);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+
+        Optional<AuthorityPerson> result = facade.findAuthorityPersonById(id);
+
+        assertThat(result).isNotEmpty();
+        assertAuthorityPersonEquals(person, result.get(), false);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldSaveAuthorityPerson() {
+        AuthorityPerson person = makeTestAuthorityPerson(null);
+        Optional<AuthorityPerson> saved = facade.save(person);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<AuthorityPerson> result = facade.findAuthorityPersonById(id);
+        assertThat(result).isNotEmpty();
+        assertAuthorityPersonEquals(person, result.get(), false);
+        AuthorityPersonEntity entity = (AuthorityPersonEntity) result.get();
+        entity.setFirstName(entity.getFirstName() + "-nextVersion");
+
+        saved = facade.save(entity);
+
+        assertThat(saved).isNotEmpty();
+        assertAuthorityPersonEquals(entity, saved.get());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldDeleteAuthorityPerson() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+        AuthorityPerson person = makeTestAuthorityPerson(null);
+        Optional<AuthorityPerson> saved = facade.save(person);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<AuthorityPerson> result = facade.findAuthorityPersonById(id);
+        assertThat(result).isNotEmpty();
+        assertAuthorityPersonEquals(person, result.get(), false);
+        AuthorityPersonEntity entity = (AuthorityPersonEntity) result.get();
+        entity.setFaculties(List.of());
+        saved = facade.save(entity);
+        assertThat(saved).isNotEmpty();
+
+        facade.deleteAuthorityPerson(id);
+
+        assertThat(facade.findAuthorityPersonById(id)).isEmpty();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindAllFaculties() {
+        int count = 15;
+        Collection<Faculty> facultyCollection = makeFaculties(count);
+        facultyCollection.forEach(faculty -> facade.save(faculty));
+
+        Set<Faculty> faculties = facade.findAllFaculties();
+
+        assertThat(faculties).isNotEmpty();
+        assertThat(faculties.size()).isEqualTo(facultyCollection.size());
+        assertFacultyLists(toFacultyList(facultyCollection), toFacultyList(faculties), false);
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindFacultyById() {
+        Faculty faculty = makeTestFaculty(null);
+        Optional<Faculty> saved = facade.save(faculty);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+
+        Optional<Faculty> result = facade.findFacultyById(id);
+
+        assertThat(result).isNotEmpty();
+        assertFacultyEquals(faculty, result.get(), false);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldSaveFaculty() {
+        Faculty faculty = makeTestFaculty(null);
+        Optional<Faculty> saved = facade.save(faculty);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<Faculty> result = facade.findFacultyById(id);
+        assertThat(result).isNotEmpty();
+        assertFacultyEquals(faculty, result.get(), false);
+        FacultyEntity entity = (FacultyEntity) result.get();
+        entity.setName(entity.getName() + "-nextVersion");
+
+        saved = facade.save(entity);
+
+        assertThat(saved).isNotEmpty();
+        assertFacultyEquals(entity, saved.get());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldDeleteFaculty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+        Faculty faculty = makeTestFaculty(null);
+        Optional<Faculty> saved = facade.save(faculty);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<Faculty> result = facade.findFacultyById(id);
+        assertThat(result).isNotEmpty();
+        assertFacultyEquals(faculty, result.get(), false);
+        FacultyEntity entity = (FacultyEntity) result.get();
+        entity.setName(entity.getName() + "-nextVersion");
+        entity.setCourses(List.of());
+        saved = facade.save(entity);
+        assertThat(saved).isNotEmpty();
+
+        facade.deleteFaculty(id);
+
+        assertThat(facade.findFacultyById(id)).isEmpty();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindAllStudentsGroups() {
+        int count = 5;
+        Collection<StudentsGroup> studentsGroupCollection = makeStudentsGroups(count);
+        studentsGroupCollection.forEach(group -> facade.save(group));
+
+        Set<StudentsGroup> groups = facade.findAllStudentsGroups();
+
+        assertThat(groups).isNotEmpty();
+        assertThat(groups.size()).isEqualTo(studentsGroupCollection.size());
+        assertStudentsGroupLists(toGroupList(studentsGroupCollection), toGroupList(groups), false);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindStudentsGroupById() {
+        StudentsGroup group = makeTestStudentsGroup(null);
+        Optional<StudentsGroup> saved = facade.save(group);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+
+        Optional<StudentsGroup> result = facade.findStudentsGroupById(id);
+
+        assertThat(result).isNotEmpty();
+        assertStudentsGroupEquals(group, result.get(), false);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldSaveStudentsGroup() {
+        StudentsGroup group = makeTestStudentsGroup(null);
+        Optional<StudentsGroup> saved = facade.save(group);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<StudentsGroup> result = facade.findStudentsGroupById(id);
+        assertThat(result).isNotEmpty();
+        assertStudentsGroupEquals(group, result.get(), false);
+        StudentsGroupEntity entity = (StudentsGroupEntity) result.get();
+        entity.setName(entity.getName() + "-nextVersion");
+
+        saved = facade.save(entity);
+
+        assertThat(saved).isNotEmpty();
+        assertStudentsGroupEquals(entity, saved.get());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldDeleteStudentsGroup() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+        StudentsGroup group = makeTestStudentsGroup(null);
+        Optional<StudentsGroup> saved = facade.save(group);
+        assertThat(saved).isNotEmpty();
+        Long id = saved.get().getId();
+        Optional<StudentsGroup> result = facade.findStudentsGroupById(id);
+        assertThat(result).isNotEmpty();
+        assertStudentsGroupEquals(group, result.get(), false);
+        StudentsGroupEntity entity = (StudentsGroupEntity) result.get();
+        entity.setName(entity.getName() + "-nextVersion");
+        entity.setStudents(List.of());
+        saved = facade.save(entity);
+        assertThat(saved).isNotEmpty();
+
+        facade.deleteStudentsGroup(id);
+
+        assertThat(facade.findStudentsGroupById(id)).isEmpty();
+    }
+
+    // private methods
+    @Override
+    protected StudentsGroup makeTestStudentsGroup(Long id) {
+        StudentsGroup group = super.makeTestStudentsGroup(id);
+        clearId(group);
+        return group;
+    }
+
+    @Override
+    protected Collection<StudentsGroup> makeStudentsGroups(int count) {
+        Collection<StudentsGroup>groups = super.makeStudentsGroups(count);
+        groups.forEach(group -> clearId(group));
+        return groups;
+    }
+
+
+    @Override
+    protected StudentsGroup makeStudentsGroup(int i) {
+        StudentsGroup group = super.makeStudentsGroup(i);
+        clearId(group);
+        return group;
+    }
+
+    @Override
+    protected Faculty makeTestFaculty(Long id) {
+        Faculty faculty = super.makeTestFaculty(id);
+        clearId(faculty);
+        return faculty;
+    }
+
+    @Override
+    protected Collection<Faculty> makeFaculties(int count) {
+        Collection<Faculty> faculties = super.makeFaculties(count);
+        faculties.forEach(faculty -> clearId(faculty));
+        return faculties;
+    }
+
+    private List<StudentsGroup> toGroupList(Collection<StudentsGroup> groups) {
+        return groups.stream().sorted(Comparator.comparing(StudentsGroup::getName)).toList();
+    }
+
+    private List<Faculty> toFacultyList(Collection<Faculty> faculties) {
+        return faculties.stream().sorted(Comparator.comparing(Faculty::getName)).toList();
+    }
+
+    private List<AuthorityPerson> toList(Collection<AuthorityPerson> personCollection) {
+        return personCollection.stream().sorted(Comparator.comparing(AuthorityPerson::getFullName)).toList();
+    }
+
+    @Override
+    protected AuthorityPerson makeTestAuthorityPerson(Long id) {
+        final AuthorityPerson person = super.makeTestAuthorityPerson(id);
+        clearId(person);
+        return person;
+    }
+
+    @Override
+    protected Collection<AuthorityPerson> makeAuthorityPersons(int count) {
+        final Collection<AuthorityPerson> persons = super.makeAuthorityPersons(count);
+        persons.forEach(person -> clearId(person));
+        return persons;
+    }
+
+    private void clearId(AuthorityPerson instance) {
+        if (instance instanceof FakeAuthorityPerson person) {
+            person.setId(null);
+            person.getFaculties().forEach(faculty -> clearId(faculty));
+        }
+    }
+
+    private void clearId(Faculty instance) {
+        if (instance instanceof FakeFaculty faculty) {
+            faculty.setId(null);
+            faculty.setDean(null);
+            faculty.getCourses().forEach(course -> clearId(course));
+        }
+    }
+
+    private void clearId(StudentsGroup instance) {
+        if (instance instanceof FakeStudentsGroup group) {
+            group.setId(null);
+            group.setLeader(null);
+            group.getStudents().forEach(student -> clearId(student));
+        }
+    }
+
+    private void clearId(Course instance) {
+        if (instance instanceof FakeCourse course) {
+            course.setId(null);
+            course.getStudents().forEach(student -> clearId(student));
+        }
+    }
+
+    private void clearId(Student instance) {
+        if (instance instanceof FakeStudent student) {
+            student.setId(null);
+            student.getCourses().forEach(course -> clearId(course));
+        }
+    }
+
     private static StudentEntity buildStudentEntity(Integer counter) {
         return counter == null ? StudentEntity.builder()
                 .firstName("first-name")
@@ -291,5 +594,4 @@ class PersistenceFacadeImplTest {
                         .description("description-" + counter)
                         .build();
     }
-
 }

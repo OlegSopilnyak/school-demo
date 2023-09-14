@@ -19,37 +19,73 @@ import static java.util.Objects.isNull;
  */
 public class TestModelFactory {
 
-    protected void assertStudentLists(List<Student> expected, List<Student> result) {
+    protected void assertStudentLists(List<Student> expected, List<Student> result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
         if (ObjectUtils.isEmpty(expected)) {
             Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
             return;
         }
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i)));
+        IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i), checkId));
+    }
+
+    protected void assertStudentLists(List<Student> expected, List<Student> result) {
+        assertStudentLists(expected, result, true);
+    }
+
+    protected void assertCourseLists(List<Course> expected, List<Course> result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
+        if (ObjectUtils.isEmpty(expected)) {
+            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
+            return;
+        }
+        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i), checkId));
     }
 
     protected void assertCourseLists(List<Course> expected, List<Course> result) {
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i)));
+        assertCourseLists(expected, result, true);
     }
 
-    protected void assertCourseEquals(Course expected, Course result) {
-        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+    protected void assertCourseEquals(Course expected, Course result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
+        if (checkId) {
+            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        }
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
         Assertions.assertThat(expected.getDescription()).isEqualTo(result.getDescription());
     }
 
-    protected void assertStudentEquals(Student expected, Student result) {
-        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+    protected void assertCourseEquals(Course expected, Course result) {
+        assertCourseEquals(expected, result, true);
+    }
+
+    protected void assertStudentEquals(Student expected, Student result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
+        if (checkId) {
+            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        }
         Assertions.assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
         Assertions.assertThat(expected.getLastName()).isEqualTo(result.getLastName());
         Assertions.assertThat(expected.getGender()).isEqualTo(result.getGender());
         Assertions.assertThat(expected.getDescription()).isEqualTo(result.getDescription());
         Assertions.assertThat(expected.getFullName()).isEqualTo(result.getFullName());
+    }
+
+    protected void assertStudentEquals(Student expected, Student result) {
+        assertStudentEquals(expected, result, true);
     }
 
     protected List<Course> makeCourses(int count) {
@@ -128,16 +164,30 @@ public class TestModelFactory {
     }
 
     protected void assertAuthorityPersonLists(List<AuthorityPerson> expected, List<AuthorityPerson> result) {
+        assertAuthorityPersonLists(expected, result, true);
+    }
+
+    protected void assertAuthorityPersonLists(List<AuthorityPerson> expected, List<AuthorityPerson> result, boolean checkId) {
         if (ObjectUtils.isEmpty(expected)) {
             Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
             return;
         }
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertAuthorityPersonEquals(expected.get(i), result.get(i)));
+        IntStream.range(0, expected.size()).forEach(i -> assertAuthorityPersonEquals(expected.get(i), result.get(i), checkId));
     }
 
     protected void assertAuthorityPersonEquals(AuthorityPerson expected, AuthorityPerson result) {
-        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        assertAuthorityPersonEquals(expected, result, true);
+    }
+
+    protected void assertAuthorityPersonEquals(AuthorityPerson expected, AuthorityPerson result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
+        if (checkId) {
+            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        }
         Assertions.assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
         Assertions.assertThat(expected.getLastName()).isEqualTo(result.getLastName());
         Assertions.assertThat(expected.getGender()).isEqualTo(result.getGender());
@@ -160,6 +210,7 @@ public class TestModelFactory {
                 .courses(makeCourses(5))
                 .build();
     }
+
     private Faculty makeFacultyNoDean(int i) {
         return FakeFaculty.builder()
                 .id(i + 400L).name("faculty-" + i)
@@ -174,20 +225,38 @@ public class TestModelFactory {
                 .toList();
     }
 
-    protected void assertFacultyEquals(Faculty expected, Faculty result) {
-        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+    protected void assertFacultyEquals(Faculty expected, Faculty result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
+        if (checkId) {
+            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        }
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
         assertAuthorityPersonEquals(expected.getDean(), result.getDean());
-        assertCourseLists(expected.getCourses(), result.getCourses());
+        assertCourseLists(expected.getCourses(), result.getCourses(), checkId);
     }
 
-    protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result) {
+    protected void assertFacultyEquals(Faculty expected, Faculty result) {
+        assertFacultyEquals(expected, result, true);
+    }
+
+    protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result, boolean checkId) {
+        if (isNull(expected)) {
+            Assertions.assertThat(result).isNull();
+            return;
+        }
         if (ObjectUtils.isEmpty(expected)) {
             Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
             return;
         }
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i)));
+        IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i), checkId));
+    }
+
+    protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result) {
+        assertFacultyLists(expected, result, true);
     }
 
     protected StudentsGroup makeTestStudentsGroup(Long id) {
@@ -214,20 +283,28 @@ public class TestModelFactory {
                 .toList();
     }
 
-    protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result) {
-        Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+    protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result, boolean checkId) {
+        if (checkId) {
+            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+        }
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
         assertStudentEquals(expected.getLeader(), result.getLeader());
-        assertStudentLists(expected.getStudents(), result.getStudents());
+        assertStudentLists(expected.getStudents(), result.getStudents(), checkId);
+    }
+    protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result) {
+        assertStudentsGroupEquals(expected, result, true);
     }
 
-    protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result) {
+    protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result, boolean checkId) {
         if (ObjectUtils.isEmpty(expected)) {
             Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
             return;
         }
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
-        IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i)));
+        IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i), checkId));
+    }
+    protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result) {
+        assertStudentsGroupLists(expected, result, true);
     }
 
 

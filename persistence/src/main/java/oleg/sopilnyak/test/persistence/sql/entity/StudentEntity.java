@@ -37,6 +37,8 @@ public class StudentEntity implements Student {
             inverseJoinColumns = {@JoinColumn(referencedColumnName = "ID")}
     )
     private Set<CourseEntity> courseSet;
+    @ManyToOne(fetch=FetchType.LAZY)
+    private StudentsGroupEntity group;
 
     /**
      * To get the list of courses, the student is registered to
@@ -48,7 +50,7 @@ public class StudentEntity implements Student {
         return isNull(courseSet) ? Collections.emptyList() :
                 courseSet.stream()
                         .map(course -> (Course) course)
-                        .sorted(Comparator.comparingLong(Course::getId))
+                        .sorted(Comparator.comparing(Course::getName))
                         .toList();
     }
 

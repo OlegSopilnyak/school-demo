@@ -29,7 +29,7 @@ public class CreateOrUpdateFacultyCommand implements SchoolCommand<Optional<Facu
         try {
             log.debug("Trying to create or update faculty {}", parameter);
             Faculty instance = (Faculty) parameter;
-            Optional<Faculty> faculty = persistenceFacade.saveFaculty(instance);
+            Optional<Faculty> faculty = persistenceFacade.save(instance);
             log.debug("Got stored faculty {} from parameter {}", faculty, instance);
             return CommandResult.<Optional<Faculty>>builder()
                     .result(Optional.ofNullable(faculty)).success(true).build();

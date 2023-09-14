@@ -28,11 +28,11 @@ class CreateOrUpdateFacultyCommandTest {
     @Test
     void shouldExecuteCommand() {
         Optional<Faculty> updated = Optional.of(faculty);
-        when(persistenceFacade.saveFaculty(faculty)).thenReturn(updated);
+        when(persistenceFacade.save(faculty)).thenReturn(updated);
 
         CommandResult<Optional<Faculty>> result = command.execute(faculty);
 
-        verify(persistenceFacade).saveFaculty(faculty);
+        verify(persistenceFacade).save(faculty);
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult().get()).isEqualTo(updated);
         assertThat(result.getException()).isNull();
@@ -41,11 +41,11 @@ class CreateOrUpdateFacultyCommandTest {
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).saveFaculty(faculty);
+        doThrow(cannotExecute).when(persistenceFacade).save(faculty);
 
         CommandResult<Optional<Faculty>> result = command.execute(faculty);
 
-        verify(persistenceFacade).saveFaculty(faculty);
+        verify(persistenceFacade).save(faculty);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);

@@ -30,7 +30,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
     private String firstName;
     private String lastName;
     private String gender;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "group")
     private Set<FacultyEntity> facultyEntitySet;
 
     /**

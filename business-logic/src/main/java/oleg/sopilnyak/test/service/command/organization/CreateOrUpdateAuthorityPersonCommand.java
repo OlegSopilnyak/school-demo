@@ -29,7 +29,7 @@ public class CreateOrUpdateAuthorityPersonCommand implements SchoolCommand<Optio
         try {
             log.debug("Trying to create or update authority person {}", parameter);
             AuthorityPerson instance = (AuthorityPerson) parameter;
-            Optional<AuthorityPerson> person = persistenceFacade.saveAuthorityPerson(instance);
+            Optional<AuthorityPerson> person = persistenceFacade.save(instance);
             log.debug("Got stored authority person {} from parameter {}", person, instance);
             return CommandResult.<Optional<AuthorityPerson>>builder()
                     .result(Optional.ofNullable(person))

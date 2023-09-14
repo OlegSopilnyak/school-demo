@@ -28,11 +28,11 @@ class CreateOrUpdateStudentsGroupCommandTest {
     @Test
     void shouldExecuteCommand() {
         Optional<StudentsGroup> updated = Optional.of(group);
-        when(persistenceFacade.saveStudentsGroup(group)).thenReturn(updated);
+        when(persistenceFacade.save(group)).thenReturn(updated);
 
         CommandResult<Optional<StudentsGroup>> result = command.execute(group);
 
-        verify(persistenceFacade).saveStudentsGroup(group);
+        verify(persistenceFacade).save(group);
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult().get()).isEqualTo(updated);
         assertThat(result.getException()).isNull();
@@ -41,11 +41,11 @@ class CreateOrUpdateStudentsGroupCommandTest {
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).saveStudentsGroup(group);
+        doThrow(cannotExecute).when(persistenceFacade).save(group);
 
         CommandResult<Optional<StudentsGroup>> result = command.execute(group);
 
-        verify(persistenceFacade).saveStudentsGroup(group);
+        verify(persistenceFacade).save(group);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
