@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 /**
  * Service-Facade-Implementation: Service for manage persistence layer of the school
  */
@@ -137,8 +139,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Optional<Student> save(Student instance) {
-        final StudentEntity entity =
-                instance instanceof StudentEntity ? (StudentEntity) instance : mapper.toEntity(instance);
+        log.debug("Create or Update {}", instance);
+        final StudentEntity entity = instance instanceof StudentEntity s ? s : mapper.toEntity(instance);
         return Optional.of(studentRepository.saveAndFlush(entity));
     }
 
@@ -207,8 +209,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Optional<Course> save(Course instance) {
-        final CourseEntity entity =
-                instance instanceof CourseEntity ? (CourseEntity) instance : mapper.toEntity(instance);
+        log.debug("Create or Update {}", instance);
+        final CourseEntity entity = instance instanceof CourseEntity c ? c : mapper.toEntity(instance);
         return Optional.of(courseRepository.saveAndFlush(entity));
     }
 
@@ -321,9 +323,24 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Optional<AuthorityPerson> save(AuthorityPerson instance) {
-        final AuthorityPersonEntity entity =
-                instance instanceof AuthorityPersonEntity ? (AuthorityPersonEntity) instance : mapper.toEntity(instance);
-        return Optional.of(authorityPersonRepository.saveAndFlush(entity));
+        log.debug("Saving {}", instance);
+        boolean isCreate = isForCreate(instance.getId());
+        final AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity ap ? ap :
+                mapper.toEntity(instance);
+        AuthorityPersonEntity saved = authorityPersonRepository.save(entity);
+        if (isCreate) {
+            saved.getFacultyEntitySet().forEach(faculty -> connect(saved, faculty));
+        }
+        return Optional.of(authorityPersonRepository.saveAndFlush(saved));
+    }
+
+    private static boolean isForCreate(Long id) {
+        return isNull(id) || id < 0;
+    }
+
+    private void connect(AuthorityPersonEntity person, FacultyEntity faculty) {
+        faculty.setDean(person);
+        facultyRepository.save(faculty);
     }
 
     /**
@@ -356,7 +373,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     public Set<Faculty> findAllFaculties() {
         return facultyRepository.findAll().stream()
-                .map(person -> (Faculty) person)
+                .map(faculty -> (Faculty) faculty)
                 .collect(Collectors.toSet());
     }
 
@@ -386,8 +403,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Optional<Faculty> save(Faculty instance) {
-        final FacultyEntity entity =
-                instance instanceof FacultyEntity ? (FacultyEntity) instance : mapper.toEntity(instance);
+        log.debug("Create or Update {}", instance);
+        final FacultyEntity entity = instance instanceof FacultyEntity f ? f : mapper.toEntity(instance);
         return Optional.of(facultyRepository.saveAndFlush(entity));
     }
 
@@ -451,9 +468,12 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Optional<StudentsGroup> save(StudentsGroup instance) {
-        final StudentsGroupEntity entity =
-                instance instanceof StudentsGroupEntity ? (StudentsGroupEntity) instance : mapper.toEntity(instance);
-        return Optional.of(studentsGroupRepository.saveAndFlush(entity));
+        log.debug("Create or Update {}", instance);
+        final StudentsGroupEntity entity = instance instanceof StudentsGroupEntity sg ? sg : mapper.toEntity(instance);
+        log.debug("Create or Update StudentsGroup with ID:{}", entity.getId());
+        final StudentsGroupEntity saved = studentsGroupRepository.saveAndFlush(entity);
+        log.debug("Updated students group {}", saved);
+        return Optional.of(saved);
     }
 
     /**
@@ -467,14 +487,16 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteStudentsGroup(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
-        Optional<StudentsGroupEntity> faculty = studentsGroupRepository.findById(id);
-        if (faculty.isEmpty()) {
+        log.debug("Deleting students group ID:{}", id);
+        final Optional<StudentsGroupEntity> group = studentsGroupRepository.findById(id);
+        if (group.isEmpty()) {
             throw new StudentsGroupNotExistsException("No students group with ID:" + id);
-        } else if (!faculty.get().getStudents().isEmpty()) {
+        } else if (!group.get().getStudents().isEmpty()) {
             throw new StudentGroupWithStudentsException("Students group with ID:" + id + " is not empty");
         }
         studentsGroupRepository.deleteById(id);
         studentsGroupRepository.flush();
+        log.debug("Deleted students group ID:{}", id);
     }
 
     // private methods
@@ -482,7 +504,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
         return studentRepository.findAll().stream().anyMatch(student -> theSame(student, pupil));
     }
 
-    private boolean theSame(StudentEntity student, StudentEntity pupil) {
+    private static boolean theSame(StudentEntity student, StudentEntity pupil) {
         return student.getFirstName().equals(pupil.getFirstName()) &&
                 student.getLastName().equals(pupil.getLastName()) &&
                 student.getGender().equals(pupil.getGender()) &&

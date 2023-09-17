@@ -1,9 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -15,6 +12,8 @@ import java.util.*;
 import static java.util.Objects.isNull;
 
 @Data
+@EqualsAndHashCode(exclude = {"courseEntitySet", "dean"})
+@ToString(exclude = {"courseEntitySet", "dean"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,16 +23,15 @@ public class FacultyEntity implements Faculty {
     private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String name;
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     private AuthorityPersonEntity dean;
+
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "faculty")
     private Set<CourseEntity> courseEntitySet;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private AuthorityPersonEntity group;
 
     /**
      * To get the list of courses, provided by faculty
@@ -41,11 +39,11 @@ public class FacultyEntity implements Faculty {
      * @return list of courses
      */
     public List<Course> getCourses() {
-        return isNull(courseEntitySet) ? Collections.emptyList() :
-                courseEntitySet.stream()
-                        .map(course -> (Course) course)
-                        .sorted(Comparator.comparing(Course::getName))
-                        .toList();
+        refreshStudentCourses();
+        return getCourseEntitySet().stream()
+                .map(course -> (Course) course)
+                .sorted(Comparator.comparing(Course::getName))
+                .toList();
     }
 
     /**
@@ -55,43 +53,68 @@ public class FacultyEntity implements Faculty {
      */
     public void setCourses(List<Course> courses) {
         refreshStudentCourses();
-        courseEntitySet.clear();
-        courses.forEach(course -> courseEntitySet.add(mapper.toEntity(course)));
+        new HashSet<>(getCourseEntitySet()).forEach(this::remove);
+        courses.forEach(this::add);
     }
 
     /**
      * To add new course to faculty
      *
-     * @param course new course instance
+     * @param course new course attach
      * @return true if success
      */
-    public boolean add(CourseEntity course) {
+    public boolean add(Course course) {
         refreshStudentCourses();
-        courseEntitySet.add(course);
+        final Set<CourseEntity> courseEntities = getCourseEntitySet();
+        final Optional<CourseEntity> existsCourse = courseEntities.stream()
+                .filter(c -> equals(c, course)).findFirst();
+
+        if (existsCourse.isPresent()) {
+            // course exists
+            return false;
+        }
+
+        final CourseEntity courseToAdd;
+        courseEntities.add(courseToAdd = mapper.toEntity(course));
+        courseToAdd.setFaculty(this);
         return true;
     }
 
     /**
-     * To remove the course from faculty
+     * To remove the course from faculty (keeping it in the database)
      *
-     * @param course course to remove
+     * @param course course to detach
      * @return true if success
      */
-    public boolean remove(CourseEntity course) {
-        return isNull(courseEntitySet) ? cannotRemoveCourse() : courseRemoved(course);
+    public boolean remove(Course course) {
+        refreshStudentCourses();
+        final Set<CourseEntity> courseEntities = getCourseEntitySet();
+        final CourseEntity existsCourse = courseEntities.stream()
+                .filter(c -> equals(c, course)).findFirst().orElse(null);
+
+        if (isNull(existsCourse)) {
+            // course does not exist
+            return false;
+        }
+
+        if (courseEntities.removeIf(c -> c == existsCourse)) {
+            existsCourse.setFaculty(null);
+        }
+        return true;
     }
 
     private void refreshStudentCourses() {
         if (isNull(courseEntitySet)) courseEntitySet = new HashSet<>();
     }
 
-    private boolean courseRemoved(CourseEntity course) {
-        courseEntitySet.remove(course);
-        return true;
+    private static boolean equals(Course first, Course second) {
+        return !isNull(first) && !isNull(second) &&
+                equals(first.getName(), second.getName()) &&
+                equals(first.getDescription(), second.getDescription())
+                ;
     }
 
-    private boolean cannotRemoveCourse() {
-        courseEntitySet = new HashSet<>();
-        return false;
+    private static boolean equals(String first, String second) {
+        return isNull(first) ? isNull(second) : first.equals(second);
     }
 }

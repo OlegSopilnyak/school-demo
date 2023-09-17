@@ -2,9 +2,7 @@ package oleg.sopilnyak.test.endpoint.mapper;
 
 import oleg.sopilnyak.test.endpoint.dto.*;
 import oleg.sopilnyak.test.school.common.model.*;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,9 +11,14 @@ import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
 /**
- * MapStruct Mapper: To convert model types to dtos
+ * MapStruct Mapper: To convert model types to DTOs
  */
-@Mapper(nullValuePropertyMappingStrategy = IGNORE, nullValueCheckStrategy = ALWAYS)
+@Mapper(
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        nullValuePropertyMappingStrategy = IGNORE,
+        nullValueCheckStrategy = ALWAYS,
+        builder = @Builder(disableBuilder = true)
+)
 public interface EndpointMapper {
     /**
      * Convert model-type to DTO
@@ -31,9 +34,10 @@ public interface EndpointMapper {
      *
      * @param course instance to convert
      * @return DTO instance
+     * @see #toCoursesDto(List)
      */
     @Named("toShortCourse")
-    @Mapping(expression = "java(null)", target = "students")
+    @Mapping(target = "students", expression = "java(null)")
     CourseDto toDtoShort(Course course);
 
     /**
@@ -44,6 +48,18 @@ public interface EndpointMapper {
      */
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
     StudentDto toDto(Student student);
+    /**
+     * Convert model-type to DTO without  courses-list (to avoid recursion)
+     *
+     * @param student instance to convert
+     * @return DTO instance
+     * @see StudentsGroup#getLeader()
+     * @see #toDto(StudentsGroup)
+     * @see #toStudentsDto(List)
+     */
+    @Named("toShortStudent")
+    @Mapping(target = "courses", expression = "java(null)")
+    StudentDto toDtoShort(Student student);
 
     /**
      * Convert model-type to DTO
@@ -55,13 +71,37 @@ public interface EndpointMapper {
     AuthorityPersonDto toDto(AuthorityPerson person);
 
     /**
+     * Convert model-type to DTO without faculties
+     *
+     * @param person instance to convert
+     * @return DTO instance
+     * @see #toDto(Faculty)
+     * @see Faculty#getDean()
+     */
+    @Named("toShortAuthorityPerson")
+    @Mapping(target = "faculties", expression = "java(null)")
+    AuthorityPersonDto toDtoShort(AuthorityPerson person);
+
+    /**
      * Convert model-type to DTO
      *
      * @param faculty instance to convert
      * @return DTO instance
      */
+    @Mapping(source = "dean", target = "dean", qualifiedByName = "toShortAuthorityPerson")
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
     FacultyDto toDto(Faculty faculty);
+
+    /**
+     * Convert model-type to DTO without courses
+     *
+     * @param faculty instance to convert
+     * @return DTO instance
+     * @see #toFacultyDto(List)
+     */
+    @Named("toShortFaculty")
+    @Mapping(target = "courses", expression = "java(null)")
+    FacultyDto toDtoShort(Faculty faculty);
 
     /**
      * Convert model-type to DTO
@@ -70,21 +110,8 @@ public interface EndpointMapper {
      * @return DTO instance
      */
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentDtos")
-    @Mapping(source = "leader", target = "leader", qualifiedByName = "toShortStudent")
+    @Mapping(source = "leader", target = "leader", dependsOn = "students", qualifiedByName = "toShortStudent")
     StudentsGroupDto toDto(StudentsGroup group);
-
-    /**
-     * Convert model-type to DTO without  courses-list (to avoid recursion)
-     *
-     * @param student instance to convert
-     * @return DTO instance
-     */
-    @Named("toShortStudent")
-    @Mapping(expression = "java(null)", target = "courses")
-    StudentDto toDtoShort(Student student);
-
-    @Mapping(expression = "java(null)", target = "courses")
-    FacultyDto toDtoShort(Faculty faculty);
 
     @Named("toCourseDtos")
     default List<Course> toCoursesDto(List<Course> courses) {

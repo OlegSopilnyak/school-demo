@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.test;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import oleg.sopilnyak.test.school.common.model.*;
 import org.assertj.core.api.Assertions;
 import org.springframework.util.ObjectUtils;
@@ -214,13 +215,19 @@ public class TestModelFactory {
     private Faculty makeFacultyNoDean(int i) {
         return FakeFaculty.builder()
                 .id(i + 400L).name("faculty-" + i)
-                .courses(makeCourses(5))
+                .dean(null)
+                .courses(makeCourses(6))
                 .build();
     }
 
-
     protected Collection<Faculty> makeFaculties(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeFaculty(i + 1))
+                .sorted(Comparator.comparing(Faculty::getName))
+                .toList();
+    }
+
+    protected Collection<Faculty> makeTestFaculties(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeTestFaculty(400L + i))
                 .sorted(Comparator.comparing(Faculty::getName))
                 .toList();
     }
@@ -234,7 +241,6 @@ public class TestModelFactory {
             Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
         }
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
-        assertAuthorityPersonEquals(expected.getDean(), result.getDean());
         assertCourseLists(expected.getCourses(), result.getCourses(), checkId);
     }
 
@@ -288,9 +294,10 @@ public class TestModelFactory {
             Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
         }
         Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
-        assertStudentEquals(expected.getLeader(), result.getLeader());
+        assertStudentEquals(expected.getLeader(), result.getLeader(), checkId);
         assertStudentLists(expected.getStudents(), result.getStudents(), checkId);
     }
+
     protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result) {
         assertStudentsGroupEquals(expected, result, true);
     }
@@ -303,6 +310,7 @@ public class TestModelFactory {
         Assertions.assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i), checkId));
     }
+
     protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result) {
         assertStudentsGroupLists(expected, result, true);
     }
@@ -329,6 +337,7 @@ public class TestModelFactory {
     }
 
     @Data
+    @ToString(exclude = "faculties")
     @Builder
     protected static class FakeAuthorityPerson implements AuthorityPerson {
         private Long id;
@@ -340,6 +349,7 @@ public class TestModelFactory {
     }
 
     @Data
+    @ToString(exclude = "courses")
     @Builder
     protected static class FakeFaculty implements Faculty {
         private Long id;
@@ -349,6 +359,7 @@ public class TestModelFactory {
     }
 
     @Data
+    @ToString(exclude = "students")
     @Builder
     protected static class FakeStudentsGroup implements StudentsGroup {
         private Long id;

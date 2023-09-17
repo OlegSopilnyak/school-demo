@@ -13,8 +13,8 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Data
-@EqualsAndHashCode(exclude = {"studentSet"})
-@ToString(exclude = {"studentSet"})
+@EqualsAndHashCode(exclude = {"studentSet", "faculty"})
+@ToString(exclude = {"studentSet", "faculty"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,13 +24,14 @@ public class CourseEntity implements Course {
     private static SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String name;
     private String description;
     @ManyToMany(mappedBy = "courseSet", fetch = FetchType.LAZY)
     private Set<StudentEntity> studentSet;
+
     @ManyToOne(fetch=FetchType.LAZY)
     private FacultyEntity faculty;
 

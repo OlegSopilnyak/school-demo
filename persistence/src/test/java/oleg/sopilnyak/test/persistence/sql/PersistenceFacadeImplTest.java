@@ -336,7 +336,7 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllFaculties() {
         int count = 15;
-        Collection<Faculty> facultyCollection = makeFaculties(count);
+        Collection<Faculty> facultyCollection = makeTestFaculties(count);
         facultyCollection.forEach(faculty -> facade.save(faculty));
 
         Set<Faculty> faculties = facade.findAllFaculties();
@@ -391,6 +391,10 @@ class PersistenceFacadeImplTest extends TestModelFactory {
         assertThat(result).isNotEmpty();
         assertFacultyEquals(faculty, result.get(), false);
         FacultyEntity entity = (FacultyEntity) result.get();
+        entity.setCourses(entity.getCourses());
+        facade.save(entity);
+        result = facade.findFacultyById(id);
+        entity = (FacultyEntity) result.get();
         entity.setName(entity.getName() + "-nextVersion");
         entity.setCourses(List.of());
         saved = facade.save(entity);
@@ -405,10 +409,10 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllStudentsGroups() {
         int count = 5;
-        Collection<StudentsGroup> studentsGroupCollection = makeStudentsGroups(count);
+        final Collection<StudentsGroup> studentsGroupCollection = makeStudentsGroups(count);
         studentsGroupCollection.forEach(group -> facade.save(group));
 
-        Set<StudentsGroup> groups = facade.findAllStudentsGroups();
+        final Set<StudentsGroup> groups = facade.findAllStudentsGroups();
 
         assertThat(groups).isNotEmpty();
         assertThat(groups.size()).isEqualTo(studentsGroupCollection.size());
@@ -469,6 +473,13 @@ class PersistenceFacadeImplTest extends TestModelFactory {
         assertThat(facade.findStudentsGroupById(id)).isEmpty();
     }
 
+    @Override
+    protected Collection<Faculty> makeTestFaculties(int count) {
+        Collection<Faculty> faculties = super.makeTestFaculties(count);
+        faculties.forEach(faculty -> {clearId(faculty); detachDean(faculty);});
+        return faculties;
+    }
+
     // private methods
     @Override
     protected StudentsGroup makeTestStudentsGroup(Long id) {
@@ -480,7 +491,7 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     @Override
     protected Collection<StudentsGroup> makeStudentsGroups(int count) {
         Collection<StudentsGroup>groups = super.makeStudentsGroups(count);
-        groups.forEach(group -> clearId(group));
+        groups.forEach(this::clearId);
         return groups;
     }
 
@@ -496,13 +507,14 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     protected Faculty makeTestFaculty(Long id) {
         Faculty faculty = super.makeTestFaculty(id);
         clearId(faculty);
+        detachDean(faculty);
         return faculty;
     }
 
     @Override
     protected Collection<Faculty> makeFaculties(int count) {
         Collection<Faculty> faculties = super.makeFaculties(count);
-        faculties.forEach(faculty -> clearId(faculty));
+        faculties.forEach(this::clearId);
         return faculties;
     }
 
@@ -528,44 +540,49 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     @Override
     protected Collection<AuthorityPerson> makeAuthorityPersons(int count) {
         final Collection<AuthorityPerson> persons = super.makeAuthorityPersons(count);
-        persons.forEach(person -> clearId(person));
+        persons.forEach(this::clearId);
         return persons;
+    }
+
+    private static void detachDean(Faculty faculty) {
+        if (faculty instanceof FakeFaculty fake){
+            fake.setDean(null);
+        }
     }
 
     private void clearId(AuthorityPerson instance) {
         if (instance instanceof FakeAuthorityPerson person) {
             person.setId(null);
-            person.getFaculties().forEach(faculty -> clearId(faculty));
+            person.getFaculties().forEach(this::clearId);
         }
     }
 
     private void clearId(Faculty instance) {
         if (instance instanceof FakeFaculty faculty) {
             faculty.setId(null);
-            faculty.setDean(null);
-            faculty.getCourses().forEach(course -> clearId(course));
+            clearId(faculty.getDean());
+            faculty.getCourses().forEach(this::clearId);
         }
     }
 
     private void clearId(StudentsGroup instance) {
         if (instance instanceof FakeStudentsGroup group) {
             group.setId(null);
-            group.setLeader(null);
-            group.getStudents().forEach(student -> clearId(student));
+            group.getStudents().forEach(this::clearId);
         }
     }
 
     private void clearId(Course instance) {
         if (instance instanceof FakeCourse course) {
             course.setId(null);
-            course.getStudents().forEach(student -> clearId(student));
+            course.getStudents().forEach(this::clearId);
         }
     }
 
     private void clearId(Student instance) {
         if (instance instanceof FakeStudent student) {
             student.setId(null);
-            student.getCourses().forEach(course -> clearId(course));
+            student.getCourses().forEach(this::clearId);
         }
     }
 

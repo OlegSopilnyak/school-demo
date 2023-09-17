@@ -13,8 +13,8 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Data
-@EqualsAndHashCode(exclude = {"courseSet"})
-@ToString(exclude = {"courseSet"})
+@EqualsAndHashCode(exclude = {"courseSet", "group"})
+@ToString(exclude = {"courseSet", "group"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,7 +24,7 @@ public class StudentEntity implements Student {
     private static SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String firstName;

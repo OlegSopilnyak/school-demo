@@ -21,6 +21,15 @@ public interface Student {
     String getFirstName();
 
     /**
+     * To get full-name of the student
+     *
+     * @return full name value
+     */
+    default String getFullName() {
+        return getGender() + ". " + getFirstName() + " " + getLastName();
+    }
+
+    /**
      * To get last-name of the student
      *
      * @return last name value
@@ -33,15 +42,6 @@ public interface Student {
      * @return gender value
      */
     String getGender();
-
-    /**
-     * To get full-name of the student
-     *
-     * @return full name value
-     */
-    default String getFullName(){
-        return getGender() + ". " + getFirstName() + " " +getLastName();
-    }
 
     /**
      * To get description of the student

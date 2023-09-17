@@ -21,20 +21,25 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 )
 public interface SchoolEntityMapper {
     /**
-     * Convert model-type to Entity
+     * Convert model-type to Entity<BR/>Set ManyToOne field to null
      *
      * @param course instance to convert
      * @return Entity instance
+     * @see FacultyEntity#setCourses(List)
      */
+    @Mapping(target = "faculty", expression = "java(null)")
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
     CourseEntity toEntity(Course course);
 
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Entity<BR/>Set ManyToOne field to null
      *
      * @param student instance to convert
-     * @return DTO instance
+     * @return Entity instance
+     * @see StudentsGroupEntity#setStudents(List)
      */
+    @Named("toStudentEntity")
+    @Mapping(target = "group", expression = "java(null)")
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities")
     StudentEntity toEntity(Student student);
 
@@ -44,23 +49,32 @@ public interface SchoolEntityMapper {
      * @param person instance to convert
      * @return DTO instance
      */
+    @Named("toAuthorityPersonEntity")
     @Mapping(source = "faculties", target = "faculties", qualifiedByName = "toFacultyEntities")
     AuthorityPersonEntity toEntity(AuthorityPerson person);
+
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Entity<BR/>Set ManyToOne field to null
      *
      * @param faculty instance to convert
-     * @return DTO instance
+     * @return Entity instance
+     * @see AuthorityPersonEntity#setFaculties(List)
      */
+    @Named("toFacultyEntity")
+    @Mapping(target = "dean", expression = "java(null)")
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities")
     FacultyEntity toEntity(Faculty faculty);
+
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Entity
      *
      * @param group instance to convert
-     * @return DTO instance
+     * @return Entity instance
      */
-    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
+    @Mappings({
+            @Mapping(target = "leader", source = "leader", qualifiedByName = "toStudentEntity", dependsOn = "students"),
+            @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
+    })
     StudentsGroupEntity toEntity(StudentsGroup group);
 
     @Named("toCourseEntities")
@@ -72,6 +86,7 @@ public interface SchoolEntityMapper {
     default List<Student> toStudents(List<Student> students) {
         return students == null ? Collections.emptyList() : students.stream().map(student -> (Student) toEntity(student)).toList();
     }
+
     @Named("toFacultyEntities")
     default List<Faculty> toFaculties(List<Faculty> faculties) {
         return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toEntity(faculty)).toList();

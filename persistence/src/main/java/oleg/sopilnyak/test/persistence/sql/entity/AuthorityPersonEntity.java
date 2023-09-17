@@ -1,9 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -15,6 +12,8 @@ import java.util.*;
 import static java.util.Objects.isNull;
 
 @Data
+@EqualsAndHashCode(exclude = {"facultyEntitySet"})
+@ToString(exclude = {"facultyEntitySet"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +29,8 @@ public class AuthorityPersonEntity implements AuthorityPerson {
     private String firstName;
     private String lastName;
     private String gender;
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "group")
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "dean")
     private Set<FacultyEntity> facultyEntitySet;
 
     /**
@@ -39,11 +39,11 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      * @return list of faculties
      */
     public List<Faculty> getFaculties() {
-        return isNull(facultyEntitySet) ? Collections.emptyList() :
-                facultyEntitySet.stream()
-                        .map(faculty -> (Faculty) faculty)
-                        .sorted(Comparator.comparingLong(Faculty::getId))
-                        .toList();
+        refreshStudentCourses();
+        return getFacultyEntitySet().stream()
+                .map(faculty -> (Faculty) faculty)
+                .sorted(Comparator.comparing(Faculty::getName))
+                .toList();
     }
 
     /**
@@ -53,11 +53,67 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      */
     public void setFaculties(List<Faculty> faculties) {
         refreshStudentCourses();
-        facultyEntitySet.clear();
-        faculties.forEach(course -> facultyEntitySet.add(mapper.toEntity(course)));
+        new HashSet<>(getFacultyEntitySet()).forEach(this::remove);
+        faculties.forEach(this::add);
+    }
+
+    /**
+     * To add new faculty to the person
+     *
+     * @param faculty new faculty attach
+     * @return true if success
+     */
+    public boolean add(Faculty faculty) {
+        refreshStudentCourses();
+        final Set<FacultyEntity> facultyEntities = getFacultyEntitySet();
+        final Optional<FacultyEntity> existsFaculty = facultyEntities.stream()
+                .filter(f -> equals(f, faculty)).findFirst();
+
+        if (existsFaculty.isPresent()) {
+            // faculty exists
+            return false;
+        }
+
+        final FacultyEntity facultyToAdd;
+        facultyEntities.add(facultyToAdd = mapper.toEntity(faculty));
+        facultyToAdd.setDean(this);
+        return true;
+    }
+
+    /**
+     * To remove the faculty from person (keeping it in the database)
+     *
+     * @param faculty faculty to detach
+     * @return true if success
+     */
+    public boolean remove(Faculty faculty) {
+        refreshStudentCourses();
+        final Set<FacultyEntity> facultyEntities = getFacultyEntitySet();
+        final FacultyEntity existsFaculty = facultyEntities.stream()
+                .filter(f -> equals(f, faculty)).findFirst().orElse(null);
+
+        if (isNull(existsFaculty)) {
+            // faculty does not exist
+            return false;
+        }
+
+        if (facultyEntities.removeIf(s -> s == existsFaculty)) {
+            existsFaculty.setDean(null);
+        }
+        return true;
     }
 
     private void refreshStudentCourses() {
         if (isNull(facultyEntitySet)) facultyEntitySet = new HashSet<>();
+    }
+
+    private static boolean equals(Faculty first, Faculty second) {
+        return !isNull(first) && !isNull(second) &&
+                equals(first.getName(), second.getName())
+                ;
+    }
+
+    private static boolean equals(String first, String second) {
+        return isNull(first) ? isNull(second) : first.equals(second);
     }
 }
