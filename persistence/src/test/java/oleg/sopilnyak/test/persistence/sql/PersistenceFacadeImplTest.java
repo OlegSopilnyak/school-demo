@@ -5,22 +5,15 @@ import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.*;
 
@@ -28,25 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
+@TestPropertySource(properties = { "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update" })
 @Rollback
-class PersistenceFacadeImplTest extends TestModelFactory {
-    private static final String TEST_DB_DOCKER_IMAGE_NAME = "mysql:8.0";
-    private static final String TEST_DB_DOCKER_CONTAINER_NAME = "school-test-database";
-    @Container
-    private static final MySQLContainer<?> database = new MySQLContainer<>(TEST_DB_DOCKER_IMAGE_NAME)
-            .withCreateContainerCmdModifier(cmd ->
-                    cmd.withName(TEST_DB_DOCKER_CONTAINER_NAME + "-" + UUID.randomUUID()));
-
-    @DynamicPropertySource
-    static void databaseProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", database::getJdbcUrl);
-        registry.add("spring.datasource.username", database::getUsername);
-        registry.add("spring.datasource.password", database::getPassword);
-    }
-
+class PersistenceFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade facade;
 
@@ -476,7 +453,10 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     @Override
     protected Collection<Faculty> makeTestFaculties(int count) {
         Collection<Faculty> faculties = super.makeTestFaculties(count);
-        faculties.forEach(faculty -> {clearId(faculty); detachDean(faculty);});
+        faculties.forEach(faculty -> {
+            clearId(faculty);
+            detachDean(faculty);
+        });
         return faculties;
     }
 
@@ -490,7 +470,7 @@ class PersistenceFacadeImplTest extends TestModelFactory {
 
     @Override
     protected Collection<StudentsGroup> makeStudentsGroups(int count) {
-        Collection<StudentsGroup>groups = super.makeStudentsGroups(count);
+        Collection<StudentsGroup> groups = super.makeStudentsGroups(count);
         groups.forEach(this::clearId);
         return groups;
     }
@@ -545,7 +525,7 @@ class PersistenceFacadeImplTest extends TestModelFactory {
     }
 
     private static void detachDean(Faculty faculty) {
-        if (faculty instanceof FakeFaculty fake){
+        if (faculty instanceof FakeFaculty fake) {
             fake.setDean(null);
         }
     }

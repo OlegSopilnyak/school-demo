@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 import oleg.sopilnyak.test.school.common.model.*;
-import org.assertj.core.api.Assertions;
-import org.springframework.util.ObjectUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +12,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * Class-Utility: common classes and method to test model behavior
@@ -21,16 +21,17 @@ import static java.util.Objects.isNull;
 public class TestModelFactory {
 
     protected void assertStudentLists(List<Student> expected, List<Student> result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        if (isEmptyInputParameters(expected, result)) return;
+        assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i), checkId));
+    }
+
+    private static boolean isEmptyInputParameters(Object expected, Object result) {
+        if (isEmpty(expected)) {
+            assertThat(isEmpty(result)).isTrue();
+            return true;
+        }
+        return false;
     }
 
     protected void assertStudentLists(List<Student> expected, List<Student> result) {
@@ -38,15 +39,8 @@ public class TestModelFactory {
     }
 
     protected void assertCourseLists(List<Course> expected, List<Course> result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        if (isEmptyInputParameters(expected, result)) return;
+        assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -55,15 +49,12 @@ public class TestModelFactory {
     }
 
     protected void assertCourseEquals(Course expected, Course result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
+        if (isEmptyInputParameters(expected, result)) return;
         if (checkId) {
-            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(expected.getId()).isEqualTo(result.getId());
         }
-        Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
-        Assertions.assertThat(expected.getDescription()).isEqualTo(result.getDescription());
+        assertThat(expected.getName()).isEqualTo(result.getName());
+        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
     }
 
     protected void assertCourseEquals(Course expected, Course result) {
@@ -71,18 +62,15 @@ public class TestModelFactory {
     }
 
     protected void assertStudentEquals(Student expected, Student result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
+        if (isEmptyInputParameters(expected, result)) return;
         if (checkId) {
-            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(expected.getId()).isEqualTo(result.getId());
         }
-        Assertions.assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
-        Assertions.assertThat(expected.getLastName()).isEqualTo(result.getLastName());
-        Assertions.assertThat(expected.getGender()).isEqualTo(result.getGender());
-        Assertions.assertThat(expected.getDescription()).isEqualTo(result.getDescription());
-        Assertions.assertThat(expected.getFullName()).isEqualTo(result.getFullName());
+        assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
+        assertThat(expected.getLastName()).isEqualTo(result.getLastName());
+        assertThat(expected.getGender()).isEqualTo(result.getGender());
+        assertThat(expected.getDescription()).isEqualTo(result.getDescription());
+        assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
 
     protected void assertStudentEquals(Student expected, Student result) {
@@ -169,11 +157,8 @@ public class TestModelFactory {
     }
 
     protected void assertAuthorityPersonLists(List<AuthorityPerson> expected, List<AuthorityPerson> result, boolean checkId) {
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        if (isEmptyInputParameters(expected, result)) return;
+        assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertAuthorityPersonEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -182,18 +167,15 @@ public class TestModelFactory {
     }
 
     protected void assertAuthorityPersonEquals(AuthorityPerson expected, AuthorityPerson result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
+        if (isEmptyInputParameters(expected, result)) return;
         if (checkId) {
-            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(expected.getId()).isEqualTo(result.getId());
         }
-        Assertions.assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
-        Assertions.assertThat(expected.getLastName()).isEqualTo(result.getLastName());
-        Assertions.assertThat(expected.getGender()).isEqualTo(result.getGender());
-        Assertions.assertThat(expected.getTitle()).isEqualTo(result.getTitle());
-        Assertions.assertThat(expected.getFullName()).isEqualTo(result.getFullName());
+        assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
+        assertThat(expected.getLastName()).isEqualTo(result.getLastName());
+        assertThat(expected.getGender()).isEqualTo(result.getGender());
+        assertThat(expected.getTitle()).isEqualTo(result.getTitle());
+        assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
 
     protected Faculty makeTestFaculty(Long id) {
@@ -233,14 +215,11 @@ public class TestModelFactory {
     }
 
     protected void assertFacultyEquals(Faculty expected, Faculty result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
+        if (isEmptyInputParameters(expected, result)) return;
         if (checkId) {
-            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(expected.getId()).isEqualTo(result.getId());
         }
-        Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
+        assertThat(expected.getName()).isEqualTo(result.getName());
         assertCourseLists(expected.getCourses(), result.getCourses(), checkId);
     }
 
@@ -249,15 +228,8 @@ public class TestModelFactory {
     }
 
     protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result, boolean checkId) {
-        if (isNull(expected)) {
-            Assertions.assertThat(result).isNull();
-            return;
-        }
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        if (isEmptyInputParameters(expected, result)) return;
+        assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -290,10 +262,11 @@ public class TestModelFactory {
     }
 
     protected void assertStudentsGroupEquals(StudentsGroup expected, StudentsGroup result, boolean checkId) {
+        if (isEmptyInputParameters(expected, result)) return;
         if (checkId) {
-            Assertions.assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(expected.getId()).isEqualTo(result.getId());
         }
-        Assertions.assertThat(expected.getName()).isEqualTo(result.getName());
+        assertThat(expected.getName()).isEqualTo(result.getName());
         assertStudentEquals(expected.getLeader(), result.getLeader(), checkId);
         assertStudentLists(expected.getStudents(), result.getStudents(), checkId);
     }
@@ -303,11 +276,8 @@ public class TestModelFactory {
     }
 
     protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result, boolean checkId) {
-        if (ObjectUtils.isEmpty(expected)) {
-            Assertions.assertThat(ObjectUtils.isEmpty(result)).isTrue();
-            return;
-        }
-        Assertions.assertThat(expected.size()).isEqualTo(result.size());
+        if (isEmptyInputParameters(expected, result)) return;
+        assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i), checkId));
     }
 

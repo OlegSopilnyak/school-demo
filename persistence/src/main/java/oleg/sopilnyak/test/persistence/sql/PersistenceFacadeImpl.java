@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.persistence.sql.repository.*;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +24,7 @@ import static java.util.Objects.isNull;
 @Slf4j
 @Component
 public class PersistenceFacadeImpl implements PersistenceFacade {
-    @Autowired
-    private SchoolEntityMapper mapper;
+    private final SchoolEntityMapper mapper;
     @Resource
     private StudentRepository studentRepository;
     @Resource
@@ -37,6 +35,10 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     private FacultyRepository facultyRepository;
     @Resource
     private StudentsGroupRepository studentsGroupRepository;
+
+    public PersistenceFacadeImpl(SchoolEntityMapper mapper) {
+        this.mapper = mapper;
+    }
 
     /**
      * To initialize default minimal data-set for the application

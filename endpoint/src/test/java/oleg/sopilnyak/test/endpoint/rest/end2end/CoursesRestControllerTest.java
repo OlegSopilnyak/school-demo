@@ -1,0 +1,313 @@
+package oleg.sopilnyak.test.endpoint.rest.end2end;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import oleg.sopilnyak.test.endpoint.dto.CourseDto;
+import oleg.sopilnyak.test.endpoint.rest.CoursesRestController;
+import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
+import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.model.Course;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(MockitoExtension.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@Rollback
+class CoursesRestControllerTest extends MysqlTestModelFactory {
+    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private final static String ROOT = RequestMappingRoot.COURSES;
+
+    @Mock
+    CoursesFacade facade;
+    CoursesRestController controller;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        controller = spy(new CoursesRestController(facade));
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .build();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindCourse() throws Exception {
+        Long id = 100L;
+        Course course = makeTestCourse(id);
+        when(facade.findById(id)).thenReturn(Optional.of(course));
+        String requestPath = ROOT + "/" + id;
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findCourse(id.toString());
+        String responseString = result.getResponse().getContentAsString();
+        CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
+
+        assertThat(id).isEqualTo(courseDto.getId());
+        assertThat(course.getName()).isEqualTo(courseDto.getName());
+        assertThat(course.getDescription()).isEqualTo(courseDto.getDescription());
+        assertStudentLists(course.getStudents(), courseDto.getStudents());
+    }
+
+    @Test
+    void shouldFindEnrolledFor() throws Exception {
+        Long studentId = 200L;
+        Long coursesAmount = 10L;
+        Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
+        when(facade.findRegisteredFor(studentId)).thenReturn(courses);
+        String requestPath = "/courses/registered/" + studentId;
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findRegisteredFor(studentId.toString());
+        String responseString = result.getResponse().getContentAsString();
+        List<Course> courseDtos = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
+        }).stream().map(course -> (Course) course).toList();
+
+        assertThat(courseDtos).hasSize(coursesAmount.intValue());
+        assertCourseLists(courses.stream().toList(), courseDtos);
+    }
+
+    @Test
+    void shouldFindEmptyCourses() throws Exception {
+        Long coursesAmount = 5L;
+        Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
+        when(facade.findWithoutStudents()).thenReturn(courses);
+        String requestPath = "/courses/empty";
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findEmptyCourses();
+        String responseString = result.getResponse().getContentAsString();
+        List<Course> courseDtos = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
+        }).stream().map(course -> (Course) course).toList();
+
+        assertThat(courseDtos).hasSize(coursesAmount.intValue());
+        assertCourseLists(courses.stream().toList(), courseDtos);
+    }
+
+    @Test
+    void shouldCreateCourse() throws Exception {
+        Course course = makeTestCourse(null);
+        doAnswer(invocation -> {
+            Course received = invocation.getArgument(0);
+            assertThat(received.getId()).isNull();
+            assertCourseEquals(course, received);
+            assertStudentLists(course.getStudents(), received.getStudents());
+            return Optional.of(course);
+        }).when(facade).createOrUpdate(any(Course.class));
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).createCourse(any(CourseDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
+
+        assertThat(course.getName()).isEqualTo(courseDto.getName());
+        assertThat(course.getDescription()).isEqualTo(courseDto.getDescription());
+        assertStudentLists(course.getStudents(), courseDto.getStudents());
+    }
+
+    @Test
+    void shouldUpdateValidCourse() throws Exception {
+        Long id = 101L;
+        Course course = makeTestCourse(id);
+        doAnswer(invocation -> {
+            Course received = invocation.getArgument(0);
+            assertThat(id).isEqualTo(received.getId());
+            assertCourseEquals(course, received);
+            assertStudentLists(course.getStudents(), received.getStudents());
+            return Optional.of(course);
+        }).when(facade).createOrUpdate(any(Course.class));
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).updateCourse(any(CourseDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
+
+        assertThat(course.getName()).isEqualTo(courseDto.getName());
+        assertThat(course.getDescription()).isEqualTo(courseDto.getDescription());
+        assertStudentLists(course.getStudents(), courseDto.getStudents());
+    }
+
+    @Test
+    void shouldNotUpdateInvalidCourse_NullId() throws Exception {
+        Course course = makeTestCourse(null);
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).updateCourse(any(CourseDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(404).isEqualTo(error.getErrorCode());
+        assertThat("Wrong course-id: 'null'").isEqualTo(error.getErrorMessage());
+    }
+
+    @Test
+    void shouldNotUpdateInvalidCourse_NegativeId() throws Exception {
+        Long id = -101L;
+        Course course = makeTestCourse(id);
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).updateCourse(any(CourseDto.class));
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(404).isEqualTo(error.getErrorCode());
+        assertThat("Wrong course-id: '-101'").isEqualTo(error.getErrorMessage());
+    }
+
+    @Test
+    void shouldDeleteCourseValidId() throws Exception {
+        Long id = 102L;
+        String requestPath = "/courses/" + id;
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(controller).deleteCourse(id.toString());
+    }
+
+    @Test
+    void shouldDeleteCourseValidId_CourseNotExistsException() throws Exception {
+        Long id = 103L;
+        String requestPath = "/courses/" + id;
+        doThrow(new CourseNotExistsException("Wrong course")).when(facade).delete(id);
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.delete(requestPath)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).deleteCourse(id.toString());
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(404).isEqualTo(error.getErrorCode());
+        assertThat("Wrong course-id: '103'").isEqualTo(error.getErrorMessage());
+    }
+
+    @Test
+    void shouldDeleteCourseValidId_CourseWithStudentsException() throws Exception {
+        Long id = 104L;
+        String requestPath = "/courses/" + id;
+        doThrow(new CourseWithStudentsException("Wrong course")).when(facade).delete(id);
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.delete(requestPath)
+                        )
+                        .andExpect(status().isConflict())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).deleteCourse(id.toString());
+        String responseString = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+
+        assertThat(409).isEqualTo(error.getErrorCode());
+        assertThat("Cannot delete course for id = 104").isEqualTo(error.getErrorMessage());
+    }
+
+}
