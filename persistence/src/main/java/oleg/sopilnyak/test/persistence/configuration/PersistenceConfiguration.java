@@ -48,6 +48,7 @@ public class PersistenceConfiguration {
         factory.setDataSource(dataSource);
         factory.setJpaVendorAdapter(vendorAdapter);
         factory.setPackagesToScan("oleg.sopilnyak.test.persistence.sql");
+        factory.setPersistenceUnitName("schoolDatabaseUnit");
 
         Properties jpaProperties = new Properties();
         jpaProperties.put("hibernate.hbm2ddl.auto", hbm2ddlAuto);

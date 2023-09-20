@@ -21,9 +21,6 @@ dependencies {
 
     testImplementation testFixtures(project(":common"))
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    testImplementation group: 'org.testcontainers', name: 'testcontainers', version: "${testcontainersVersion}"
-    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: "${testcontainersVersion}"
-    testImplementation group: 'org.testcontainers', name: 'mysql', version: "${testcontainersVersion}"
 
 }
 bootJar {

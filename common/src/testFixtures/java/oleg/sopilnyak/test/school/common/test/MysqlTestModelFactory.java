@@ -1,6 +1,5 @@
-package oleg.sopilnyak.test.persistence.sql;
+package oleg.sopilnyak.test.school.common.test;
 
-import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -28,4 +27,10 @@ public class MysqlTestModelFactory extends TestModelFactory {
         registry.add("spring.datasource.username", database::getUsername);
         registry.add("spring.datasource.password", database::getPassword);
     }
+
+    static {
+        // starting container
+        database.start();
+    }
+
 }

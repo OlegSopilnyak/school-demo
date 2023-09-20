@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

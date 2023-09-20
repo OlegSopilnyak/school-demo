@@ -80,6 +80,9 @@ public class TestModelFactory {
     protected List<Course> makeCourses(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1)).toList();
     }
+    protected List<Course> makeClearCourses(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeClearCourse(i + 1)).toList();
+    }
 
     protected Course makeTestCourse(Long id) {
         String name = "courseName";
@@ -98,6 +101,14 @@ public class TestModelFactory {
                 .students(Collections.emptyList())
                 .build();
     }
+    protected Course makeClearCourse(int i) {
+        return FakeCourse.builder()
+                .id(null)
+                .name("name-" + i)
+                .description("description-" + i)
+                .students(Collections.emptyList())
+                .build();
+    }
 
     protected List<Student> makeStudents(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
@@ -111,6 +122,18 @@ public class TestModelFactory {
         List<Course> courses = makeCourses(5);
         return FakeStudent.builder()
                 .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
+                .courses(courses)
+                .build();
+    }
+
+    protected Student makeClearTestStudent() {
+        String firstName = "firstName";
+        String lastName = "lastName";
+        String gender = "gender";
+        String description = "description";
+        List<Course> courses = makeClearCourses(5);
+        return FakeStudent.builder()
+                .id(null).firstName(firstName).lastName(lastName).gender(gender).description(description)
                 .courses(courses)
                 .build();
     }

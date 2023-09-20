@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
