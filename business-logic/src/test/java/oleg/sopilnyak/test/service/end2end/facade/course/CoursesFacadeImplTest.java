@@ -205,7 +205,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
 
         verify(factory).command(CourseCommandsFacade.REGISTER);
-        verify(persistenceFacade).link(any(Student.class), any(Course.class));
+        verify(persistenceFacade).link(studentEntity.get(), courseEntity.get());
     }
 
     @Test
