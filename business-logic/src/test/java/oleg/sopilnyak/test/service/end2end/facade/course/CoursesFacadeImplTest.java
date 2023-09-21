@@ -35,12 +35,6 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
-//    PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
-//    @Spy
-//    CommandsFactory factory = buildFactory();
-
-    //    @Spy
-//    @InjectMocks
     @Autowired
     PersistenceFacade database;
     PersistenceFacade persistenceFacade;
