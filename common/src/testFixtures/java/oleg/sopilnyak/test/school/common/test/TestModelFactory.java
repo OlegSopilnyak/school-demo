@@ -110,8 +110,21 @@ public class TestModelFactory {
                 .build();
     }
 
+    protected Course makeClearTestCourse() {
+        String name = "courseName";
+        String description = "description";
+        List<Student> students = makeClearStudents(50);
+        return FakeCourse.builder()
+                .id(null).name(name).description(description).students(students)
+                .build();
+    }
+
+
     protected List<Student> makeStudents(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
+    }
+    protected List<Student> makeClearStudents(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1)).toList();
     }
 
     protected Student makeTestStudent(Long id) {
@@ -141,6 +154,14 @@ public class TestModelFactory {
     protected Student makeStudent(int i) {
         return FakeStudent.builder()
                 .id(i + 200L).firstName("firstName-" + i).lastName("lastName-" + i)
+                .gender("gender-" + i).description("description-" + i)
+                .courses(Collections.emptyList())
+                .build();
+    }
+
+    protected Student makeClearStudent(int i) {
+        return FakeStudent.builder()
+                .id(null).firstName("firstName-" + i).lastName("lastName-" + i)
                 .gender("gender-" + i).description("description-" + i)
                 .courses(Collections.emptyList())
                 .build();

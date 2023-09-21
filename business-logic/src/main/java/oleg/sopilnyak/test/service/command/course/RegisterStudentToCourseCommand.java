@@ -13,7 +13,12 @@ import oleg.sopilnyak.test.service.command.CommandResult;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
+import java.util.Collection;
 import java.util.Optional;
+
+import static java.util.Objects.isNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 
 /**
  * Command-Implementation: command to link the student to the course
@@ -99,8 +104,51 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
 
     private static boolean isLinked(Student studentInstance, Course courseInstance) {
         final Long studentId = studentInstance.getId(), courseId = courseInstance.getId();
-        return studentInstance.getCourses().stream().anyMatch(course -> studentId.equals(course.getId())) &&
-                courseInstance.getStudents().stream().anyMatch(student -> courseId.equals(student.getId()))
+        return
+                studentsHaveCourse(courseInstance.getStudents(), courseId) &&
+                        coursesHaveStudent(studentInstance.getCourses(), studentId)
                 ;
+    }
+
+    private static boolean studentsHaveCourse(final Collection<Student> students, final Long courseId) {
+        if (isEmpty(students) || isNull(courseId) || courseId <= 0) {
+            return false;
+        }
+        for (final Student student : students) {
+            if (studentHasCourse(student, courseId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean studentHasCourse(final Student student, final Long courseId) {
+        for (final Course course : student.getCourses()) {
+            if (courseId.equals(course.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean coursesHaveStudent(final Collection<Course> courses, final Long studentId) {
+        if (isEmpty(courses) || isNull(studentId) || studentId <= 0) {
+            return false;
+        }
+        for (final Course course : courses) {
+            if (courseHasStudent(course, studentId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean courseHasStudent(final Course course, final Long studentId) {
+        for (final Student student : course.getStudents()) {
+            if (studentId.equals(student.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

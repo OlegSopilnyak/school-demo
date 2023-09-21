@@ -2,7 +2,9 @@ package oleg.sopilnyak.test.service.end2end.facade.student;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.CommandsFactory;
@@ -14,8 +16,6 @@ import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -24,6 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -78,7 +79,22 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotFindEnrolledTo() {
+    void shouldFindEnrolledTo() {
+        Student newStudent = makeClearTestStudent();
+        Student saved = getPersistentStudent(newStudent);
+        Long courseId = saved.getCourses().get(0).getId();
+
+        Set<Student> students = facade.findEnrolledTo(courseId);
+
+        assertThat(students.size()).isEqualTo(1);
+        assertStudentEquals(newStudent, students.iterator().next(), false);
+        verify(factory).command(StudentCommandFacade.FIND_ENROLLED);
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotFindEnrolledTo_NoCourseById() {
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
@@ -90,7 +106,38 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotFindNotEnrolled() {
+    void shouldNotFindEnrolledTo_NoEnrolledStudents() {
+        Course course = makeClearCourse(0);
+        Long courseId = getPersistentCourse(course).getId();
+
+        Set<Student> students = facade.findEnrolledTo(courseId);
+
+        assertCourseEquals(course, database.findCourseById(courseId).get(), false);
+        assertThat(students).isEmpty();
+        verify(factory).command(StudentCommandFacade.FIND_ENROLLED);
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldFindNotEnrolled() {
+        Student newStudent = makeClearTestStudent();
+        if (newStudent instanceof FakeStudent student) {
+            student.setCourses(List.of());
+        }
+        getPersistentStudent(newStudent);
+
+        Set<Student> students = facade.findNotEnrolled();
+
+        assertThat(students.size()).isEqualTo(1);
+        assertStudentEquals(newStudent, students.iterator().next(), false);
+        verify(factory).command(StudentCommandFacade.FIND_NOT_ENROLLED);
+        verify(persistenceFacade).findNotEnrolledStudents();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotFindNotEnrolled_StudentNotExists() {
 
         Set<Student> students = facade.findNotEnrolled();
 
@@ -101,7 +148,19 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotCreateOrUpdate() {
+    void shouldNotFindNotEnrolled_StudentHasCourses() {
+        getPersistentStudent(makeClearTestStudent());
+
+        Set<Student> students = facade.findNotEnrolled();
+
+        assertThat(students).isEmpty();
+        verify(factory).command(StudentCommandFacade.FIND_NOT_ENROLLED);
+        verify(persistenceFacade).findNotEnrolledStudents();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldCreateOrUpdate() {
         Student student = mock(Student.class);
 
         Optional<Student> result = facade.createOrUpdate(student);
@@ -113,7 +172,23 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDelete() {
+    void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
+        Student newStudent = makeClearTestStudent();
+        if (newStudent instanceof FakeStudent student) {
+            student.setCourses(List.of());
+        }
+        Long studentId = getPersistentStudent(newStudent).getId();
+
+        facade.delete(studentId);
+
+        assertThat(database.findStudentById(studentId)).isEmpty();
+        verify(factory).command(StudentCommandFacade.DELETE);
+        verify(persistenceFacade).deleteStudent(studentId);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotDelete_StudentNotExists() {
         Long studentId = 101L;
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
@@ -123,9 +198,27 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotDelete_StudentWithCourses() {
+        Long studentId = getPersistentStudent(makeClearTestStudent()).getId();
+
+        StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
+
+        assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
+        verify(factory).command(StudentCommandFacade.DELETE);
+        verify(persistenceFacade, never()).deleteStudent(studentId);
+    }
+
     // private methods
     private Student getPersistentStudent(Student newStudent) {
         Optional<Student> saved = database.save(newStudent);
+        assertThat(saved).isNotEmpty();
+        return saved.get();
+    }
+
+    private Course getPersistentCourse(Course newCourse) {
+        Optional<Course> saved = database.save(newCourse);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }

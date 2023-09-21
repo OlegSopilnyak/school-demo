@@ -254,7 +254,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
             return false;
         }
 
-        studentRepository.saveAndFlush(studentEntity.get());
+        save(studentEntity.get());
         return true;
     }
 

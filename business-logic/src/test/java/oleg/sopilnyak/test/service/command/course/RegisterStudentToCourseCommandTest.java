@@ -131,7 +131,6 @@ class RegisterStudentToCourseCommandTest {
         Long id = 126L;
         Long[] ids = new Long[]{id, id};
         when(student.getId()).thenReturn(id);
-        when(student.getCourses()).thenReturn(List.of(course));
         when(course.getStudents()).thenReturn(List.of(student, student));
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
