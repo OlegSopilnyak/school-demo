@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.course.*;
+import oleg.sopilnyak.test.service.command.organization.*;
 import oleg.sopilnyak.test.service.command.student.*;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
@@ -69,6 +70,18 @@ public class BusinessLogicConfiguration {
     public SchoolCommandsFactory organizationCommandFactory() {
         return new SchoolCommandsFactory(
                 Set.of(
+                        new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
+                        new CreateOrUpdateFacultyCommand(persistenceFacade),
+                        new CreateOrUpdateStudentsGroupCommand(persistenceFacade),
+                        new DeleteAuthorityPersonCommand(persistenceFacade),
+                        new DeleteFacultyCommand(persistenceFacade),
+                        new DeleteStudentsGroupCommand(persistenceFacade),
+                        new FindAllAuthorityPersonsCommand(persistenceFacade),
+                        new FindAllFacultiesCommand(persistenceFacade),
+                        new FindAllStudentsGroupsCommand(persistenceFacade),
+                        new FindAuthorityPersonCommand(persistenceFacade),
+                        new FindFacultyCommand(persistenceFacade),
+                        new FindStudentsGroupCommand(persistenceFacade)
                 )
         );
     }

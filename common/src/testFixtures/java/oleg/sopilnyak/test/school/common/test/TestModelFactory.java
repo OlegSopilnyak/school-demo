@@ -176,6 +176,15 @@ public class TestModelFactory {
                 .build();
     }
 
+    protected AuthorityPerson makeCleanAuthorityPerson(int i) {
+        Faculty faculty = makeCleanFacultyNoDean(0);
+        return FakeAuthorityPerson.builder()
+                .id(null).title("assistant-" + i)
+                .firstName("firstName-" + i).lastName("lastName-" + i).gender("gender-" + i)
+                .faculties(List.of(faculty))
+                .build();
+    }
+
     protected AuthorityPerson makeTestAuthorityPerson(Long personId) {
         Faculty faculty = makeFacultyNoDean(1);
         String firstName = "firstName";
@@ -238,11 +247,27 @@ public class TestModelFactory {
                 .build();
     }
 
+    protected Faculty makeCleanFaculty(int i) {
+        return FakeFaculty.builder()
+                .id(null).name("faculty-" + i)
+                .dean(makeCleanAuthorityPerson(i))
+                .courses(makeClearCourses(5))
+                .build();
+    }
+
     private Faculty makeFacultyNoDean(int i) {
         return FakeFaculty.builder()
                 .id(i + 400L).name("faculty-" + i)
                 .dean(null)
                 .courses(makeCourses(6))
+                .build();
+    }
+
+    private Faculty makeCleanFacultyNoDean(int i) {
+        return FakeFaculty.builder()
+                .id(null).name("faculty-" + i)
+                .dean(null)
+                .courses(makeClearCourses(6))
                 .build();
     }
 
@@ -294,6 +319,15 @@ public class TestModelFactory {
         List<Student> students = makeStudents(5);
         return FakeStudentsGroup.builder()
                 .id(i + 500L).name("students-group-" + i)
+                .leader(students.get(0))
+                .students(students)
+                .build();
+    }
+
+    protected StudentsGroup makeCleanStudentsGroup(int i) {
+        List<Student> students = makeClearStudents(5);
+        return FakeStudentsGroup.builder()
+                .id(null).name("students-group-" + i)
                 .leader(students.get(0))
                 .students(students)
                 .build();

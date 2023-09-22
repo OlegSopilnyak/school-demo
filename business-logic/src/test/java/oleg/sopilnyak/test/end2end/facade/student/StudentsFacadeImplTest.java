@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.end2end.facade.student;
+package oleg.sopilnyak.test.end2end.facade.student;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.CommandsFactory;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.student.*;
-import oleg.sopilnyak.test.service.end2end.PersistenceFacadeDelegate;
+import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;

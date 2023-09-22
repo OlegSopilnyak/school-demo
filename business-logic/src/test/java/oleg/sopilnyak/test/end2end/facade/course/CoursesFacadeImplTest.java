@@ -1,5 +1,6 @@
-package oleg.sopilnyak.test.service.end2end.facade.course;
+package oleg.sopilnyak.test.end2end.facade.course;
 
+import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
@@ -9,7 +10,6 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.CommandsFactory;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.course.*;
-import oleg.sopilnyak.test.service.end2end.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +65,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindById() {
         Course newCourse = makeClearTestCourse();
-        Long courseId = getPersistentCourse(newCourse).getId();
+        Long courseId = getPersistent(newCourse).getId();
 
 
         Optional<Course> course = facade.findById(courseId);
@@ -92,7 +92,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindRegisteredFor() {
         Course newCourse = makeClearTestCourse();
-        Course savedCourse = getPersistentCourse(newCourse);
+        Course savedCourse = getPersistent(newCourse);
         Long studentId = savedCourse.getStudents().get(0).getId();
 
         Set<Course> course = facade.findRegisteredFor(studentId);
@@ -118,7 +118,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindWithoutStudents() {
         Course newCourse = makeClearCourse(0);
-        getPersistentCourse(newCourse);
+        getPersistent(newCourse);
 
         Set<Course> course = facade.findWithoutStudents();
 
@@ -145,7 +145,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDelete() throws CourseNotExistsException, CourseWithStudentsException {
         Course newCourse = makeClearCourse(0);
-        Long courseId = getPersistentCourse(newCourse).getId();
+        Long courseId = getPersistent(newCourse).getId();
 
         facade.delete(courseId);
 
@@ -170,7 +170,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDelete_CourseWithStudents() {
         Course newCourse = makeClearTestCourse();
-        Long courseId = getPersistentCourse(newCourse).getId();
+        Long courseId = getPersistent(newCourse).getId();
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 
@@ -183,9 +183,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldRegister() throws CourseNotExistsException, NoRoomInTheCourseException, StudentCoursesExceedException, StudentNotExistsException {
         Student student = makeClearStudent(0);
-        Long studentId = getPersistentStudent(student).getId();
+        Long studentId = getPersistent(student).getId();
         Course course = makeClearCourse(0);
-        Long courseId = getPersistentCourse(course).getId();
+        Long courseId = getPersistent(course).getId();
 
         facade.register(studentId, courseId);
 
@@ -205,9 +205,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldRegister_AlreadyLinked() throws CourseNotExistsException, NoRoomInTheCourseException, StudentCoursesExceedException, StudentNotExistsException {
-        Student student = getPersistentStudent(makeClearStudent(0));
+        Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
-        Course course = getPersistentCourse(makeClearCourse(0));
+        Course course = getPersistent(makeClearCourse(0));
         Long courseId = course.getId();
         database.link(student, course);
         Optional<Course> courseEntity = database.findCourseById(courseId);
@@ -243,9 +243,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotRegister_NoRoomInTheCourse() {
         Student student = makeClearStudent(0);
-        Long studentId = getPersistentStudent(student).getId();
+        Long studentId = getPersistent(student).getId();
         Course course = makeClearTestCourse();
-        Long courseId = getPersistentCourse(course).getId();
+        Long courseId = getPersistent(course).getId();
 
         NoRoomInTheCourseException exception = assertThrows(NoRoomInTheCourseException.class, () -> facade.register(studentId, courseId));
 
@@ -258,9 +258,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotRegister_StudentCoursesExceed() {
         Student student = makeClearTestStudent();
-        Long studentId = getPersistentStudent(student).getId();
+        Long studentId = getPersistent(student).getId();
         Course course = makeClearCourse(0);
-        Long courseId = getPersistentCourse(course).getId();
+        Long courseId = getPersistent(course).getId();
 
 
         StudentCoursesExceedException exception = assertThrows(StudentCoursesExceedException.class, () -> facade.register(studentId, courseId));
@@ -274,7 +274,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotRegister_CourseNotExists() {
         Student student = makeClearStudent(0);
-        Long studentId = getPersistentStudent(student).getId();
+        Long studentId = getPersistent(student).getId();
         Long courseId = 102L;
 
         CourseNotExistsException exception = assertThrows(CourseNotExistsException.class, () -> facade.register(studentId, courseId));
@@ -287,8 +287,8 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUnRegister_NotLinked() throws CourseNotExistsException, StudentNotExistsException {
-        Long studentId = getPersistentStudent(makeClearStudent(0)).getId();
-        Long courseId = getPersistentCourse(makeClearCourse(0)).getId();
+        Long studentId = getPersistent(makeClearStudent(0)).getId();
+        Long courseId = getPersistent(makeClearCourse(0)).getId();
 
         facade.unRegister(studentId, courseId);
 
@@ -307,9 +307,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUnRegister_Linked() throws CourseNotExistsException, StudentNotExistsException {
-        Student student = getPersistentStudent(makeClearStudent(0));
+        Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
-        Course course = getPersistentCourse(makeClearCourse(0));
+        Course course = getPersistent(makeClearCourse(0));
         Long courseId = course.getId();
         database.link(student, course);
         Optional<Course> courseEntity = database.findCourseById(courseId);
@@ -351,7 +351,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUnRegister_CourseNotExists() {
-        Long studentId = getPersistentStudent(makeClearStudent(0)).getId();
+        Long studentId = getPersistent(makeClearStudent(0)).getId();
         Long courseId = 103L;
 
         Exception exception = assertThrows(CourseNotExistsException.class, () -> facade.unRegister(studentId, courseId));
@@ -361,14 +361,14 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(persistenceFacade, never()).unLink(any(Student.class), any(Course.class));
     }
 
-    private Student getPersistentStudent(Student newStudent) {
-        Optional<Student> saved = database.save(newStudent);
+    private Student getPersistent(Student newInstance) {
+        Optional<Student> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }
 
-    private Course getPersistentCourse(Course newCourse) {
-        Optional<Course> saved = database.save(newCourse);
+    private Course getPersistent(Course newInstance) {
+        Optional<Course> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }

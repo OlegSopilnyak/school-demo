@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.end2end;
+package oleg.sopilnyak.test.end2end.facade;
 
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
