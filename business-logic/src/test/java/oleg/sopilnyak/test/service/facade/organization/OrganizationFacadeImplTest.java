@@ -44,219 +44,355 @@ class OrganizationFacadeImplTest {
 
     @Test
     void shouldFindAllAuthorityPersons() {
+        String commandId = AuthorityPersonCommandFacade.FIND_ALL;
+
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).isEmpty();
-        verify(factory).command(AuthorityPersonCommandFacade.FIND_ALL);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllAuthorityPersons();
     }
 
     @Test
-    void shouldGetAuthorityPersonById() {
+    void shouldFindAllAuthorityPersons2() {
+        String commandId = AuthorityPersonCommandFacade.FIND_ALL;
+        when(persistenceFacade.findAllAuthorityPersons()).thenReturn(Set.of(mockPerson));
+
+        Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
+
+        assertThat(persons.size()).isEqualTo(1);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
+        verify(persistenceFacade).findAllAuthorityPersons();
+    }
+
+    @Test
+    void shouldNotGetAuthorityPersonById() {
+        String commandId = AuthorityPersonCommandFacade.FIND_BY_ID;
         Long id = 300L;
 
         Optional<AuthorityPerson> person = facade.getAuthorityPersonById(id);
 
         assertThat(person).isEmpty();
-        verify(factory).command(AuthorityPersonCommandFacade.FIND_BY_ID);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
+        verify(persistenceFacade).findAuthorityPersonById(id);
+    }
+
+    @Test
+    void shouldGetAuthorityPersonById() {
+        String commandId = AuthorityPersonCommandFacade.FIND_BY_ID;
+        Long id = 301L;
+        when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
+
+        Optional<AuthorityPerson> person = facade.getAuthorityPersonById(id);
+
+        assertThat(person).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findAuthorityPersonById(id);
     }
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson() {
-        Long id = 301L;
+        String commandId = AuthorityPersonCommandFacade.CREATE_OR_UPDATE;
 
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(mockPerson);
 
         assertThat(person).isEmpty();
-        verify(factory).command(AuthorityPersonCommandFacade.CREATE_OR_UPDATE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(mockPerson);
+        verify(persistenceFacade).save(mockPerson);
+    }
+
+    @Test
+    void shouldCreateOrUpdateAuthorityPerson2() {
+        String commandId = AuthorityPersonCommandFacade.CREATE_OR_UPDATE;
+        when(persistenceFacade.save(mockPerson)).thenReturn(Optional.of(mockPerson));
+
+        Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(mockPerson);
+
+        assertThat(person).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(mockPerson);
         verify(persistenceFacade).save(mockPerson);
     }
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+        String commandId = AuthorityPersonCommandFacade.DELETE;
         Long id = 302L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
 
         facade.deleteAuthorityPersonById(id);
 
-        verify(factory).command(AuthorityPersonCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade).deleteAuthorityPerson(id);
     }
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+        String commandId = AuthorityPersonCommandFacade.DELETE;
         Long id = 303L;
 
-        AuthorityPersonIsNotExistsException thrown = assertThrows(AuthorityPersonIsNotExistsException.class, () -> {
-            facade.deleteAuthorityPersonById(id);
-        });
+        AuthorityPersonIsNotExistsException thrown =
+                assertThrows(AuthorityPersonIsNotExistsException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
 
-        verify(factory).command(AuthorityPersonCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+        String commandId = AuthorityPersonCommandFacade.DELETE;
         Long id = 304L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
         when(mockPerson.getFaculties()).thenReturn(List.of(mockFaculty));
 
-        AuthorityPersonManageFacultyException thrown = assertThrows(AuthorityPersonManageFacultyException.class, () -> {
-            facade.deleteAuthorityPersonById(id);
-        });
+        AuthorityPersonManageFacultyException thrown =
+                assertThrows(AuthorityPersonManageFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:304 is managing faculties.", thrown.getMessage());
 
-        verify(factory).command(AuthorityPersonCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
 
     @Test
     void shouldFindAllFaculties() {
+        String commandId = FacultyCommandFacade.FIND_ALL;
+
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).isEmpty();
-        verify(factory).command(FacultyCommandFacade.FIND_ALL);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllFaculties();
     }
 
     @Test
-    void shouldGetFacultyById() {
+    void shouldFindAllFaculties2() {
+        String commandId = FacultyCommandFacade.FIND_ALL;
+        when(persistenceFacade.findAllFaculties()).thenReturn(Set.of(mockFaculty));
+
+        Collection<Faculty> faculties = facade.findAllFaculties();
+
+        assertThat(faculties.size()).isEqualTo(1);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
+        verify(persistenceFacade).findAllFaculties();
+    }
+
+    @Test
+    void shouldNotGetFacultyById() {
+        String commandId = FacultyCommandFacade.FIND_BY_ID;
         Long id = 400L;
 
         Optional<Faculty> faculty = facade.getFacultyById(id);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(FacultyCommandFacade.FIND_BY_ID);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
+        verify(persistenceFacade).findFacultyById(id);
+    }
+
+    @Test
+    void shouldGetFacultyById() {
+        String commandId = FacultyCommandFacade.FIND_BY_ID;
+        Long id = 410L;
+        when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
+
+        Optional<Faculty> faculty = facade.getFacultyById(id);
+
+        assertThat(faculty).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findFacultyById(id);
     }
 
     @Test
     void shouldCreateOrUpdateFaculty() {
-        Long id = 401L;
+        String commandId = FacultyCommandFacade.CREATE_OR_UPDATE;
+        when(persistenceFacade.save(mockFaculty)).thenReturn(Optional.of(mockFaculty));
+
+        Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
+
+        assertThat(faculty).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(mockFaculty);
+        verify(persistenceFacade).save(mockFaculty);
+    }
+
+    @Test
+    void shouldNotCreateOrUpdateFaculty() {
+        String commandId = FacultyCommandFacade.CREATE_OR_UPDATE;
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(FacultyCommandFacade.CREATE_OR_UPDATE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(mockFaculty);
         verify(persistenceFacade).save(mockFaculty);
     }
 
     @Test
     void shouldDeleteFacultyById() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+        String commandId = FacultyCommandFacade.DELETE;
         Long id = 402L;
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
         facade.deleteFacultyById(id);
 
-        verify(factory).command(FacultyCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade).deleteFaculty(id);
     }
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+        String commandId = FacultyCommandFacade.DELETE;
         Long id = 403L;
 
-        FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> {
-            facade.deleteFacultyById(id);
-        });
+        FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
 
         assertEquals("Faculty with ID:403 is not exists.", thrown.getMessage());
-        verify(factory).command(FacultyCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade, never()).deleteFaculty(id);
     }
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+        String commandId = FacultyCommandFacade.DELETE;
         Long id = 404L;
         when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
-        FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> {
-            facade.deleteFacultyById(id);
-        });
+        FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 
         assertEquals("Faculty with ID:404 has courses.", thrown.getMessage());
-        verify(factory).command(FacultyCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade, never()).deleteFaculty(id);
     }
 
     @Test
     void shouldFindAllStudentsGroup() {
+        String commandId = StudentsGroupCommandFacade.FIND_ALL;
+        when(persistenceFacade.findAllStudentsGroups()).thenReturn(Set.of(mockGroup));
+
+        Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
+
+        assertThat(groups.size()).isEqualTo(1);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
+        verify(persistenceFacade).findAllStudentsGroups();
+    }
+
+    @Test
+    void shouldNotFindAllStudentsGroup() {
+        String commandId = StudentsGroupCommandFacade.FIND_ALL;
+
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
         assertThat(groups).isEmpty();
-        verify(factory).command(StudentsGroupCommandFacade.FIND_ALL);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllStudentsGroups();
     }
 
     @Test
     void shouldGetStudentsGroupById() {
+        String commandId = StudentsGroupCommandFacade.FIND_BY_ID;
         Long id = 500L;
+        when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
+
+        Optional<StudentsGroup> faculty = facade.getStudentsGroupById(id);
+
+        assertThat(faculty).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
+        verify(persistenceFacade).findStudentsGroupById(id);
+    }
+
+    @Test
+    void shouldNotGetStudentsGroupById() {
+        String commandId = StudentsGroupCommandFacade.FIND_BY_ID;
+        Long id = 510L;
 
         Optional<StudentsGroup> faculty = facade.getStudentsGroupById(id);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(StudentsGroupCommandFacade.FIND_BY_ID);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findStudentsGroupById(id);
     }
 
     @Test
     void shouldCreateOrUpdateStudentsGroup() {
-        Long id = 501L;
+        String commandId = StudentsGroupCommandFacade.CREATE_OR_UPDATE;
+        when(persistenceFacade.save(mockGroup)).thenReturn(Optional.of(mockGroup));
 
         Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(mockGroup);
 
-        assertThat(faculty).isEmpty();
-        verify(factory).command(StudentsGroupCommandFacade.CREATE_OR_UPDATE);
+        assertThat(faculty).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(mockGroup);
         verify(persistenceFacade).save(mockGroup);
     }
 
     @Test
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+        String commandId = StudentsGroupCommandFacade.DELETE;
         Long id = 502L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
 
         facade.deleteStudentsGroupById(id);
 
-        verify(factory).command(StudentsGroupCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade).deleteStudentsGroup(id);
     }
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotExists() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+        String commandId = StudentsGroupCommandFacade.DELETE;
         Long id = 503L;
-        StudentsGroupNotExistsException thrown = assertThrows(StudentsGroupNotExistsException.class, () -> {
-            facade.deleteStudentsGroupById(id);
-        });
+        StudentsGroupNotExistsException thrown =
+                assertThrows(StudentsGroupNotExistsException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertEquals("StudentsGroup with ID:503 is not exists.", thrown.getMessage());
-        verify(factory).command(StudentsGroupCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+        String commandId = StudentsGroupCommandFacade.DELETE;
         Long id = 504L;
         when(mockGroup.getStudents()).thenReturn(List.of(mock(Student.class)));
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
-        StudentGroupWithStudentsException thrown = assertThrows(StudentGroupWithStudentsException.class, () -> {
-            facade.deleteStudentsGroupById(id);
-        });
+        StudentGroupWithStudentsException thrown =
+                assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertEquals("StudentsGroup with ID:504 has students.", thrown.getMessage());
-        verify(factory).command(StudentsGroupCommandFacade.DELETE);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(id);
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
@@ -264,18 +400,18 @@ class OrganizationFacadeImplTest {
     private CommandsFactory buildFactory() {
         return new SchoolCommandsFactory(
                 Set.of(
-                        new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
-                        new CreateOrUpdateFacultyCommand(persistenceFacade),
-                        new CreateOrUpdateStudentsGroupCommand(persistenceFacade),
-                        new DeleteAuthorityPersonCommand(persistenceFacade),
-                        new DeleteFacultyCommand(persistenceFacade),
-                        new DeleteStudentsGroupCommand(persistenceFacade),
-                        new FindAllAuthorityPersonsCommand(persistenceFacade),
-                        new FindAllFacultiesCommand(persistenceFacade),
-                        new FindAllStudentsGroupsCommand(persistenceFacade),
-                        new FindAuthorityPersonCommand(persistenceFacade),
-                        new FindFacultyCommand(persistenceFacade),
-                        new FindStudentsGroupCommand(persistenceFacade)
+                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateFacultyCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),
+                        spy(new DeleteAuthorityPersonCommand(persistenceFacade)),
+                        spy(new DeleteFacultyCommand(persistenceFacade)),
+                        spy(new DeleteStudentsGroupCommand(persistenceFacade)),
+                        spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
+                        spy(new FindAllFacultiesCommand(persistenceFacade)),
+                        spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
+                        spy(new FindAuthorityPersonCommand(persistenceFacade)),
+                        spy(new FindFacultyCommand(persistenceFacade)),
+                        spy(new FindStudentsGroupCommand(persistenceFacade))
                 )
         );
     }
