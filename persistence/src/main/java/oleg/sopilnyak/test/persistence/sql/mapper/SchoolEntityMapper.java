@@ -28,7 +28,7 @@ public interface SchoolEntityMapper {
      * @see FacultyEntity#setCourses(List)
      */
     @Mapping(target = "faculty", expression = "java(null)")
-    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
+    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities", dependsOn = "id")
     CourseEntity toEntity(Course course);
 
     /**
@@ -40,7 +40,7 @@ public interface SchoolEntityMapper {
      */
     @Named("toStudentEntity")
     @Mapping(target = "group", expression = "java(null)")
-    @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities")
+    @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseEntities", dependsOn = "id")
     StudentEntity toEntity(Student student);
 
     /**

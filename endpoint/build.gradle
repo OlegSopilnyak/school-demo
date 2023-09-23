@@ -21,6 +21,7 @@ dependencies {
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     testImplementation project(":persistence")
+    testImplementation project(":business-logic")
     testImplementation testFixtures(project(":common"))
 }
 bootJar {

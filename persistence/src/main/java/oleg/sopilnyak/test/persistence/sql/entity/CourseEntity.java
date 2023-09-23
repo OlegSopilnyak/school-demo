@@ -7,10 +7,12 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 @Data
 @EqualsAndHashCode(exclude = {"studentSet", "faculty"})
@@ -32,7 +34,7 @@ public class CourseEntity implements Course {
     @ManyToMany(mappedBy = "courseSet", fetch = FetchType.LAZY)
     private Set<StudentEntity> studentSet;
 
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private FacultyEntity faculty;
 
     /**
@@ -42,11 +44,11 @@ public class CourseEntity implements Course {
      */
     @Override
     public List<Student> getStudents() {
-        return isNull(studentSet) ? Collections.emptyList() :
-                studentSet.stream()
-                        .map(student -> (Student) student)
-                        .sorted(Comparator.comparing(Student::getFullName))
-                        .toList();
+        refreshCourseSet();
+        return getStudentSet().stream()
+                .map(student -> (Student) student)
+                .sorted(Comparator.comparing(Student::getFullName))
+                .toList();
     }
 
     /**
@@ -55,13 +57,9 @@ public class CourseEntity implements Course {
      * @param students students list to enroll
      */
     public void setStudents(List<Student> students) {
-        refreshCourseStudents();
-        studentSet.clear();
-        students.forEach(student -> {
-            final StudentEntity courseStudent;
-            studentSet.add(courseStudent = mapper.toEntity(student));
-            courseStudent.add(this);
-        });
+        refreshCourseSet();
+        new HashSet<>(getStudentSet()).forEach(this::remove);
+        students.forEach(this::add);
     }
 
     /**
@@ -70,16 +68,24 @@ public class CourseEntity implements Course {
      * @param student to enroll
      * @return true if success
      */
-    public boolean add(StudentEntity student) {
-        refreshCourseStudents();
-        studentSet.add(student);
+    public boolean add(final Student student) {
+        refreshCourseSet();
+        final Set<StudentEntity> studentEntities = getStudentSet();
+        final boolean isExistsStudent =
+                studentEntities.stream().anyMatch(se -> equals(se, student));
 
-        final Set<CourseEntity> courses;
-        if (isNull(courses = student.getCourseSet()) || !courses.contains(this)) {
-            return student.add(this) || true;
+        if (isExistsStudent) {
+            // student exists
+            return false;
         }
+
+        final StudentEntity studentToAdd = student instanceof StudentEntity se ? se : mapper.toEntity(student);
+        refresh(studentToAdd);
+        studentEntities.add(studentToAdd);
+        studentToAdd.getCourseSet().add(this);
         return true;
     }
+
 
     /**
      * To un-enroll the student from the course
@@ -87,26 +93,41 @@ public class CourseEntity implements Course {
      * @param student to un-enroll
      * @return true if success
      */
-    public boolean remove(StudentEntity student) {
-        return isNull(studentSet) ? cannotUnEnrollStudent() : studentUnEnrolled(student);
-    }
+    public boolean remove(final Student student) {
+        refreshCourseSet();
+        final Set<StudentEntity> studentEntities = getStudentSet();
+        final StudentEntity existsStudent = studentEntities.stream()
+                .filter(se -> equals(se, student)).findFirst().orElse(null);
 
-    private boolean studentUnEnrolled(StudentEntity student) {
-        studentSet.remove(student);
-        final Set<CourseEntity> courses;
-        if (nonNull(courses = student.getCourseSet()) && courses.contains(this)) {
-            return student.remove(this) || true;
+        if (isNull(existsStudent)) {
+            // student does not exist
+            return false;
+        }
+
+        if (studentEntities.removeIf(se -> se == existsStudent)) {
+            existsStudent.getCourseSet().removeIf(c -> c == this);
         }
         return true;
     }
 
-    private boolean cannotUnEnrollStudent() {
-        studentSet = new HashSet<>();
-        return false;
+    private void refreshCourseSet() {
+        if (isNull(studentSet)) studentSet = new HashSet<>();
     }
 
-    private void refreshCourseStudents() {
-        if (isNull(studentSet)) studentSet = new HashSet<>();
+    private void refresh(final StudentEntity student) {
+        if (isNull(student.getCourseSet())) student.setCourseSet(new HashSet<>());
+    }
+
+    private static boolean equals(Student first, Student second) {
+        return !isNull(first) && !isNull(second) &&
+                equals(first.getFullName(), second.getFullName()) &&
+                equals(first.getDescription(), second.getDescription()) &&
+                equals(first.getGender(), second.getGender())
+                ;
+    }
+
+    private static boolean equals(String first, String second) {
+        return isNull(first) ? isNull(second) : first.equals(second);
     }
 
 }

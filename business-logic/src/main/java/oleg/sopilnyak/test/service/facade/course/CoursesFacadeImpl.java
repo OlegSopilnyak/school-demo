@@ -34,7 +34,6 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
     @Override
     public Optional<Course> findById(Long courseId) {
         return executeSimpleCommand(FIND_BY_ID, courseId, factory);
-
     }
 
     /**

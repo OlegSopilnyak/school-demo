@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
@@ -29,6 +30,10 @@ public class TestModelFactory {
     private static boolean isEmptyInputParameters(Object expected, Object result) {
         if (isEmpty(expected)) {
             assertThat(isEmpty(result)).isTrue();
+            return true;
+        }
+        if (isEmpty(result)) {
+            assertThat(isEmpty(expected)).isTrue();
             return true;
         }
         return false;
@@ -55,6 +60,19 @@ public class TestModelFactory {
         }
         assertThat(expected.getName()).isEqualTo(result.getName());
         assertThat(expected.getDescription()).isEqualTo(result.getDescription());
+        if (isCycled(expected) || isCycled(result)) {
+            return;
+        }
+        assertStudentLists(expected.getStudents(), result.getStudents(), checkId);
+    }
+
+    private static boolean isCycled(final Course course) {
+        final List<Student> students = course.getStudents();
+        return !isEmpty(students) && students.stream()
+                .anyMatch(student -> {
+                    final List<Course> studentCourses = student.getCourses();
+                    return nonNull(studentCourses) && studentCourses.contains(course);
+                });
     }
 
     protected void assertCourseEquals(Course expected, Course result) {
@@ -71,6 +89,19 @@ public class TestModelFactory {
         assertThat(expected.getGender()).isEqualTo(result.getGender());
         assertThat(expected.getDescription()).isEqualTo(result.getDescription());
         assertThat(expected.getFullName()).isEqualTo(result.getFullName());
+        if (isCycled(expected) || isCycled(result)) {
+            return;
+        }
+        assertCourseLists(expected.getCourses(), result.getCourses(), checkId);
+    }
+
+    private static boolean isCycled(final Student student) {
+        final List<Course> courses = student.getCourses();
+        return !isEmpty(courses) && courses.stream()
+                .anyMatch(course -> {
+                    final List<Student> courseStudents = course.getStudents();
+                    return nonNull(courseStudents) && courseStudents.contains(student);
+                });
     }
 
     protected void assertStudentEquals(Student expected, Student result) {
@@ -80,6 +111,7 @@ public class TestModelFactory {
     protected List<Course> makeCourses(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1)).toList();
     }
+
     protected List<Course> makeClearCourses(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeClearCourse(i + 1)).toList();
     }
@@ -101,6 +133,7 @@ public class TestModelFactory {
                 .students(Collections.emptyList())
                 .build();
     }
+
     protected Course makeClearCourse(int i) {
         return FakeCourse.builder()
                 .id(null)
@@ -123,6 +156,7 @@ public class TestModelFactory {
     protected List<Student> makeStudents(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
     }
+
     protected List<Student> makeClearStudents(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1)).toList();
     }

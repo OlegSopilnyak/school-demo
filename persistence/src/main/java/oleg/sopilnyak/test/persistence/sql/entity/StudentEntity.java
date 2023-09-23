@@ -7,10 +7,12 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 @Data
 @EqualsAndHashCode(exclude = {"courseSet", "group"})
@@ -31,13 +33,13 @@ public class StudentEntity implements Student {
     private String lastName;
     private String gender;
     private String description;
-    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinTable(name = "student_course",
-            joinColumns = {@JoinColumn(referencedColumnName = "ID")},
-            inverseJoinColumns = {@JoinColumn(referencedColumnName = "ID")}
+            joinColumns = {@JoinColumn(name = "fk_student")},
+            inverseJoinColumns = {@JoinColumn(name = "fk_course")}
     )
     private Set<CourseEntity> courseSet;
-    @ManyToOne(fetch=FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private StudentsGroupEntity group;
 
     /**
@@ -47,11 +49,11 @@ public class StudentEntity implements Student {
      */
     @Override
     public List<Course> getCourses() {
-        return isNull(courseSet) ? Collections.emptyList() :
-                courseSet.stream()
-                        .map(course -> (Course) course)
-                        .sorted(Comparator.comparing(Course::getName))
-                        .toList();
+        refreshCourseSet();
+        return getCourseSet().stream()
+                .map(course -> (Course) course)
+                .sorted(Comparator.comparing(Course::getName))
+                .toList();
     }
 
     /**
@@ -60,13 +62,9 @@ public class StudentEntity implements Student {
      * @param courses new student's courses list
      */
     public void setCourses(List<Course> courses) {
-        refreshStudentCourses();
-        courseSet.clear();
-        courses.forEach(course -> {
-            final CourseEntity studentCourse;
-            courseSet.add(studentCourse = mapper.toEntity(course));
-            studentCourse.add(this);
-        });
+        refreshCourseSet();
+        new HashSet<>(getCourseSet()).forEach(this::remove);
+        courses.forEach(this::add);
     }
 
     /**
@@ -75,13 +73,21 @@ public class StudentEntity implements Student {
      * @param course new student's course
      * @return true if success
      */
-    public boolean add(CourseEntity course) {
-        refreshStudentCourses();
-        courseSet.add(course);
-        final Set<StudentEntity> students = course.getStudentSet();
-        if (isNull(students) || !students.contains(this)) {
-            return course.add(this) || true;
+    public boolean add(Course course) {
+        refreshCourseSet();
+        final Set<CourseEntity> courseEntities = getCourseSet();
+        final boolean isExistsCourse =
+                courseEntities.stream().anyMatch(ce -> equals(ce, course));
+
+        if (isExistsCourse) {
+            // course exists
+            return false;
         }
+
+        final CourseEntity courseToAdd = course instanceof CourseEntity ce ? ce : mapper.toEntity(course);
+        refresh(courseToAdd);
+        courseEntities.add(courseToAdd);
+        courseToAdd.getStudentSet().add(this);
         return true;
     }
 
@@ -91,26 +97,40 @@ public class StudentEntity implements Student {
      * @param course course to remove
      * @return true if success
      */
-    public boolean remove(CourseEntity course) {
-        return isNull(courseSet) ? cannotUnregisterCourse() : courseUnregistered(course);
-    }
+    public boolean remove(Course course) {
+        refreshCourseSet();
+        final Set<CourseEntity> courseEntities = getCourseSet();
+        final CourseEntity existsCourse =
+                courseEntities.stream().filter(ce -> equals(ce, course)).findFirst().orElse(null);
 
-    private void refreshStudentCourses() {
-        if (isNull(courseSet)) courseSet = new HashSet<>();
-    }
+        if (isNull(existsCourse)) {
+            // course does not exist
+            return false;
+        }
 
-    private boolean courseUnregistered(CourseEntity course) {
-        this.courseSet.remove(course);
-        final Set<StudentEntity> students;
-
-        if (nonNull(students = course.getStudentSet()) && students.contains(this)) {
-            return course.remove(this) || true;
+        if (courseEntities.removeIf(c -> c == existsCourse)) {
+            existsCourse.getStudentSet().removeIf(s -> s == this);
         }
         return true;
     }
 
-    private boolean cannotUnregisterCourse() {
-        this.courseSet = new HashSet<>();
-        return false;
+    private void refreshCourseSet() {
+        if (isNull(courseSet)) courseSet = new HashSet<>();
     }
+
+    private static void refresh(final CourseEntity course) {
+        if (isNull(course.getStudentSet())) course.setStudentSet(new HashSet<>());
+    }
+
+    private static boolean equals(Course first, Course second) {
+        return !isNull(first) && !isNull(second) &&
+                equals(first.getName(), second.getName()) &&
+                equals(first.getDescription(), second.getDescription())
+                ;
+    }
+
+    private static boolean equals(String first, String second) {
+        return isNull(first) ? isNull(second) : first.equals(second);
+    }
+
 }
