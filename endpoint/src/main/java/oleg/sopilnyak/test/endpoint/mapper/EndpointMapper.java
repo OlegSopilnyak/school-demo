@@ -71,24 +71,12 @@ public interface EndpointMapper {
     AuthorityPersonDto toDto(AuthorityPerson person);
 
     /**
-     * Convert model-type to DTO without faculties
-     *
-     * @param person instance to convert
-     * @return DTO instance
-     * @see #toDto(Faculty)
-     * @see Faculty#getDean()
-     */
-    @Named("toShortAuthorityPerson")
-    @Mapping(target = "faculties", expression = "java(null)")
-    AuthorityPersonDto toDtoShort(AuthorityPerson person);
-
-    /**
      * Convert model-type to DTO
      *
      * @param faculty instance to convert
      * @return DTO instance
      */
-    @Mapping(source = "dean", target = "dean", qualifiedByName = "toShortAuthorityPerson")
+    @Mapping(target = "dean", expression = "java(null)")
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
     FacultyDto toDto(Faculty faculty);
 
@@ -100,6 +88,7 @@ public interface EndpointMapper {
      * @see #toFacultyDto(List)
      */
     @Named("toShortFaculty")
+    @Mapping(target = "dean", expression = "java(null)")
     @Mapping(target = "courses", expression = "java(null)")
     FacultyDto toDtoShort(Faculty faculty);
 

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -28,6 +29,7 @@ public class FacultyEntity implements Faculty {
     private Long id;
     private String name;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private AuthorityPersonEntity dean;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "faculty")

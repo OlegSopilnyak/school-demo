@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -40,6 +41,7 @@ public class StudentEntity implements Student {
     )
     private Set<CourseEntity> courseSet;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     private StudentsGroupEntity group;
 
     /**

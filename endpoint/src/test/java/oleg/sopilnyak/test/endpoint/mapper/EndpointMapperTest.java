@@ -81,15 +81,11 @@ class EndpointMapperTest extends TestModelFactory {
     void shouldTransformFacultyToDto() {
         Long id = 103L;
         String name = "English";
-        AuthorityPerson dean = FakeAuthorityPerson.builder()
-                .id(-101L).title("title").firstName("firstName").lastName("lastName").gender("gender")
-                .build();
         List<Course> courses = makeCourses(5);
 
         Faculty faculty = FakeFaculty.builder()
                 .id(id)
                 .name(name)
-                .dean(dean)
                 .courses(courses)
                 .build();
 
@@ -97,7 +93,6 @@ class EndpointMapperTest extends TestModelFactory {
 
         assertThat(id).isEqualTo(dto.getId());
         assertThat(name).isEqualTo(dto.getName());
-        assertAuthorityPersonEquals(dean, dto.getDean());
         assertCourseLists(courses, dto.getCourses());
     }
 
