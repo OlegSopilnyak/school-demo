@@ -6,6 +6,7 @@ package oleg.sopilnyak.test.endpoint.rest;
 public interface RequestMappingRoot {
     String COURSES = "/courses";
     String STUDENTS = "/students";
+    String REGISTER = "/register";
     String AUTHORITIES = "/authorities";
     String FACULTIES = "/faculties";
     String STUDENT_GROUPS = "/student-groups";
