@@ -76,8 +76,8 @@ public class FacultyEntity implements Faculty {
             return false;
         }
 
-        final CourseEntity courseToAdd;
-        courseEntities.add(courseToAdd = mapper.toEntity(course));
+        final CourseEntity courseToAdd = course instanceof CourseEntity ce ? ce : mapper.toEntity(course);
+        courseEntities.add(courseToAdd);
         courseToAdd.setFaculty(this);
         return true;
     }

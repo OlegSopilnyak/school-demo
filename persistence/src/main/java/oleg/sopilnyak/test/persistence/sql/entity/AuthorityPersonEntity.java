@@ -74,8 +74,8 @@ public class AuthorityPersonEntity implements AuthorityPerson {
             return false;
         }
 
-        final FacultyEntity facultyToAdd;
-        facultyEntities.add(facultyToAdd = mapper.toEntity(faculty));
+        final FacultyEntity facultyToAdd = faculty instanceof FacultyEntity fe ? fe : mapper.toEntity(faculty);
+        facultyEntities.add(facultyToAdd);
         facultyToAdd.setDean(this);
         return true;
     }

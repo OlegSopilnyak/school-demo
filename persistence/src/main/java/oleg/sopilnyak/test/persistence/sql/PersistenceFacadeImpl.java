@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Service-Facade-Implementation: Service for manage persistence layer of the school
@@ -54,6 +55,36 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
             log.info("Default data-set is installed already.");
             return;
         }
+        AuthorityPersonEntity maleTeacher = AuthorityPersonEntity.builder()
+                .title("Teacher").firstName("Bill").lastName("Clinton").gender("Mr")
+                .build();
+        AuthorityPersonEntity femaleTeacher = AuthorityPersonEntity.builder()
+                .title("Teacher").firstName("Hillary").lastName("Clinton").gender("Mrs")
+                .build();
+        log.info("Saving authority persons set...");
+        save(maleTeacher);
+        save(femaleTeacher);
+
+        FacultyEntity languageFaculty = FacultyEntity.builder()
+                .name("Languages")
+                .build();
+        FacultyEntity mathFaculty = FacultyEntity.builder()
+                .name("Math")
+                .build();
+        FacultyEntity natureFaculty = FacultyEntity.builder()
+                .name("Nature")
+                .build();
+        log.info("Saving faculty set...");
+        save(languageFaculty);
+        save(mathFaculty);
+        save(natureFaculty);
+
+        StudentsGroupEntity group = StudentsGroupEntity.builder()
+                .name("Pupils")
+                .build();
+        log.info("Saving students groups set...");
+        save(group);
+
         StudentEntity femalePupil = StudentEntity.builder()
                 .firstName("Jane").lastName("Doe").gender("Ms")
                 .description("The best female pupil in the School.")
@@ -67,7 +98,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
                 .description("The queen of the sciences.")
                 .build();
         CourseEntity geographic = CourseEntity.builder()
-                .name("geographic")
+                .name("Geographic")
                 .description("The science about sever countries location and habits.")
                 .build();
 
@@ -88,6 +119,27 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
         link(femalePupil, english);
         link(femalePupil, mathematics);
         link(femalePupil, geographic);
+
+        log.info("Making organization structure of the school...");
+        log.info("Authorities...");
+        maleTeacher.add(mathFaculty);
+        femaleTeacher.add(languageFaculty);
+        femaleTeacher.add(natureFaculty);
+        save(maleTeacher);
+        save(femaleTeacher);
+
+        log.info("Faculties...");
+        languageFaculty.add(english);
+        mathFaculty.add(mathematics);
+        natureFaculty.add(geographic);
+        save(languageFaculty);
+        save(mathFaculty);
+        save(natureFaculty);
+
+        log.info("Students Groups...");
+        group.add(malePupil);
+        group.add(femalePupil);
+        save(group);
     }
 
     /**
@@ -330,7 +382,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
         final AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity ap ? ap :
                 mapper.toEntity(instance);
         AuthorityPersonEntity saved = authorityPersonRepository.save(entity);
-        if (isCreate) {
+        if (isCreate && nonNull(saved.getFacultyEntitySet())) {
             saved.getFacultyEntitySet().forEach(faculty -> connect(saved, faculty));
         }
         return Optional.of(authorityPersonRepository.saveAndFlush(saved));

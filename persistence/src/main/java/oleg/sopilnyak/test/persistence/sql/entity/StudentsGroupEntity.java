@@ -123,8 +123,8 @@ public class StudentsGroupEntity implements StudentsGroup {
             return false;
         }
         final Student currentLeader = getLeader();
-        final StudentEntity studentToAdd;
-        studentEntities.add(studentToAdd = mapper.toEntity(student));
+        final StudentEntity studentToAdd = student instanceof StudentEntity se ? se : mapper.toEntity(student);
+        studentEntities.add(studentToAdd);
         studentToAdd.setGroup(this);
         setLeader(currentLeader);
         return true;
