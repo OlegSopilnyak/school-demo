@@ -2,15 +2,15 @@ package oleg.sopilnyak.test.endpoint.end2end.rest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
-import oleg.sopilnyak.test.endpoint.rest.AuthorityPersonsRestController;
+import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
+import oleg.sopilnyak.test.endpoint.rest.FacultiesRestController;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
 import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -29,11 +30,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,21 +46,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
-class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
+class FacultiesRestControllerTest extends MysqlTestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
-    private final static String ROOT = RequestMappingRoot.AUTHORITIES;
+    private final static String ROOT = RequestMappingRoot.FACULTIES;
 
     @Autowired
     PersistenceFacade database;
     @Autowired
     OrganizationFacade facade;
-    AuthorityPersonsRestController controller;
+
+    FacultiesRestController controller;
 
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new AuthorityPersonsRestController(facade));
+        controller = spy(new FacultiesRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
@@ -71,12 +70,9 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldFindAllAuthorities() throws Exception {
-        int personsAmount = 30;
-        List<AuthorityPerson> staff = IntStream.range(0, personsAmount)
-                .mapToObj(i -> getPersistent(makeCleanAuthorityPerson(i + 1)))
-                .sorted(Comparator.comparing(AuthorityPerson::getFullName)) // controller is ordering so
-                .collect(Collectors.toList());
+    void shouldFindAllFaculties() throws Exception {
+        int personsAmount = 10;
+        List<Faculty> faculties = makeCleanFaculties(personsAmount).stream().map(this::getPersistent).toList();
 
         MvcResult result =
                 mockMvc.perform(
@@ -89,18 +85,19 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).findAll();
         String responseString = result.getResponse().getContentAsString();
-        List<AuthorityPerson> authorityPersonDtos = MAPPER.readValue(responseString, new TypeReference<List<AuthorityPersonDto>>() {
-        }).stream().map(course -> (AuthorityPerson) course).toList();
 
-        assertThat(authorityPersonDtos).hasSize(personsAmount);
-        assertAuthorityPersonLists(staff, authorityPersonDtos);
+        List<Faculty> facultyDtos = MAPPER.readValue(responseString, new TypeReference<List<FacultyDto>>() {
+        }).stream().map(course -> (Faculty) course).toList();
+
+        assertThat(facultyDtos).hasSize(personsAmount);
+        assertFacultyLists(faculties, facultyDtos, true);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldFindAuthorityPersonById() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(100));
-        Long id = person.getId();
+    void shouldFindFacultyById() throws Exception {
+        Faculty faculty = getPersistent(makeCleanFaculty(0));
+        Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -114,16 +111,16 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).findById(id.toString());
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
-        assertAuthorityPersonEquals(person, personDto);
+        assertFacultyEquals(faculty, facultyDto);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldCreateAuthorityPerson() throws Exception {
-        AuthorityPerson person = makeCleanAuthorityPerson(200);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldCreateFaculty() throws Exception {
+        Faculty faculty = makeCleanFaculty(1);
+        String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
@@ -135,18 +132,19 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).createPerson(any(AuthorityPersonDto.class));
+        verify(controller).create(any(FacultyDto.class));
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
-        assertAuthorityPersonEquals(person, personDto, false);
+        assertThat(facultyDto.getId()).isNotNull();
+        assertFacultyEquals(faculty, facultyDto, false);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUpdateAuthorityPerson() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(201));
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldUpdateFaculty() throws Exception {
+        Faculty faculty = getPersistent(makeCleanFaculty(2));
+        String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
@@ -158,19 +156,18 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        verify(controller).update(any(FacultyDto.class));
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
-        assertAuthorityPersonEquals(person, personDto);
+        assertFacultyEquals(faculty, facultyDto);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -301L;
-        AuthorityPerson person = makeTestAuthorityPerson(id);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldNotUpdateFaculty_WrongId_Null() throws Exception {
+        Faculty faculty = makeTestFaculty(null);
+        String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
@@ -182,19 +179,21 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+
+        verify(controller).update(any(FacultyDto.class));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-301'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
-        AuthorityPerson person = makeTestAuthorityPerson(null);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldNotUpdateFaculty_WrongId_Negative() throws Exception {
+        Long id = -403L;
+        Faculty faculty = makeTestFaculty(id);
+        String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
@@ -206,24 +205,24 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+
+        verify(controller).update(any(FacultyDto.class));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong faculty-id: '-403'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPerson() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(202));
-        if (person instanceof AuthorityPersonEntity ape) {
-            ape.setFaculties(List.of());
-            database.save(ape);
+    void shouldDeleteFaculty() throws Exception {
+        Faculty faculty = getPersistent(makeCleanFaculty(2));
+        if (faculty instanceof FacultyEntity fe) {
+            fe.setCourses(List.of());
+            database.save(fe);
         }
-        Long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
+        Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
@@ -232,36 +231,16 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(controller).deletePerson(id.toString());
-        assertThat(database.findAuthorityPersonById(id)).isEmpty();
+        verify(controller).delete(id.toString());
+        assertThat(database.findFacultyById(id)).isEmpty();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/" + null;
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deletePerson("null");
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
-
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -303L;
+    void shouldNotDeleteFaculty_WrongId_Null() throws Exception {
+        Long id = null;
         String requestPath = ROOT + "/" + id;
+
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -270,19 +249,20 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).delete("null");
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-303'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
-        Long id = 304L;
+    void shouldNotDeleteFaculty_WrongId_Negative() throws Exception {
+        Long id = -411L;
         String requestPath = ROOT + "/" + id;
+
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -291,20 +271,19 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).delete(id.toString());
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '304'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong faculty-id: '-411'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(203));
-        Long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
+    void shouldNotDeleteFaculty_NotEmptyFaculty() throws Exception {
+        Faculty faculty = getPersistent(makeCleanFaculty(2));
+        Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -315,16 +294,16 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).delete(id.toString());
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Cannot delete authority person for id = " + id).isEqualTo(error.getErrorMessage());
+        assertThat(HttpStatus.CONFLICT.value()).isEqualTo(error.getErrorCode());
+        assertThat("Cannot delete faculty for id = " + id).isEqualTo(error.getErrorMessage());
     }
 
-    private AuthorityPerson getPersistent(AuthorityPerson newInstance) {
-        Optional<AuthorityPerson> saved = database.save(newInstance);
+    private Faculty getPersistent(Faculty newInstance) {
+        Optional<Faculty> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }

@@ -311,6 +311,12 @@ public class TestModelFactory {
                 .toList();
     }
 
+    protected Collection<Faculty> makeCleanFaculties(int count) {
+        return IntStream.range(0, count).mapToObj(i -> makeCleanFaculty(i + 1))
+                .sorted(Comparator.comparing(Faculty::getName))
+                .toList();
+    }
+
     protected Collection<Faculty> makeTestFaculties(int count) {
         return IntStream.range(0, count).mapToObj(i -> makeTestFaculty(400L + i))
                 .sorted(Comparator.comparing(Faculty::getName))

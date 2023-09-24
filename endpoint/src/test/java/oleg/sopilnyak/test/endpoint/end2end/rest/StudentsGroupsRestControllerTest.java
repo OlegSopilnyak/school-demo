@@ -2,15 +2,15 @@ package oleg.sopilnyak.test.endpoint.end2end.rest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
-import oleg.sopilnyak.test.endpoint.rest.AuthorityPersonsRestController;
+import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.rest.StudentsGroupsRestController;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
 import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,10 +29,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,21 +46,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
-class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
+class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
-    private final static String ROOT = RequestMappingRoot.AUTHORITIES;
+    private final static String ROOT = RequestMappingRoot.STUDENT_GROUPS;
 
     @Autowired
     PersistenceFacade database;
     @Autowired
     OrganizationFacade facade;
-    AuthorityPersonsRestController controller;
 
+    StudentsGroupsRestController controller;
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new AuthorityPersonsRestController(facade));
+        controller = spy(new StudentsGroupsRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
@@ -71,12 +69,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldFindAllAuthorities() throws Exception {
-        int personsAmount = 30;
-        List<AuthorityPerson> staff = IntStream.range(0, personsAmount)
-                .mapToObj(i -> getPersistent(makeCleanAuthorityPerson(i + 1)))
-                .sorted(Comparator.comparing(AuthorityPerson::getFullName)) // controller is ordering so
-                .collect(Collectors.toList());
+    void shouldFindAllStudentsGroups() throws Exception {
+        int groupsAmount = 5;
+        List<StudentsGroup> studentsGroups = IntStream.range(0, groupsAmount)
+                .mapToObj(i -> getPersistent(makeCleanStudentsGroup(i + 1))).toList();
 
         MvcResult result =
                 mockMvc.perform(
@@ -89,18 +85,18 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).findAll();
         String responseString = result.getResponse().getContentAsString();
-        List<AuthorityPerson> authorityPersonDtos = MAPPER.readValue(responseString, new TypeReference<List<AuthorityPersonDto>>() {
-        }).stream().map(course -> (AuthorityPerson) course).toList();
+        List<StudentsGroup> studentsGroupDtos = MAPPER.readValue(responseString, new TypeReference<List<StudentsGroupDto>>() {
+        }).stream().map(course -> (StudentsGroup) course).toList();
 
-        assertThat(authorityPersonDtos).hasSize(personsAmount);
-        assertAuthorityPersonLists(staff, authorityPersonDtos);
+        assertThat(studentsGroupDtos).hasSize(groupsAmount);
+        assertStudentsGroupLists(studentsGroups, studentsGroupDtos);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldFindAuthorityPersonById() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(100));
-        Long id = person.getId();
+    void shouldFindStudentsGroupById() throws Exception {
+        StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(0));
+        Long id = studentsGroup.getId();
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -114,16 +110,16 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).findById(id.toString());
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
-        assertAuthorityPersonEquals(person, personDto);
+        assertStudentsGroupEquals(studentsGroup, studentsGroupDto);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldCreateAuthorityPerson() throws Exception {
-        AuthorityPerson person = makeCleanAuthorityPerson(200);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldCreateStudentsGroup() throws Exception {
+        StudentsGroup studentsGroup = makeCleanStudentsGroup(1);
+        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
@@ -135,18 +131,18 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).createPerson(any(AuthorityPersonDto.class));
+        verify(controller).create(any(StudentsGroupDto.class));
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
-        assertAuthorityPersonEquals(person, personDto, false);
+        assertStudentsGroupEquals(studentsGroup, studentsGroupDto, false);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUpdateAuthorityPerson() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(201));
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldUpdateStudentsGroup() throws Exception {
+        StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
+        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
@@ -158,19 +154,19 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        verify(controller).update(any(StudentsGroupDto.class));
         String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
-        assertAuthorityPersonEquals(person, personDto);
+        assertStudentsGroupEquals(studentsGroup, studentsGroupDto);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -301L;
-        AuthorityPerson person = makeTestAuthorityPerson(id);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldNotUpdateStudentsGroup_WrongId_Null() throws Exception {
+        Long id = null;
+        StudentsGroup studentsGroup = makeTestStudentsGroup(id);
+        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
@@ -182,19 +178,20 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        verify(controller).update(any(StudentsGroupDto.class));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-301'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong students-group-id: 'null'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
-        AuthorityPerson person = makeTestAuthorityPerson(null);
-        String jsonContent = MAPPER.writeValueAsString(person);
+    void shouldNotUpdateStudentsGroup_WrongId_Negative() throws Exception {
+        Long id = -502L;
+        StudentsGroup studentsGroup = makeTestStudentsGroup(id);
+        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
@@ -206,24 +203,23 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
+        verify(controller).update(any(StudentsGroupDto.class));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong students-group-id: '-502'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPerson() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(202));
-        if (person instanceof AuthorityPersonEntity ape) {
-            ape.setFaculties(List.of());
-            database.save(ape);
+    void shouldDeleteStudentsGroup() throws Exception {
+        StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
+        if (studentsGroup instanceof StudentsGroupEntity sge) {
+            sge.setStudents(List.of());
+            database.save(sge);
         }
-        Long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
+        Long id = studentsGroup.getId();
         String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
@@ -232,14 +228,15 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(controller).deletePerson(id.toString());
-        assertThat(database.findAuthorityPersonById(id)).isEmpty();
+        verify(controller).delete(id.toString());
+        assertThat(database.findStudentsGroupById(id)).isEmpty();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/" + null;
+    void shouldNotDeleteStudentsGroup_WrongId_Null() throws Exception {
+        Long id = null;
+        String requestPath = ROOT + "/" + id;
 
         MvcResult result =
                 mockMvc.perform(
@@ -249,18 +246,18 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson("null");
+        verify(controller).delete("null");
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong students-group-id: 'null'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -303L;
+    void shouldNotDeleteStudentsGroup_WrongId_Negative() throws Exception {
+        Long id = -511L;
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -270,43 +267,20 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).delete(id.toString());
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-303'").isEqualTo(error.getErrorMessage());
+        assertThat("Wrong students-group-id: '-511'").isEqualTo(error.getErrorMessage());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
-        Long id = 304L;
+    void shouldNotDeleteStudentsGroup_GroupHasStudents() throws Exception {
+        StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
+        Long id = studentsGroup.getId();
         String requestPath = ROOT + "/" + id;
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deletePerson(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
-
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '304'").isEqualTo(error.getErrorMessage());
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(203));
-        Long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
-        String requestPath = ROOT + "/" + id;
-
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -315,16 +289,16 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).delete(id.toString());
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
         assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Cannot delete authority person for id = " + id).isEqualTo(error.getErrorMessage());
+        assertThat("Cannot delete students group for id = " + id).isEqualTo(error.getErrorMessage());
     }
 
-    private AuthorityPerson getPersistent(AuthorityPerson newInstance) {
-        Optional<AuthorityPerson> saved = database.save(newInstance);
+    private StudentsGroup getPersistent(StudentsGroup newInstance) {
+        Optional<StudentsGroup> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }
