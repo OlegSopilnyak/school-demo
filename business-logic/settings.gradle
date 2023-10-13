@@ -1,2 +1,4 @@
 include 'common'
 project(':common').projectDir = "$rootDir/../common" as File
+include 'persistence'
+project(':persistence').projectDir = "$rootDir/../persistence" as File
