@@ -14,6 +14,13 @@ public interface PersonProfile {
     Long getId();
 
     /**
+     * To get the url to person's photo
+     *
+     * @return valid url or null if there is no photo
+     */
+    String getPhotoUrl();
+
+    /**
      * To get person's e-mail
      *
      * @return the value
