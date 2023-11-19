@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.school.common.model;
 
 /**
- * Model: Type for person's profile for authority person
+ * Model: Type for person's profile for authority/principal person
  */
-public interface AuthorityProfile extends PersonProfile {
+public interface PrincipalProfile extends PersonProfile {
     /**
      * To get user-name for person's login
      *
