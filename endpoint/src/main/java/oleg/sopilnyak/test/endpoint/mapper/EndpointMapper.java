@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.endpoint.dto.*;
 import oleg.sopilnyak.test.school.common.model.*;
 import org.mapstruct.*;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,6 +50,7 @@ public interface EndpointMapper {
      */
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCourseDtos")
     StudentDto toDto(Student student);
+
     /**
      * Convert model-type to DTO without  courses-list (to avoid recursion)
      *
@@ -102,6 +104,32 @@ public interface EndpointMapper {
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentDtos")
     @Mapping(source = "leader", target = "leader", dependsOn = "students", qualifiedByName = "toShortStudent")
     StudentsGroupDto toDto(StudentsGroup group);
+
+    /**
+     * Convert model-type to DTO
+     *
+     * @param profile instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
+    StudentProfileDto toDto(StudentProfile profile);
+
+    /**
+     * Convert model-type to DTO
+     *
+     * @param profile instance to convert
+     * @return DTO instance
+     */
+    @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
+    PrincipalProfileDto toDto(PrincipalProfile profile);
+
+    @Named("toProfileExtras")
+    default PersonProfileDto.ProfileExtra[] toProfileExtras(PersonProfile profile) {
+        return Arrays.stream(profile.getExtraKeys())
+                .filter(key -> profile.getExtra(key).isPresent())
+                .map(key -> new PersonProfileDto.ProfileExtra(key, profile.getExtra(key).get()))
+                .toList().toArray(new PersonProfileDto.ProfileExtra[0]);
+    }
 
     @Named("toCourseDtos")
     default List<Course> toCoursesDto(List<Course> courses) {

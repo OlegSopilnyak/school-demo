@@ -53,7 +53,7 @@ public abstract class PersonProfileDto implements PersonProfile {
     @Override
     public Optional<String> getExtra(String key) {
         return isEmpty(extras) ? Optional.empty() :
-                Stream.of(extras).filter(extra -> extra.key.equals(key)).map(extra -> extra.value).findFirst();
+                Stream.of(extras).filter(extra -> extra.getKey().equals(key)).map(ProfileExtra::getValue).findFirst();
     }
 
     /**

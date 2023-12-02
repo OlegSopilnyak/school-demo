@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.dto;
 
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 /**
@@ -10,5 +11,6 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
  * @see PersonProfileDto
  */
 @Builder
+@NoArgsConstructor
 public class StudentProfileDto extends PersonProfileDto implements StudentProfile {
 }

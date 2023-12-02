@@ -117,4 +117,36 @@ class EndpointMapperTest extends TestModelFactory {
         assertStudentEquals(leader, dto.getLeader());
         assertStudentLists(students, dto.getStudents());
     }
+
+    @Test
+    void shouldTransformStudentProfileToDto() {
+        Long id = 105L;
+        StudentProfile profile = makeStudentProfile(id);
+
+        StudentProfileDto dto = mapper.toDto(profile);
+
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
+        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
+        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
+        assertProfileExtrasEquals(profile, dto);
+    }
+
+    @Test
+    void shouldTransformPrincipalProfileToDto() {
+        Long id = 106L;
+        PrincipalProfile profile = makePrincipalProfile(id);
+
+        PrincipalProfileDto dto = mapper.toDto(profile);
+
+        assertThat(profile.getLogin()).isEqualTo(dto.getLogin());
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
+        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
+        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
+        assertProfileExtrasEquals(profile, dto);
+    }
+
 }

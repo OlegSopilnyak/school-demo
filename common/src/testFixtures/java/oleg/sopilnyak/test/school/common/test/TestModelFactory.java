@@ -2,13 +2,12 @@ package oleg.sopilnyak.test.school.common.test;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.*;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
@@ -240,6 +239,25 @@ public class TestModelFactory {
 
     }
 
+    protected StudentProfile makeStudentProfile(Long id) {
+        return FakeStudentsProfile.builder()
+                .id(id)
+                .email("email@email")
+                .phone("phone")
+                .location("location")
+                .photoUrl("photo-url")
+                .build();
+    }
+    protected PrincipalProfile makePrincipalProfile(Long id) {
+        return FakePrincipalProfile.builder()
+                .id(id)
+                .email("email@email")
+                .phone("phone")
+                .location("location")
+                .photoUrl("photo-url")
+                .build();
+    }
+
     protected void assertAuthorityPersonLists(List<AuthorityPerson> expected, List<AuthorityPerson> result) {
         assertAuthorityPersonLists(expected, result, true);
     }
@@ -264,6 +282,12 @@ public class TestModelFactory {
         assertThat(expected.getGender()).isEqualTo(result.getGender());
         assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         assertThat(expected.getFullName()).isEqualTo(result.getFullName());
+    }
+
+    protected void assertProfileExtrasEquals(PersonProfile expected, PersonProfile result) {
+        if (isEmptyInputParameters(expected, result)) return;
+        Arrays.stream(expected.getExtraKeys())
+                .forEach(key -> assertThat(expected.getExtra(key)).isEqualTo(result.getExtra(key)));
     }
 
     protected Faculty makeTestFaculty(Long id) {
@@ -341,10 +365,6 @@ public class TestModelFactory {
         if (isEmptyInputParameters(expected, result)) return;
         assertThat(expected.size()).isEqualTo(result.size());
         IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i), checkId));
-    }
-
-    protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result) {
-        assertFacultyLists(expected, result, true);
     }
 
     protected StudentsGroup makeTestStudentsGroup(Long id) {
@@ -455,5 +475,31 @@ public class TestModelFactory {
         private String name;
         private Student leader;
         private List<Student> students;
+    }
+
+    @Data
+    @SuperBuilder
+    protected static class FakeStudentsProfile implements StudentProfile {
+        private Long id;
+        private String photoUrl;
+        private String email;
+        private String phone;
+        private String location;
+
+        @Override
+        public String[] getExtraKeys() {
+            return new String[]{"key1", "key2", ExtraKey.WEB.toString()};
+        }
+
+        public Optional<String> getExtra(String key) {
+            return Optional.ofNullable(key);
+        }
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @SuperBuilder
+    protected static class FakePrincipalProfile extends FakeStudentsProfile implements PrincipalProfile {
+        private String login;
     }
 }

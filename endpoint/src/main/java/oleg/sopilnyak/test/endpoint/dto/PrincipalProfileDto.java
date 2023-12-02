@@ -1,8 +1,6 @@
 package oleg.sopilnyak.test.endpoint.dto;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
 
@@ -13,7 +11,9 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
  * @see PersonProfileDto
  */
 @Data
+@NoArgsConstructor
 @Builder
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class PrincipalProfileDto extends PersonProfileDto implements PrincipalProfile {
     // user-name for principal person's login
