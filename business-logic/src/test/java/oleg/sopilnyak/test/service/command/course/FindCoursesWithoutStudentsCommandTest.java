@@ -44,7 +44,6 @@ class FindCoursesWithoutStudentsCommandTest {
         CommandResult<Set<Course>> result = command.execute(null);
 
         verify(persistenceFacade).findCoursesWithoutStudents();
-        ;
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().get()).isEmpty();

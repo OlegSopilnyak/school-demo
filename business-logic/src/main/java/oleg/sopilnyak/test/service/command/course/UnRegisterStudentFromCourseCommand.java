@@ -16,6 +16,7 @@ import java.util.Optional;
 /**
  * Command-Implementation: command to un-link the student from the course
  */
+@SuppressWarnings("DuplicatedCode")
 @Slf4j
 @AllArgsConstructor
 public class UnRegisterStudentFromCourseCommand implements SchoolCommand<Boolean> {

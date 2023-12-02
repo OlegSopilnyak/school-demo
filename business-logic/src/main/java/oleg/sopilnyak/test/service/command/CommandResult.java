@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Optional;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

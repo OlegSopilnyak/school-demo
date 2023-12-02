@@ -1,3 +1,4 @@
+//file:noinspection ConfigurationAvoidance
 plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
@@ -34,7 +35,7 @@ bootJar {
     archiveFileName = "schoolApplication.${archiveExtension.get()}"
 }
 
-task copyToDocker(type: Copy) {
+tasks.register('copyToDocker', Copy) {
     from bootJar
     into 'docker'
 }

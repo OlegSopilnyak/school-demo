@@ -19,6 +19,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 /**
  * Class-Utility: common classes and method to test model behavior
  */
+@SuppressWarnings("DuplicatedCode")
 public class TestModelFactory {
 
     protected void assertStudentLists(List<Student> expected, List<Student> result, boolean checkId) {

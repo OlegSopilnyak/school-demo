@@ -5,7 +5,7 @@ package oleg.sopilnyak.test.school.common.model;
  */
 public interface PrincipalProfile extends PersonProfile {
     /**
-     * To get user-name for person's login
+     * To get user-name for principal person's login
      *
      * @return value of user-name
      */

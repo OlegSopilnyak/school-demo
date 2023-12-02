@@ -52,8 +52,8 @@ public class StudentsGroupEntity implements StudentsGroup {
             leaderIndex = -1;
         } else {
             final List<Student> students = getStudents();
-            final Long index = students.stream().takeWhile(student -> !equals(student, leader)).count();
-            leaderIndex = index >= students.size() ? 0 : index.intValue();
+            final long index = students.stream().takeWhile(student -> !equals(student, leader)).count();
+            leaderIndex = index >= students.size() ? 0 : (int) index;
         }
     }
 
@@ -65,7 +65,7 @@ public class StudentsGroupEntity implements StudentsGroup {
     public List<Student> getStudents() {
         refreshStudentCourses();
         return getStudentEntitySet().stream()
-                .map(student -> (Student) student)
+                .map(Student.class::cast)
                 .sorted(Comparator.comparing(Student::getFullName))
                 .toList();
     }

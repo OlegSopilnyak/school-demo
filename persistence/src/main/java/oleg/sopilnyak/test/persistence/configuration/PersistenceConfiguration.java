@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 //@AllArgsConstructor
+@SuppressWarnings("SpellCheckingInspection")
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")

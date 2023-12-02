@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/register")
 public class RegisterCourseController {
+    public static final String IS_NOT_EXIST_PHRASE = " is not exist";
     // delegate for requests processing
     private final CoursesFacade facade;
 
@@ -34,19 +35,19 @@ public class RegisterCourseController {
             return ResponseEntity.ok().build();
         } catch (StudentNotExistsException e) {
             log.error("Student with id: {} is not exist", studentId);
-            throw new ResourceNotFoundException("Student with id: " + studentId + " is not exist");
+            throw new ResourceNotFoundException("Student with id: " + studentId + IS_NOT_EXIST_PHRASE);
         } catch (CourseNotExistsException e) {
             log.error("Course with id: {} is not exist", courseId);
-            throw new ResourceNotFoundException("Course with id: " + courseId + " is not exist");
+            throw new ResourceNotFoundException("Course with id: " + courseId + IS_NOT_EXIST_PHRASE);
         } catch (NoRoomInTheCourseException e) {
             log.error("No room for student: {} in course: {}", studentId, courseId);
-            throw new CannotRegisterToCourseException("No room for student: " + studentId + " in course: " + courseId + "", e);
+            throw new CannotRegisterToCourseException("No room for student: " + studentId + " in course: " + courseId, e);
         } catch (StudentCoursesExceedException e) {
             log.error("Too many courses for student: {}", studentId);
             throw new CannotRegisterToCourseException("Too many courses for student:" + studentId, e);
         } catch (Exception e) {
             log.error("Cannot register student: {} to course: {}", studentId, courseId, e);
-            throw new RuntimeException("Cannot register student: " + studentId + " to course: " + courseId + "", e);
+            throw new RuntimeException("Cannot register student: " + studentId + " to course: " + courseId, e);
         }
     }
 
@@ -64,13 +65,13 @@ public class RegisterCourseController {
             return ResponseEntity.ok().build();
         } catch (StudentNotExistsException e) {
             log.error("Student with id: {} is not exist", studentId);
-            throw new ResourceNotFoundException("Student with id: " + studentId + " is not exist");
+            throw new ResourceNotFoundException("Student with id: " + studentId + IS_NOT_EXIST_PHRASE);
         } catch (CourseNotExistsException e) {
             log.error("Course with id: {} is not exist", courseId);
-            throw new ResourceNotFoundException("Course with id: " + courseId + " is not exist");
+            throw new ResourceNotFoundException("Course with id: " + courseId + IS_NOT_EXIST_PHRASE);
         } catch (Exception e) {
             log.error("Cannot un-register student: {} from course: {}", studentId, courseId, e);
-            throw new RuntimeException("Cannot un-register student: " + studentId + " from course: " + courseId + "", e);
+            throw new RuntimeException("Cannot un-register student: " + studentId + " from course: " + courseId, e);
         }
     }
 

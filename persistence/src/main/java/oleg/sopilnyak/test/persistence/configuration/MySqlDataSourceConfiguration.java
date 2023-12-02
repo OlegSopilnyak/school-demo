@@ -7,6 +7,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
+import java.util.Objects;
 
 @Configuration
 public class MySqlDataSourceConfiguration {
@@ -17,7 +18,7 @@ public class MySqlDataSourceConfiguration {
     public DataSource dataSource()
     {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(env.getProperty("school.jdbc.driverClassName"));
+        dataSource.setDriverClassName(Objects.requireNonNull(env.getProperty("school.jdbc.driverClassName")));
         dataSource.setUrl(env.getProperty("school.jdbc.url"));
         dataSource.setUsername(env.getProperty("school.jdbc.username"));
         dataSource.setPassword(env.getProperty("school.jdbc.password"));

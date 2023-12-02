@@ -13,6 +13,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 /**
  * MapStruct Mapper: To convert model types to DTOs
  */
+@SuppressWarnings("SpellCheckingInspection")
 @Mapper(
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = IGNORE,

@@ -23,6 +23,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 /**
  * Command-Implementation: command to link the student to the course
  */
+@SuppressWarnings("DuplicatedCode")
 @Slf4j
 @AllArgsConstructor
 public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {

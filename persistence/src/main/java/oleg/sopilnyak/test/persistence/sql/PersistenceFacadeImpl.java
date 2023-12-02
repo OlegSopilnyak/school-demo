@@ -22,6 +22,7 @@ import static java.util.Objects.nonNull;
 /**
  * Service-Facade-Implementation: Service for manage persistence layer of the school
  */
+@SuppressWarnings("DuplicatedCode")
 @Slf4j
 @Component
 public class PersistenceFacadeImpl implements PersistenceFacade {
@@ -165,7 +166,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     public Set<Student> findEnrolledStudentsByCourseId(Long courseId) {
         return studentRepository.findStudentEntitiesByCourseSetId(courseId)
                 .stream()
-                .map(student -> (Student) student)
+                .map(Student.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -178,7 +179,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     public Set<Student> findNotEnrolledStudents() {
         return studentRepository.findStudentEntitiesByCourseSetEmpty()
                 .stream()
-                .map(student -> (Student) student)
+                .map(Student.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -235,7 +236,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     public Set<Course> findCoursesRegisteredForStudent(Long studentId) {
         return courseRepository.findCourseEntitiesByStudentSetId(studentId)
                 .stream()
-                .map(course -> (Course) course)
+                .map(Course.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -248,7 +249,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     public Set<Course> findCoursesWithoutStudents() {
         return courseRepository.findCourseEntitiesByStudentSetEmpty()
                 .stream()
-                .map(course -> (Course) course)
+                .map(Course.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -347,7 +348,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     public Set<AuthorityPerson> findAllAuthorityPersons() {
         return authorityPersonRepository.findAll().stream()
-                .map(person -> (AuthorityPerson) person)
+                .map(AuthorityPerson.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -427,7 +428,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     public Set<Faculty> findAllFaculties() {
         return facultyRepository.findAll().stream()
-                .map(faculty -> (Faculty) faculty)
+                .map(Faculty.class::cast)
                 .collect(Collectors.toSet());
     }
 
@@ -492,7 +493,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     @Override
     public Set<StudentsGroup> findAllStudentsGroups() {
         return studentsGroupRepository.findAll().stream()
-                .map(group -> (StudentsGroup) group)
+                .map(StudentsGroup.class::cast)
                 .collect(Collectors.toSet());
     }
 

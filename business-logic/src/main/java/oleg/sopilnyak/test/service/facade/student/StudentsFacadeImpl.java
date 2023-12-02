@@ -13,7 +13,6 @@ import oleg.sopilnyak.test.service.command.SchoolCommand;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Objects.isNull;
 import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
 
 /**
@@ -88,10 +87,10 @@ public class StudentsFacadeImpl implements StudentCommandFacade {
             return cmdResult.getResult().orElseThrow(CommandExecutor.throwFor(commandId));
         } else {
             Exception commandException = cmdResult.getException();
-            if (commandException instanceof StudentNotExistsException) {
-                throw (StudentNotExistsException) commandException;
-            } else if (commandException instanceof StudentWithCoursesException) {
-                throw (StudentWithCoursesException) commandException;
+            if (commandException instanceof StudentNotExistsException exception) {
+                throw exception;
+            } else if (commandException instanceof StudentWithCoursesException exception) {
+                throw exception;
             } else {
                 return CommandExecutor.throwFor(commandId, cmdResult.getException());
             }

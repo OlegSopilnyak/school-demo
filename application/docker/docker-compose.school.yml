@@ -22,7 +22,7 @@ services:
     container_name: school-database-mysql-8
     image: mysql:8.0
     ports:
-      - 3306:3306
+      - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
