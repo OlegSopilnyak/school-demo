@@ -59,11 +59,51 @@ public abstract class PersonProfileDto implements PersonProfile {
     /**
      * Entry for extra parameter
      */
-    @Data
-    @AllArgsConstructor
+//    @Data
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProfileExtra implements Map.Entry<String, String> {
         private String key;
         private String value;
+
+        public ProfileExtra() {
+            key = "";
+            value = "";
+        }
+
+        public ProfileExtra(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Returns the key corresponding to this entry.
+         *
+         * @return the key corresponding to this entry
+         * @throws IllegalStateException implementations may, but are not
+         *                               required to, throw this exception if the entry has been
+         *                               removed from the backing map.
+         */
+        @Override
+        public String getKey() {
+            return key;
+        }
+
+        /**
+         * Returns the value corresponding to this entry.  If the mapping
+         * has been removed from the backing map (by the iterator's
+         * {@code remove} operation), the results of this call are undefined.
+         *
+         * @return the value corresponding to this entry
+         * @throws IllegalStateException implementations may, but are not
+         *                               required to, throw this exception if the entry has been
+         *                               removed from the backing map.
+         */
+        @Override
+        public String getValue() {
+            return value;
+        }
 
         @Override
         public String setValue(String value) {

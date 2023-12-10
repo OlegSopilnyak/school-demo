@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.service.command.organization.*;
 import oleg.sopilnyak.test.service.command.student.*;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
+import oleg.sopilnyak.test.service.facade.profile.PersonProfileFacadeImpl;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -48,12 +49,6 @@ public class BusinessLogicConfiguration {
     }
 
     @Bean
-    public PersonProfileFacade personProfileFacade() {
-        return null;
-//        throw new UnsupportedOperationException("Facade is not implemented.");
-    }
-
-    @Bean
     public SchoolCommandsFactory coursesCommandFactory() {
         return new SchoolCommandsFactory(
                 Set.of(
@@ -71,6 +66,20 @@ public class BusinessLogicConfiguration {
     @Bean
     public CoursesFacade coursesFacade() {
         return new CoursesFacadeImpl(coursesCommandFactory());
+    }
+
+
+    @Bean
+    public SchoolCommandsFactory profilesCommandFactory() {
+        return new SchoolCommandsFactory(
+                Set.of(
+                )
+        );
+    }
+
+    @Bean
+    public PersonProfileFacade personProfileFacade() {
+        return new PersonProfileFacadeImpl(profilesCommandFactory());
     }
 
     @Bean
