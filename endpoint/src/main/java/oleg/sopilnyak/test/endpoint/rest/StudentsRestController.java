@@ -22,14 +22,14 @@ import static java.util.Objects.isNull;
 @RestController
 @RequestMapping(RequestMappingRoot.STUDENTS)
 public class StudentsRestController {
-    public static final String COURSE_VAR_NAME = "courseId";
-    public static final String STUDENT_VAR_NAME = "studentId";
+    public static final String COURSE_ID_VAR_NAME = "courseId";
+    public static final String STUDENT_ID_VAR_NAME = "studentId";
     // delegate for requests processing
     private final StudentsFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
-    @GetMapping("/{" + STUDENT_VAR_NAME + "}")
-    public ResponseEntity<StudentDto> findStudent(@PathVariable(STUDENT_VAR_NAME) String studentId) {
+    @GetMapping("/{" + STUDENT_ID_VAR_NAME + "}")
+    public ResponseEntity<StudentDto> findStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
         log.debug("Trying to get student by Id: '{}'", studentId);
         try {
             Long id = Long.parseLong(studentId);
@@ -42,12 +42,12 @@ public class StudentsRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get student for id: " + studentId, e);
+            throw new UnsupportedOperationException("Cannot get student for id: " + studentId, e);
         }
     }
 
-    @GetMapping("/enrolled/{" + COURSE_VAR_NAME + "}")
-    public ResponseEntity<List<StudentDto>> findEnrolledTo(@PathVariable(COURSE_VAR_NAME) String courseId) {
+    @GetMapping("/enrolled/{" + COURSE_ID_VAR_NAME + "}")
+    public ResponseEntity<List<StudentDto>> findEnrolledTo(@PathVariable(COURSE_ID_VAR_NAME) String courseId) {
         log.debug("Trying to get students for course Id: '{}'", courseId);
         try {
             Long id = Long.parseLong(courseId);
@@ -60,7 +60,7 @@ public class StudentsRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get courses for student-id: " + courseId, e);
+            throw new UnsupportedOperationException("Cannot get courses for student-id: " + courseId, e);
         }
     }
 
@@ -70,7 +70,7 @@ public class StudentsRestController {
         try {
             return ResponseEntity.ok(resultToDto(facade.findNotEnrolled()));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get not enrolled students");
+            throw new UnsupportedOperationException("Cannot get not enrolled students");
         }
     }
 
@@ -81,7 +81,7 @@ public class StudentsRestController {
             studentDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(studentDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new Student " + studentDto.toString());
+            throw new UnsupportedOperationException("Cannot create new Student " + studentDto.toString());
         }
     }
 
@@ -97,12 +97,12 @@ public class StudentsRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update student " + studentDto.toString());
+            throw new UnsupportedOperationException("Cannot update student " + studentDto.toString());
         }
     }
 
-    @DeleteMapping("/{" + STUDENT_VAR_NAME + "}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable(STUDENT_VAR_NAME) String studentId) {
+    @DeleteMapping("/{" + STUDENT_ID_VAR_NAME + "}")
+    public ResponseEntity<Void> deleteStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
         log.debug("Trying to delete student by Id: '{}'", studentId);
         try {
             Long id = Long.parseLong(studentId);
