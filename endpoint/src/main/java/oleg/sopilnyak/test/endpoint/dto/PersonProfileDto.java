@@ -1,11 +1,16 @@
 package oleg.sopilnyak.test.endpoint.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import lombok.*;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -28,13 +33,14 @@ public abstract class PersonProfileDto implements PersonProfile {
     private String email;
     private String phone;
     private String location;
-    private ProfileExtra[] extras;
+    private Extra[] extras;
 
     /**
      * To get keys of profile's extra parameters
      *
      * @return array of keys of extra parameters
      */
+    @JsonIgnore
     @Override
     public String[] getExtraKeys() {
         return isEmpty(extras) ? new String[0] :
@@ -53,63 +59,40 @@ public abstract class PersonProfileDto implements PersonProfile {
     @Override
     public Optional<String> getExtra(String key) {
         return isEmpty(extras) ? Optional.empty() :
-                Stream.of(extras).filter(extra -> extra.getKey().equals(key)).map(ProfileExtra::getValue).findFirst();
+                Stream.of(extras).filter(extra -> extra.getKey().equals(key)).map(Extra::getValue).findFirst();
     }
 
     /**
      * Entry for extra parameter
      */
-//    @Data
-//    @NoArgsConstructor
-//    @AllArgsConstructor
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ProfileExtra implements Map.Entry<String, String> {
+    @Data
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @JsonDeserialize(using = Extra.Deserializer.class)
+    public static class Extra implements Map.Entry<String, String> {
         private String key;
         private String value;
 
-        public ProfileExtra() {
-            key = "";
-            value = "";
-        }
-
-        public ProfileExtra(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        /**
-         * Returns the key corresponding to this entry.
-         *
-         * @return the key corresponding to this entry
-         * @throws IllegalStateException implementations may, but are not
-         *                               required to, throw this exception if the entry has been
-         *                               removed from the backing map.
-         */
-        @Override
-        public String getKey() {
-            return key;
-        }
-
-        /**
-         * Returns the value corresponding to this entry.  If the mapping
-         * has been removed from the backing map (by the iterator's
-         * {@code remove} operation), the results of this call are undefined.
-         *
-         * @return the value corresponding to this entry
-         * @throws IllegalStateException implementations may, but are not
-         *                               required to, throw this exception if the entry has been
-         *                               removed from the backing map.
-         */
-        @Override
-        public String getValue() {
-            return value;
-        }
-
         @Override
         public String setValue(String value) {
-            final String oldValue = this.value;
+            var oldValue = this.value;
             this.value = value;
             return oldValue;
+        }
+
+        private static class Deserializer extends StdDeserializer<Extra> {
+            public Deserializer() {
+                super(Extra.class);
+            }
+
+            @Override
+            public Extra deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                final JsonNode node = p.getCodec().readTree(p);
+                final String key = node.fieldNames().next();
+                final String value = node.findValue(key).textValue();
+                return new Extra(key, value);
+            }
         }
     }
 

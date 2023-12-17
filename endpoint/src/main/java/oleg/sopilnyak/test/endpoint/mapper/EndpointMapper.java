@@ -124,11 +124,11 @@ public interface EndpointMapper {
     PrincipalProfileDto toDto(PrincipalProfile profile);
 
     @Named("toProfileExtras")
-    default PersonProfileDto.ProfileExtra[] toProfileExtras(PersonProfile profile) {
+    default PersonProfileDto.Extra[] toProfileExtras(PersonProfile profile) {
         return Arrays.stream(profile.getExtraKeys())
                 .filter(key -> profile.getExtra(key).isPresent())
-                .map(key -> new PersonProfileDto.ProfileExtra(key, profile.getExtra(key).get()))
-                .toList().toArray(new PersonProfileDto.ProfileExtra[0]);
+                .map(key -> new PersonProfileDto.Extra(key, profile.getExtra(key).get()))
+                .toList().toArray(new PersonProfileDto.Extra[0]);
     }
 
     @Named("toCourseDtos")

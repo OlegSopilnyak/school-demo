@@ -1,12 +1,11 @@
 package oleg.sopilnyak.test.endpoint.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.CourseDto;
+import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +24,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -68,13 +66,122 @@ class PersonProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findStudentProfile(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        StudentProfileDto dto = MAPPER.readValue(responseString, StudentProfileDto.class);
-
+        StudentProfileDto dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertThat(id).isEqualTo(dto.getId());
+        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
+        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
+        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
+        assertThat(profile.getExtraKeys()).isEqualTo(dto.getExtraKeys());
     }
 
     @Test
-    void findPrincipalProfile() {
+    void shouldNotFoundStudentProfile_NotExists() throws Exception {
+        Long id = -401L;
+        String requestPath = ROOT + "/student/" + id;
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findStudentProfile(id.toString());
+        String response = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error =
+                MAPPER.readValue(response, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -401 is not found");
+    }
+
+    @Test
+    void shouldNotFoundStudentProfile_WrongId() throws Exception {
+        Long id = -401L;
+        String requestPath = ROOT + "/student/" + id + "!";
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findStudentProfile(id + "!");
+        String response = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error =
+                MAPPER.readValue(response, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '-401!'");
+    }
+
+    @Test
+    void shouldFindPrincipalProfile() throws Exception {
+        Long id = 402L;
+        PrincipalProfile profile = makePrincipalProfile(id);
+        when(facade.findPrincipalProfileById(id)).thenReturn(Optional.of(profile));
+        String requestPath = ROOT + "/principal/" + id;
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findPrincipalProfile(id.toString());
+        PrincipalProfileDto dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
+        assertThat(id).isEqualTo(dto.getId());
+        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
+        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
+        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
+        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
+        assertThat(profile.getExtraKeys()).isEqualTo(dto.getExtraKeys());
+        assertThat(profile.getLogin()).isEqualTo(dto.getLogin());
+    }
+
+    @Test
+    void shouldNotFoundPrincipalProfile_NotExists() throws Exception {
+        Long id = -402L;
+        String requestPath = ROOT + "/principal/" + id;
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findPrincipalProfile(id.toString());
+        String response = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error =
+                MAPPER.readValue(response, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
+    }
+
+    @Test
+    void shouldNotFoundPrincipalProfile_WrongId() throws Exception {
+        Long id = -402L;
+        String requestPath = ROOT + "/principal/" + id + "!";
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findPrincipalProfile(id + "!");
+        String response = result.getResponse().getContentAsString();
+        RestResponseEntityExceptionHandler.RestErrorMessage error =
+                MAPPER.readValue(response, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
     }
 }
