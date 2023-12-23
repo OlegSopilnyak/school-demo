@@ -14,4 +14,10 @@ public interface CommandsFactory {
      * @param <T> type of command execution result
      */
    <T> SchoolCommand<T> command(String commandId);
+
+    /**
+     * To get the name of the commands factory
+     * @return value
+     */
+    String getName();
 }

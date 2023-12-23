@@ -21,6 +21,7 @@ import static oleg.sopilnyak.test.service.command.CommandExecutor.takeValidComma
 @Slf4j
 @AllArgsConstructor
 public class CoursesFacadeImpl implements CourseCommandsFacade {
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory factory;
 
     /**
@@ -33,7 +34,7 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
      */
     @Override
     public Optional<Course> findById(Long courseId) {
-        return executeSimpleCommand(FIND_BY_ID, courseId, factory);
+        return CommandExecutor.executeSimpleCommand(FIND_BY_ID, courseId, factory);
     }
 
     /**
@@ -84,11 +85,11 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
         final CommandResult<Boolean> cmdResult = command.execute(courseId);
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof CourseNotExistsException) {
-                throw (CourseNotExistsException) executionException;
-            } else if (executionException instanceof CourseWithStudentsException) {
-                throw (CourseWithStudentsException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof CourseNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof CourseWithStudentsException exception) {
+                throw exception;
             } else {
                 CommandExecutor.throwFor(commandId, cmdResult.getException());
             }
@@ -114,15 +115,15 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
         CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof StudentNotExistsException) {
-                throw (StudentNotExistsException) executionException;
-            } else if (executionException instanceof CourseNotExistsException) {
-                throw (CourseNotExistsException) executionException;
-            } else if (executionException instanceof NoRoomInTheCourseException) {
-                throw (NoRoomInTheCourseException) executionException;
-            } else if (executionException instanceof StudentCoursesExceedException) {
-                throw (StudentCoursesExceedException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof StudentNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof CourseNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof NoRoomInTheCourseException exception) {
+                throw exception;
+            } else if (executionException instanceof StudentCoursesExceedException exception) {
+                throw exception;
             } else {
                 CommandExecutor.throwFor(commandId, cmdResult.getException());
             }
@@ -144,11 +145,11 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
         CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof StudentNotExistsException) {
-                throw (StudentNotExistsException) executionException;
-            } else if (executionException instanceof CourseNotExistsException) {
-                throw (CourseNotExistsException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof StudentNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof CourseNotExistsException exception) {
+                throw exception;
             } else {
                 CommandExecutor.throwFor(commandId, cmdResult.getException());
             }

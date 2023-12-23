@@ -73,7 +73,7 @@ class CoursesFacadeImplTest {
 
         Set<Course> course = facade.findRegisteredFor(studentId);
 
-        assertThat(course.size()).isEqualTo(1);
+        assertThat(course).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(studentId);
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
@@ -99,7 +99,7 @@ class CoursesFacadeImplTest {
 
         Set<Course> course = facade.findWithoutStudents();
 
-        assertThat(course.size()).isEqualTo(1);
+        assertThat(course).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findCoursesWithoutStudents();
@@ -163,7 +163,7 @@ class CoursesFacadeImplTest {
 
         CourseNotExistsException exception = assertThrows(CourseNotExistsException.class, () -> facade.delete(courseId));
 
-        assertThat("Course with ID:203 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Course with ID:203 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(courseId);
         verify(persistenceFacade).findCourseById(courseId);
@@ -179,7 +179,7 @@ class CoursesFacadeImplTest {
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 
-        assertThat("Course with ID:204 has enrolled students.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Course with ID:204 has enrolled students.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(courseId);
         verify(persistenceFacade).findCourseById(courseId);
@@ -215,7 +215,7 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(StudentNotExistsException.class, () -> facade.register(studentId, courseId));
 
-        assertThat("Student with ID:103 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:103 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
@@ -230,7 +230,7 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(CourseNotExistsException.class, () -> facade.register(studentId, courseId));
 
-        assertThat("Course with ID:207 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Course with ID:207 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
@@ -247,7 +247,7 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(StudentCoursesExceedException.class, () -> facade.register(studentId, courseId));
 
-        assertThat("Student with ID:105 exceeds maximum courses.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:105 exceeds maximum courses.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
@@ -264,7 +264,7 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(NoRoomInTheCourseException.class, () -> facade.register(studentId, courseId));
 
-        assertThat("Course with ID:209 does not have enough rooms.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Course with ID:209 does not have enough rooms.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
@@ -293,7 +293,7 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(StudentNotExistsException.class, () -> facade.unRegister(studentId, courseId));
 
-        assertThat("Student with ID:108 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:108 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
@@ -308,14 +308,14 @@ class CoursesFacadeImplTest {
 
         Exception exception = assertThrows(CourseNotExistsException.class, () -> facade.unRegister(studentId, courseId));
 
-        assertThat("Course with ID:212 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Course with ID:212 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(new Long[]{studentId, courseId});
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("courses",
                 Set.of(
                         spy(new FindCourseCommand(persistenceFacade)),
                         spy(new FindRegisteredCoursesCommand(persistenceFacade)),

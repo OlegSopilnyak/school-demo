@@ -3,8 +3,6 @@ package oleg.sopilnyak.test.service.facade.profile;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.service.CommandsFactory;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
-import oleg.sopilnyak.test.service.command.student.*;
-import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,9 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class PersonProfileFacadeImplTest {
@@ -28,7 +24,16 @@ class PersonProfileFacadeImplTest {
     PersonProfileFacadeImpl facade;
 
     @Test
-    void findById() {
+    void shouldFindById() {
+        String commandId = ProfileCommandFacade.FIND_BY_ID;
+        Long profileId = 400L;
+//
+//        Optional<PersonProfile> profile = facade.findById(profileId);
+//
+//        assertThat(profile).isEmpty();
+//        verify(factory).command(commandId);
+//        verify(factory.command(commandId)).execute(profileId);
+//        verify(persistenceFacade).findStudentById(profileId);
     }
 
     @Test
@@ -38,8 +43,9 @@ class PersonProfileFacadeImplTest {
     @Test
     void findPrincipalProfileById() {
     }
+
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("person-profile",
                 Set.of(
                 )
         );

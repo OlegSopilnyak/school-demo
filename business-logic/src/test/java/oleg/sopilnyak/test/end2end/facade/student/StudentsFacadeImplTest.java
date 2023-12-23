@@ -86,7 +86,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
-        assertThat(students.size()).isEqualTo(1);
+        assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
         verify(factory).command(StudentCommandFacade.FIND_ENROLLED);
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
@@ -129,7 +129,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         Set<Student> students = facade.findNotEnrolled();
 
-        assertThat(students.size()).isEqualTo(1);
+        assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
         verify(factory).command(StudentCommandFacade.FIND_NOT_ENROLLED);
         verify(persistenceFacade).findNotEnrolledStudents();
@@ -193,7 +193,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
 
-        assertThat("Student with ID:101 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
         verify(factory).command(StudentCommandFacade.DELETE);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
@@ -224,7 +224,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("students",
                 Set.of(
                         new FindStudentCommand(persistenceFacade),
                         new FindEnrolledStudentsCommand(persistenceFacade),

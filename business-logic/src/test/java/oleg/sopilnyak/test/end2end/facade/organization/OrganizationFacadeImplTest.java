@@ -77,7 +77,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
-        assertThat(persons.size()).isEqualTo(1);
+        assertThat(persons).hasSize(1);
         assertAuthorityPersonEquals(person, persons.iterator().next(), false);
         verify(factory).command(AuthorityPersonCommandFacade.FIND_ALL);
         verify(persistenceFacade).findAllAuthorityPersons();
@@ -189,7 +189,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
-        assertThat(faculties.size()).isEqualTo(1);
+        assertThat(faculties).hasSize(1);
         assertFacultyEquals(faculty, faculties.iterator().next(), false);
         verify(factory).command(FacultyCommandFacade.FIND_ALL);
         verify(persistenceFacade).findAllFaculties();
@@ -298,7 +298,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
-        assertThat(groups.size()).isEqualTo(1);
+        assertThat(groups).hasSize(1);
         assertStudentsGroupEquals(group, groups.iterator().next(), false);
         verify(factory).command(StudentsGroupCommandFacade.FIND_ALL);
         verify(persistenceFacade).findAllStudentsGroups();
@@ -419,7 +419,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("organization",
                 Set.of(
                         new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
                         new CreateOrUpdateFacultyCommand(persistenceFacade),

@@ -84,7 +84,7 @@ public class StudentsFacadeImpl implements StudentCommandFacade {
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(studentId);
         if (cmdResult.isSuccess()) {
-            return cmdResult.getResult().orElseThrow(CommandExecutor.throwFor(commandId));
+            return cmdResult.getResult().orElseThrow(CommandExecutor.createThrowFor(commandId));
         } else {
             Exception commandException = cmdResult.getException();
             if (commandException instanceof StudentNotExistsException exception) {

@@ -31,7 +31,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public SchoolCommandsFactory studentsCommandFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("students",
                 Set.of(
                         new CreateOrUpdateStudentCommand(persistenceFacade),
                         new DeleteStudentCommand(persistenceFacade),
@@ -50,7 +50,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public SchoolCommandsFactory coursesCommandFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("courses",
                 Set.of(
                         new CreateOrUpdateCourseCommand(persistenceFacade),
                         new DeleteCourseCommand(persistenceFacade),
@@ -71,7 +71,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public SchoolCommandsFactory profilesCommandFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("person-profile",
                 Set.of(
                 )
         );
@@ -84,7 +84,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public SchoolCommandsFactory organizationCommandFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("organization",
                 Set.of(
                         new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
                         new CreateOrUpdateFacultyCommand(persistenceFacade),

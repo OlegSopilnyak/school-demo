@@ -10,7 +10,6 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
 import java.util.Collection;
@@ -26,7 +25,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @SuppressWarnings("DuplicatedCode")
 @Slf4j
 @AllArgsConstructor
-public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
+public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     private final PersistenceFacade persistenceFacade;
     private final int maximumRooms;
     private final int coursesExceed;
@@ -104,7 +103,8 @@ public class RegisterStudentToCourseCommand implements SchoolCommand<Boolean> {
     }
 
     private static boolean isLinked(Student studentInstance, Course courseInstance) {
-        final Long studentId = studentInstance.getId(), courseId = courseInstance.getId();
+        final Long studentId = studentInstance.getId();
+        final Long courseId = courseInstance.getId();
         return
                 studentsHaveCourse(courseInstance.getStudents(), courseId) &&
                         coursesHaveStudent(studentInstance.getCourses(), studentId)

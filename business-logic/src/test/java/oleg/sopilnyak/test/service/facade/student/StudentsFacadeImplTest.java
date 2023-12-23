@@ -84,7 +84,7 @@ class StudentsFacadeImplTest {
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
-        assertThat(students.size()).isEqualTo(1);
+        assertThat(students).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(courseId);
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
@@ -109,7 +109,7 @@ class StudentsFacadeImplTest {
 
         Set<Student> students = facade.findNotEnrolled();
 
-        assertThat(students.size()).isEqualTo(1);
+        assertThat(students).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findNotEnrolledStudents();
@@ -161,7 +161,7 @@ class StudentsFacadeImplTest {
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
 
-        assertThat("Student with ID:102 is not exists.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:102 is not exists.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
@@ -176,14 +176,14 @@ class StudentsFacadeImplTest {
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
-        assertThat("Student with ID:103 has registered courses.").isEqualTo(exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("students",
                 Set.of(
                         spy(new FindStudentCommand(persistenceFacade)),
                         spy(new FindEnrolledStudentsCommand(persistenceFacade)),

@@ -61,7 +61,7 @@ class OrganizationFacadeImplTest {
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
-        assertThat(persons.size()).isEqualTo(1);
+        assertThat(persons).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllAuthorityPersons();
@@ -186,7 +186,7 @@ class OrganizationFacadeImplTest {
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
-        assertThat(faculties.size()).isEqualTo(1);
+        assertThat(faculties).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllFaculties();
@@ -295,7 +295,7 @@ class OrganizationFacadeImplTest {
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
-        assertThat(groups.size()).isEqualTo(1);
+        assertThat(groups).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(null);
         verify(persistenceFacade).findAllStudentsGroups();
@@ -398,7 +398,7 @@ class OrganizationFacadeImplTest {
     }
 
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory(
+        return new SchoolCommandsFactory("organization",
                 Set.of(
                         spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
                         spy(new CreateOrUpdateFacultyCommand(persistenceFacade)),

@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 
 import java.util.Optional;
@@ -19,7 +18,7 @@ import java.util.Optional;
 @SuppressWarnings("DuplicatedCode")
 @Slf4j
 @AllArgsConstructor
-public class UnRegisterStudentFromCourseCommand implements SchoolCommand<Boolean> {
+public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean> {
     private final PersistenceFacade persistenceFacade;
 
     /**

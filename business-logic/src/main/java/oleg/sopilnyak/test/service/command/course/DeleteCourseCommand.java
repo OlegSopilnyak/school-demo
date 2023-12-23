@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
 import org.springframework.util.ObjectUtils;
 
@@ -18,7 +17,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-public class DeleteCourseCommand implements SchoolCommand<Boolean> {
+public class DeleteCourseCommand implements CourseCommand<Boolean> {
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**
