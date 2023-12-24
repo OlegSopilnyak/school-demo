@@ -5,8 +5,8 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.course.*;
+import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CoursesFacadeImplTest {
+class CoursesFacadeUnitTest {
+    private static final String COURSE_FIND_BY_ID = "course.findById";
+    private static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
+    private static final String COURSE_FIND_WITHOUT_STUDENTS = "course.findWithoutStudents";
+    private static final String COURSE_CREATE_OR_UPDATE = "course.createOrUpdate";
+    private static final String COURSE_DELETE = "course.delete";
+    private static final String COURSE_REGISTER = "course.register";
+    private static final String COURSE_UN_REGISTER = "course.unRegister";
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
     CommandsFactory factory = buildFactory();
@@ -40,7 +47,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotFindById() {
-        String commandId = CourseCommandsFacade.FIND_BY_ID;
+        String commandId = COURSE_FIND_BY_ID;
         Long courseId = 200L;
 
         Optional<Course> course = facade.findById(courseId);
@@ -53,7 +60,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldFindById() {
-        String commandId = CourseCommandsFacade.FIND_BY_ID;
+        String commandId = COURSE_FIND_BY_ID;
         Long courseId = 201L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
@@ -67,7 +74,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldFindRegisteredFor() {
-        String commandId = CourseCommandsFacade.FIND_REGISTERED;
+        String commandId = COURSE_FIND_REGISTERED_FOR;
         Long studentId = 100L;
         when(persistenceFacade.findCoursesRegisteredForStudent(studentId)).thenReturn(Set.of(mockedCourse));
 
@@ -81,7 +88,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotFindRegisteredFor() {
-        String commandId = CourseCommandsFacade.FIND_REGISTERED;
+        String commandId = COURSE_FIND_REGISTERED_FOR;
         Long studentId = 101L;
 
         Set<Course> course = facade.findRegisteredFor(studentId);
@@ -94,7 +101,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldFindWithoutStudents() {
-        String commandId = CourseCommandsFacade.FIND_NOT_REGISTERED;
+        String commandId = COURSE_FIND_WITHOUT_STUDENTS;
         when(persistenceFacade.findCoursesWithoutStudents()).thenReturn(Set.of(mockedCourse));
 
         Set<Course> course = facade.findWithoutStudents();
@@ -107,7 +114,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotFindWithoutStudents() {
-        String commandId = CourseCommandsFacade.FIND_NOT_REGISTERED;
+        String commandId = COURSE_FIND_WITHOUT_STUDENTS;
 
         Set<Course> course = facade.findWithoutStudents();
 
@@ -119,7 +126,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdate() {
-        String commandId = CourseCommandsFacade.CREATE_OR_UPDATE;
+        String commandId = COURSE_CREATE_OR_UPDATE;
         when(persistenceFacade.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
@@ -132,7 +139,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotCreateOrUpdate() {
-        String commandId = CourseCommandsFacade.CREATE_OR_UPDATE;
+        String commandId = COURSE_CREATE_OR_UPDATE;
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
 
@@ -144,7 +151,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldDelete() throws CourseNotExistsException, CourseWithStudentsException {
-        String commandId = CourseCommandsFacade.DELETE;
+        String commandId = COURSE_DELETE;
         Long courseId = 202L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
@@ -158,7 +165,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotDelete_CourseNotExists() {
-        String commandId = CourseCommandsFacade.DELETE;
+        String commandId = COURSE_DELETE;
         Long courseId = 203L;
 
         CourseNotExistsException exception = assertThrows(CourseNotExistsException.class, () -> facade.delete(courseId));
@@ -172,7 +179,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotDelete_CourseWithStudents() {
-        String commandId = CourseCommandsFacade.DELETE;
+        String commandId = COURSE_DELETE;
         Long courseId = 204L;
         when(mockedCourse.getStudents()).thenReturn(List.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
@@ -190,7 +197,7 @@ class CoursesFacadeImplTest {
     void shouldRegister() throws
             CourseNotExistsException, NoRoomInTheCourseException,
             StudentCoursesExceedException, StudentNotExistsException {
-        String commandId = CourseCommandsFacade.REGISTER;
+        String commandId = COURSE_REGISTER;
         Long studentId = 102L;
         when(mockedStudent.getId()).thenReturn(studentId);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -209,7 +216,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotRegister_StudentNotExists() {
-        String commandId = CourseCommandsFacade.REGISTER;
+        String commandId = COURSE_REGISTER;
         Long studentId = 103L;
         Long courseId = 206L;
 
@@ -223,7 +230,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotRegister_CourseNotExists() {
-        String commandId = CourseCommandsFacade.REGISTER;
+        String commandId = COURSE_REGISTER;
         Long studentId = 104L;
         Long courseId = 207L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -238,7 +245,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotRegister_StudentCoursesExceed() {
-        String commandId = CourseCommandsFacade.REGISTER;
+        String commandId = COURSE_REGISTER;
         Long studentId = 105L;
         Long courseId = 208L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -255,7 +262,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotRegister_NoRoomInTheCourse() {
-        String commandId = CourseCommandsFacade.REGISTER;
+        String commandId = COURSE_REGISTER;
         Long studentId = 106L;
         Long courseId = 209L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -272,7 +279,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldUnRegister() throws CourseNotExistsException, StudentNotExistsException {
-        String commandId = CourseCommandsFacade.UN_REGISTER;
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = 107L;
         Long courseId = 210L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -287,7 +294,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotUnRegister_StudentNotExists() {
-        String commandId = CourseCommandsFacade.UN_REGISTER;
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = 108L;
         Long courseId = 211L;
 
@@ -301,7 +308,7 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldNotUnRegister_CourseNotExists() {
-        String commandId = CourseCommandsFacade.UN_REGISTER;
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = 109L;
         Long courseId = 212L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -315,8 +322,8 @@ class CoursesFacadeImplTest {
     }
 
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory("courses",
-                Set.of(
+        return new CourseCommandsFactory(
+                List.of(
                         spy(new FindCourseCommand(persistenceFacade)),
                         spy(new FindRegisteredCoursesCommand(persistenceFacade)),
                         spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),

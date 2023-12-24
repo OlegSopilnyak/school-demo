@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.course;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
@@ -27,7 +28,9 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @AllArgsConstructor
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     private final PersistenceFacade persistenceFacade;
+    @Getter
     private final int maximumRooms;
+    @Getter
     private final int coursesExceed;
 
     /**

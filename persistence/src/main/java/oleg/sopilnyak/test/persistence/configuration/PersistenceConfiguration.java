@@ -16,13 +16,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-//@AllArgsConstructor
 @SuppressWarnings("SpellCheckingInspection")
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")
 public class PersistenceConfiguration {
 
+    public static final String REAL_PERSISTENCE_FACADE = "realPersistenceFacade";
     @Value("${school.spring.jpa.show-sql:false}")
     private Boolean showSQL;
     @Value("${school.hibernate.hbm2ddl.auto:validate}")
@@ -33,7 +33,7 @@ public class PersistenceConfiguration {
         return Mappers.getMapper(SchoolEntityMapper.class);
     }
 
-    @Bean
+    @Bean(REAL_PERSISTENCE_FACADE)
     public PersistenceFacade persistenceFacade() {
         return new PersistenceFacadeImpl(entityMapper());
     }

@@ -1,32 +1,29 @@
 package oleg.sopilnyak.test.service.configuration;
 
 import oleg.sopilnyak.test.school.common.facade.*;
+import oleg.sopilnyak.test.service.CommandsFactory;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
-import oleg.sopilnyak.test.service.command.course.*;
+import oleg.sopilnyak.test.service.command.course.CourseCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.organization.*;
 import oleg.sopilnyak.test.service.command.student.*;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.PersonProfileFacadeImpl;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.util.Set;
 
 @Configuration
+@Import({CourseCommandsConfiguration.class})
 public class BusinessLogicConfiguration {
     private final PersistenceFacade persistenceFacade;
-    private final int maximumRooms;
-    private final int coursesExceed;
 
-    public BusinessLogicConfiguration(final PersistenceFacade persistenceFacade,
-                                      @Value("${school.courses.maximum.rooms:50}") final int maximumRooms,
-                                      @Value("${school.students.maximum.courses:5}") final int coursesExceed) {
+    public BusinessLogicConfiguration(final PersistenceFacade persistenceFacade) {
         this.persistenceFacade = persistenceFacade;
-        this.maximumRooms = maximumRooms;
-        this.coursesExceed = coursesExceed;
     }
 
     @Bean
@@ -48,24 +45,10 @@ public class BusinessLogicConfiguration {
         return new StudentsFacadeImpl(studentsCommandFactory());
     }
 
-    @Bean
-    public SchoolCommandsFactory coursesCommandFactory() {
-        return new SchoolCommandsFactory("courses",
-                Set.of(
-                        new CreateOrUpdateCourseCommand(persistenceFacade),
-                        new DeleteCourseCommand(persistenceFacade),
-                        new FindCourseCommand(persistenceFacade),
-                        new FindCoursesWithoutStudentsCommand(persistenceFacade),
-                        new FindRegisteredCoursesCommand(persistenceFacade),
-                        new RegisterStudentToCourseCommand(persistenceFacade, maximumRooms, coursesExceed),
-                        new UnRegisterStudentFromCourseCommand(persistenceFacade)
-                )
-        );
-    }
 
     @Bean
-    public CoursesFacade coursesFacade() {
-        return new CoursesFacadeImpl(coursesCommandFactory());
+    public CoursesFacade coursesFacade(@Qualifier(CourseCommandsConfiguration.COMMANDS_FACTORY) CommandsFactory factory) {
+        return new CoursesFacadeImpl(factory);
     }
 
 

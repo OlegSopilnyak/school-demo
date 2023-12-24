@@ -1,8 +1,9 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.factory;
 
 import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.CommandsFactory;
 import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.course.CourseCommand;
 
 import java.util.List;
 
