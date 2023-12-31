@@ -68,7 +68,7 @@ public class CourseCommandsConfiguration {
      * @see CourseCommand
      */
     @Bean(name = COMMANDS_FACTORY)
-    public CommandsFactory courseCommandsFactory(final List<CourseCommand<?>> commands) {
-        return new CourseCommandsFactory(commands);
+    public <T> CommandsFactory<T> courseCommandsFactory(final List<CourseCommand<T>> commands) {
+        return new CourseCommandsFactory<>(commands);
     }
 }
