@@ -457,17 +457,15 @@ class CoursesFacadeIntegrationTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
-        return new CourseCommandsFactory(
-                List.of(
-                        spy(new FindCourseCommand(persistenceFacade)),
-                        spy(new FindRegisteredCoursesCommand(persistenceFacade)),
-                        spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateCourseCommand(persistenceFacade)),
-                        spy(new DeleteCourseCommand(persistenceFacade)),
-                        spy(new RegisterStudentToCourseCommand(persistenceFacade, 50, 5)),
-                        spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
-                )
-        );
+        return new CourseCommandsFactory(List.of(
+                spy(new FindCourseCommand(persistenceFacade)),
+                spy(new FindRegisteredCoursesCommand(persistenceFacade)),
+                spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
+                spy(new CreateOrUpdateCourseCommand(persistenceFacade)),
+                spy(new DeleteCourseCommand(persistenceFacade)),
+                spy(new RegisterStudentToCourseCommand(persistenceFacade, 50, 5)),
+                spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
+        ));
     }
 
 }

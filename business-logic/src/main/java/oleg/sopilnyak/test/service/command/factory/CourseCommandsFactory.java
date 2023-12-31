@@ -1,31 +1,18 @@
 package oleg.sopilnyak.test.service.command.factory;
 
-import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
 import oleg.sopilnyak.test.service.command.course.CourseCommand;
 
-import java.util.List;
-
-import static org.springframework.util.ObjectUtils.isEmpty;
+import java.util.Collection;
 
 /**
  * Commands factory for courses syb-system
  */
-@RequiredArgsConstructor
-public class CourseCommandsFactory implements CommandsFactory {
-    private final List<CourseCommand> commands;
+public class CourseCommandsFactory extends AbstractCommandFactory implements CommandsFactory {
+    public static final String NAME = "Courses";
 
-    /**
-     * To get command instance by commandId
-     *
-     * @param commandId command-id
-     * @return command instance
-     */
-    @Override
-    public <T> SchoolCommand<T> command(String commandId) {
-        return isEmpty(commandId) || isEmpty(commands) ? null :
-                commands.stream().filter(cmd -> cmd.getId().equals(commandId)).findFirst().orElse(null);
+    public CourseCommandsFactory(Collection<CourseCommand<?>> commands) {
+        super.applyFactoryCommands(commands);
     }
 
     /**
@@ -33,9 +20,8 @@ public class CourseCommandsFactory implements CommandsFactory {
      *
      * @return value
      */
-    @Override
     public String getName() {
-        return "courses";
+        return NAME;
     }
 
 }

@@ -51,7 +51,7 @@ public class CourseCommandsConfiguration {
 
     @Bean
     public CourseCommand<Boolean> registerStudentToCourseCommand(@Value("${school.courses.maximum.rooms:50}") final int maximumRooms,
-                                                           @Value("${school.students.maximum.courses:5}") final int coursesExceed) {
+                                                                 @Value("${school.students.maximum.courses:5}") final int coursesExceed) {
         return new RegisterStudentToCourseCommand(persistenceFacade, maximumRooms, coursesExceed);
     }
 
@@ -68,7 +68,7 @@ public class CourseCommandsConfiguration {
      * @see CourseCommand
      */
     @Bean(name = COMMANDS_FACTORY)
-    public CommandsFactory courseCommandsFactory(final List<CourseCommand> commands) {
+    public CommandsFactory courseCommandsFactory(final List<CourseCommand<?>> commands) {
         return new CourseCommandsFactory(commands);
     }
 }
