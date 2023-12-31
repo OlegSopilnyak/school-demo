@@ -13,11 +13,11 @@ import java.util.Map;
  */
 @Slf4j
 @Getter
-public class SchoolCommandsFactory implements CommandsFactory {
+public class SchoolCommandsFactory<T> implements CommandsFactory<T> {
     private final String name;
-    private final Map<String, SchoolCommand<?>> commandsMap = new HashMap<>();
+    private final Map<String, SchoolCommand<T>> commandsMap = new HashMap<>();
 
-    public SchoolCommandsFactory(String name, Collection<? extends SchoolCommand<?>> commands) {
+    public SchoolCommandsFactory(String name, Collection<? extends SchoolCommand<T>> commands) {
         this.name = name;
         commands.forEach(command -> commandsMap.putIfAbsent(command.getId(), command));
     }
@@ -26,13 +26,11 @@ public class SchoolCommandsFactory implements CommandsFactory {
      * To get command instance by commandId
      *
      * @param commandId command-id
-     * @param <T>       type of command execution result
      * @return command instance
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> SchoolCommand<T> command(String commandId) {
-        return (SchoolCommand<T>) commandsMap.get(commandId);
+    public SchoolCommand<T> command(String commandId) {
+        return commandsMap.get(commandId);
     }
 
 }

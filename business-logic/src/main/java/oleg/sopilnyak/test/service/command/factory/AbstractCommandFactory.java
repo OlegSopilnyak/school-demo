@@ -12,15 +12,15 @@ import java.util.stream.Collectors;
 /**
  * Abstract commands factory
  */
-public abstract class AbstractCommandFactory implements CommandsFactory {
-    private final Map<String, SchoolCommand> commandMap = new HashMap<>();
+public abstract class AbstractCommandFactory<T> implements CommandsFactory<T> {
+    private final Map<String, SchoolCommand<T>> commandMap = new HashMap<>();
 
     /**
      * To apply commands collection to the factory
      *
      * @param commands commands collection
      */
-    protected void applyFactoryCommands(Collection<? extends SchoolCommand<?>> commands) {
+    protected void applyFactoryCommands(Collection<? extends SchoolCommand<T>> commands) {
         this.commandMap.putAll(commands.stream().collect(Collectors.toMap(SchoolCommand::getId, Function.identity())));
     }
 
@@ -33,7 +33,7 @@ public abstract class AbstractCommandFactory implements CommandsFactory {
      * @see SchoolCommand#getId()
      */
     @Override
-    public <T> SchoolCommand<T> command(String commandId) {
+        public SchoolCommand<T> command(String commandId) {
         return commandMap.get(commandId);
     }
 }
