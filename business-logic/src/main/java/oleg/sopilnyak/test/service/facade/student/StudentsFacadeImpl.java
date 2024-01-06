@@ -5,23 +5,23 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.CommandExecutor;
-import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 import java.util.Set;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 
 /**
  * Service: To process command for school's student-facade
  */
 @Slf4j
 @AllArgsConstructor
-public class StudentsFacadeImpl implements StudentCommandFacade {
-    private final CommandsFactory factory;
+public class StudentsFacadeImpl<T> implements StudentCommandFacade {
+    private final CommandsFactory<T> factory;
 
     /**
      * To get the student by ID

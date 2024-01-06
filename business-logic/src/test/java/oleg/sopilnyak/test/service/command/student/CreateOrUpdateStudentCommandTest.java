@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service.command.student;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

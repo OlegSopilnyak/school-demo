@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.exception;
 
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 /**
  * Exception throws when command-executor cannot execute the command

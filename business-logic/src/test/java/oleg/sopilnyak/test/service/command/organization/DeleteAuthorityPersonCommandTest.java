@@ -5,7 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyE
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.organization.DeleteAuthorityPersonCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

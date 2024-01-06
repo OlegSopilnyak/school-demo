@@ -6,9 +6,9 @@ import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
 import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupComma
 import java.util.Collection;
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 
 /**
  * Service: To process commands for school's organization structure
@@ -24,6 +24,7 @@ import static oleg.sopilnyak.test.service.command.CommandExecutor.*;
 @Slf4j
 @AllArgsConstructor
 public class OrganizationFacadeImpl implements OrganizationCommandFacade {
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory factory;
 
     /**
@@ -78,11 +79,11 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
         final CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof AuthorityPersonIsNotExistsException) {
-                throw (AuthorityPersonIsNotExistsException) executionException;
-            } else if (executionException instanceof AuthorityPersonManageFacultyException) {
-                throw (AuthorityPersonManageFacultyException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof AuthorityPersonIsNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof AuthorityPersonManageFacultyException exception) {
+                throw exception;
             } else {
                 throwFor(commandId, cmdResult.getException());
             }
@@ -142,11 +143,11 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof FacultyNotExistsException) {
-                throw (FacultyNotExistsException) executionException;
-            } else if (executionException instanceof FacultyIsNotEmptyException) {
-                throw (FacultyIsNotEmptyException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof FacultyNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof FacultyIsNotEmptyException exception) {
+                throw exception;
             } else {
                 throwFor(commandId, cmdResult.getException());
             }
@@ -206,11 +207,11 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
-            log.warn("Something went wrong", executionException);
-            if (executionException instanceof StudentsGroupNotExistsException) {
-                throw (StudentsGroupNotExistsException) executionException;
-            } else if (executionException instanceof StudentGroupWithStudentsException) {
-                throw (StudentGroupWithStudentsException) executionException;
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof StudentsGroupNotExistsException exception) {
+                throw exception;
+            } else if (executionException instanceof StudentGroupWithStudentsException exception) {
+                throw exception;
             } else {
                 throwFor(commandId, cmdResult.getException());
             }

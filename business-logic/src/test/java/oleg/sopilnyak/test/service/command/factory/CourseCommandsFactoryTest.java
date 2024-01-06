@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.factory;
 
-import oleg.sopilnyak.test.service.command.course.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,21 +13,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CourseCommandsFactoryTest {
+class CourseCommandsFactoryTest<T> {
     @Mock
-    CourseCommand<?> command1;
+    CourseCommand<T> command1;
     @Mock
-    CourseCommand<?> command2;
+    CourseCommand<T> command2;
     @Mock
-    CourseCommand<?> command3;
-    CourseCommandsFactory factory;
+    CourseCommand<T> command3;
+    CourseCommandsFactory<T> factory;
 
     @BeforeEach
     void setUp() {
         when(command1.getId()).thenReturn("cmd1");
         when(command2.getId()).thenReturn("cmd2");
         when(command3.getId()).thenReturn("cmd3");
-        factory = new CourseCommandsFactory(List.of(command1, command2, command3));
+        factory = new CourseCommandsFactory<>(List.of(command1, command2, command3));
     }
 
     @Test

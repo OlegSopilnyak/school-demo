@@ -5,19 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.executeSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.executeSimpleCommand;
 
 /**
  * Service: To process commands for school's person profiles facade
  */
 @Slf4j
 @AllArgsConstructor
-public class PersonProfileFacadeImpl implements ProfileCommandFacade {
-    private final CommandsFactory factory;
+public class PersonProfileFacadeImpl<T> implements ProfileCommandFacade {
+    private final CommandsFactory<T> factory;
 
     /**
      * To get the person's profile by ID

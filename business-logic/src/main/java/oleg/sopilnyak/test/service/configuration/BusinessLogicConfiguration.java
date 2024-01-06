@@ -1,11 +1,12 @@
 package oleg.sopilnyak.test.service.configuration;
 
 import oleg.sopilnyak.test.school.common.facade.*;
-import oleg.sopilnyak.test.service.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.SchoolCommandsFactory;
-import oleg.sopilnyak.test.service.command.course.CourseCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.organization.*;
-import oleg.sopilnyak.test.service.command.student.*;
+import oleg.sopilnyak.test.service.command.configurations.CourseCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.configurations.ProfileCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.organization.*;
+import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.facade.course.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.PersonProfileFacadeImpl;
@@ -18,7 +19,11 @@ import org.springframework.context.annotation.Import;
 import java.util.Set;
 
 @Configuration
-@Import({CourseCommandsConfiguration.class})
+@Import(
+        {
+                CourseCommandsConfiguration.class,
+                ProfileCommandsConfiguration.class
+        })
 public class BusinessLogicConfiguration {
     private final PersistenceFacade persistenceFacade;
 
@@ -47,22 +52,17 @@ public class BusinessLogicConfiguration {
 
 
     @Bean
-    public CoursesFacade coursesFacade(@Qualifier(CourseCommandsConfiguration.COMMANDS_FACTORY) CommandsFactory factory) {
+    public CoursesFacade coursesFacade(
+            @Qualifier(CourseCommandsConfiguration.COMMANDS_FACTORY) CommandsFactory<?> factory
+    ) {
         return new CoursesFacadeImpl(factory);
     }
 
-
     @Bean
-    public SchoolCommandsFactory profilesCommandFactory() {
-        return new SchoolCommandsFactory("person-profile",
-                Set.of(
-                )
-        );
-    }
-
-    @Bean
-    public PersonProfileFacade personProfileFacade() {
-        return new PersonProfileFacadeImpl(profilesCommandFactory());
+    public PersonProfileFacade personProfileFacade(
+            @Qualifier(ProfileCommandsConfiguration.COMMANDS_FACTORY) CommandsFactory<?> factory
+    ) {
+        return new PersonProfileFacadeImpl<>(factory);
     }
 
     @Bean

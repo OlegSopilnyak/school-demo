@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service.command.student;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.student.FindStudentCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,7 @@ class FindStudentCommandTest {
         verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getResult()).isPresent();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isNull();
     }
@@ -49,7 +51,8 @@ class FindStudentCommandTest {
         verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEqualTo(Optional.of(instance));
+        assertThat(result.getResult()).isPresent();
+        assertThat(result.getResult().get()).contains(instance);
         assertThat(result.getException()).isNull();
     }
 
@@ -64,6 +67,7 @@ class FindStudentCommandTest {
         verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getResult()).isPresent();
         assertThat(result.getResult().get()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }

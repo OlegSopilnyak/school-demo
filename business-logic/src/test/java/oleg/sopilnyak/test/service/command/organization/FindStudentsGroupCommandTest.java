@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service.command.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.organization.FindStudentsGroupCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,7 +49,7 @@ class FindStudentsGroupCommandTest {
         verify(persistenceFacade).findStudentsGroupById(id);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEqualTo(Optional.of(instance));
+        assertThat(result.getResult().get()).contains(instance);
         assertThat(result.getException()).isNull();
     }
 

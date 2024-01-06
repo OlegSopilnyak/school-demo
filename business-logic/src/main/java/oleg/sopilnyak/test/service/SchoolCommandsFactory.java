@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Collection;
 import java.util.HashMap;

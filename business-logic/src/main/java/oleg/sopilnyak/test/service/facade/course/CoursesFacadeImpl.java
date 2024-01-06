@@ -4,16 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.CommandExecutor;
-import oleg.sopilnyak.test.service.command.CommandResult;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 import java.util.Set;
 
-import static oleg.sopilnyak.test.service.command.CommandExecutor.executeSimpleCommand;
-import static oleg.sopilnyak.test.service.command.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.executeSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
 
 /**
  * Service: To process command for school's student-facade

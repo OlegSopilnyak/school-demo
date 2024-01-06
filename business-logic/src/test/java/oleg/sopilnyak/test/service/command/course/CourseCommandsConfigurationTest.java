@@ -1,8 +1,10 @@
 package oleg.sopilnyak.test.service.command.course;
 
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.service.CommandsFactory;
-import oleg.sopilnyak.test.service.command.SchoolCommand;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.configurations.CourseCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

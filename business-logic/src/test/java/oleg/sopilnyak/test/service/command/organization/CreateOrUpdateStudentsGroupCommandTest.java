@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service.command.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.organization.CreateOrUpdateStudentsGroupCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +35,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
 
         verify(persistenceFacade).save(group);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEqualTo(updated);
+        assertThat(result.getResult().get()).contains(updated.get());
         assertThat(result.getException()).isNull();
     }
 

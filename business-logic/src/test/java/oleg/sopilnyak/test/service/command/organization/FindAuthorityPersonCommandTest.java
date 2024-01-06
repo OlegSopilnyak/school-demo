@@ -2,7 +2,8 @@ package oleg.sopilnyak.test.service.command.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.service.command.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.organization.FindAuthorityPersonCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -48,7 +49,7 @@ class FindAuthorityPersonCommandTest {
         verify(persistenceFacade).findAuthorityPersonById(id);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEqualTo(Optional.of(instance));
+        assertThat(result.getResult().get()).contains(instance);
         assertThat(result.getException()).isNull();
     }
 
