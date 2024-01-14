@@ -320,4 +320,18 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     public boolean deleteStudent(Long studentId) {
         return delegator.deleteStudent(studentId);
     }
+
+    /**
+     * To get person-profile instance by id
+     *
+     * @param id system-id of the course
+     * @return profile instance or empty() if not exists
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PersonProfile> findProfileById(Long id) {
+        return delegator.findProfileById(id);
+    }
 }

@@ -568,4 +568,17 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     }
 
 
+    /**
+     * To get person-profile instance by id
+     *
+     * @param id system-id of the course
+     * @return profile instance or empty() if not exists
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PersonProfile> findProfileById(Long id) {
+        return Optional.empty();
+    }
 }

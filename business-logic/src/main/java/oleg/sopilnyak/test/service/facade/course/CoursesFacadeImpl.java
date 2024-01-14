@@ -20,9 +20,9 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.tak
  */
 @Slf4j
 @AllArgsConstructor
-public class CoursesFacadeImpl implements CourseCommandsFacade {
+public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
-    private final CommandsFactory factory;
+    private final CommandsFactory<T> factory;
 
     /**
      * To get the course by ID
@@ -111,7 +111,7 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
             throws StudentNotExistsException, CourseNotExistsException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
         String commandId = REGISTER;
-        SchoolCommand<Boolean> command = factory.command(commandId);
+        SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
@@ -141,7 +141,7 @@ public class CoursesFacadeImpl implements CourseCommandsFacade {
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
         String commandId = UN_REGISTER;
-        SchoolCommand<Boolean> command = factory.command(commandId);
+        SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
         if (!cmdResult.isSuccess()) {
             Exception executionException = cmdResult.getException();
