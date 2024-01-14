@@ -8,9 +8,9 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.*;
+import oleg.sopilnyak.test.service.command.factory.OrganizationCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.facade.organization.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
@@ -419,20 +419,20 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
-        return new SchoolCommandsFactory("organization",
+        return new OrganizationCommandsFactory(
                 Set.of(
-                        new CreateOrUpdateAuthorityPersonCommand(persistenceFacade),
-                        new CreateOrUpdateFacultyCommand(persistenceFacade),
-                        new CreateOrUpdateStudentsGroupCommand(persistenceFacade),
-                        new DeleteAuthorityPersonCommand(persistenceFacade),
-                        new DeleteFacultyCommand(persistenceFacade),
-                        new DeleteStudentsGroupCommand(persistenceFacade),
-                        new FindAllAuthorityPersonsCommand(persistenceFacade),
-                        new FindAllFacultiesCommand(persistenceFacade),
-                        new FindAllStudentsGroupsCommand(persistenceFacade),
-                        new FindAuthorityPersonCommand(persistenceFacade),
-                        new FindFacultyCommand(persistenceFacade),
-                        new FindStudentsGroupCommand(persistenceFacade)
+                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateFacultyCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),
+                        spy(new DeleteAuthorityPersonCommand(persistenceFacade)),
+                        spy(new DeleteFacultyCommand(persistenceFacade)),
+                        spy(new DeleteStudentsGroupCommand(persistenceFacade)),
+                        spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
+                        spy(new FindAllFacultiesCommand(persistenceFacade)),
+                        spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
+                        spy(new FindAuthorityPersonCommand(persistenceFacade)),
+                        spy(new FindFacultyCommand(persistenceFacade)),
+                        spy(new FindStudentsGroupCommand(persistenceFacade))
                 )
         );
     }

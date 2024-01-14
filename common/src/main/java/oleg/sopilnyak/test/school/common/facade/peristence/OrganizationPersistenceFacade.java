@@ -8,6 +8,9 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Persistence facade for organization structure entities
+ */
 public interface OrganizationPersistenceFacade {
     /**
      * To get all authority persons of the school

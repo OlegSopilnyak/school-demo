@@ -3,9 +3,9 @@ package oleg.sopilnyak.test.service.facade.organization;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.*;
+import oleg.sopilnyak.test.service.command.factory.OrganizationCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
 import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
@@ -27,10 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class OrganizationFacadeImplTest {
+class OrganizationFacadeImplTest<T> {
     OrganizationPersistenceFacade persistenceFacade = mock(OrganizationPersistenceFacade.class);
     @Spy
-    CommandsFactory factory = buildFactory();
+    CommandsFactory<T> factory = buildFactory();
     @Mock
     AuthorityPerson mockPerson;
     @Mock
@@ -397,8 +397,8 @@ class OrganizationFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
 
-    private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory("organization",
+    private CommandsFactory<T> buildFactory() {
+        return new OrganizationCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
                         spy(new CreateOrUpdateFacultyCommand(persistenceFacade)),

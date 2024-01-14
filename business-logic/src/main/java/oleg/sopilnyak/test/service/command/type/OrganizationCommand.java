@@ -3,11 +3,11 @@ package oleg.sopilnyak.test.service.command.type;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 /**
- * Type for school-profile command
+ * Type for organization command
  */
-public interface ProfileCommand<T> extends SchoolCommand<T> {
+public interface OrganizationCommand<T> extends SchoolCommand<T> {
     /**
      * The name of commands-factory SpringBean
      */
-    String FACTORY_BEAN_NAME = "profileCommandsFactory";
+    String FACTORY_BEAN_NAME = "organizationCommandsFactory";
 }

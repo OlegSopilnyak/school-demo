@@ -5,6 +5,9 @@ import oleg.sopilnyak.test.school.common.model.Student;
 
 import java.util.Set;
 
+/**
+ * Persistence facade for student-course entities relations
+ */
 public interface RegisterPersistenceFacade {
 
     /**

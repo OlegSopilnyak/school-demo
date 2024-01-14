@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-public class DeleteFacultyCommand implements SchoolCommand<Boolean> {
+public class DeleteFacultyCommand implements OrganizationCommand<Boolean> {
     private final OrganizationPersistenceFacade persistenceFacade;
 
     /**
@@ -36,7 +36,7 @@ public class DeleteFacultyCommand implements SchoolCommand<Boolean> {
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new FacultyNotExistsException("Faculty with ID:" + id + " is not exists."))
                         .success(false).build();
-            }else if (!person.get().getCourses().isEmpty()) {
+            } else if (!person.get().getCourses().isEmpty()) {
                 return CommandResult.<Boolean>builder().result(Optional.empty())
                         .exception(new FacultyIsNotEmptyException("Faculty with ID:" + id + " has courses."))
                         .success(false).build();

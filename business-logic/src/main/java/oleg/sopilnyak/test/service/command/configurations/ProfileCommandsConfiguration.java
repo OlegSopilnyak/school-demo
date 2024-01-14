@@ -1,8 +1,9 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import lombok.AllArgsConstructor;
+import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,13 +14,9 @@ import java.util.Collection;
  * Configuration for profiles-subsystem commands
  */
 @Configuration
+@AllArgsConstructor
 public class ProfileCommandsConfiguration {
-    public static final String COMMANDS_FACTORY = "profileCommandsFactory";
-    private final PersistenceFacade persistenceFacade;
-
-    public ProfileCommandsConfiguration(final PersistenceFacade persistenceFacade) {
-        this.persistenceFacade = persistenceFacade;
-    }
+    private final ProfilePersistenceFacade persistenceFacade;
 
     /**
      * Builder for profile commands factory instance
@@ -28,7 +25,7 @@ public class ProfileCommandsConfiguration {
      * @return singleton
      * @see ProfileCommand
      */
-    @Bean(name = COMMANDS_FACTORY)
+    @Bean(name = ProfileCommand.FACTORY_BEAN_NAME)
     public <T> CommandsFactory<T> profileCommandsFactory(final Collection<ProfileCommand<T>> commands) {
         return new ProfileCommandsFactory<>(commands);
     }

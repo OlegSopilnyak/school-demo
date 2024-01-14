@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 
 import java.util.Optional;
@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-public class FindStudentCommand implements SchoolCommand<Optional<Student>> {
+public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     private final StudentsPersistenceFacade persistenceFacade;
 
     /**

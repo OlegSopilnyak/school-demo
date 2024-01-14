@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-public class FindNotEnrolledStudentsCommand implements SchoolCommand<Set<Student>> {
+public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Student>> {
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**

@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-public class FindAllAuthorityPersonsCommand implements SchoolCommand<Set<AuthorityPerson>> {
+public class FindAllAuthorityPersonsCommand implements OrganizationCommand<Set<AuthorityPerson>> {
     private final OrganizationPersistenceFacade persistenceFacade;
 
     /**

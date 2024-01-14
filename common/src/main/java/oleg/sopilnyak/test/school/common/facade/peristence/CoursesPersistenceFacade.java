@@ -4,6 +4,9 @@ import oleg.sopilnyak.test.school.common.model.Course;
 
 import java.util.Optional;
 
+/**
+ * Persistence facade for courses entities
+ */
 public interface CoursesPersistenceFacade {
     /**
      * To find course by id

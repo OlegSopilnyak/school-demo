@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
@@ -28,7 +28,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Slf4j
 @AllArgsConstructor
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
-    private final PersistenceFacade persistenceFacade;
+    private final StudentCourseLinkPersistenceFacade persistenceFacade;
     @Getter
     private final int maximumRooms;
     @Getter

@@ -1,10 +1,11 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import lombok.AllArgsConstructor;
+import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,13 +19,9 @@ import java.util.Set;
  * Configuration for courses-subsystem commands
  */
 @Configuration
+@AllArgsConstructor
 public class CourseCommandsConfiguration {
-    public static final String COMMANDS_FACTORY = "courseCommandsFactory";
-    private final PersistenceFacade persistenceFacade;
-
-    public CourseCommandsConfiguration(final PersistenceFacade persistenceFacade) {
-        this.persistenceFacade = persistenceFacade;
-    }
+    private final StudentCourseLinkPersistenceFacade persistenceFacade;
 
     @Bean
     public CourseCommand<Optional<Course>> createOrUpdateCourseCommand() {
@@ -69,7 +66,7 @@ public class CourseCommandsConfiguration {
      * @return singleton
      * @see CourseCommand
      */
-    @Bean(name = COMMANDS_FACTORY)
+    @Bean(name = CourseCommand.FACTORY_BEAN_NAME)
     public <T> CommandsFactory<T> courseCommandsFactory(final Collection<CourseCommand<T>> commands) {
         return new CourseCommandsFactory<>(commands);
     }

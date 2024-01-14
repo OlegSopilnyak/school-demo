@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyE
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-public class DeleteAuthorityPersonCommand implements SchoolCommand<Boolean> {
+public class DeleteAuthorityPersonCommand implements OrganizationCommand<Boolean> {
     private final OrganizationPersistenceFacade persistenceFacade;
 
     /**

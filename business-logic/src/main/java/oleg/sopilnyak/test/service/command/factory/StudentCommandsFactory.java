@@ -2,17 +2,17 @@ package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 
 import java.util.Collection;
 
 /**
- * Commands factory for courses syb-system
+ * Commands factory for students syb-system
  */
-public class ProfileCommandsFactory<T> extends AbstractCommandFactory<T> implements CommandsFactory<T> {
-    public static final String NAME = "Person-Profiles";
+public class StudentCommandsFactory<T> extends AbstractCommandFactory<T> implements CommandsFactory<T> {
+    public static final String NAME = "Students";
 
-    public ProfileCommandsFactory(Collection<ProfileCommand<T>> commands) {
+    public StudentCommandsFactory(Collection<StudentCommand<T>> commands) {
         super.applyFactoryCommands(commands);
     }
 

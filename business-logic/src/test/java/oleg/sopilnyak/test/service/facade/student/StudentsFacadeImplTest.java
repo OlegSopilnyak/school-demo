@@ -5,9 +5,9 @@ import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.student.*;
+import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StudentsFacadeImplTest {
+class StudentsFacadeImplTest<T> {
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
-    CommandsFactory factory = buildFactory();
+    CommandsFactory<T> factory = buildFactory();
 
     @Spy
     @InjectMocks
@@ -182,8 +182,8 @@ class StudentsFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
-    private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory("students",
+    private CommandsFactory<T> buildFactory() {
+        return new StudentCommandsFactory(
                 Set.of(
                         spy(new FindStudentCommand(persistenceFacade)),
                         spy(new FindEnrolledStudentsCommand(persistenceFacade)),

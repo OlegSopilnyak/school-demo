@@ -4,6 +4,9 @@ import oleg.sopilnyak.test.school.common.model.Student;
 
 import java.util.Optional;
 
+/**
+ * Persistence facade for students entities
+ */
 public interface StudentsPersistenceFacade {
     /**
      * To find student by id

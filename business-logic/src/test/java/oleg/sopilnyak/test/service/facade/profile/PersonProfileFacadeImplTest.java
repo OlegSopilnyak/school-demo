@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +28,7 @@ class PersonProfileFacadeImplTest {
     void shouldFindById() {
         String commandId = ProfileCommandFacade.FIND_BY_ID;
         Long profileId = 400L;
-        assertThat(1==1).isTrue();
+        assertThat(1 == 1).isTrue();
 //
 //        Optional<PersonProfile> profile = facade.findById(profileId);
 //
@@ -40,16 +40,16 @@ class PersonProfileFacadeImplTest {
 
     @Test
     void findStudentProfileById() {
-        assertThat(1==1).isTrue();
+        assertThat(1 == 1).isTrue();
     }
 
     @Test
     void findPrincipalProfileById() {
-        assertThat(1==1).isTrue();
+        assertThat(1 == 1).isTrue();
     }
 
     private CommandsFactory buildFactory() {
-        return new SchoolCommandsFactory("person-profile",
+        return new ProfileCommandsFactory(
                 Set.of(
                 )
         );

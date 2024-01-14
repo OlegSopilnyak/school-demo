@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
@@ -20,7 +20,8 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean> {
-    private final PersistenceFacade persistenceFacade;
+    private final StudentCourseLinkPersistenceFacade persistenceFacade;
+
 
     /**
      * To find student by id

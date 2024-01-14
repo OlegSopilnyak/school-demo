@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.facade.student;
 
+import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
@@ -7,10 +8,9 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.SchoolCommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.student.*;
-import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
+import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
 import oleg.sopilnyak.test.service.facade.student.StudentsFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -224,13 +224,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
-        return new SchoolCommandsFactory("students",
+        return new StudentCommandsFactory(
                 Set.of(
-                        new FindStudentCommand(persistenceFacade),
-                        new FindEnrolledStudentsCommand(persistenceFacade),
-                        new FindNotEnrolledStudentsCommand(persistenceFacade),
-                        new CreateOrUpdateStudentCommand(persistenceFacade),
-                        new DeleteStudentCommand(persistenceFacade)
+                        spy(new FindStudentCommand(persistenceFacade)),
+                        spy(new FindEnrolledStudentsCommand(persistenceFacade)),
+                        spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateStudentCommand(persistenceFacade)),
+                        spy(new DeleteStudentCommand(persistenceFacade))
                 )
         );
     }
