@@ -24,6 +24,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
+    public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
     private final CommandsFactory<T> factory;
 
     /**
@@ -96,7 +97,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
                 throwFor(commandId, executionException);
             } else {
                 log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
+                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
             }
         }
     }
@@ -134,7 +135,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
                 throwFor(commandId, executionException);
             } else {
                 log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
+                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
             }
         }
     }
@@ -163,7 +164,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
                 throwFor(commandId, executionException);
             } else {
                 log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
+                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
             }
         }
     }
