@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.FacultyCommands;
 
 import java.util.Optional;
 
@@ -50,6 +50,6 @@ public class FindFacultyCommand implements OrganizationCommand<Optional<Faculty>
      */
     @Override
     public String getId() {
-        return FacultyCommandFacade.FIND_BY_ID;
+        return FacultyCommands.FIND_BY_ID;
     }
 }

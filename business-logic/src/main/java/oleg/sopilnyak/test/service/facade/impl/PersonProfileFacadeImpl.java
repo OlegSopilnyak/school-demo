@@ -1,11 +1,13 @@
-package oleg.sopilnyak.test.service.facade.profile;
+package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 
 import java.util.Optional;
 
@@ -16,7 +18,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.exe
  */
 @Slf4j
 @AllArgsConstructor
-public class PersonProfileFacadeImpl<T> implements ProfileCommandFacade {
+public class PersonProfileFacadeImpl<T> implements ProfileCommands, PersonProfileFacade {
     private final CommandsFactory<T> factory;
 
     /**

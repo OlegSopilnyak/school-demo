@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand
 import oleg.sopilnyak.test.service.command.executable.profile.FindStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import oleg.sopilnyak.test.service.facade.impl.PersonProfileFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,7 +34,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindById() {
-        String commandId = ProfileCommandFacade.FIND_BY_ID;
+        String commandId = ProfileCommands.FIND_BY_ID;
         Long profileId = 400L;
 
         Optional<PersonProfile> profile = facade.findById(profileId);
@@ -45,7 +47,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindById() {
-        String commandId = ProfileCommandFacade.FIND_BY_ID;
+        String commandId = ProfileCommands.FIND_BY_ID;
         Long profileId = 410L;
         PersonProfile abstractProfile = mock(PersonProfile.class);
         when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(abstractProfile));
@@ -60,7 +62,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindStudentProfileById() {
-        String commandId = ProfileCommandFacade.FIND_STUDENT_BY_ID;
+        String commandId = ProfileCommands.FIND_STUDENT_BY_ID;
         Long profileId = 401L;
 
         Optional<PersonProfile> profile = facade.findStudentProfileById(profileId);
@@ -73,7 +75,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindStudentProfileById() {
-        String commandId = ProfileCommandFacade.FIND_STUDENT_BY_ID;
+        String commandId = ProfileCommands.FIND_STUDENT_BY_ID;
         Long profileId = 411L;
         StudentProfile studentProfile = mock(StudentProfile.class);
         when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(studentProfile));
@@ -88,7 +90,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindPrincipalProfileById() {
-        String commandId = ProfileCommandFacade.FIND_PRINCIPAL_BY_ID;
+        String commandId = ProfileCommands.FIND_PRINCIPAL_BY_ID;
         Long profileId = 402L;
 
         Optional<PersonProfile> profile = facade.findPrincipalProfileById(profileId);
@@ -101,7 +103,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindPrincipalProfileById() {
-        String commandId = ProfileCommandFacade.FIND_PRINCIPAL_BY_ID;
+        String commandId = ProfileCommands.FIND_PRINCIPAL_BY_ID;
         Long profileId = 412L;
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
         when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(principalProfile));

@@ -1,11 +1,11 @@
-package oleg.sopilnyak.test.service.facade.course;
-
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+package oleg.sopilnyak.test.service.command.id.set;
 
 /**
- * Service-Facade: Service for manage students commands
+ * Service-Command-Ids: The set of course-command-ids
+ *
+ * @see oleg.sopilnyak.test.school.common.model.Course
  */
-public interface CourseCommandsFacade extends CoursesFacade {
+public interface CourseCommands {
     String FIND_BY_ID = "course.findById";
     String FIND_REGISTERED = "course.findRegisteredFor";
     String FIND_NOT_REGISTERED = "course.findWithoutStudents";

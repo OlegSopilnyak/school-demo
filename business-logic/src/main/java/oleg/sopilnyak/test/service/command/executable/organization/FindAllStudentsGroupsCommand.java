@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.StudentsGroupCommands;
 
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +49,6 @@ public class FindAllStudentsGroupsCommand implements OrganizationCommand<Set<Stu
      */
     @Override
     public String getId() {
-        return StudentsGroupCommandFacade.FIND_ALL;
+        return StudentsGroupCommands.FIND_ALL;
     }
 }

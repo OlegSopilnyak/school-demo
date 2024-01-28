@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.StudentsGroupCommands;
 
 import java.util.Optional;
 
@@ -48,6 +48,6 @@ public class CreateOrUpdateStudentsGroupCommand implements OrganizationCommand<O
      */
     @Override
     public String getId() {
-        return StudentsGroupCommandFacade.CREATE_OR_UPDATE;
+        return StudentsGroupCommands.CREATE_OR_UPDATE;
     }
 }

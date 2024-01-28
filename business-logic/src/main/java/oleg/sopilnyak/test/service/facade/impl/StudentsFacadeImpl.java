@@ -1,18 +1,21 @@
-package oleg.sopilnyak.test.service.facade.student;
+package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
+import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 
 /**
@@ -20,7 +23,8 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 @AllArgsConstructor
-public class StudentsFacadeImpl<T> implements StudentCommandFacade {
+public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
+    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory<T> factory;
 
     /**
@@ -86,13 +90,17 @@ public class StudentsFacadeImpl<T> implements StudentCommandFacade {
         if (cmdResult.isSuccess()) {
             return cmdResult.getResult().orElseThrow(CommandExecutor.createThrowFor(commandId));
         } else {
-            Exception commandException = cmdResult.getException();
-            if (commandException instanceof StudentNotExistsException exception) {
+            final Exception executionException = cmdResult.getException();
+            log.warn(SOMETHING_WENT_WRONG, executionException);
+            if (executionException instanceof StudentNotExistsException exception) {
                 throw exception;
-            } else if (commandException instanceof StudentWithCoursesException exception) {
+            } else if (executionException instanceof StudentWithCoursesException exception) {
                 throw exception;
+            } else if (nonNull(executionException)) {
+                return throwFor(commandId, executionException);
             } else {
-                return CommandExecutor.throwFor(commandId, cmdResult.getException());
+                log.error("For command-id:'{}' there is not exception after command execution.", commandId);
+                return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
             }
         }
     }

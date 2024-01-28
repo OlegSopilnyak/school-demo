@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
+import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,7 +40,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotFindById() {
-        String commandId = StudentCommandFacade.FIND_BY_ID;
+        String commandId = StudentCommands.FIND_BY_ID;
         Long studentId = 100L;
 
         Optional<Student> student = facade.findById(studentId);
@@ -51,7 +53,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindById() {
-        String commandId = StudentCommandFacade.FIND_BY_ID;
+        String commandId = StudentCommands.FIND_BY_ID;
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
@@ -65,7 +67,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotFindEnrolledTo() {
-        String commandId = StudentCommandFacade.FIND_ENROLLED;
+        String commandId = StudentCommands.FIND_ENROLLED;
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
@@ -78,7 +80,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindEnrolledTo() {
-        String commandId = StudentCommandFacade.FIND_ENROLLED;
+        String commandId = StudentCommands.FIND_ENROLLED;
         Long courseId = 200L;
         when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
 
@@ -92,7 +94,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotFindNotEnrolled() {
-        String commandId = StudentCommandFacade.FIND_NOT_ENROLLED;
+        String commandId = StudentCommands.FIND_NOT_ENROLLED;
 
         Set<Student> students = facade.findNotEnrolled();
 
@@ -104,7 +106,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindNotEnrolled() {
-        String commandId = StudentCommandFacade.FIND_NOT_ENROLLED;
+        String commandId = StudentCommands.FIND_NOT_ENROLLED;
         when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findNotEnrolled();
@@ -117,7 +119,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotCreateOrUpdate() {
-        String commandId = StudentCommandFacade.CREATE_OR_UPDATE;
+        String commandId = StudentCommands.CREATE_OR_UPDATE;
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
 
@@ -129,7 +131,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdate() {
-        String commandId = StudentCommandFacade.CREATE_OR_UPDATE;
+        String commandId = StudentCommands.CREATE_OR_UPDATE;
         when(persistenceFacade.save(mockedStudent)).thenReturn(Optional.of(mockedStudent));
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
@@ -142,7 +144,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
-        String commandId = StudentCommandFacade.DELETE;
+        String commandId = StudentCommands.DELETE;
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
@@ -156,7 +158,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
-        String commandId = StudentCommandFacade.DELETE;
+        String commandId = StudentCommands.DELETE;
         Long studentId = 102L;
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
@@ -169,7 +171,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
-        String commandId = StudentCommandFacade.DELETE;
+        String commandId = StudentCommands.DELETE;
         Long studentId = 103L;
         when(mockedStudent.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));

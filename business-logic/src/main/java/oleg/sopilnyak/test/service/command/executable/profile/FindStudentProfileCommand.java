@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
-import oleg.sopilnyak.test.service.facade.profile.ProfileCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 
 import java.util.Optional;
 
@@ -57,6 +57,6 @@ public class FindStudentProfileCommand implements ProfileCommand<Optional<Studen
      */
     @Override
     public String getId() {
-        return ProfileCommandFacade.FIND_STUDENT_BY_ID;
+        return ProfileCommands.FIND_STUDENT_BY_ID;
     }
 }

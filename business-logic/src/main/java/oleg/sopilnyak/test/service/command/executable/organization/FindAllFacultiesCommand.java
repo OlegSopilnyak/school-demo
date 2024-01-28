@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.FacultyCommands;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +50,6 @@ public class FindAllFacultiesCommand implements OrganizationCommand<Set<Faculty>
      */
     @Override
     public String getId() {
-        return FacultyCommandFacade.FIND_ALL;
+        return FacultyCommands.FIND_ALL;
     }
 }

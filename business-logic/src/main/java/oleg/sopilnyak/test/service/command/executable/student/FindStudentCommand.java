@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.facade.student.StudentCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 
 import java.util.Optional;
 
@@ -49,6 +49,6 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
      */
     @Override
     public final String getId() {
-        return StudentCommandFacade.FIND_BY_ID;
+        return StudentCommands.FIND_BY_ID;
     }
 }

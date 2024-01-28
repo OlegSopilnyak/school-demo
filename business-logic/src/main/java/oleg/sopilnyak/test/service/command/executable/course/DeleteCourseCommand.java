@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFac
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
+import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
@@ -62,6 +62,6 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return CourseCommandsFacade.DELETE;
+        return CourseCommands.DELETE;
     }
 }

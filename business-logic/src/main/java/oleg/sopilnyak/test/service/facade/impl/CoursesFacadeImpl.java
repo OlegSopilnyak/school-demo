@@ -1,27 +1,29 @@
-package oleg.sopilnyak.test.service.facade.course;
+package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 import java.util.Set;
 
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.executeSimpleCommand;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 
 /**
- * Service: To process command for school's student-facade
+ * Service: To process command for school's courses facade
  */
 @Slf4j
 @AllArgsConstructor
-public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
+public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
+    public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     private final CommandsFactory<T> factory;
 
     /**
@@ -34,7 +36,7 @@ public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
      */
     @Override
     public Optional<Course> findById(Long courseId) {
-        return CommandExecutor.executeSimpleCommand(FIND_BY_ID, courseId, factory);
+        return executeSimpleCommand(FIND_BY_ID, courseId, factory);
     }
 
     /**
@@ -80,18 +82,21 @@ public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
      */
     @Override
     public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
-        String commandId = DELETE;
+        final String commandId = DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        final CommandResult<Boolean> cmdResult = command.execute(courseId);
-        if (!cmdResult.isSuccess()) {
-            Exception executionException = cmdResult.getException();
+        final CommandResult<Boolean> commandExecutionResult = command.execute(courseId);
+        if (!commandExecutionResult.isSuccess()) {
+            final Exception executionException = commandExecutionResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);
             if (executionException instanceof CourseNotExistsException exception) {
                 throw exception;
             } else if (executionException instanceof CourseWithStudentsException exception) {
                 throw exception;
+            } else if (nonNull(executionException)) {
+                throwFor(commandId, executionException);
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                log.error(WRONG_COMMAND_EXECUTION, commandId);
+                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
             }
         }
     }
@@ -109,12 +114,13 @@ public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
     @Override
     public void register(Long studentId, Long courseId)
             throws StudentNotExistsException, CourseNotExistsException,
-            NoRoomInTheCourseException, StudentCoursesExceedException {
-        String commandId = REGISTER;
-        SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
-        if (!cmdResult.isSuccess()) {
-            Exception executionException = cmdResult.getException();
+            NoRoomInTheCourseException, StudentCoursesExceedException
+    {
+        final String commandId = REGISTER;
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
+        if (!commandExecutionResult.isSuccess()) {
+            final Exception executionException = commandExecutionResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);
             if (executionException instanceof StudentNotExistsException exception) {
                 throw exception;
@@ -124,8 +130,11 @@ public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
                 throw exception;
             } else if (executionException instanceof StudentCoursesExceedException exception) {
                 throw exception;
+            } else if (nonNull(executionException)) {
+                throwFor(commandId, executionException);
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                log.error(WRONG_COMMAND_EXECUTION, commandId);
+                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
             }
         }
     }
@@ -140,18 +149,21 @@ public class CoursesFacadeImpl<T> implements CourseCommandsFacade {
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
-        String commandId = UN_REGISTER;
-        SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        CommandResult<Boolean> cmdResult = command.execute(new Long[] {studentId, courseId});
-        if (!cmdResult.isSuccess()) {
-            Exception executionException = cmdResult.getException();
+        final String commandId = UN_REGISTER;
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
+        if (!commandExecutionResult.isSuccess()) {
+            final Exception executionException = commandExecutionResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);
             if (executionException instanceof StudentNotExistsException exception) {
                 throw exception;
             } else if (executionException instanceof CourseNotExistsException exception) {
                 throw exception;
+            } else if (nonNull(executionException)) {
+                throwFor(commandId, executionException);
             } else {
-                CommandExecutor.throwFor(commandId, cmdResult.getException());
+                log.error(WRONG_COMMAND_EXECUTION, commandId);
+                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
             }
         }
     }

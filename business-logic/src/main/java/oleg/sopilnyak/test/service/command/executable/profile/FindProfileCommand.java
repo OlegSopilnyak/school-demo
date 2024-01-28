@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
-import oleg.sopilnyak.test.service.facade.profile.ProfileCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 
 import java.util.Optional;
 
@@ -52,6 +52,6 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      */
     @Override
     public String getId() {
-        return ProfileCommandFacade.FIND_BY_ID;
+        return ProfileCommands.FIND_BY_ID;
     }
 }

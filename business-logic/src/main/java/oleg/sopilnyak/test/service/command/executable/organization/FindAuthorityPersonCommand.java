@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.AuthorityPersonCommands;
 
 import java.util.Optional;
 
@@ -50,6 +50,6 @@ public class FindAuthorityPersonCommand implements OrganizationCommand<Optional<
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommandFacade.FIND_BY_ID;
+        return AuthorityPersonCommands.FIND_BY_ID;
     }
 }

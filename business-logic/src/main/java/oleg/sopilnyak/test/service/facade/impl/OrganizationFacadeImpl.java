@@ -1,17 +1,18 @@
-package oleg.sopilnyak.test.service.facade.organization;
+package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
-import oleg.sopilnyak.test.service.facade.organization.entity.AuthorityPersonCommandFacade;
-import oleg.sopilnyak.test.service.facade.organization.entity.FacultyCommandFacade;
-import oleg.sopilnyak.test.service.facade.organization.entity.StudentsGroupCommandFacade;
+import oleg.sopilnyak.test.service.command.id.set.AuthorityPersonCommands;
+import oleg.sopilnyak.test.service.command.id.set.FacultyCommands;
+import oleg.sopilnyak.test.service.command.id.set.StudentsGroupCommands;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -23,7 +24,9 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 @AllArgsConstructor
-public class OrganizationFacadeImpl implements OrganizationCommandFacade {
+public class OrganizationFacadeImpl implements OrganizationFacade,
+        AuthorityPersonCommands, FacultyCommands, StudentsGroupCommands
+{
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory factory;
 
@@ -34,7 +37,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      * @see AuthorityPerson
      */
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
-        return executeSimpleCommand(AuthorityPersonCommandFacade.FIND_ALL, null, factory);
+        return executeSimpleCommand(AuthorityPersonCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -48,7 +51,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<AuthorityPerson> getAuthorityPersonById(Long id) {
-        return executeSimpleCommand(AuthorityPersonCommandFacade.FIND_BY_ID, id, factory);
+        return executeSimpleCommand(AuthorityPersonCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -62,7 +65,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
-        return executeSimpleCommand(AuthorityPersonCommandFacade.CREATE_OR_UPDATE, instance, factory);
+        return executeSimpleCommand(AuthorityPersonCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -74,7 +77,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotExistsException, AuthorityPersonManageFacultyException {
-        String commandId = AuthorityPersonCommandFacade.DELETE;
+        String commandId = AuthorityPersonCommands.DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
@@ -98,7 +101,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Collection<Faculty> findAllFaculties() {
-        return executeSimpleCommand(FacultyCommandFacade.FIND_ALL, null, factory);
+        return executeSimpleCommand(FacultyCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -112,7 +115,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<Faculty> getFacultyById(Long id) {
-        return executeSimpleCommand(FacultyCommandFacade.FIND_BY_ID, id, factory);
+        return executeSimpleCommand(FacultyCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -126,7 +129,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
-        return executeSimpleCommand(FacultyCommandFacade.CREATE_OR_UPDATE, instance, factory);
+        return executeSimpleCommand(FacultyCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -138,7 +141,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public void deleteFacultyById(Long id) throws FacultyNotExistsException, FacultyIsNotEmptyException {
-        String commandId = FacultyCommandFacade.DELETE;
+        String commandId = FacultyCommands.DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
@@ -162,7 +165,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
-        return executeSimpleCommand(StudentsGroupCommandFacade.FIND_ALL, null, factory);
+        return executeSimpleCommand(StudentsGroupCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -176,7 +179,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<StudentsGroup> getStudentsGroupById(Long id) {
-        return executeSimpleCommand(StudentsGroupCommandFacade.FIND_BY_ID, id, factory);
+        return executeSimpleCommand(StudentsGroupCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -190,7 +193,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
-        return executeSimpleCommand(StudentsGroupCommandFacade.CREATE_OR_UPDATE, instance, factory);
+        return executeSimpleCommand(StudentsGroupCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -202,7 +205,7 @@ public class OrganizationFacadeImpl implements OrganizationCommandFacade {
      */
     @Override
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
-        String commandId = StudentsGroupCommandFacade.DELETE;
+        String commandId = StudentsGroupCommands.DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {

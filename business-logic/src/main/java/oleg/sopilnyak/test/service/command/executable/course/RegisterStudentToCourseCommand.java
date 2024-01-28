@@ -12,7 +12,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
+import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -103,7 +103,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return CourseCommandsFacade.REGISTER;
+        return CourseCommands.REGISTER;
     }
 
     private static boolean isLinked(Student studentInstance, Course courseInstance) {

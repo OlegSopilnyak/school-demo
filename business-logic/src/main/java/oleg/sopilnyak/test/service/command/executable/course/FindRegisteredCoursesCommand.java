@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.facade.course.CourseCommandsFacade;
+import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +50,6 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
      */
     @Override
     public String getId() {
-        return CourseCommandsFacade.FIND_REGISTERED;
+        return CourseCommands.FIND_REGISTERED;
     }
 }
