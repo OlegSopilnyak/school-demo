@@ -5,9 +5,6 @@ plugins {
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 
-repositories {
-    jcenter()
-}
 dependencies {
     implementation project(":common")
     implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"

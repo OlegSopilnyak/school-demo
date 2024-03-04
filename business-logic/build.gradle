@@ -5,10 +5,6 @@ plugins {
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 
-repositories {
-    jcenter()
-}
-
 dependencies {
     implementation project(":common")
 
@@ -24,5 +20,6 @@ bootJar {
 }
 test {
     useJUnitPlatform()
+    exclude 'oleg/sopilnyak/test/persistence/**'
 }
 description = 'Business-Logic for students and courses of the school'

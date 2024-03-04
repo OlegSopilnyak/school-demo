@@ -10,6 +10,3 @@ dependencies {
     testFixturesApi group: 'org.testcontainers', name: 'junit-jupiter', version: "${testcontainersVersion}"
     testFixturesApi group: 'org.testcontainers', name: 'mysql', version: "${testcontainersVersion}"
 }
-//bootJar {
-//    enabled = false
-//}

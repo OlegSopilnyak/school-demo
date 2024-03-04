@@ -3,7 +3,7 @@
 ### Used modules
 
 * **common** - module with declared abstract service model and facades.
-* **endpoint** - module to manage REST request to the system.
+* **endpoint** - module to manage REST requests to the system.
 * **business-logic** - module to process requests from REST-Controllers.
 * **persistence** - the module is providing support for persistence layer of the system.
 * **application** - module to run system as a SpringBoot application, in docker as well.

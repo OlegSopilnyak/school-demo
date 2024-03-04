@@ -1,4 +1,3 @@
-//file:noinspection ConfigurationAvoidance
 plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
@@ -10,19 +9,14 @@ plugins {
     id 'com.avast.gradle.docker-compose' version "${dockerComposePluginVersion}"
 }
 
-
-repositories {
-    jcenter()
-}
-
 dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+
     implementation project(":common")
     implementation project(":endpoint")
     implementation project(":business-logic")
     implementation project(":persistence")
-
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 }
