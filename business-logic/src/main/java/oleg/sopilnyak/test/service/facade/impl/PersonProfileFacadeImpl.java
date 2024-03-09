@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -64,5 +65,44 @@ public class PersonProfileFacadeImpl<T> implements ProfileCommands, PersonProfil
     @Override
     public Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
         return executeSimpleCommand(FIND_PRINCIPAL_BY_ID, id, factory);
+    }
+
+    /**
+     * To create student-profile
+     *
+     * @param profile instance to create
+     * @return created instance or Optional#empty()
+     * @see StudentProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<StudentProfile> createOrUpdateProfile(StudentProfile profile) {
+        return Optional.empty();
+    }
+
+    /**
+     * To create principal-profile
+     *
+     * @param profile instance to create
+     * @return created instance or Optional#empty()
+     * @see PrincipalProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile profile) {
+        return Optional.empty();
+    }
+
+    /**
+     * To delete profile by system-id
+     *
+     * @param id value of system-id
+     * @throws ProfileNotExistsException throws if profile with id does not exist
+     */
+    @Override
+    public void deleteProfileById(Long id) throws ProfileNotExistsException {
+        // TODO Should be implemented
     }
 }

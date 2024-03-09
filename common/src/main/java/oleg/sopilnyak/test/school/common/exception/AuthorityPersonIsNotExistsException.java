@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.exception;
 
 /**
  * Exception: throws when you want to delete authority person who is not created before
+ * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
 public class AuthorityPersonIsNotExistsException extends Exception {
     /**

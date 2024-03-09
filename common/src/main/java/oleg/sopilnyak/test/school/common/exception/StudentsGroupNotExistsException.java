@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.exception;
 
 /**
  * Exception: throws when you want to delete students group which is not created before
+ * @see oleg.sopilnyak.test.school.common.model.StudentsGroup
  */
 public class StudentsGroupNotExistsException extends Exception {
     /**

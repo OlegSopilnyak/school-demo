@@ -16,11 +16,11 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,7 +43,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
@@ -186,8 +186,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-301'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-301'");
     }
 
     @Test
@@ -210,8 +210,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
     }
 
     @Test
@@ -253,8 +253,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
     }
 
     @Test
@@ -274,8 +274,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-303'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-303'");
     }
 
     @Test
@@ -292,11 +292,12 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).deletePerson(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '304'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '304'");
     }
 
     @Test
@@ -319,8 +320,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Cannot delete authority person for id = " + id).isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("Cannot delete authority person for id = " + id);
     }
 
     private AuthorityPerson getPersistent(AuthorityPerson newInstance) {

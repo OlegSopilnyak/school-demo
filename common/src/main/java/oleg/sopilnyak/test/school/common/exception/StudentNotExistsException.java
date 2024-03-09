@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.exception;
 
 /**
  * Exception: throws when you want to delete student who is not exists
+ * @see oleg.sopilnyak.test.school.common.model.Student
  */
 public class StudentNotExistsException extends Exception {
     /**

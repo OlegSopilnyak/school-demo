@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
+import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
@@ -23,6 +24,7 @@ import static java.util.Objects.isNull;
 @RequestMapping(RequestMappingRoot.FACULTIES)
 public class FacultiesRestController {
     public static final String VAR_NAME = "facultyId";
+    public static final String WRONG_FACULTY_ID = "Wrong faculty-id: '";
     // delegate for requests processing
     private final OrganizationFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -33,7 +35,7 @@ public class FacultiesRestController {
         try {
             return ResponseEntity.ok(resultToDto(facade.findAllFaculties()));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get all school's faculties", e);
+            throw new CannotDoRestCallException("Cannot get all school's faculties", e);
         }
     }
 
@@ -47,11 +49,11 @@ public class FacultiesRestController {
             return ResponseEntity.ok(resultToDto(facultyId, facade.getFacultyById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong faculty-id: '{}'", facultyId);
-            throw new ResourceNotFoundException("Wrong faculty-id: '" + facultyId + "'");
+            throw new ResourceNotFoundException(WRONG_FACULTY_ID + facultyId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get faculty for id: " + facultyId, e);
+            throw new CannotDoRestCallException("Cannot get faculty for id: " + facultyId, e);
         }
     }
 
@@ -62,7 +64,7 @@ public class FacultiesRestController {
             facultyDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateFaculty(facultyDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new faculty " + facultyDto.toString(), e);
+            throw new CannotDoRestCallException("Cannot create new faculty " + facultyDto.toString(), e);
         }
     }
 
@@ -72,13 +74,31 @@ public class FacultiesRestController {
         try {
             Long id = facultyDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong faculty-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_FACULTY_ID + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateFaculty(facultyDto)));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update faculty " + facultyDto.toString());
+            throw new CannotDoRestCallException("Cannot update faculty " + facultyDto.toString());
+        }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@RequestBody FacultyDto facultyDto) {
+        log.debug("Trying to delete faculty {}", facultyDto);
+        try {
+            log.debug("Deleting faculty {}", facultyDto);
+
+            facade.deleteFaculty(facultyDto);
+
+            return ResponseEntity.ok().build();
+        } catch (FacultyNotExistsException e) {
+            log.error("Wrong faculty {}", facultyDto);
+            throw new ResourceNotFoundException("Wrong faculty " + facultyDto);
+        } catch (Exception e) {
+            log.error("Cannot delete faculty {}", facultyDto, e);
+            throw new CannotDeleteResourceException("Cannot delete faculty " + facultyDto, e);
         }
     }
 
@@ -97,7 +117,7 @@ public class FacultiesRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | FacultyNotExistsException e) {
             log.error("Wrong faculty-id: '{}'", facultyId);
-            throw new ResourceNotFoundException("Wrong faculty-id: '" + facultyId + "'");
+            throw new ResourceNotFoundException(WRONG_FACULTY_ID + facultyId + "'");
         } catch (Exception e) {
             log.error("Cannot delete faculty for id = {}", facultyId, e);
             throw new CannotDeleteResourceException("Cannot delete faculty for id = " + facultyId, e);

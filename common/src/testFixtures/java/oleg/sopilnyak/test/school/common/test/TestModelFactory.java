@@ -283,7 +283,20 @@ public class TestModelFactory {
         assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
-
+    protected void assertProfilesEquals(StudentProfile expected, StudentProfile result, boolean checkId){
+        assertProfilesEquals((PersonProfile) expected, (PersonProfile)result, checkId);
+    }
+    protected void assertProfilesEquals(PersonProfile expected, PersonProfile result, boolean checkId){
+        if (isEmptyInputParameters(expected, result)) return;
+        if (checkId) {
+            assertThat(expected.getId()).isEqualTo(result.getId());
+        }
+        assertThat(expected.getPhotoUrl()).isEqualTo(result.getPhotoUrl());
+        assertThat(expected.getEmail()).isEqualTo(result.getEmail());
+        assertThat(expected.getPhone()).isEqualTo(result.getPhone());
+        assertThat(expected.getLocation()).isEqualTo(result.getLocation());
+        assertProfileExtrasEquals(expected, result);
+    }
     protected void assertProfileExtrasEquals(PersonProfile expected, PersonProfile result) {
         if (isEmptyInputParameters(expected, result)) return;
         Arrays.stream(expected.getExtraKeys())

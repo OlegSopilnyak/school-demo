@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
+import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -69,10 +70,12 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).findAll();
         verify(facade).findAllFaculties();
-        String responseString = result.getResponse().getContentAsString();
 
-        List<Faculty> facultyDtos = MAPPER.readValue(responseString, new TypeReference<List<FacultyDto>>() {
-        }).stream().map(course -> (Faculty) course).toList();
+        List<Faculty> facultyDtos = MAPPER.readValue(
+                        result.getResponse().getContentAsString(),
+                        new TypeReference<List<FacultyDto>>() {
+                        })
+                .stream().map(course -> (Faculty) course).toList();
 
         assertThat(facultyDtos).hasSize(personsAmount);
         assertFacultyLists(faculties.stream().toList(), facultyDtos, false);
@@ -95,10 +98,33 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).findById(id.toString());
         verify(facade).getFacultyById(id);
-        String responseString = result.getResponse().getContentAsString();
-        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
+    }
+
+    @Test
+    void shouldNotFindFacultyById() throws Exception {
+        Long id = 400L;
+        when(facade.getFacultyById(id)).thenReturn(Optional.empty());
+        String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).findById(id.toString());
+        verify(facade).getFacultyById(id);
+
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Faculty with id: 400 is not found");
     }
 
     @Test
@@ -126,9 +152,8 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).create(any(FacultyDto.class));
         verify(facade).createOrUpdateFaculty(any(Faculty.class));
-        String responseString = result.getResponse().getContentAsString();
-        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
     }
 
@@ -157,9 +182,8 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).update(any(FacultyDto.class));
         verify(facade).createOrUpdateFaculty(any(Faculty.class));
-        String responseString = result.getResponse().getContentAsString();
-        Faculty facultyDto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
     }
 
@@ -182,11 +206,12 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).update(any(FacultyDto.class));
         verify(facade, never()).createOrUpdateFaculty(any(Faculty.class));
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
     }
 
     @Test
@@ -209,11 +234,12 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).update(any(FacultyDto.class));
         verify(facade, never()).createOrUpdateFaculty(any(Faculty.class));
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: '-403'").isEqualTo(error.getErrorMessage());
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-403'");
     }
 
     @Test
@@ -244,11 +270,12 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).delete("null");
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
     }
 
     @Test
@@ -265,10 +292,57 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).delete(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: '-411'").isEqualTo(error.getErrorMessage());
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-411'");
+    }
+
+    @Test
+    void shouldDeleteFacultyInstance() throws Exception {
+        Long id = 410L;
+        Faculty faculty = makeTestFaculty(id);
+        String jsonContent = MAPPER.writeValueAsString(faculty);
+        String requestPath = RequestMappingRoot.FACULTIES;
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .content(jsonContent)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
+
+        verify(controller).delete(any(FacultyDto.class));
+        verify(facade).deleteFaculty(any(FacultyDto.class));
+    }
+
+    @Test
+    void shouldNotDeleteFacultyInstance() throws Exception {
+        Long id = 410L;
+        Faculty faculty = makeTestFaculty(id);
+        String jsonContent = MAPPER.writeValueAsString(faculty);
+        String requestPath = RequestMappingRoot.FACULTIES;
+        doThrow(new FacultyNotExistsException("Faculty '" + id + "' not exists."))
+                .when(facade).deleteFaculty(any(FacultyDto.class));
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.delete(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isNotFound())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).delete(any(FacultyDto.class));
+        verify(facade).deleteFaculty(any(FacultyDto.class));
+
+        RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
+                result.getResponse().getContentAsString(),
+                RestResponseEntityExceptionHandler.RestErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).startsWith("Wrong faculty ");
     }
 }

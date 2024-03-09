@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.exception;
 
 /**
  * Exception: throws when you want to delete faculty which is not created before
+ * @see oleg.sopilnyak.test.school.common.model.Faculty
  */
 public class FacultyNotExistsException extends Exception {
     /**
