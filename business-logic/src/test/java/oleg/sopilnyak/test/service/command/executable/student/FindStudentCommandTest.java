@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.course.FindCourseCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,22 +16,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FindCourseCommandTest {
+class FindStudentCommandTest {
     @Mock
-    CoursesPersistenceFacade persistenceFacade;
+    StudentsPersistenceFacade persistenceFacade;
     @Mock
-    Course course;
+    Student instance;
     @Spy
     @InjectMocks
-    FindCourseCommand command;
+    FindStudentCommand command;
+
 
     @Test
     void shouldExecuteCommand() {
-        Long id = 102L;
+        Long id = 106L;
 
-        CommandResult<Optional<Course>> result = command.execute(id);
+        CommandResult<Optional<Student>> result = command.execute(id);
 
-        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult()).isPresent();
@@ -41,29 +41,29 @@ class FindCourseCommandTest {
     }
 
     @Test
-    void shouldExecuteCommand_CourseFound() {
-        Long id = 103L;
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+    void shouldExecuteCommand_StudentFound() {
+        Long id = 107L;
+        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(instance));
 
-        CommandResult<Optional<Course>> result = command.execute(id);
+        CommandResult<Optional<Student>> result = command.execute(id);
 
-        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult()).isPresent();
-        assertThat(result.getResult().get()).contains(course);
+        assertThat(result.getResult().get()).contains(instance);
         assertThat(result.getException()).isNull();
     }
 
     @Test
     void shouldNotExecuteCommand() {
-        Long id = 104L;
+        Long id = 108L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
-        doThrow(cannotExecute).when(persistenceFacade).findCourseById(id);
+        doThrow(cannotExecute).when(persistenceFacade).findStudentById(id);
 
-        CommandResult<Optional<Course>> result = command.execute(id);
+        CommandResult<Optional<Student>> result = command.execute(id);
 
-        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();

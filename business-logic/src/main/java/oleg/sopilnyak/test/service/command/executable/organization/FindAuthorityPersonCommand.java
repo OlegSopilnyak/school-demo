@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 import oleg.sopilnyak.test.service.command.id.set.AuthorityPersonCommands;
+import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 
 import java.util.Optional;
 
@@ -28,7 +28,7 @@ public class FindAuthorityPersonCommand implements OrganizationCommand<Optional<
     public CommandResult<Optional<AuthorityPerson>> execute(Object parameter) {
         try {
             log.debug("Trying to find authority person by ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
             log.debug("Got authority person {} by ID:{}", person, id);
             return CommandResult.<Optional<AuthorityPerson>>builder()

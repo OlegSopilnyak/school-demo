@@ -1,10 +1,9 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.configurations.CourseCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
-import oleg.sopilnyak.test.service.command.configurations.CourseCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,13 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CourseCommandsConfiguration.class})
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
-class CourseCommandsConfigurationTest {
+class CourseCommandsConfigurationTest<T> {
     final String REGISTER_COMMAND_ID = "course.register";
     @MockBean
     PersistenceFacade persistenceFacade;
 
     @Autowired(required = false)
-    CommandsFactory factory;
+    CommandsFactory<T> factory;
 
     @Test
     void shouldBuildCourseCommandsFactory() {

@@ -31,7 +31,7 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete course: {}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<Course> course = persistenceFacade.findCourseById(id);
             if (course.isEmpty()) {
                 return CommandResult.<Boolean>builder().result(Optional.empty())

@@ -19,7 +19,7 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**
-     * To find student by id
+     * To create or update the student
      *
      * @param parameter student instance
      * @return execution's result
@@ -28,7 +28,7 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to create or update course {}", parameter);
-            Course updated = (Course) parameter;
+            Course updated = commandParameter(parameter);
             Optional<Course> course = persistenceFacade.save(updated);
             log.debug("Got stored course {} from parameter {}", course, updated);
             return CommandResult.<Optional<Course>>builder()

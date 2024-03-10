@@ -28,7 +28,7 @@ public class CreateOrUpdateStudentCommand implements StudentCommand<Optional<Stu
     public CommandResult<Optional<Student>> execute(Object parameter) {
         try {
             log.debug("Trying to update student:{}", parameter);
-            Student student = (Student) parameter;
+            Student student = commandParameter(parameter);
             Optional<Student> resultStudent = persistenceFacade.save(student);
             log.debug("Got student {}", resultStudent);
             return CommandResult.<Optional<Student>>builder()

@@ -22,7 +22,7 @@ public class FindAllStudentsGroupsCommand implements OrganizationCommand<Set<Stu
     /**
      * To execute command's business-logic
      *
-     * @param parameter command's parameter
+     * @param parameter not used
      * @return execution's result
      */
     @Override

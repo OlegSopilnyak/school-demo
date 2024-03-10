@@ -30,7 +30,7 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
     public CommandResult<Optional<PersonProfile>> execute(Object parameter) {
         try {
             log.debug("Trying to find profile by ID:{}", parameter);
-            final Long id = (Long) parameter;
+            final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
             log.debug("Got profile {} by ID:{}", profile, id);
             return CommandResult.<Optional<PersonProfile>>builder()

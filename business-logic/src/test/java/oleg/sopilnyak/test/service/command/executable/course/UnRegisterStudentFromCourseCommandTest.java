@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.course.UnRegisterStudentFromCourseCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,7 +45,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistenceFacade).unLink(student, course);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 
@@ -66,7 +65,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistenceFacade).unLink(student, course);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 
@@ -80,7 +79,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(StudentNotExistsException.class);
     }
 
@@ -96,7 +95,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistenceFacade).findCourseById(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(CourseNotExistsException.class);
     }
 

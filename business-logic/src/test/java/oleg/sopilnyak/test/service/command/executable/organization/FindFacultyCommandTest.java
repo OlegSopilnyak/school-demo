@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.FindFacultyCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,7 +34,7 @@ class FindFacultyCommandTest {
         verify(persistenceFacade).findFacultyById(id);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Optional.of(mock(Faculty.class)))).isEmpty();
         assertThat(result.getException()).isNull();
     }
 
@@ -49,7 +48,7 @@ class FindFacultyCommandTest {
         verify(persistenceFacade).findFacultyById(id);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).contains(instance);
+        assertThat(result.getResult().orElse(Optional.of(mock(Faculty.class)))).contains(instance);
         assertThat(result.getException()).isNull();
     }
 
@@ -64,7 +63,7 @@ class FindFacultyCommandTest {
         verify(persistenceFacade).findFacultyById(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Optional.of(mock(Faculty.class)))).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

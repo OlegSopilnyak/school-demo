@@ -29,7 +29,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
     public CommandResult<Set<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to find courses registered to student ID: {}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
             log.debug("Got courses {} for student ID:{}", courses, id);
             return CommandResult.<Set<Course>>builder()

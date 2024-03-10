@@ -28,7 +28,7 @@ public class FindFacultyCommand implements OrganizationCommand<Optional<Faculty>
     public CommandResult<Optional<Faculty>> execute(Object parameter) {
         try {
             log.debug("Trying to find faculty by ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<Faculty> faculty = persistenceFacade.findFacultyById(id);
             log.debug("Got faculty {} by ID:{}", faculty, id);
             return CommandResult.<Optional<Faculty>>builder()

@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.student;
+package oleg.sopilnyak.test.service.command.executable.student;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.student.FindNotEnrolledStudentsCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +32,7 @@ class FindNotEnrolledStudentsCommandTest {
 
         verify(persistenceFacade).findNotEnrolledStudents();
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Set.of(mock(Student.class)))).isEmpty();
         assertThat(result.getException()).isNull();
     }
 
@@ -45,7 +44,7 @@ class FindNotEnrolledStudentsCommandTest {
 
         verify(persistenceFacade).findNotEnrolledStudents();
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get().iterator().next()).isEqualTo(instance);
+        assertThat(result.getResult().orElse(Set.of(mock(Student.class))).iterator().next()).isEqualTo(instance);
         assertThat(result.getException()).isNull();
     }
 
@@ -58,7 +57,7 @@ class FindNotEnrolledStudentsCommandTest {
 
         verify(persistenceFacade).findNotEnrolledStudents();
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Set.of(mock(Student.class)))).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

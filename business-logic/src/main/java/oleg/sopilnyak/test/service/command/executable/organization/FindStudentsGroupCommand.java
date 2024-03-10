@@ -28,7 +28,7 @@ public class FindStudentsGroupCommand implements OrganizationCommand<Optional<St
     public CommandResult<Optional<StudentsGroup>> execute(Object parameter) {
         try {
             log.debug("Trying to find students group by ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<StudentsGroup> studentsGroup = persistenceFacade.findStudentsGroupById(id);
             log.debug("Got students group {} by ID:{}", studentsGroup, id);
             return CommandResult.<Optional<StudentsGroup>>builder()

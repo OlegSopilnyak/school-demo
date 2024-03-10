@@ -31,7 +31,7 @@ public class FindStudentProfileCommand implements ProfileCommand<Optional<Studen
     public CommandResult<Optional<StudentProfile>> execute(Object parameter) {
         try {
             log.debug("Trying to find student profile by ID:{}", parameter);
-            final Long id = (Long) parameter;
+            final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
             final Optional<StudentProfile> concreteProfile;
             concreteProfile = profile.isPresent() && profile.get() instanceof StudentProfile entity ?

@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.course.FindRegisteredCoursesCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

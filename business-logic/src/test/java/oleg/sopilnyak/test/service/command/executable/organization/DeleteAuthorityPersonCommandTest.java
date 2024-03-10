@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.DeleteAuthorityPersonCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +39,7 @@ class DeleteAuthorityPersonCommandTest {
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade).deleteAuthorityPerson(id);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 
@@ -52,7 +51,7 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(AuthorityPersonIsNotExistsException.class);
     }
 
@@ -66,7 +65,7 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(AuthorityPersonManageFacultyException.class);
     }
 
@@ -81,7 +80,7 @@ class DeleteAuthorityPersonCommandTest {
 
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

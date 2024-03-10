@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.DeleteFacultyCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +39,7 @@ class DeleteFacultyCommandTest {
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade).deleteFaculty(id);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 

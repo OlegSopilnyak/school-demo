@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +50,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade).link(student, course);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 
@@ -71,7 +70,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade).link(student, course);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 
@@ -93,7 +92,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade, never()).link(student, course);
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 
@@ -107,7 +106,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade).findStudentById(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(StudentNotExistsException.class);
     }
 
@@ -123,7 +122,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade).findCourseById(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(CourseNotExistsException.class);
     }
 
@@ -143,7 +142,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade, never()).link(student, course);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(NoRoomInTheCourseException.class);
     }
 
@@ -164,7 +163,7 @@ class RegisterStudentToCourseCommandTest {
         verify(persistenceFacade, never()).link(student, course);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(StudentCoursesExceedException.class);
     }
 }

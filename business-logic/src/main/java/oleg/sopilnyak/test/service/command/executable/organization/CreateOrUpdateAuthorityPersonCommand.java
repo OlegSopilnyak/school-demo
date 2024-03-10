@@ -28,7 +28,7 @@ public class CreateOrUpdateAuthorityPersonCommand implements OrganizationCommand
     public CommandResult<Optional<AuthorityPerson>> execute(Object parameter) {
         try {
             log.debug("Trying to create or update authority person {}", parameter);
-            AuthorityPerson instance = (AuthorityPerson) parameter;
+            AuthorityPerson instance = commandParameter(parameter);
             Optional<AuthorityPerson> person = persistenceFacade.save(instance);
             log.debug("Got stored authority person {} from parameter {}", person, instance);
             return CommandResult.<Optional<AuthorityPerson>>builder()

@@ -30,7 +30,7 @@ public class DeleteStudentsGroupCommand implements OrganizationCommand<Boolean> 
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete students group with ID: {}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<StudentsGroup> group = persistenceFacade.findStudentsGroupById(id);
             if (group.isEmpty()) {
                 return CommandResult.<Boolean>builder()

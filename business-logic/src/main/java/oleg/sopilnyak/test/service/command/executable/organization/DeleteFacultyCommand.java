@@ -30,7 +30,7 @@ public class DeleteFacultyCommand implements OrganizationCommand<Boolean> {
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete faculty with ID: {}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<Faculty> person = persistenceFacade.findFacultyById(id);
             if (person.isEmpty()) {
                 return CommandResult.<Boolean>builder().result(Optional.empty())

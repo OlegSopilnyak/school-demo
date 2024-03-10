@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.CreateOrUpdateStudentsGroupCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,38 +16,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrUpdateStudentsGroupCommandTest {
+class CreateOrUpdateFacultyCommandTest {
     @Mock
     OrganizationPersistenceFacade persistenceFacade;
     @Spy
     @InjectMocks
-    CreateOrUpdateStudentsGroupCommand command;
+    CreateOrUpdateFacultyCommand command;
     @Mock
-    StudentsGroup group;
+    Faculty faculty;
 
     @Test
     void shouldExecuteCommand() {
-        Optional<StudentsGroup> updated = Optional.of(group);
-        when(persistenceFacade.save(group)).thenReturn(updated);
+        Optional<Faculty> updated = Optional.of(faculty);
+        when(persistenceFacade.save(faculty)).thenReturn(updated);
 
-        CommandResult<Optional<StudentsGroup>> result = command.execute(group);
+        CommandResult<Optional<Faculty>> result = command.execute(faculty);
 
-        verify(persistenceFacade).save(group);
+        verify(persistenceFacade).save(faculty);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).contains(updated.get());
+        assertThat(result.getResult().orElse(Optional.of(mock(Faculty.class)))).contains(updated.get());
         assertThat(result.getException()).isNull();
     }
 
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).save(group);
+        doThrow(cannotExecute).when(persistenceFacade).save(faculty);
 
-        CommandResult<Optional<StudentsGroup>> result = command.execute(group);
+        CommandResult<Optional<Faculty>> result = command.execute(faculty);
 
-        verify(persistenceFacade).save(group);
+        verify(persistenceFacade).save(faculty);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Optional.of(mock(Faculty.class)))).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

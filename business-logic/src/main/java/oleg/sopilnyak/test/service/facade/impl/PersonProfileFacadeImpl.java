@@ -19,7 +19,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.exe
  */
 @Slf4j
 @AllArgsConstructor
-public class PersonProfileFacadeImpl<T> implements ProfileCommands, PersonProfileFacade {
+public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileCommands  {
     private final CommandsFactory<T> factory;
 
     /**

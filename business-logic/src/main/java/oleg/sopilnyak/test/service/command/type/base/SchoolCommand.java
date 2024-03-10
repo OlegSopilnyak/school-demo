@@ -20,4 +20,16 @@ public interface SchoolCommand<T> {
      * @return value of command-id
      */
     String getId();
+
+    /**
+     * Cast parameter to particular type
+     *
+     * @param parameter actual parameter
+     * @return parameter cast to particular type
+     * @param <P> type of the parameter
+     */
+    @SuppressWarnings("unchecked")
+    default <P> P commandParameter(Object parameter){
+        return (P)parameter;
+    }
 }

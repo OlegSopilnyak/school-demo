@@ -28,7 +28,7 @@ public class CreateOrUpdateStudentsGroupCommand implements OrganizationCommand<O
     public CommandResult<Optional<StudentsGroup>> execute(Object parameter) {
         try {
             log.debug("Trying to create or update students group {}", parameter);
-            StudentsGroup instance = (StudentsGroup) parameter;
+            StudentsGroup instance = commandParameter(parameter);
             Optional<StudentsGroup> studentsGroup = persistenceFacade.save(instance);
             log.debug("Got stored students group {} from parameter {}", studentsGroup, instance);
             return CommandResult.<Optional<StudentsGroup>>builder()

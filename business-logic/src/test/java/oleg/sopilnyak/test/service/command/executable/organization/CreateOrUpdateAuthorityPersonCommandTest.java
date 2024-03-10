@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.CreateOrUpdateFacultyCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,38 +16,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrUpdateFacultyCommandTest {
+class CreateOrUpdateAuthorityPersonCommandTest {
     @Mock
     OrganizationPersistenceFacade persistenceFacade;
     @Spy
     @InjectMocks
-    CreateOrUpdateFacultyCommand command;
+    CreateOrUpdateAuthorityPersonCommand command;
     @Mock
-    Faculty faculty;
+    AuthorityPerson person;
 
     @Test
     void shouldExecuteCommand() {
-        Optional<Faculty> updated = Optional.of(faculty);
-        when(persistenceFacade.save(faculty)).thenReturn(updated);
+        Optional<AuthorityPerson> updated = Optional.of(person);
+        when(persistenceFacade.save(person)).thenReturn(updated);
 
-        CommandResult<Optional<Faculty>> result = command.execute(faculty);
+        CommandResult<Optional<AuthorityPerson>> result = command.execute(person);
 
-        verify(persistenceFacade).save(faculty);
+        verify(persistenceFacade).save(person);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).contains(updated.get());
+        assertThat(result.getResult().orElse(Optional.of(mock(AuthorityPerson.class)))).contains(updated.get());
         assertThat(result.getException()).isNull();
     }
 
     @Test
     void shouldNotExecuteCommand() {
         RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).save(faculty);
+        doThrow(cannotExecute).when(persistenceFacade).save(person);
 
-        CommandResult<Optional<Faculty>> result = command.execute(faculty);
+        CommandResult<Optional<AuthorityPerson>> result = command.execute(person);
 
-        verify(persistenceFacade).save(faculty);
+        verify(persistenceFacade).save(person);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(Optional.of(mock(AuthorityPerson.class)))).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 }

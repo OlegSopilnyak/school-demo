@@ -1,9 +1,8 @@
-package oleg.sopilnyak.test.service.command.course;
+package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,40 +13,49 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrUpdateCourseCommandTest {
+class DeleteCourseCommandTest {
     @Mock
     CoursesPersistenceFacade persistenceFacade;
     @Mock
     Course course;
     @Spy
     @InjectMocks
-    CreateOrUpdateCourseCommand command;
+    DeleteCourseCommand command;
 
     @Test
     void shouldExecuteCommand() {
-        CommandResult<Optional<Course>> result = command.execute(course);
+        Long id = 100L;
 
-        verify(persistenceFacade).save(course);
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+
+        CommandResult<Boolean> result = command.execute(id);
+
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).deleteCourse(id);
+
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isNull();
     }
 
     @Test
     void shouldNotExecuteCommand() {
-        RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).save(course);
+        Long id = 101L;
+        RuntimeException cannotExecute = new RuntimeException("Cannot delete");
+        doThrow(cannotExecute).when(persistenceFacade).deleteCourse(id);
+        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Optional<Course>> result = command.execute(course);
+        CommandResult<Boolean> result = command.execute(id);
 
-        verify(persistenceFacade).save(course);
+        verify(persistenceFacade).findCourseById(id);
+        verify(persistenceFacade).deleteCourse(id);
 
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isEmpty();
+        assertThat(result.getResult()).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
+
     }
 }

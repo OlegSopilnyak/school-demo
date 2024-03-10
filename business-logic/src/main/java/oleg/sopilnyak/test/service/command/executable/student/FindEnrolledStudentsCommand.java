@@ -29,7 +29,7 @@ public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>>
     public CommandResult<Set<Student>> execute(Object parameter) {
         try {
             log.debug("Trying to find enrolled students by the course ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Set<Student> students = persistenceFacade.findEnrolledStudentsByCourseId(id);
             log.debug("Got students {} by ID:{}", students, id);
             return CommandResult.<Set<Student>>builder()

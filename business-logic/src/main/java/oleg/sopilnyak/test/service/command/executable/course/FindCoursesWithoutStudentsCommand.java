@@ -20,7 +20,7 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
-     * To find course by id
+     * To find courses without students
      *
      * @param parameter not used
      * @return execution's result

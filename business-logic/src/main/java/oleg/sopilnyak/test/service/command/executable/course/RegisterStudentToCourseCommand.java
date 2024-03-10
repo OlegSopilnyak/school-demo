@@ -35,16 +35,16 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     private final int coursesExceed;
 
     /**
-     * To find student by id
+     * To link the student to the course
      *
-     * @param parameter system student-id
+     * @param parameter the array of [student-id, course-id]
      * @return execution's result
      */
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to register student to course: {}", parameter);
-            Long[] ids = (Long[]) parameter;
+            Long[] ids = commandParameter(parameter);
             Long studentId = ids[0];
             Long courseId = ids[1];
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);

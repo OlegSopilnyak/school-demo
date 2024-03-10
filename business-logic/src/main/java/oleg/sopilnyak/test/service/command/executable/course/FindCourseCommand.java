@@ -28,7 +28,7 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to find course by ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<Course> course = persistenceFacade.findCourseById(id);
             log.debug("Got course {} by ID:{}", course, id);
             return CommandResult.<Optional<Course>>builder()

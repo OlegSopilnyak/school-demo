@@ -20,9 +20,9 @@ public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Studen
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
-     * To find enrolled students by course-id
+     * To find not enrolled students
      *
-     * @param parameter system course-id
+     * @param parameter not used
      * @return execution's result
      */
     @Override

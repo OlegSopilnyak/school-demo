@@ -22,7 +22,7 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
     private final StudentsPersistenceFacade persistenceFacade;
 
     /**
-     * To find enrolled students by course-id
+     * To delete the student by student-id
      *
      * @param parameter system course-id
      * @return execution's result
@@ -31,7 +31,7 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete the student ID:{}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<Student> student = persistenceFacade.findStudentById(id);
             if (student.isEmpty()) {
                 return CommandResult.<Boolean>builder()

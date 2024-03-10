@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.organization;
+package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersisten
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.executable.organization.DeleteStudentsGroupCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +39,7 @@ class DeleteStudentsGroupCommandTest {
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade).deleteStudentsGroup(id);
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().get()).isTrue();
+        assertThat(result.getResult().orElse(false)).isTrue();
         assertThat(result.getException()).isNull();
     }
 
@@ -56,7 +55,7 @@ class DeleteStudentsGroupCommandTest {
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade).deleteStudentsGroup(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isEqualTo(cannotExecute);
     }
 
@@ -68,7 +67,7 @@ class DeleteStudentsGroupCommandTest {
 
         verify(persistenceFacade).findStudentsGroupById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(StudentsGroupNotExistsException.class);
     }
 
@@ -82,7 +81,7 @@ class DeleteStudentsGroupCommandTest {
 
         verify(persistenceFacade).findStudentsGroupById(id);
         assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().get()).isFalse();
+        assertThat(result.getResult().orElse(true)).isFalse();
         assertThat(result.getException()).isInstanceOf(StudentGroupWithStudentsException.class);
     }
 }

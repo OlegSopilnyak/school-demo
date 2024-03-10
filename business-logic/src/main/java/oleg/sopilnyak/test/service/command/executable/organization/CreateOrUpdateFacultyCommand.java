@@ -28,7 +28,7 @@ public class CreateOrUpdateFacultyCommand implements OrganizationCommand<Optiona
     public CommandResult<Optional<Faculty>> execute(Object parameter) {
         try {
             log.debug("Trying to create or update faculty {}", parameter);
-            Faculty instance = (Faculty) parameter;
+            Faculty instance = commandParameter(parameter);
             Optional<Faculty> faculty = persistenceFacade.save(instance);
             log.debug("Got stored faculty {} from parameter {}", faculty, instance);
             return CommandResult.<Optional<Faculty>>builder()

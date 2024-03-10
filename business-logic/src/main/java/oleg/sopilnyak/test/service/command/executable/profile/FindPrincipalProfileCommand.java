@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ public class FindPrincipalProfileCommand implements ProfileCommand<Optional<Prin
     public CommandResult<Optional<PrincipalProfile>> execute(Object parameter) {
         try {
             log.debug("Trying to find principal profile by ID:{}", parameter);
-            final Long id = (Long) parameter;
+            final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
             final Optional<PrincipalProfile> concreteProfile;
             concreteProfile = profile.isPresent() && profile.get() instanceof PrincipalProfile entity ?

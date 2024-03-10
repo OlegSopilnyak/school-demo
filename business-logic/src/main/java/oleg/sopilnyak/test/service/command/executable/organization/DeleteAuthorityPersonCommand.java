@@ -30,7 +30,7 @@ public class DeleteAuthorityPersonCommand implements OrganizationCommand<Boolean
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete authority person with ID: {}", parameter);
-            Long id = (Long) parameter;
+            Long id = commandParameter(parameter);
             Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
             if (person.isEmpty()) {
                 return CommandResult.<Boolean>builder()
