@@ -52,6 +52,6 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      */
     @Override
     public String getId() {
-        return ProfileCommands.FIND_BY_ID;
+        return ProfileCommands.FIND_BY_ID.toString();
     }
 }

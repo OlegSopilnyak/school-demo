@@ -52,6 +52,6 @@ public class FindStudentProfileCommand implements ProfileCommand<Optional<Studen
      */
     @Override
     public String getId() {
-        return ProfileCommands.FIND_STUDENT_BY_ID;
+        return ProfileCommands.FIND_STUDENT_BY_ID.toString();
     }
 }

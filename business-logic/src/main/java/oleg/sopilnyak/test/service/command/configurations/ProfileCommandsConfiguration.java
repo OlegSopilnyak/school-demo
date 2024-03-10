@@ -5,9 +5,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.FindPrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.*;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
@@ -38,6 +36,16 @@ public class ProfileCommandsConfiguration {
     @Bean
     public ProfileCommand<Optional<PrincipalProfile>> findPrincipalProfileCommand() {
         return new FindPrincipalProfileCommand(persistenceFacade);
+    }
+
+    @Bean
+    public ProfileCommand<Optional<StudentProfile>> createOrUpdateStudentProfileCommand() {
+        return new CreateStudentProfileCommand(persistenceFacade);
+    }
+
+    @Bean
+    public ProfileCommand<Optional<PrincipalProfile>> createOrUpdatePrincipalProfileCommand() {
+        return new CreatePrincipalProfileCommand(persistenceFacade);
     }
 
     /**

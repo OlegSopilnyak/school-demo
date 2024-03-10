@@ -53,6 +53,6 @@ public class CreateStudentProfileCommand implements ProfileCommand<Optional<Stud
      */
     @Override
     public String getId() {
-        return ProfileCommands.CREATE_OR_UPDATE_STUDENT;
+        return ProfileCommands.CREATE_OR_UPDATE_STUDENT.toString();
     }
 }

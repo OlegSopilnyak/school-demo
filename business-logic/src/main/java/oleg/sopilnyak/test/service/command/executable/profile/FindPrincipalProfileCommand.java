@@ -52,6 +52,6 @@ public class FindPrincipalProfileCommand implements ProfileCommand<Optional<Prin
      */
     @Override
     public String getId() {
-        return ProfileCommands.FIND_PRINCIPAL_BY_ID;
+        return ProfileCommands.FIND_PRINCIPAL_BY_ID.toString();
     }
 }

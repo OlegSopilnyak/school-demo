@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.Set;
 
+import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -32,7 +33,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindById() {
-        String commandId = ProfileCommands.FIND_BY_ID;
+        String commandId = commandIdOf(FIND_BY_ID);
         Long profileId = 400L;
 
         Optional<PersonProfile> profile = facade.findById(profileId);
@@ -45,7 +46,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindById() {
-        String commandId = ProfileCommands.FIND_BY_ID;
+        String commandId = commandIdOf(FIND_BY_ID);
         Long profileId = 410L;
         PersonProfile abstractProfile = mock(PersonProfile.class);
         when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(abstractProfile));
@@ -60,7 +61,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindStudentProfileById() {
-        String commandId = ProfileCommands.FIND_STUDENT_BY_ID;
+        String commandId = commandIdOf(FIND_STUDENT_BY_ID);
         Long profileId = 401L;
 
         Optional<PersonProfile> profile = facade.findStudentProfileById(profileId);
@@ -73,7 +74,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindStudentProfileById() {
-        String commandId = ProfileCommands.FIND_STUDENT_BY_ID;
+        String commandId = commandIdOf(FIND_STUDENT_BY_ID);
         Long profileId = 411L;
         StudentProfile studentProfile = mock(StudentProfile.class);
         when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(studentProfile));
@@ -88,7 +89,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotFindPrincipalProfileById() {
-        String commandId = ProfileCommands.FIND_PRINCIPAL_BY_ID;
+        String commandId = commandIdOf(FIND_PRINCIPAL_BY_ID);
         Long profileId = 402L;
 
         Optional<PersonProfile> profile = facade.findPrincipalProfileById(profileId);
@@ -101,7 +102,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldFindPrincipalProfileById() {
-        String commandId = ProfileCommands.FIND_PRINCIPAL_BY_ID;
+        String commandId = commandIdOf(FIND_PRINCIPAL_BY_ID);
         Long profileId = 412L;
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(principalProfile));
@@ -116,7 +117,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdateStudentProfile() {
-        String commandId = ProfileCommands.CREATE_OR_UPDATE_STUDENT;
+        String commandId = commandIdOf(CREATE_OR_UPDATE_STUDENT);
         StudentProfile studentProfile = mock(StudentProfile.class);
         when(persistenceFacade.save(studentProfile)).thenReturn(Optional.of(studentProfile));
 
@@ -130,7 +131,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotCreateOrUpdateStudentProfile() {
-        String commandId = ProfileCommands.CREATE_OR_UPDATE_STUDENT;
+        String commandId = commandIdOf(CREATE_OR_UPDATE_STUDENT);
         StudentProfile studentProfile = mock(StudentProfile.class);
 
         Optional<PersonProfile> profile = facade.createOrUpdateProfile(studentProfile);
@@ -143,7 +144,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdatePrincipalProfile() {
-        String commandId = ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
+        String commandId = commandIdOf(CREATE_OR_UPDATE_PRINCIPAL);
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
         when(persistenceFacade.save(principalProfile)).thenReturn(Optional.of(principalProfile));
 
@@ -157,7 +158,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Test
     void shouldNotCreateOrUpdatePrincipalProfile() {
-        String commandId = ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
+        String commandId = commandIdOf(CREATE_OR_UPDATE_PRINCIPAL);
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
 
         Optional<PersonProfile> profile = facade.createOrUpdateProfile(principalProfile);
@@ -178,5 +179,8 @@ class PersonProfileFacadeImplTest<T> {
                         spy(new CreatePrincipalProfileCommand(persistenceFacade))
                 )
         );
+    }
+    private static String commandIdOf(ProfileCommands command) {
+        return command.toString();
     }
 }

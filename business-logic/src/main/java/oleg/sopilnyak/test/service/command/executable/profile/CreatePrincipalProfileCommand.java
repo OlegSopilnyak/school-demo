@@ -52,6 +52,6 @@ public class CreatePrincipalProfileCommand implements ProfileCommand<Optional<Pr
      */
     @Override
     public String getId() {
-        return ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
+        return ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL.toString();
     }
 }

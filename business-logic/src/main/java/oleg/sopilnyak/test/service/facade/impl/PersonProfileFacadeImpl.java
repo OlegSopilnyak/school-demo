@@ -13,13 +13,14 @@ import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.executeSimpleCommand;
+import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.*;
 
 /**
  * Service: To process commands for school's person profiles facade
  */
 @Slf4j
 @AllArgsConstructor
-public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileCommands  {
+public class PersonProfileFacadeImpl<T> implements PersonProfileFacade  {
     private final CommandsFactory<T> factory;
 
     /**
@@ -34,7 +35,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<PersonProfile> findById(Long id) {
-        return executeSimpleCommand(FIND_BY_ID, id, factory);
+        return executeTheCommand(FIND_BY_ID, id, factory);
     }
 
     /**
@@ -49,7 +50,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<StudentProfile> findStudentProfileById(Long id) {
-        return executeSimpleCommand(FIND_STUDENT_BY_ID, id, factory);
+        return executeTheCommand(FIND_STUDENT_BY_ID, id, factory);
     }
 
     /**
@@ -64,7 +65,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
-        return executeSimpleCommand(FIND_PRINCIPAL_BY_ID, id, factory);
+        return executeTheCommand(FIND_PRINCIPAL_BY_ID, id, factory);
     }
 
     /**
@@ -78,7 +79,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<StudentProfile> createOrUpdateProfile(StudentProfile profile) {
-        return executeSimpleCommand(CREATE_OR_UPDATE_STUDENT, profile, factory);
+        return executeTheCommand(CREATE_OR_UPDATE_STUDENT, profile, factory);
     }
 
     /**
@@ -92,7 +93,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile profile) {
-        return executeSimpleCommand(CREATE_OR_UPDATE_PRINCIPAL, profile, factory);
+        return executeTheCommand(CREATE_OR_UPDATE_PRINCIPAL, profile, factory);
     }
 
     /**
@@ -104,5 +105,9 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
     @Override
     public void deleteProfileById(Long id) throws ProfileNotExistsException {
         // TODO Should be implemented
+    }
+
+    private static <T> T executeTheCommand(ProfileCommands command, Object option, CommandsFactory<?> factory){
+        return executeSimpleCommand(command.toString(), option, factory);
     }
 }
