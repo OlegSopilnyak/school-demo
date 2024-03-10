@@ -28,21 +28,9 @@ class PersonProfileFacadeImplTest<T> {
     @Spy
     CommandsFactory<T> factory = buildFactory();
 
+    @Spy
     @InjectMocks
     PersonProfileFacadeImpl facade;
-
-    @Test
-    void shouldNotFindById() {
-        String commandId = commandIdOf(FIND_BY_ID);
-        Long profileId = 400L;
-
-        Optional<PersonProfile> profile = facade.findById(profileId);
-
-        assertThat(profile).isEmpty();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findProfileById(profileId);
-    }
 
     @Test
     void shouldFindById() {
@@ -60,126 +48,193 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     @Test
-    void shouldNotFindStudentProfileById() {
-        String commandId = commandIdOf(FIND_STUDENT_BY_ID);
-        Long profileId = 401L;
+    void shouldNotFindById() {
+        String commandId = commandIdOf(FIND_BY_ID);
+        Long profileId = 400L;
 
-        Optional<PersonProfile> profile = facade.findStudentProfileById(profileId);
+        Optional<PersonProfile> profile = facade.findById(profileId);
 
         assertThat(profile).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findStudentProfileById(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
     }
 
     @Test
     void shouldFindStudentProfileById() {
-        String commandId = commandIdOf(FIND_STUDENT_BY_ID);
+        String commandId = commandIdOf(FIND_BY_ID);
         Long profileId = 411L;
         StudentProfile studentProfile = mock(StudentProfile.class);
-        when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(studentProfile));
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(studentProfile));
 
         Optional<StudentProfile> profile = facade.findStudentProfileById(profileId);
 
         assertThat(profile).hasValue(studentProfile);
+        verify(facade).findById(profileId);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findStudentProfileById(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
     }
 
     @Test
-    void shouldNotFindPrincipalProfileById() {
-        String commandId = commandIdOf(FIND_PRINCIPAL_BY_ID);
-        Long profileId = 402L;
+    void shouldNotFindStudentProfileById_EmptyData() {
+        String commandId = commandIdOf(FIND_BY_ID);
+        Long profileId = 401L;
 
-        Optional<PersonProfile> profile = facade.findPrincipalProfileById(profileId);
+        Optional<StudentProfile> profile = facade.findStudentProfileById(profileId);
 
         assertThat(profile).isEmpty();
+        verify(facade).findById(profileId);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findPrincipalProfileById(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotFindStudentProfileById_WrongProfileType() {
+        String commandId = commandIdOf(FIND_BY_ID);
+        Long profileId = 411L;
+        PrincipalProfile wrongStudentProfile = mock(PrincipalProfile.class);
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(wrongStudentProfile));
+
+        Optional<StudentProfile> profile = facade.findStudentProfileById(profileId);
+
+        assertThat(profile).isEmpty();
+        verify(facade).findById(profileId);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
     }
 
     @Test
     void shouldFindPrincipalProfileById() {
-        String commandId = commandIdOf(FIND_PRINCIPAL_BY_ID);
+        String commandId = commandIdOf(FIND_BY_ID);
         Long profileId = 412L;
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
-        when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(principalProfile));
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(principalProfile));
 
-        Optional<PersonProfile> profile = facade.findPrincipalProfileById(profileId);
+        Optional<PrincipalProfile> profile = facade.findPrincipalProfileById(profileId);
 
         assertThat(profile).hasValue(principalProfile);
+        verify(facade).findById(profileId);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findPrincipalProfileById(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotFindPrincipalProfileById() {
+        String commandId = commandIdOf(FIND_BY_ID);
+        Long profileId = 402L;
+
+        Optional<PrincipalProfile> profile = facade.findPrincipalProfileById(profileId);
+
+        assertThat(profile).isEmpty();
+        verify(facade).findById(profileId);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotFindPrincipalProfileById_WrongProfileType() {
+        String commandId = commandIdOf(FIND_BY_ID);
+        Long profileId = 402L;
+        StudentProfile wrongStudentProfile = mock(StudentProfile.class);
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(wrongStudentProfile));
+
+        Optional<PrincipalProfile> profile = facade.findPrincipalProfileById(profileId);
+
+        assertThat(profile).isEmpty();
+        verify(facade).findById(profileId);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
     }
 
     @Test
     void shouldCreateOrUpdateStudentProfile() {
-        String commandId = commandIdOf(CREATE_OR_UPDATE_STUDENT);
+        String commandId = commandIdOf(CREATE_OR_UPDATE);
         StudentProfile studentProfile = mock(StudentProfile.class);
-        when(persistenceFacade.save(studentProfile)).thenReturn(Optional.of(studentProfile));
+        when(persistenceFacade.saveProfile(studentProfile)).thenReturn(Optional.of(studentProfile));
 
-        Optional<PersonProfile> profile = facade.createOrUpdateProfile(studentProfile);
+        Optional<StudentProfile> profile = facade.createOrUpdateProfile(studentProfile);
 
         assertThat(profile).hasValue(studentProfile);
+        verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(studentProfile);
-        verify(persistenceFacade).save(studentProfile);
+        verify(persistenceFacade).saveProfile(studentProfile);
     }
 
     @Test
     void shouldNotCreateOrUpdateStudentProfile() {
-        String commandId = commandIdOf(CREATE_OR_UPDATE_STUDENT);
+        String commandId = commandIdOf(CREATE_OR_UPDATE);
         StudentProfile studentProfile = mock(StudentProfile.class);
 
-        Optional<PersonProfile> profile = facade.createOrUpdateProfile(studentProfile);
+        Optional<StudentProfile> profile = facade.createOrUpdateProfile(studentProfile);
 
         assertThat(profile).isEmpty();
+        verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(studentProfile);
-        verify(persistenceFacade).save(studentProfile);
+        verify(persistenceFacade).saveProfile(studentProfile);
+    }
+
+    @Test
+    void shouldNotCreateOrUpdateStudentProfile_WrongProfileType() {
+        String commandId = commandIdOf(CREATE_OR_UPDATE);
+        StudentProfile studentProfile = mock(StudentProfile.class);
+        PrincipalProfile wrongStudentProfile = mock(PrincipalProfile.class);
+        when(persistenceFacade.saveProfile(studentProfile)).thenReturn(Optional.of(wrongStudentProfile));
+
+        Optional<StudentProfile> profile = facade.createOrUpdateProfile(studentProfile);
+
+        assertThat(profile).isEmpty();
+        verify(facade).createOrUpdatePersonProfile(studentProfile);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(studentProfile);
+        verify(persistenceFacade).saveProfile(studentProfile);
     }
 
     @Test
     void shouldCreateOrUpdatePrincipalProfile() {
-        String commandId = commandIdOf(CREATE_OR_UPDATE_PRINCIPAL);
+        String commandId = commandIdOf(CREATE_OR_UPDATE);
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
-        when(persistenceFacade.save(principalProfile)).thenReturn(Optional.of(principalProfile));
+        when(persistenceFacade.saveProfile(principalProfile)).thenReturn(Optional.of(principalProfile));
 
-        Optional<PersonProfile> profile = facade.createOrUpdateProfile(principalProfile);
+        Optional<PrincipalProfile> profile = facade.createOrUpdateProfile(principalProfile);
 
         assertThat(profile).hasValue(principalProfile);
+        verify(facade).createOrUpdatePersonProfile(principalProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(principalProfile);
-        verify(persistenceFacade).save(principalProfile);
+        verify(persistenceFacade).saveProfile(principalProfile);
     }
 
     @Test
     void shouldNotCreateOrUpdatePrincipalProfile() {
-        String commandId = commandIdOf(CREATE_OR_UPDATE_PRINCIPAL);
+        String commandId = commandIdOf(CREATE_OR_UPDATE);
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
 
-        Optional<PersonProfile> profile = facade.createOrUpdateProfile(principalProfile);
+        Optional<PrincipalProfile> profile = facade.createOrUpdateProfile(principalProfile);
 
         assertThat(profile).isEmpty();
+        verify(facade).createOrUpdatePersonProfile(principalProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(principalProfile);
-        verify(persistenceFacade).save(principalProfile);
+        verify(persistenceFacade).saveProfile(principalProfile);
     }
 
     private CommandsFactory<T> buildFactory() {
         return new ProfileCommandsFactory(
                 Set.of(
                         spy(new FindProfileCommand(persistenceFacade)),
-                        spy(new FindStudentProfileCommand(persistenceFacade)),
-                        spy(new FindPrincipalProfileCommand(persistenceFacade)),
-                        spy(new CreateStudentProfileCommand(persistenceFacade)),
-                        spy(new CreatePrincipalProfileCommand(persistenceFacade))
+                        spy(new CreateProfileCommand(persistenceFacade))
                 )
         );
     }
+
     private static String commandIdOf(ProfileCommands command) {
         return command.toString();
     }

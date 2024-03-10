@@ -5,10 +5,7 @@ package oleg.sopilnyak.test.service.command.id.set;
  */
 public enum ProfileCommands {
     FIND_BY_ID("profile.person.findById"),
-    FIND_STUDENT_BY_ID("profile.student.findById"),
-    FIND_PRINCIPAL_BY_ID("profile.principal.findById"),
-    CREATE_OR_UPDATE_STUDENT("profile.student.createOrUpdate"),
-    CREATE_OR_UPDATE_PRINCIPAL("profile.principal.createOrUpdate")
+    CREATE_OR_UPDATE("profile.person.createOrUpdate")
     ;
     private final String commandId;
     ProfileCommands(String commandId) {

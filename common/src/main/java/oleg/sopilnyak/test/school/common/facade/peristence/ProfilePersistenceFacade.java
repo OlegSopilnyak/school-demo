@@ -20,9 +20,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     default Optional<StudentProfile> findStudentProfileById(Long id){
-        final Optional<PersonProfile> profile = findProfileById(id);
-        return profile.isPresent() && profile.get() instanceof StudentProfile entity ?
-                Optional.of(entity) : Optional.empty();
+        return findProfileById(id).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 
     /**
@@ -35,9 +33,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     default Optional<PrincipalProfile> findPrincipalProfileById(Long id){
-        final Optional<PersonProfile> profile = findProfileById(id);
-        return profile.isPresent() && profile.get() instanceof PrincipalProfile entity ?
-                Optional.of(entity) : Optional.empty();
+        return findProfileById(id).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 
     /**
@@ -61,9 +57,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     default Optional<PrincipalProfile> save(PrincipalProfile input) {
-        final Optional<PersonProfile> profile = saveProfile(input);
-        return profile.isPresent() && profile.get() instanceof PrincipalProfile entity ?
-                Optional.of(entity) : Optional.empty();
+        return saveProfile(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 
     /**
@@ -76,10 +70,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     default Optional<StudentProfile> save(StudentProfile input) {
-        final Optional<PersonProfile> profile = saveProfile(input);
-        return profile.isPresent() && profile.get() instanceof StudentProfile entity ?
-                Optional.of(entity) : Optional.empty();
-
+        return saveProfile(input).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 
     /**

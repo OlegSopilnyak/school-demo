@@ -56,24 +56,39 @@ public interface PersonProfileFacade {
     /**
      * To create student-profile
      *
-     * @param profile instance to create
+     * @param input instance to create
      * @return created instance or Optional#empty()
      * @see StudentProfile
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<StudentProfile> createOrUpdateProfile(StudentProfile profile);
+    default Optional<StudentProfile> createOrUpdateProfile(StudentProfile input){
+        return createOrUpdatePersonProfile(input).map(p -> p instanceof StudentProfile profile ? profile : null);
+    }
 
     /**
      * To create principal-profile
      *
-     * @param profile instance to create
+     * @param input instance to create
      * @return created instance or Optional#empty()
      * @see PrincipalProfile
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile profile);
+    default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input){
+        return createOrUpdatePersonProfile(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
+    }
+
+    /**
+     * To create person-profile
+     *
+     * @param profile instance to create
+     * @return created instance or Optional#empty()
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<PersonProfile> createOrUpdatePersonProfile(PersonProfile profile);
 
     /**
      * To delete profile by system-id
