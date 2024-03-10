@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 import java.util.Optional;
 
 /**
- * Command-Implementation: command to get faculty by id
+ * Command-Implementation: command to get profile by id
  */
 @Slf4j
 @AllArgsConstructor

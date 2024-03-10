@@ -20,8 +20,6 @@ import static org.mockito.Mockito.verify;
 class FindProfileCommandTest {
     @Mock
     ProfilePersistenceFacade persistenceFacade;
-    @Mock
-    PersonProfile profile;
     @Spy
     @InjectMocks
     FindProfileCommand command;

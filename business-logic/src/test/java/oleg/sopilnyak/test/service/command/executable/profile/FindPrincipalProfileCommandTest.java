@@ -20,8 +20,6 @@ import static org.mockito.Mockito.verify;
 class FindPrincipalProfileCommandTest {
     @Mock
     ProfilePersistenceFacade persistenceFacade;
-    @Mock
-    PrincipalProfile profile;
     @Spy
     @InjectMocks
     FindPrincipalProfileCommand command;
@@ -32,7 +30,7 @@ class FindPrincipalProfileCommandTest {
 
         CommandResult<Optional<PrincipalProfile>> result = command.execute(id);
 
-        verify(persistenceFacade).findProfileById(id);
+        verify(persistenceFacade).findPrincipalProfileById(id);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult()).isPresent();
@@ -44,11 +42,11 @@ class FindPrincipalProfileCommandTest {
     void shouldNotExecuteCommand() {
         Long id = 407L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
-        doThrow(cannotExecute).when(persistenceFacade).findProfileById(id);
+        doThrow(cannotExecute).when(persistenceFacade).findPrincipalProfileById(id);
 
         CommandResult<Optional<PrincipalProfile>> result = command.execute(id);
 
-        verify(persistenceFacade).findProfileById(id);
+        verify(persistenceFacade).findPrincipalProfileById(id);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();

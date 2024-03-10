@@ -11,17 +11,17 @@ import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import java.util.Optional;
 
 /**
- * Command-Implementation: command to get principal's profile by id
+ * Command-Implementation: command to update principal profile instance
  */
 @Slf4j
 @AllArgsConstructor
-public class FindPrincipalProfileCommand implements ProfileCommand<Optional<PrincipalProfile>> {
+public class CreatePrincipalProfileCommand implements ProfileCommand<Optional<PrincipalProfile>> {
     private final ProfilePersistenceFacade persistenceFacade;
 
     /**
-     * To find principal's profile by id
+     * To update principal's profile
      *
-     * @param parameter system profile-id
+     * @param parameter system principal-profile instance
      * @return execution's result
      * @see Optional
      * @see PrincipalProfile
@@ -29,16 +29,16 @@ public class FindPrincipalProfileCommand implements ProfileCommand<Optional<Prin
     @Override
     public CommandResult<Optional<PrincipalProfile>> execute(Object parameter) {
         try {
-            log.debug("Trying to find principal profile by ID:{}", parameter);
-            final Long id = commandParameter(parameter);
-            final Optional<PrincipalProfile> profile = persistenceFacade.findPrincipalProfileById(id);
-            log.debug("Got principal profile {} by ID:{}", profile, id);
+            log.debug("Trying to update principal profile {}", parameter);
+            final PrincipalProfile input = commandParameter(parameter);
+            final Optional<PrincipalProfile> profile = persistenceFacade.save(input);
+            log.debug("Got saved \nprincipal profile {}\n for input {}", profile, input);
             return CommandResult.<Optional<PrincipalProfile>>builder()
                     .result(Optional.of(profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the profile by ID:{}", parameter, e);
+            log.error("Cannot save find the profile {}", parameter, e);
             return CommandResult.<Optional<PrincipalProfile>>builder()
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
@@ -52,6 +52,6 @@ public class FindPrincipalProfileCommand implements ProfileCommand<Optional<Prin
      */
     @Override
     public String getId() {
-        return ProfileCommands.FIND_PRINCIPAL_BY_ID;
+        return ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
     }
 }

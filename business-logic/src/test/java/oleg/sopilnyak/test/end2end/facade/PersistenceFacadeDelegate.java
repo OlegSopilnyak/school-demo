@@ -334,4 +334,18 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     public Optional<PersonProfile> findProfileById(Long id) {
         return delegator.findProfileById(id);
     }
+
+    /**
+     * To save principal-profile instance
+     *
+     * @param profile instance to save
+     * @return saved instance of empty() if cannot
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PersonProfile> saveProfile(PersonProfile profile) {
+        return Optional.empty();
+    }
 }

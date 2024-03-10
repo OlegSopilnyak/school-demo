@@ -78,7 +78,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<StudentProfile> createOrUpdateProfile(StudentProfile profile) {
-        return Optional.empty();
+        return executeSimpleCommand(CREATE_OR_UPDATE_STUDENT, profile, factory);
     }
 
     /**
@@ -92,7 +92,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade, ProfileC
      */
     @Override
     public Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile profile) {
-        return Optional.empty();
+        return executeSimpleCommand(CREATE_OR_UPDATE_PRINCIPAL, profile, factory);
     }
 
     /**

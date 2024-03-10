@@ -3,16 +3,15 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 
 import java.util.Optional;
 
 /**
- * Command-Implementation: command to get faculty by id
+ * Command-Implementation: command to get student profile by id
  */
 @Slf4j
 @AllArgsConstructor
@@ -32,18 +31,14 @@ public class FindStudentProfileCommand implements ProfileCommand<Optional<Studen
         try {
             log.debug("Trying to find student profile by ID:{}", parameter);
             final Long id = commandParameter(parameter);
-            final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
-            final Optional<StudentProfile> concreteProfile;
-            concreteProfile = profile.isPresent() && profile.get() instanceof StudentProfile entity ?
-                    Optional.of(entity) : Optional.empty();
-
-            log.debug("Got student profile {} by ID:{}", concreteProfile, id);
+            final Optional<StudentProfile> profile = persistenceFacade.findStudentProfileById(id);
+            log.debug("Got student profile {} by ID:{}", profile, id);
             return CommandResult.<Optional<StudentProfile>>builder()
-                    .result(Optional.of(concreteProfile))
+                    .result(Optional.of(profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot student find the profile by ID:{}", parameter, e);
+            log.error("Cannot find the profile by ID:{}", parameter, e);
             return CommandResult.<Optional<StudentProfile>>builder()
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();

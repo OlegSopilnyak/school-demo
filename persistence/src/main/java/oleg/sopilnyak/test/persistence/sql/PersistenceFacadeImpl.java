@@ -569,6 +569,34 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
 
 
     /**
+     * To get student-profile instance by id
+     *
+     * @param id system-id of the profile
+     * @return profile instance or empty() if not exists
+     * @see StudentProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<StudentProfile> findStudentProfileById(Long id) {
+        return PersistenceFacade.super.findStudentProfileById(id);
+    }
+
+    /**
+     * To get principal-profile instance by id
+     *
+     * @param id system-id of the profile
+     * @return profile instance or empty() if not exists
+     * @see PrincipalProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
+        return PersistenceFacade.super.findPrincipalProfileById(id);
+    }
+
+    /**
      * To get person-profile instance by id
      *
      * @param id system-id of the course
@@ -579,6 +607,48 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
      */
     @Override
     public Optional<PersonProfile> findProfileById(Long id) {
+        return Optional.empty();
+    }
+
+    /**
+     * To save principal-profile instance
+     *
+     * @param input instance to save
+     * @return saved instance of empty() if cannot
+     * @see PrincipalProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PrincipalProfile> save(PrincipalProfile input) {
+        return PersistenceFacade.super.save(input);
+    }
+
+    /**
+     * To save student-profile instance
+     *
+     * @param input instance to save
+     * @return saved instance of empty() if cannot
+     * @see StudentProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<StudentProfile> save(StudentProfile input) {
+        return PersistenceFacade.super.save(input);
+    }
+
+    /**
+     * To save principal-profile instance
+     *
+     * @param profile instance to save
+     * @return saved instance of empty() if cannot
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PersonProfile> saveProfile(PersonProfile profile) {
         return Optional.empty();
     }
 }

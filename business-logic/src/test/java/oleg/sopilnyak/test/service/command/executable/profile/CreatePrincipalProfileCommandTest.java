@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,20 +17,21 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class FindStudentProfileCommandTest {
+class CreatePrincipalProfileCommandTest {
     @Mock
     ProfilePersistenceFacade persistenceFacade;
     @Spy
     @InjectMocks
-    FindStudentProfileCommand command;
+    CreatePrincipalProfileCommand command;
+    @Mock
+    PrincipalProfile input;
 
     @Test
     void shouldExecuteCommand() {
-        Long id = 404L;
 
-        CommandResult<Optional<StudentProfile>> result = command.execute(id);
+        CommandResult<Optional<PrincipalProfile>> result = command.execute(input);
 
-        verify(persistenceFacade).findStudentProfileById(id);
+        verify(persistenceFacade).save(input);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getResult()).isPresent();
@@ -40,13 +41,13 @@ class FindStudentProfileCommandTest {
 
     @Test
     void shouldNotExecuteCommand() {
-        Long id = 405L;
-        RuntimeException cannotExecute = new RuntimeException("Cannot find");
-        doThrow(cannotExecute).when(persistenceFacade).findStudentProfileById(id);
+        RuntimeException cannotExecute = new RuntimeException("Cannot update");
+        doThrow(cannotExecute).when(persistenceFacade).save(input);
 
-        CommandResult<Optional<StudentProfile>> result = command.execute(id);
 
-        verify(persistenceFacade).findStudentProfileById(id);
+        CommandResult<Optional<PrincipalProfile>> result = command.execute(input);
+
+        verify(persistenceFacade).save(input);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();

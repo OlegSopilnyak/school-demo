@@ -4,9 +4,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.FindPrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.*;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
@@ -70,7 +68,7 @@ class PersonProfileFacadeImplTest<T> {
         assertThat(profile).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).findStudentProfileById(profileId);
     }
 
     @Test
@@ -78,14 +76,14 @@ class PersonProfileFacadeImplTest<T> {
         String commandId = ProfileCommands.FIND_STUDENT_BY_ID;
         Long profileId = 411L;
         StudentProfile studentProfile = mock(StudentProfile.class);
-        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(studentProfile));
+        when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(studentProfile));
 
         Optional<StudentProfile> profile = facade.findStudentProfileById(profileId);
 
         assertThat(profile).hasValue(studentProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).findStudentProfileById(profileId);
     }
 
     @Test
@@ -98,7 +96,7 @@ class PersonProfileFacadeImplTest<T> {
         assertThat(profile).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).findPrincipalProfileById(profileId);
     }
 
     @Test
@@ -106,14 +104,68 @@ class PersonProfileFacadeImplTest<T> {
         String commandId = ProfileCommands.FIND_PRINCIPAL_BY_ID;
         Long profileId = 412L;
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
-        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(principalProfile));
+        when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(principalProfile));
 
         Optional<PersonProfile> profile = facade.findPrincipalProfileById(profileId);
 
         assertThat(profile).hasValue(principalProfile);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).execute(profileId);
-        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).findPrincipalProfileById(profileId);
+    }
+
+    @Test
+    void shouldCreateOrUpdateStudentProfile() {
+        String commandId = ProfileCommands.CREATE_OR_UPDATE_STUDENT;
+        StudentProfile studentProfile = mock(StudentProfile.class);
+        when(persistenceFacade.save(studentProfile)).thenReturn(Optional.of(studentProfile));
+
+        Optional<PersonProfile> profile = facade.createOrUpdateProfile(studentProfile);
+
+        assertThat(profile).hasValue(studentProfile);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(studentProfile);
+        verify(persistenceFacade).save(studentProfile);
+    }
+
+    @Test
+    void shouldNotCreateOrUpdateStudentProfile() {
+        String commandId = ProfileCommands.CREATE_OR_UPDATE_STUDENT;
+        StudentProfile studentProfile = mock(StudentProfile.class);
+
+        Optional<PersonProfile> profile = facade.createOrUpdateProfile(studentProfile);
+
+        assertThat(profile).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(studentProfile);
+        verify(persistenceFacade).save(studentProfile);
+    }
+
+    @Test
+    void shouldCreateOrUpdatePrincipalProfile() {
+        String commandId = ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
+        PrincipalProfile principalProfile = mock(PrincipalProfile.class);
+        when(persistenceFacade.save(principalProfile)).thenReturn(Optional.of(principalProfile));
+
+        Optional<PersonProfile> profile = facade.createOrUpdateProfile(principalProfile);
+
+        assertThat(profile).hasValue(principalProfile);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(principalProfile);
+        verify(persistenceFacade).save(principalProfile);
+    }
+
+    @Test
+    void shouldNotCreateOrUpdatePrincipalProfile() {
+        String commandId = ProfileCommands.CREATE_OR_UPDATE_PRINCIPAL;
+        PrincipalProfile principalProfile = mock(PrincipalProfile.class);
+
+        Optional<PersonProfile> profile = facade.createOrUpdateProfile(principalProfile);
+
+        assertThat(profile).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(principalProfile);
+        verify(persistenceFacade).save(principalProfile);
     }
 
     private CommandsFactory<T> buildFactory() {
@@ -121,7 +173,9 @@ class PersonProfileFacadeImplTest<T> {
                 Set.of(
                         spy(new FindProfileCommand(persistenceFacade)),
                         spy(new FindStudentProfileCommand(persistenceFacade)),
-                        spy(new FindPrincipalProfileCommand(persistenceFacade))
+                        spy(new FindPrincipalProfileCommand(persistenceFacade)),
+                        spy(new CreateStudentProfileCommand(persistenceFacade)),
+                        spy(new CreatePrincipalProfileCommand(persistenceFacade))
                 )
         );
     }
