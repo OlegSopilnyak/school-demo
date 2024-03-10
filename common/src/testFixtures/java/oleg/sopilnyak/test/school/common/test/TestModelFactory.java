@@ -248,6 +248,7 @@ public class TestModelFactory {
                 .photoUrl("photo-url")
                 .build();
     }
+
     protected PrincipalProfile makePrincipalProfile(Long id) {
         return FakePrincipalProfile.builder()
                 .id(id)
@@ -255,6 +256,7 @@ public class TestModelFactory {
                 .phone("phone")
                 .location("location")
                 .photoUrl("photo-url")
+                .login("login-" + id)
                 .build();
     }
 
@@ -283,8 +285,13 @@ public class TestModelFactory {
         assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
+    protected void assertProfilesEquals(PrincipalProfile expected, PrincipalProfile result, boolean checkId){
+        assertProfilesEquals(expected, (PersonProfile)result, checkId);
+        assertThat(expected.getLogin()).isEqualTo(result.getLogin());
+        assertThat(expected.isPassword("")).isEqualTo(result.isPassword(""));
+    }
     protected void assertProfilesEquals(StudentProfile expected, StudentProfile result, boolean checkId){
-        assertProfilesEquals((PersonProfile) expected, (PersonProfile)result, checkId);
+        assertProfilesEquals(expected, (PersonProfile)result, checkId);
     }
     protected void assertProfilesEquals(PersonProfile expected, PersonProfile result, boolean checkId){
         if (isEmptyInputParameters(expected, result)) return;

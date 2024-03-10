@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class PrincipalProfileDto extends PersonProfileDto implements PrincipalProfile {
     // user-name for principal person's login
     private String login;
