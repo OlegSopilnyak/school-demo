@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.id.set;
 
 /**
- * Service-Command-Ids: The set of person-profile command-ids
+ * Service-Command-Ids: The enumeration of person-profile command-ids
  */
 public enum ProfileCommands {
     FIND_BY_ID("profile.person.findById"),
