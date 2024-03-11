@@ -39,7 +39,7 @@ public class CreateProfileCommand implements ProfileCommand<Optional<PersonProfi
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot save find the profile {}", parameter, e);
+            log.error("Cannot save the profile {}", parameter, e);
             return CommandResult.<Optional<PersonProfile>>builder()
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();

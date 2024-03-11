@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -30,6 +31,11 @@ public class ProfileCommandsConfiguration {
     @Bean
     public ProfileCommand<Optional<PersonProfile>> createProfileCommand() {
         return new CreateProfileCommand(persistenceFacade);
+    }
+
+    @Bean
+    public ProfileCommand<Boolean> deleteProfileCommand() {
+        return new DeleteProfileCommand(persistenceFacade);
     }
 
     /**

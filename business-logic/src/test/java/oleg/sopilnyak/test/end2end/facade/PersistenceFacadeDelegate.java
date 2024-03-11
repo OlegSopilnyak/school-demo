@@ -346,6 +346,17 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      */
     @Override
     public Optional<PersonProfile> saveProfile(PersonProfile profile) {
-        return Optional.empty();
+        return delegator.saveProfile(profile);
+    }
+
+    /**
+     * To delete the profile by profile-id
+     *
+     * @param id the system-id of the profile
+     * @return true if success
+     */
+    @Override
+    public boolean deleteProfileById(Long id) {
+        return delegator.deleteProfileById(id);
     }
 }

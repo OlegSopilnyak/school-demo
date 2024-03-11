@@ -5,14 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.executeSimpleCommand;
-import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.CREATE_OR_UPDATE;
-import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.FIND_BY_ID;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.*;
 
 /**
  * Service: To process commands for school's person profiles facade
@@ -60,7 +62,21 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      */
     @Override
     public void deleteProfileById(Long id) throws ProfileNotExistsException {
-        // TODO Should be implemented
+        final String commandId = DELETE_BY_ID.toString();
+        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final CommandResult<Boolean> commandExecutionResult = command.execute(id);
+        if (!commandExecutionResult.isSuccess()) {
+            final Exception executionException = commandExecutionResult.getException();
+            log.warn("Something went wrong", executionException);
+            if (executionException instanceof ProfileNotExistsException exception) {
+                throw exception;
+            } else if (nonNull(executionException)) {
+                throwFor(commandId, executionException);
+            } else {
+                log.error("For command-id:'{}' there is not exception after wrong command execution.", commandId);
+                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
+            }
+        }
     }
 
     private static <T> T executeTheCommand(ProfileCommands command, Object option, CommandsFactory<?> factory) {

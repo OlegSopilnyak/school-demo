@@ -1,10 +1,13 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
+import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.*;
+import oleg.sopilnyak.test.service.command.executable.profile.CreateProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
@@ -20,6 +23,7 @@ import java.util.Set;
 
 import static oleg.sopilnyak.test.service.command.id.set.ProfileCommands.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -226,11 +230,105 @@ class PersonProfileFacadeImplTest<T> {
         verify(persistenceFacade).saveProfile(principalProfile);
     }
 
+    @Test
+    void shouldDeletePersonProfile() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = 414L;
+        PersonProfile profile = mock(PersonProfile.class);
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(profile));
+
+        facade.deleteProfileById(profileId);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotDeletePersonProfile_ProfileNotExists() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = 415L;
+
+        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfileById(profileId));
+
+        assertThat(exception.getMessage()).isEqualTo("Profile with ID:415 is not exists.");
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade, never()).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldDeletePersonProfileInstance() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = 414L;
+        PersonProfile profile = mock(PersonProfile.class);
+        when(profile.getId()).thenReturn(profileId);
+        when(persistenceFacade.findProfileById(profileId)).thenReturn(Optional.of(profile));
+
+        facade.deleteProfile(profile);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotDeletePersonProfileInstance_ProfileNotExists() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = 416L;
+        PersonProfile profile = mock(PersonProfile.class);
+        when(profile.getId()).thenReturn(profileId);
+
+        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+
+        assertThat(exception.getMessage()).isEqualTo("Profile with ID:416 is not exists.");
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).execute(profileId);
+        verify(persistenceFacade).findProfileById(profileId);
+        verify(persistenceFacade, never()).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotDeletePersonProfileInstance_NullId() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = 416L;
+        PersonProfile profile = mock(PersonProfile.class);
+        when(profile.getId()).thenReturn(null);
+
+        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+
+        assertThat(exception.getMessage()).startsWith("Wrong ");
+        verify(factory, never()).command(commandId);
+        verify(factory.command(commandId), never()).execute(profileId);
+        verify(persistenceFacade, never()).findProfileById(profileId);
+        verify(persistenceFacade, never()).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldNotDeletePersonProfileInstance_NegativeId() throws ProfileNotExistsException {
+        String commandId = commandIdOf(DELETE_BY_ID);
+        Long profileId = -416L;
+        PersonProfile profile = mock(PersonProfile.class);
+        when(profile.getId()).thenReturn(profileId);
+
+        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+
+        assertThat(exception.getMessage()).startsWith("Wrong ");
+        verify(factory, never()).command(commandId);
+        verify(factory.command(commandId), never()).execute(profileId);
+        verify(persistenceFacade, never()).findProfileById(profileId);
+        verify(persistenceFacade, never()).deleteProfileById(profileId);
+    }
+
     private CommandsFactory<T> buildFactory() {
         return new ProfileCommandsFactory(
                 Set.of(
                         spy(new FindProfileCommand(persistenceFacade)),
-                        spy(new CreateProfileCommand(persistenceFacade))
+                        spy(new CreateProfileCommand(persistenceFacade)),
+                        spy(new DeleteProfileCommand(persistenceFacade))
                 )
         );
     }

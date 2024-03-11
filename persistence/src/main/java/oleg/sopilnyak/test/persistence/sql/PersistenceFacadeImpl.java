@@ -651,4 +651,15 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     public Optional<PersonProfile> saveProfile(PersonProfile profile) {
         return Optional.empty();
     }
+
+    /**
+     * To delete the profile by profile-id
+     *
+     * @param id the system-id of the profile
+     * @return true if success
+     */
+    @Override
+    public boolean deleteProfileById(Long id) {
+        return false;
+    }
 }
