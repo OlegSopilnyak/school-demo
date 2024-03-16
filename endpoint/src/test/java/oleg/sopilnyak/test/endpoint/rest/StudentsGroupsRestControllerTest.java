@@ -183,8 +183,8 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong students-group-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
     }
     @Test
     void shouldNotUpdateStudentsGroup_WrongId_Negative() throws Exception {
@@ -207,8 +207,8 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong students-group-id: '-502'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-502'");
     }
 
     @Test
@@ -241,8 +241,8 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong students-group-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
     }
 
     @Test
@@ -261,7 +261,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong students-group-id: '-511'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-511'");
     }
 }

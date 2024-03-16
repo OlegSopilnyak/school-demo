@@ -186,8 +186,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-301'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-301'");
     }
 
     @Test
@@ -210,8 +210,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
     }
 
     @Test
@@ -243,8 +243,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
     }
 
     @Test
@@ -263,8 +263,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '-303'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-303'");
     }
 
     @Test
@@ -286,8 +286,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong authority-person-id: '304'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '304'");
     }
 
     @Test
@@ -309,7 +309,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Cannot delete authority person for id = 305").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("Cannot delete authority person for id = 305");
     }
 }

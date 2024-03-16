@@ -53,7 +53,7 @@ public class StudentEntity implements Student {
     public List<Course> getCourses() {
         refreshCourseSet();
         return getCourseSet().stream()
-                .map(course -> (Course) course)
+                .map(Course.class::cast)
                 .sorted(Comparator.comparing(Course::getName))
                 .toList();
     }

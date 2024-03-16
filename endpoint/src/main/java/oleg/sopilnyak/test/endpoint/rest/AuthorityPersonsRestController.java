@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
+import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
@@ -23,6 +24,7 @@ import static java.util.Objects.isNull;
 @RequestMapping(RequestMappingRoot.AUTHORITIES)
 public class AuthorityPersonsRestController {
     public static final String VAR_NAME = "personId";
+    public static final String WRONG_AUTHORITY_PERSON_ID_MESSAGE = "Wrong authority-person-id: '";
     // delegate for requests processing
     private final OrganizationFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -33,7 +35,7 @@ public class AuthorityPersonsRestController {
         try {
             return ResponseEntity.ok(resultToDto(facade.findAllAuthorityPersons()));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get all school's authorities", e);
+            throw new CannotDoRestCallException("Cannot get all school's authorities", e);
         }
     }
 
@@ -47,11 +49,11 @@ public class AuthorityPersonsRestController {
             return ResponseEntity.ok(resultToDto(personId, facade.getAuthorityPersonById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong authority-person-id: '{}'", personId);
-            throw new ResourceNotFoundException("Wrong authority-person-id: '" + personId + "'");
+            throw new ResourceNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get authority person for id: " + personId, e);
+            throw new CannotDoRestCallException("Cannot get authority person for id: " + personId, e);
         }
     }
 
@@ -62,7 +64,7 @@ public class AuthorityPersonsRestController {
             personDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateAuthorityPerson(personDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new authority person " + personDto.toString(), e);
+            throw new CannotDoRestCallException("Cannot create new authority person " + personDto.toString(), e);
         }
     }
 
@@ -72,13 +74,13 @@ public class AuthorityPersonsRestController {
         try {
             Long id = personDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong authority-person-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateAuthorityPerson(personDto)));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update authority person " + personDto.toString());
+            throw new CannotDoRestCallException("Cannot update authority person " + personDto.toString());
         }
     }
 
@@ -97,7 +99,7 @@ public class AuthorityPersonsRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | AuthorityPersonIsNotExistsException e) {
             log.error("Wrong authority-person-id: '{}'", personId);
-            throw new ResourceNotFoundException("Wrong authority-person-id: '" + personId + "'");
+            throw new ResourceNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (Exception e) {
             log.error("Cannot delete authority person for id = {}", personId, e);
             throw new CannotDeleteResourceException("Cannot delete authority person for id = " + personId, e);

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
+import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
@@ -24,6 +25,7 @@ import static java.util.Objects.isNull;
 public class CoursesRestController {
     public static final String COURSE_VAR_NAME = "courseId";
     public static final String STUDENT_VAR_NAME = "studentId";
+    public static final String WRONG_COURSE_ID_MESSAGE = "Wrong course-id: '";
     // delegate for requests processing
     private final CoursesFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -38,11 +40,11 @@ public class CoursesRestController {
             return ResponseEntity.ok(resultToDto(courseId, facade.findById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong course-id: '{}'", courseId);
-            throw new ResourceNotFoundException("Wrong course-id: '" + courseId + "'");
+            throw new ResourceNotFoundException(WRONG_COURSE_ID_MESSAGE + courseId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get course for id: " + courseId, e);
+            throw new CannotDoRestCallException("Cannot get course for id: " + courseId, e);
         }
     }
 
@@ -60,7 +62,7 @@ public class CoursesRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get courses for student-id: " + studentId, e);
+            throw new CannotDoRestCallException("Cannot get courses for student-id: " + studentId, e);
         }
     }
 
@@ -70,7 +72,7 @@ public class CoursesRestController {
         try {
             return ResponseEntity.ok(resultToDto(facade.findWithoutStudents()));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get empty courses", e);
+            throw new CannotDoRestCallException("Cannot get empty courses", e);
         }
     }
 
@@ -81,7 +83,7 @@ public class CoursesRestController {
             courseDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(courseDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new course " + courseDto.toString());
+            throw new CannotDoRestCallException("Cannot create new course " + courseDto.toString());
         }
     }
 
@@ -91,13 +93,13 @@ public class CoursesRestController {
         try {
             Long id = courseDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong course-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_COURSE_ID_MESSAGE + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(courseDto)));
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update the course " + courseDto.toString(), e);
+            throw new CannotDoRestCallException("Cannot update the course " + courseDto.toString(), e);
         }
     }
 
@@ -113,7 +115,7 @@ public class CoursesRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | CourseNotExistsException e) {
             log.error("Wrong course-id: '{}'", courseId);
-            throw new ResourceNotFoundException("Wrong course-id: '" + courseId + "'");
+            throw new ResourceNotFoundException(WRONG_COURSE_ID_MESSAGE + courseId + "'");
         } catch (Exception e) {
             log.error("Cannot delete course for id = {}", courseId, e);
             throw new CannotDeleteResourceException("Cannot delete course for id = " + courseId, e);

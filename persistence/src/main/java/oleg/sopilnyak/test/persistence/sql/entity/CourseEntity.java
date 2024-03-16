@@ -48,7 +48,7 @@ public class CourseEntity implements Course {
     public List<Student> getStudents() {
         refreshCourseSet();
         return getStudentSet().stream()
-                .map(student -> (Student) student)
+                .map(Student.class::cast)
                 .sorted(Comparator.comparing(Student::getFullName))
                 .toList();
     }

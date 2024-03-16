@@ -111,8 +111,8 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
         RestResponseEntityExceptionHandler.RestErrorMessage error =
                 MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("No room for student: " + studentId + " in course: " + courseId).isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("No room for student: " + studentId + " in course: " + courseId);
     }
 
     @Test
@@ -142,8 +142,8 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
         RestResponseEntityExceptionHandler.RestErrorMessage error =
                 MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Too many courses for student:" + studentId).isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("Too many courses for student:" + studentId);
     }
 
     @Test
@@ -166,8 +166,8 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
 
         verify(controller).unRegisterCourse(studentId.toString(), courseId.toString());
 
-        assertThat(database.findCourseById(courseId).get().getStudents()).isEmpty();
-        assertThat(database.findStudentById(studentId).get().getCourses()).isEmpty();
+        assertThat(database.findCourseById(courseId).orElseThrow().getStudents()).isEmpty();
+        assertThat(database.findStudentById(studentId).orElseThrow().getCourses()).isEmpty();
     }
 
     private Course getPersistent(Course newInstance) {

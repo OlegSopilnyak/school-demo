@@ -184,8 +184,8 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
     }
 
     @Test
@@ -210,8 +210,8 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: '-403'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-403'");
     }
 
     @Test
@@ -253,8 +253,8 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
     }
 
     @Test
@@ -275,8 +275,8 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong faculty-id: '-411'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-411'");
     }
 
     @Test

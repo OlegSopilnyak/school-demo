@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
+import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
@@ -33,7 +34,7 @@ public class StudentsGroupsRestController {
         try {
             return ResponseEntity.ok(resultToDto(facade.findAllStudentsGroups()));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get all school's students groups", e);
+            throw new CannotDoRestCallException("Cannot get all school's students groups", e);
         }
     }
 
@@ -51,7 +52,7 @@ public class StudentsGroupsRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot get students group for id: " + groupId, e);
+            throw new CannotDoRestCallException("Cannot get students group for id: " + groupId, e);
         }
     }
 
@@ -62,7 +63,7 @@ public class StudentsGroupsRestController {
             studentsGroupDto.setId(null);
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateStudentsGroup(studentsGroupDto)));
         } catch (Exception e) {
-            throw new RuntimeException("Cannot create new students group " + studentsGroupDto.toString(), e);
+            throw new CannotDoRestCallException("Cannot create new students group " + studentsGroupDto.toString(), e);
         }
     }
 
@@ -78,7 +79,7 @@ public class StudentsGroupsRestController {
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot update students group " + studentsGroupDto.toString());
+            throw new CannotDoRestCallException("Cannot update students group " + studentsGroupDto.toString());
         }
     }
 

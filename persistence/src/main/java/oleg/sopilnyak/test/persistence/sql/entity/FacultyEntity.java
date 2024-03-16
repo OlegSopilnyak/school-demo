@@ -43,7 +43,7 @@ public class FacultyEntity implements Faculty {
     public List<Course> getCourses() {
         refreshStudentCourses();
         return getCourseEntitySet().stream()
-                .map(course -> (Course) course)
+                .map(Course.class::cast)
                 .sorted(Comparator.comparing(Course::getName))
                 .toList();
     }

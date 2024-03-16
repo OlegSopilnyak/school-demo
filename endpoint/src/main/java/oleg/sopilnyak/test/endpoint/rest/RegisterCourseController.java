@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.CannotRegisterToCourseException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
@@ -47,7 +48,7 @@ public class RegisterCourseController {
             throw new CannotRegisterToCourseException("Too many courses for student:" + studentId, e);
         } catch (Exception e) {
             log.error("Cannot register student: {} to course: {}", studentId, courseId, e);
-            throw new RuntimeException("Cannot register student: " + studentId + " to course: " + courseId, e);
+            throw new CannotDoRestCallException("Cannot register student: " + studentId + " to course: " + courseId, e);
         }
     }
 
@@ -71,7 +72,7 @@ public class RegisterCourseController {
             throw new ResourceNotFoundException("Course with id: " + courseId + IS_NOT_EXIST_PHRASE);
         } catch (Exception e) {
             log.error("Cannot un-register student: {} from course: {}", studentId, courseId, e);
-            throw new RuntimeException("Cannot un-register student: " + studentId + " from course: " + courseId, e);
+            throw new CannotDoRestCallException("Cannot un-register student: " + studentId + " from course: " + courseId, e);
         }
     }
 

@@ -77,8 +77,8 @@ class RegisterCourseControllerTest {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("No room for student: 102 in course: 202").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("No room for student: 102 in course: 202");
     }
 
     @Test
@@ -99,8 +99,8 @@ class RegisterCourseControllerTest {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Too many courses for student:103").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("Too many courses for student:103");
     }
 
     @Test

@@ -45,7 +45,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         Optional<Student> received = facade.findStudentById(id);
 
         assertThat(received).isNotEmpty();
-        assertThat(saved.get()).isEqualTo(received.get());
+        assertThat(saved).contains(received.get());
     }
 
     @Test
@@ -55,7 +55,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         facade.save(student);
 
-        assertThat(student).isEqualTo(facade.findStudentById(student.getId()).get());
+        assertThat(student).isEqualTo(facade.findStudentById(student.getId()).orElse(null));
     }
 
     @Test
@@ -71,8 +71,8 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         Optional<Student> saved = facade.findStudentById(student.getId());
 
-        assertThat(student).isEqualTo(saved.get());
-        assertThat(((StudentEntity) saved.get()).getCourseSet()).contains(course);
+        assertThat(student).isEqualTo(saved.orElse(null));
+        assertThat(((StudentEntity) saved.orElseThrow()).getCourseSet()).contains(course);
     }
 
     @Test
@@ -80,7 +80,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
     void shouldDeleteStudent() {
         StudentEntity student = buildStudentEntity(2);
         facade.save(student);
-        assertThat(student).isEqualTo(facade.findStudentById(student.getId()).get());
+        assertThat(student).isEqualTo(facade.findStudentById(student.getId()).orElse(null));
 
         boolean success = facade.deleteStudent(student.getId());
 
@@ -99,8 +99,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         Optional<Course> received = facade.findCourseById(id);
 
-        assertThat(saved).isEqualTo(received);
-        assertThat(saved.get()).isEqualTo(received.get());
+        assertThat(saved).isEqualTo(received).contains(received.orElse(null));
     }
 
     @Test
@@ -110,7 +109,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         facade.save(course);
 
-        assertThat(course).isEqualTo(facade.findCourseById(course.getId()).get());
+        assertThat(course).isEqualTo(facade.findCourseById(course.getId()).orElse(null));
     }
 
     @Test
@@ -125,7 +124,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         facade.save(course);
 
         Optional<Course> received = facade.findCourseById(course.getId());
-        assertThat(course).isEqualTo(received.get());
+        assertThat(course).isEqualTo(received.orElse(null));
         assertThat(received.get().getStudents()).contains(student);
     }
 
@@ -134,7 +133,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
     void shouldDeleteCourse() {
         CourseEntity course = buildCourseEntity(2);
         facade.save(course);
-        assertThat(course).isEqualTo(facade.findCourseById(course.getId()).get());
+        assertThat(course).isEqualTo(facade.findCourseById(course.getId()).orElse(null));
 
         boolean success = facade.deleteCourse(course.getId());
 
@@ -251,8 +250,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         Set<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
-        assertThat(persons).isNotEmpty();
-        assertThat(persons.size()).isEqualTo(personCollection.size());
+        assertThat(persons).isNotEmpty().hasSameSizeAs(personCollection);
         assertAuthorityPersonLists(toList(personCollection), toList(persons), false);
     }
 
@@ -319,8 +317,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         Set<Faculty> faculties = facade.findAllFaculties();
 
-        assertThat(faculties).isNotEmpty();
-        assertThat(faculties.size()).isEqualTo(facultyCollection.size());
+        assertThat(faculties).isNotEmpty().hasSameSizeAs(facultyCollection);
         assertFacultyLists(toFacultyList(facultyCollection), toFacultyList(faculties), false);
     }
 
@@ -372,7 +369,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         entity.setCourses(entity.getCourses());
         facade.save(entity);
         result = facade.findFacultyById(id);
-        entity = (FacultyEntity) result.get();
+        entity = (FacultyEntity) result.orElseThrow();
         entity.setName(entity.getName() + "-nextVersion");
         entity.setCourses(List.of());
         saved = facade.save(entity);
@@ -392,8 +389,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         final Set<StudentsGroup> groups = facade.findAllStudentsGroups();
 
-        assertThat(groups).isNotEmpty();
-        assertThat(groups.size()).isEqualTo(studentsGroupCollection.size());
+        assertThat(groups).isNotEmpty().hasSameSizeAs(studentsGroupCollection);
         assertStudentsGroupLists(toGroupList(studentsGroupCollection), toGroupList(groups), false);
     }
 

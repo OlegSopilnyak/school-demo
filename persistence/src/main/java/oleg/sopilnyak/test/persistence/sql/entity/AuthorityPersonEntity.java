@@ -41,7 +41,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
     public List<Faculty> getFaculties() {
         refreshStudentCourses();
         return getFacultyEntitySet().stream()
-                .map(faculty -> (Faculty) faculty)
+                .map(Faculty.class::cast)
                 .sorted(Comparator.comparing(Faculty::getName))
                 .toList();
     }

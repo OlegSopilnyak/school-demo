@@ -64,8 +64,8 @@ public interface CommandExecutor {
      * @see CommandNotRegisteredInFactoryException
      */
     static <T> SchoolCommand<T> takeValidCommand(final String commandId, final CommandsFactory factory) {
-        final SchoolCommand<T> command = factory.command(commandId);
-        return nonNull(command) ? command :
+        final SchoolCommand<T> concreteCommand = factory.command(commandId);
+        return nonNull(concreteCommand) ? concreteCommand :
                 throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
     }
 

@@ -71,10 +71,8 @@ public interface SchoolEntityMapper {
      * @param group instance to convert
      * @return Entity instance
      */
-    @Mappings({
-            @Mapping(target = "leader", source = "leader", qualifiedByName = "toStudentEntity", dependsOn = "students"),
-            @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
-    })
+    @Mapping(target = "leader", source = "leader", qualifiedByName = "toStudentEntity", dependsOn = "students")
+    @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
     StudentsGroupEntity toEntity(StudentsGroup group);
 
     @Named("toCourseEntities")

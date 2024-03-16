@@ -220,8 +220,8 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong student-id: 'null'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: 'null'");
     }
 
     @Test
@@ -245,8 +245,8 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong student-id: '-1001'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: '-1001'");
     }
 
     @Test
@@ -285,8 +285,8 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(404).isEqualTo(error.getErrorCode());
-        assertThat("Wrong student-id: '103'").isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: '103'");
     }
 
     @Test
@@ -312,8 +312,8 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
-        assertThat(409).isEqualTo(error.getErrorCode());
-        assertThat("Cannot delete student for id = " + id).isEqualTo(error.getErrorMessage());
+        assertThat(error.getErrorCode()).isEqualTo(409);
+        assertThat(error.getErrorMessage()).isEqualTo("Cannot delete student for id = " + id);
     }
 
     private Course getPersistent(Course newInstance) {

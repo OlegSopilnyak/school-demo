@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Optional;
 import java.util.Set;
@@ -37,9 +38,15 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
     private FacultyRepository facultyRepository;
     @Resource
     private StudentsGroupRepository studentsGroupRepository;
+    private PersistenceFacade delegate;
 
     public PersistenceFacadeImpl(SchoolEntityMapper mapper) {
         this.mapper = mapper;
+    }
+
+    @PostConstruct
+    private void setup() {
+        delegate = this;
     }
 
     /**
@@ -63,8 +70,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
                 .title("Teacher").firstName("Hillary").lastName("Clinton").gender("Mrs")
                 .build();
         log.info("Saving authority persons set...");
-        save(maleTeacher);
-        save(femaleTeacher);
+        delegate.save(maleTeacher);
+        delegate.save(femaleTeacher);
 
         FacultyEntity languageFaculty = FacultyEntity.builder()
                 .name("Languages")
@@ -76,15 +83,15 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
                 .name("Nature")
                 .build();
         log.info("Saving faculty set...");
-        save(languageFaculty);
-        save(mathFaculty);
-        save(natureFaculty);
+        delegate.save(languageFaculty);
+        delegate.save(mathFaculty);
+        delegate.save(natureFaculty);
 
         StudentsGroupEntity group = StudentsGroupEntity.builder()
                 .name("Pupils")
                 .build();
         log.info("Saving students groups set...");
-        save(group);
+        delegate.save(group);
 
         StudentEntity femalePupil = StudentEntity.builder()
                 .firstName("Jane").lastName("Doe").gender("Ms")
@@ -104,43 +111,43 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
                 .build();
 
         log.info("Saving students set...");
-        save(malePupil);
-        save(femalePupil);
+        delegate.save(malePupil);
+        delegate.save(femalePupil);
 
         log.info("Saving courses set...");
-        save(english);
-        save(mathematics);
-        save(geographic);
+        delegate.save(english);
+        delegate.save(mathematics);
+        delegate.save(geographic);
 
         log.info("Linking students with courses...");
-        link(malePupil, english);
-        link(malePupil, mathematics);
-        link(malePupil, geographic);
+        delegate.link(malePupil, english);
+        delegate.link(malePupil, mathematics);
+        delegate.link(malePupil, geographic);
 
-        link(femalePupil, english);
-        link(femalePupil, mathematics);
-        link(femalePupil, geographic);
+        delegate.link(femalePupil, english);
+        delegate.link(femalePupil, mathematics);
+        delegate.link(femalePupil, geographic);
 
         log.info("Making organization structure of the school...");
         log.info("Authorities...");
         maleTeacher.add(mathFaculty);
         femaleTeacher.add(languageFaculty);
         femaleTeacher.add(natureFaculty);
-        save(maleTeacher);
-        save(femaleTeacher);
+        delegate.save(maleTeacher);
+        delegate.save(femaleTeacher);
 
         log.info("Faculties...");
         languageFaculty.add(english);
         mathFaculty.add(mathematics);
         natureFaculty.add(geographic);
-        save(languageFaculty);
-        save(mathFaculty);
-        save(natureFaculty);
+        delegate.save(languageFaculty);
+        delegate.save(mathFaculty);
+        delegate.save(natureFaculty);
 
         log.info("Students Groups...");
         group.add(malePupil);
         group.add(femalePupil);
-        save(group);
+        delegate.save(group);
     }
 
     /**
@@ -307,7 +314,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade {
             return false;
         }
 
-        save(studentEntity.get());
+        delegate.save(studentEntity.get());
         return true;
     }
 
