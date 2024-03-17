@@ -50,6 +50,6 @@ public class FindAuthorityPersonCommand implements OrganizationCommand<Optional<
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommands.FIND_BY_ID;
+        return AuthorityPersonCommands.FIND_BY_ID.id();
     }
 }

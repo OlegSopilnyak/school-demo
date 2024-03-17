@@ -49,6 +49,6 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
      */
     @Override
     public final String getId() {
-        return StudentCommands.FIND_BY_ID;
+        return StudentCommands.FIND_BY_ID.id();
     }
 }

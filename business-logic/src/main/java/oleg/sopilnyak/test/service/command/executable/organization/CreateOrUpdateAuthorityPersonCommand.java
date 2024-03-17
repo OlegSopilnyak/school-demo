@@ -50,6 +50,6 @@ public class CreateOrUpdateAuthorityPersonCommand implements OrganizationCommand
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommands.CREATE_OR_UPDATE;
+        return AuthorityPersonCommands.CREATE_OR_UPDATE.id();
     }
 }

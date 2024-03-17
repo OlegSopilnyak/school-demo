@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.id.set;
 
 /**
  * Service-Command-Ids: The enumeration of person-profile command-with-ids
+ * @see oleg.sopilnyak.test.school.common.model.PersonProfile
  */
 public enum ProfileCommands {
     FIND_BY_ID("profile.person.findById"),
@@ -13,8 +14,7 @@ public enum ProfileCommands {
         this.commandId = commandId;
     }
 
-    @Override
-    public String toString() {
+    public String id() {
         return commandId;
     }
 }

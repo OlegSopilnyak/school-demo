@@ -66,6 +66,6 @@ public class DeleteAuthorityPersonCommand implements OrganizationCommand<Boolean
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommands.DELETE;
+        return AuthorityPersonCommands.DELETE.id();
     }
 }

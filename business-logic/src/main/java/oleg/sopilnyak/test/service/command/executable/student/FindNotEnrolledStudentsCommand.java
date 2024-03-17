@@ -6,10 +6,11 @@ import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 
 import java.util.Optional;
 import java.util.Set;
+
+import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.FIND_NOT_ENROLLED;
 
 /**
  * Command-Implementation: command to get not enrolled to any course students
@@ -50,6 +51,6 @@ public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Studen
      */
     @Override
     public String getId() {
-        return StudentCommands.FIND_NOT_ENROLLED;
+        return FIND_NOT_ENROLLED.id();
     }
 }

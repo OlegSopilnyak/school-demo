@@ -50,6 +50,6 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
      */
     @Override
     public String getId() {
-        return CourseCommands.FIND_REGISTERED;
+        return CourseCommands.FIND_REGISTERED.id();
     }
 }

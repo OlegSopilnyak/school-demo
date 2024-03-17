@@ -73,6 +73,6 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      */
     @Override
     public String getId() {
-        return CourseCommands.UN_REGISTER;
+        return CourseCommands.UN_REGISTER.id();
     }
 }

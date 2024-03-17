@@ -45,7 +45,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldFindAllAuthorityPersons() {
-        String commandId = AuthorityPersonCommands.FIND_ALL;
+        String commandId = AuthorityPersonCommands.FIND_ALL.id();
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
@@ -57,7 +57,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldFindAllAuthorityPersons2() {
-        String commandId = AuthorityPersonCommands.FIND_ALL;
+        String commandId = AuthorityPersonCommands.FIND_ALL.id();
         when(persistenceFacade.findAllAuthorityPersons()).thenReturn(Set.of(mockPerson));
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
@@ -70,7 +70,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotGetAuthorityPersonById() {
-        String commandId = AuthorityPersonCommands.FIND_BY_ID;
+        String commandId = AuthorityPersonCommands.FIND_BY_ID.id();
         Long id = 300L;
 
         Optional<AuthorityPerson> person = facade.getAuthorityPersonById(id);
@@ -83,7 +83,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldGetAuthorityPersonById() {
-        String commandId = AuthorityPersonCommands.FIND_BY_ID;
+        String commandId = AuthorityPersonCommands.FIND_BY_ID.id();
         Long id = 301L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
 
@@ -97,7 +97,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson() {
-        String commandId = AuthorityPersonCommands.CREATE_OR_UPDATE;
+        String commandId = AuthorityPersonCommands.CREATE_OR_UPDATE.id();
 
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(mockPerson);
 
@@ -109,7 +109,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson2() {
-        String commandId = AuthorityPersonCommands.CREATE_OR_UPDATE;
+        String commandId = AuthorityPersonCommands.CREATE_OR_UPDATE.id();
         when(persistenceFacade.save(mockPerson)).thenReturn(Optional.of(mockPerson));
 
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(mockPerson);
@@ -122,7 +122,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
-        String commandId = AuthorityPersonCommands.DELETE;
+        String commandId = AuthorityPersonCommands.DELETE.id();
         Long id = 302L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
 
@@ -136,7 +136,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
-        String commandId = AuthorityPersonCommands.DELETE;
+        String commandId = AuthorityPersonCommands.DELETE.id();
         Long id = 303L;
 
         AuthorityPersonIsNotExistsException thrown =
@@ -152,7 +152,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
-        String commandId = AuthorityPersonCommands.DELETE;
+        String commandId = AuthorityPersonCommands.DELETE.id();
         Long id = 304L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
         when(mockPerson.getFaculties()).thenReturn(List.of(mockFaculty));
@@ -170,7 +170,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldFindAllFaculties() {
-        String commandId = FacultyCommands.FIND_ALL;
+        String commandId = FacultyCommands.FIND_ALL.id();
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
@@ -182,7 +182,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldFindAllFaculties2() {
-        String commandId = FacultyCommands.FIND_ALL;
+        String commandId = FacultyCommands.FIND_ALL.id();
         when(persistenceFacade.findAllFaculties()).thenReturn(Set.of(mockFaculty));
 
         Collection<Faculty> faculties = facade.findAllFaculties();
@@ -195,7 +195,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotGetFacultyById() {
-        String commandId = FacultyCommands.FIND_BY_ID;
+        String commandId = FacultyCommands.FIND_BY_ID.id();
         Long id = 400L;
 
         Optional<Faculty> faculty = facade.getFacultyById(id);
@@ -208,7 +208,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldGetFacultyById() {
-        String commandId = FacultyCommands.FIND_BY_ID;
+        String commandId = FacultyCommands.FIND_BY_ID.id();
         Long id = 410L;
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
@@ -222,7 +222,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdateFaculty() {
-        String commandId = FacultyCommands.CREATE_OR_UPDATE;
+        String commandId = FacultyCommands.CREATE_OR_UPDATE.id();
         when(persistenceFacade.save(mockFaculty)).thenReturn(Optional.of(mockFaculty));
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
@@ -235,7 +235,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotCreateOrUpdateFaculty() {
-        String commandId = FacultyCommands.CREATE_OR_UPDATE;
+        String commandId = FacultyCommands.CREATE_OR_UPDATE.id();
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
@@ -247,7 +247,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldDeleteFacultyById() throws FacultyNotExistsException, FacultyIsNotEmptyException {
-        String commandId = FacultyCommands.DELETE;
+        String commandId = FacultyCommands.DELETE.id();
         Long id = 402L;
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
@@ -261,7 +261,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotExistsException, FacultyIsNotEmptyException {
-        String commandId = FacultyCommands.DELETE;
+        String commandId = FacultyCommands.DELETE.id();
         Long id = 403L;
 
         FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
@@ -275,7 +275,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
-        String commandId = FacultyCommands.DELETE;
+        String commandId = FacultyCommands.DELETE.id();
         Long id = 404L;
         when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
@@ -291,7 +291,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldFindAllStudentsGroup() {
-        String commandId = StudentsGroupCommands.FIND_ALL;
+        String commandId = StudentsGroupCommands.FIND_ALL.id();
         when(persistenceFacade.findAllStudentsGroups()).thenReturn(Set.of(mockGroup));
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
@@ -304,7 +304,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotFindAllStudentsGroup() {
-        String commandId = StudentsGroupCommands.FIND_ALL;
+        String commandId = StudentsGroupCommands.FIND_ALL.id();
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
@@ -316,7 +316,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldGetStudentsGroupById() {
-        String commandId = StudentsGroupCommands.FIND_BY_ID;
+        String commandId = StudentsGroupCommands.FIND_BY_ID.id();
         Long id = 500L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
 
@@ -330,7 +330,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotGetStudentsGroupById() {
-        String commandId = StudentsGroupCommands.FIND_BY_ID;
+        String commandId = StudentsGroupCommands.FIND_BY_ID.id();
         Long id = 510L;
 
         Optional<StudentsGroup> faculty = facade.getStudentsGroupById(id);
@@ -343,7 +343,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdateStudentsGroup() {
-        String commandId = StudentsGroupCommands.CREATE_OR_UPDATE;
+        String commandId = StudentsGroupCommands.CREATE_OR_UPDATE.id();
         when(persistenceFacade.save(mockGroup)).thenReturn(Optional.of(mockGroup));
 
         Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(mockGroup);
@@ -356,7 +356,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
-        String commandId = StudentsGroupCommands.DELETE;
+        String commandId = StudentsGroupCommands.DELETE.id();
         Long id = 502L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
 
@@ -370,7 +370,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotExists() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
-        String commandId = StudentsGroupCommands.DELETE;
+        String commandId = StudentsGroupCommands.DELETE.id();
         Long id = 503L;
         StudentsGroupNotExistsException thrown =
                 assertThrows(StudentsGroupNotExistsException.class, () -> facade.deleteStudentsGroupById(id));
@@ -384,7 +384,7 @@ class OrganizationFacadeImplTest<T> {
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
-        String commandId = StudentsGroupCommands.DELETE;
+        String commandId = StudentsGroupCommands.DELETE.id();
         Long id = 504L;
         when(mockGroup.getStudents()).thenReturn(List.of(mock(Student.class)));
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));

@@ -103,7 +103,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return CourseCommands.REGISTER;
+        return CourseCommands.REGISTER.id();
     }
 
     private static boolean isLinked(Student studentInstance, Course courseInstance) {

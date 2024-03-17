@@ -62,7 +62,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      */
     @Override
     public void deleteProfileById(Long id) throws ProfileNotExistsException {
-        final String commandId = DELETE_BY_ID.toString();
+        final String commandId = DELETE_BY_ID.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(id);
         if (!commandExecutionResult.isSuccess()) {
@@ -80,6 +80,6 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
     }
 
     private static <T> T executeTheCommand(ProfileCommands command, Object option, CommandsFactory<?> factory) {
-        return executeSimpleCommand(command.toString(), option, factory);
+        return executeSimpleCommand(command.id(), option, factory);
     }
 }

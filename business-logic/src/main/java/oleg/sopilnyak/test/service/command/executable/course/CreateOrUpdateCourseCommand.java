@@ -50,6 +50,6 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
      */
     @Override
     public String getId() {
-        return CourseCommands.CREATE_OR_UPDATE;
+        return CourseCommands.CREATE_OR_UPDATE.id();
     }
 }

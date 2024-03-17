@@ -62,6 +62,6 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return CourseCommands.DELETE;
+        return CourseCommands.DELETE.id();
     }
 }

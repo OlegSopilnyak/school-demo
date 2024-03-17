@@ -15,13 +15,14 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.id.set.CourseCommands.*;
 
 /**
  * Service: To process command for school's courses facade
  */
 @Slf4j
 @AllArgsConstructor
-public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
+public class CoursesFacadeImpl<T> implements CoursesFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
@@ -37,7 +38,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public Optional<Course> findById(Long courseId) {
-        return executeSimpleCommand(FIND_BY_ID, courseId, factory);
+        return executeTheCommand(FIND_BY_ID, courseId, factory);
     }
 
     /**
@@ -48,7 +49,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public Set<Course> findRegisteredFor(Long studentId) {
-        return executeSimpleCommand(FIND_REGISTERED, studentId, factory);
+        return executeTheCommand(FIND_REGISTERED, studentId, factory);
     }
 
     /**
@@ -58,7 +59,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public Set<Course> findWithoutStudents() {
-        return executeSimpleCommand(FIND_NOT_REGISTERED, null, factory);
+        return executeTheCommand(FIND_NOT_REGISTERED, null, factory);
     }
 
     /**
@@ -71,7 +72,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public Optional<Course> createOrUpdate(Course course) {
-        return executeSimpleCommand(CREATE_OR_UPDATE, course, factory);
+        return executeTheCommand(CREATE_OR_UPDATE, course, factory);
     }
 
     /**
@@ -83,7 +84,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
-        final String commandId = DELETE;
+        final String commandId = DELETE.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(courseId);
         if (!commandExecutionResult.isSuccess()) {
@@ -115,9 +116,8 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
     @Override
     public void register(Long studentId, Long courseId)
             throws StudentNotExistsException, CourseNotExistsException,
-            NoRoomInTheCourseException, StudentCoursesExceedException
-    {
-        final String commandId = REGISTER;
+            NoRoomInTheCourseException, StudentCoursesExceedException {
+        final String commandId = REGISTER.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
         if (!commandExecutionResult.isSuccess()) {
@@ -150,7 +150,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
-        final String commandId = UN_REGISTER;
+        final String commandId = UN_REGISTER.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
         if (!commandExecutionResult.isSuccess()) {
@@ -167,6 +167,10 @@ public class CoursesFacadeImpl<T> implements CoursesFacade, CourseCommands {
                 throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
             }
         }
+    }
+
+    private static <T> T executeTheCommand(CourseCommands command, Object option, CommandsFactory<?> factory) {
+        return executeSimpleCommand(command.id(), option, factory);
     }
 
 }

@@ -60,6 +60,6 @@ public class DeleteFacultyCommand implements OrganizationCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return FacultyCommands.DELETE;
+        return FacultyCommands.DELETE.id();
     }
 }

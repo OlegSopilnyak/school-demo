@@ -45,7 +45,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade database;
     PersistenceFacade persistenceFacade;
-    CommandsFactory factory;
+    CommandsFactory<?> factory;
     OrganizationFacadeImpl facade;
 
     @Mock
@@ -65,7 +65,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).isEmpty();
-        verify(factory).command(AuthorityPersonCommands.FIND_ALL);
+        verify(factory).command(AuthorityPersonCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllAuthorityPersons();
     }
 
@@ -79,7 +79,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(persons).hasSize(1);
         assertAuthorityPersonEquals(person, persons.iterator().next(), false);
-        verify(factory).command(AuthorityPersonCommands.FIND_ALL);
+        verify(factory).command(AuthorityPersonCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllAuthorityPersons();
     }
 
@@ -91,7 +91,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Optional<AuthorityPerson> person = facade.getAuthorityPersonById(id);
 
         assertThat(person).isEmpty();
-        verify(factory).command(AuthorityPersonCommands.FIND_BY_ID);
+        verify(factory).command(AuthorityPersonCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findAuthorityPersonById(id);
     }
 
@@ -105,7 +105,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(foundPerson).isPresent();
         assertAuthorityPersonEquals(person, foundPerson.get(), false);
-        verify(factory).command(AuthorityPersonCommands.FIND_BY_ID);
+        verify(factory).command(AuthorityPersonCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findAuthorityPersonById(id);
     }
 
@@ -118,7 +118,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(authorityPerson).isPresent();
         assertAuthorityPersonEquals(person, authorityPerson.get(), false);
-        verify(factory).command(AuthorityPersonCommands.CREATE_OR_UPDATE);
+        verify(factory).command(AuthorityPersonCommands.CREATE_OR_UPDATE.id());
         verify(persistenceFacade).save(person);
     }
 
@@ -135,7 +135,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         facade.deleteAuthorityPersonById(id);
 
         assertThat(database.findAuthorityPersonById(id)).isEmpty();
-        verify(factory).command(AuthorityPersonCommands.DELETE);
+        verify(factory).command(AuthorityPersonCommands.DELETE.id());
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade).deleteAuthorityPerson(id);
     }
@@ -149,7 +149,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(AuthorityPersonIsNotExistsException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
-        verify(factory).command(AuthorityPersonCommands.DELETE);
+        verify(factory).command(AuthorityPersonCommands.DELETE.id());
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
@@ -166,7 +166,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertEquals("AuthorityPerson with ID:" + id + " is managing faculties.", thrown.getMessage());
 
-        verify(factory).command(AuthorityPersonCommands.DELETE);
+        verify(factory).command(AuthorityPersonCommands.DELETE.id());
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
@@ -177,7 +177,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).isEmpty();
-        verify(factory).command(FacultyCommands.FIND_ALL);
+        verify(factory).command(FacultyCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllFaculties();
     }
 
@@ -191,7 +191,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculties).hasSize(1);
         assertFacultyEquals(faculty, faculties.iterator().next(), false);
-        verify(factory).command(FacultyCommands.FIND_ALL);
+        verify(factory).command(FacultyCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllFaculties();
     }
 
@@ -203,7 +203,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Optional<Faculty> faculty = facade.getFacultyById(id);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(FacultyCommands.FIND_BY_ID);
+        verify(factory).command(FacultyCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findFacultyById(id);
     }
 
@@ -217,7 +217,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertFacultyEquals(cleanFaculty, faculty.get(), false);
-        verify(factory).command(FacultyCommands.FIND_BY_ID);
+        verify(factory).command(FacultyCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findFacultyById(id);
     }
 
@@ -230,7 +230,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertFacultyEquals(cleanFaculty, faculty.get(), false);
-        verify(factory).command(FacultyCommands.CREATE_OR_UPDATE);
+        verify(factory).command(FacultyCommands.CREATE_OR_UPDATE.id());
         verify(persistenceFacade).save(cleanFaculty);
     }
 
@@ -247,7 +247,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         facade.deleteFacultyById(id);
 
         assertThat(database.findFacultyById(id)).isEmpty();
-        verify(factory).command(FacultyCommands.DELETE);
+        verify(factory).command(FacultyCommands.DELETE.id());
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade).deleteFaculty(id);
     }
@@ -260,7 +260,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
 
         assertEquals("Faculty with ID:403 is not exists.", thrown.getMessage());
-        verify(factory).command(FacultyCommands.DELETE);
+        verify(factory).command(FacultyCommands.DELETE.id());
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade, never()).deleteFaculty(id);
     }
@@ -275,7 +275,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 
         assertEquals("Faculty with ID:" + id + " has courses.", thrown.getMessage());
-        verify(factory).command(FacultyCommands.DELETE);
+        verify(factory).command(FacultyCommands.DELETE.id());
         verify(persistenceFacade).findFacultyById(id);
         verify(persistenceFacade, never()).deleteFaculty(id);
     }
@@ -286,7 +286,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
         assertThat(groups).isEmpty();
-        verify(factory).command(StudentsGroupCommands.FIND_ALL);
+        verify(factory).command(StudentsGroupCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllStudentsGroups();
     }
 
@@ -300,7 +300,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(groups).hasSize(1);
         assertStudentsGroupEquals(group, groups.iterator().next(), false);
-        verify(factory).command(StudentsGroupCommands.FIND_ALL);
+        verify(factory).command(StudentsGroupCommands.FIND_ALL.id());
         verify(persistenceFacade).findAllStudentsGroups();
     }
 
@@ -312,7 +312,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Optional<StudentsGroup> studentsGroup = facade.getStudentsGroupById(id);
 
         assertThat(studentsGroup).isEmpty();
-        verify(factory).command(StudentsGroupCommands.FIND_BY_ID);
+        verify(factory).command(StudentsGroupCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findStudentsGroupById(id);
     }
 
@@ -326,7 +326,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(studentsGroup).isPresent();
         assertStudentsGroupEquals(group, studentsGroup.get(), false);
-        verify(factory).command(StudentsGroupCommands.FIND_BY_ID);
+        verify(factory).command(StudentsGroupCommands.FIND_BY_ID.id());
         verify(persistenceFacade).findStudentsGroupById(id);
     }
 
@@ -336,7 +336,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         Optional<StudentsGroup> studentsGroup = facade.createOrUpdateStudentsGroup(mockGroup);
 
         assertThat(studentsGroup).isPresent();
-        verify(factory).command(StudentsGroupCommands.CREATE_OR_UPDATE);
+        verify(factory).command(StudentsGroupCommands.CREATE_OR_UPDATE.id());
         verify(persistenceFacade).save(mockGroup);
     }
 
@@ -349,7 +349,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(studentsGroup).isPresent();
         assertStudentsGroupEquals(group, studentsGroup.get(), false);
-        verify(factory).command(StudentsGroupCommands.CREATE_OR_UPDATE);
+        verify(factory).command(StudentsGroupCommands.CREATE_OR_UPDATE.id());
         verify(persistenceFacade).save(group);
     }
 
@@ -366,7 +366,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         facade.deleteStudentsGroupById(id);
 
         assertThat(database.findStudentsGroupById(id)).isEmpty();
-        verify(factory).command(StudentsGroupCommands.DELETE);
+        verify(factory).command(StudentsGroupCommands.DELETE.id());
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade).deleteStudentsGroup(id);
     }
@@ -380,7 +380,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(StudentsGroupNotExistsException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertEquals("StudentsGroup with ID:503 is not exists.", thrown.getMessage());
-        verify(factory).command(StudentsGroupCommands.DELETE);
+        verify(factory).command(StudentsGroupCommands.DELETE.id());
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
@@ -395,7 +395,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertEquals("StudentsGroup with ID:" + id + " has students.", thrown.getMessage());
-        verify(factory).command(StudentsGroupCommands.DELETE);
+        verify(factory).command(StudentsGroupCommands.DELETE.id());
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
@@ -418,7 +418,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
-    private CommandsFactory buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<?> buildFactory(PersistenceFacade persistenceFacade) {
         return new OrganizationCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),

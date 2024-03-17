@@ -59,6 +59,6 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return ProfileCommands.DELETE_BY_ID.toString();
+        return ProfileCommands.DELETE_BY_ID.id();
     }
 }

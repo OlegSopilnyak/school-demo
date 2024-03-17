@@ -48,6 +48,6 @@ public class CreateOrUpdateStudentsGroupCommand implements OrganizationCommand<O
      */
     @Override
     public String getId() {
-        return StudentsGroupCommands.CREATE_OR_UPDATE;
+        return StudentsGroupCommands.CREATE_OR_UPDATE.id();
     }
 }

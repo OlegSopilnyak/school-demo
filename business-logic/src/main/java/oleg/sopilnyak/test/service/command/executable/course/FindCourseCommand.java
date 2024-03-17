@@ -49,6 +49,6 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
      */
     @Override
     public String getId() {
-        return CourseCommands.FIND_BY_ID;
+        return CourseCommands.FIND_BY_ID.id();
     }
 }

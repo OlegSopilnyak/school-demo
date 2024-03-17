@@ -50,6 +50,6 @@ public class FindStudentsGroupCommand implements OrganizationCommand<Optional<St
      */
     @Override
     public String getId() {
-        return StudentsGroupCommands.FIND_BY_ID;
+        return StudentsGroupCommands.FIND_BY_ID.id();
     }
 }

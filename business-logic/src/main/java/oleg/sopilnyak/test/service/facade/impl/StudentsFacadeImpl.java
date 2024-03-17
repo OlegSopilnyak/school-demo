@@ -6,9 +6,9 @@ import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
@@ -17,13 +17,14 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.*;
 
 /**
  * Service: To process command for school's student-facade
  */
 @Slf4j
 @AllArgsConstructor
-public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
+public class StudentsFacadeImpl<T> implements StudentsFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory<T> factory;
 
@@ -37,7 +38,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
      */
     @Override
     public Optional<Student> findById(Long studentId) {
-        return executeSimpleCommand(FIND_BY_ID, studentId, factory);
+        return executeTheCommand(FIND_BY_ID, studentId, factory);
     }
 
     /**
@@ -48,7 +49,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
      */
     @Override
     public Set<Student> findEnrolledTo(Long courseId) {
-        return executeSimpleCommand(FIND_ENROLLED, courseId, factory);
+        return executeTheCommand(FIND_ENROLLED, courseId, factory);
     }
 
     /**
@@ -58,7 +59,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
      */
     @Override
     public Set<Student> findNotEnrolled() {
-        return executeSimpleCommand(FIND_NOT_ENROLLED, null, factory);
+        return executeTheCommand(FIND_NOT_ENROLLED, null, factory);
     }
 
     /**
@@ -71,7 +72,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
      */
     @Override
     public Optional<Student> createOrUpdate(Student student) {
-        return executeSimpleCommand(CREATE_OR_UPDATE, student, factory);
+        return executeTheCommand(CREATE_OR_UPDATE, student, factory);
     }
 
     /**
@@ -84,7 +85,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
      */
     @Override
     public boolean delete(Long studentId) throws StudentNotExistsException, StudentWithCoursesException {
-        String commandId = DELETE;
+        String commandId = DELETE.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(studentId);
         if (cmdResult.isSuccess()) {
@@ -103,5 +104,9 @@ public class StudentsFacadeImpl<T> implements StudentsFacade, StudentCommands {
                 return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
             }
         }
+    }
+
+    private static <T> T executeTheCommand(StudentCommands command, Object option, CommandsFactory<?> factory) {
+        return executeSimpleCommand(command.id(), option, factory);
     }
 }

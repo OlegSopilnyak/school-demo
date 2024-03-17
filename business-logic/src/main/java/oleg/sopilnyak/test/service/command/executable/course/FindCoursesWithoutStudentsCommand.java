@@ -49,6 +49,6 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
      */
     @Override
     public String getId() {
-        return CourseCommands.FIND_NOT_REGISTERED;
+        return CourseCommands.FIND_NOT_REGISTERED.id();
     }
 }

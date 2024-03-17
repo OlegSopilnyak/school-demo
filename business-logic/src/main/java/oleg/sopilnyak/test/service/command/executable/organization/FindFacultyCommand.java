@@ -50,6 +50,6 @@ public class FindFacultyCommand implements OrganizationCommand<Optional<Faculty>
      */
     @Override
     public String getId() {
-        return FacultyCommands.FIND_BY_ID;
+        return FacultyCommands.FIND_BY_ID.id();
     }
 }

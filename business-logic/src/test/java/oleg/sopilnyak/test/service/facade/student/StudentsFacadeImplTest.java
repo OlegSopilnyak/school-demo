@@ -33,14 +33,14 @@ class StudentsFacadeImplTest<T> {
 
     @Spy
     @InjectMocks
-    StudentsFacadeImpl facade;
+    StudentsFacadeImpl<T> facade;
 
     @Mock
     Student mockedStudent;
 
     @Test
     void shouldNotFindById() {
-        String commandId = StudentCommands.FIND_BY_ID;
+        String commandId = StudentCommands.FIND_BY_ID.id();
         Long studentId = 100L;
 
         Optional<Student> student = facade.findById(studentId);
@@ -53,7 +53,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindById() {
-        String commandId = StudentCommands.FIND_BY_ID;
+        String commandId = StudentCommands.FIND_BY_ID.id();
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
@@ -67,7 +67,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotFindEnrolledTo() {
-        String commandId = StudentCommands.FIND_ENROLLED;
+        String commandId = StudentCommands.FIND_ENROLLED.id();
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
@@ -80,7 +80,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindEnrolledTo() {
-        String commandId = StudentCommands.FIND_ENROLLED;
+        String commandId = StudentCommands.FIND_ENROLLED.id();
         Long courseId = 200L;
         when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
 
@@ -94,7 +94,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotFindNotEnrolled() {
-        String commandId = StudentCommands.FIND_NOT_ENROLLED;
+        String commandId = StudentCommands.FIND_NOT_ENROLLED.id();
 
         Set<Student> students = facade.findNotEnrolled();
 
@@ -106,7 +106,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldFindNotEnrolled() {
-        String commandId = StudentCommands.FIND_NOT_ENROLLED;
+        String commandId = StudentCommands.FIND_NOT_ENROLLED.id();
         when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findNotEnrolled();
@@ -119,7 +119,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotCreateOrUpdate() {
-        String commandId = StudentCommands.CREATE_OR_UPDATE;
+        String commandId = StudentCommands.CREATE_OR_UPDATE.id();
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
 
@@ -131,7 +131,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldCreateOrUpdate() {
-        String commandId = StudentCommands.CREATE_OR_UPDATE;
+        String commandId = StudentCommands.CREATE_OR_UPDATE.id();
         when(persistenceFacade.save(mockedStudent)).thenReturn(Optional.of(mockedStudent));
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
@@ -144,7 +144,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
-        String commandId = StudentCommands.DELETE;
+        String commandId = StudentCommands.DELETE.id();
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
@@ -158,7 +158,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
-        String commandId = StudentCommands.DELETE;
+        String commandId = StudentCommands.DELETE.id();
         Long studentId = 102L;
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
@@ -171,7 +171,7 @@ class StudentsFacadeImplTest<T> {
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
-        String commandId = StudentCommands.DELETE;
+        String commandId = StudentCommands.DELETE.id();
         Long studentId = 103L;
         when(mockedStudent.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));

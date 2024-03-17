@@ -53,6 +53,6 @@ public class CreateProfileCommand implements ProfileCommand<Optional<PersonProfi
      */
     @Override
     public String getId() {
-        return ProfileCommands.CREATE_OR_UPDATE.toString();
+        return ProfileCommands.CREATE_OR_UPDATE.id();
     }
 }

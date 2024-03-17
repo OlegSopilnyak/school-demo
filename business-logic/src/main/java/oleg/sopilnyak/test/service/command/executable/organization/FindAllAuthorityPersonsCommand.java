@@ -50,6 +50,6 @@ public class FindAllAuthorityPersonsCommand implements OrganizationCommand<Set<A
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommands.FIND_ALL;
+        return AuthorityPersonCommands.FIND_ALL.id();
     }
 }

@@ -63,6 +63,6 @@ public class DeleteStudentsGroupCommand implements OrganizationCommand<Boolean> 
      */
     @Override
     public String getId() {
-        return StudentsGroupCommands.DELETE;
+        return StudentsGroupCommands.DELETE.id();
     }
 }

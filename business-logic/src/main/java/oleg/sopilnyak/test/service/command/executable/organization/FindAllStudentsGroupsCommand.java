@@ -49,6 +49,6 @@ public class FindAllStudentsGroupsCommand implements OrganizationCommand<Set<Stu
      */
     @Override
     public String getId() {
-        return StudentsGroupCommands.FIND_ALL;
+        return StudentsGroupCommands.FIND_ALL.id();
     }
 }

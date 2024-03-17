@@ -8,10 +8,11 @@ import oleg.sopilnyak.test.school.common.facade.peristence.StudentsPersistenceFa
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
+
+import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.DELETE;
 
 /**
  * Command-Implementation: command to delete the student
@@ -66,6 +67,6 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return StudentCommands.DELETE;
+        return DELETE.id();
     }
 }

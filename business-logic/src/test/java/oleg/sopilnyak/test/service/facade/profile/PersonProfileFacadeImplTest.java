@@ -34,7 +34,7 @@ class PersonProfileFacadeImplTest<T> {
 
     @Spy
     @InjectMocks
-    PersonProfileFacadeImpl facade;
+    PersonProfileFacadeImpl<T> facade;
 
     @Test
     void shouldFindById() {
@@ -246,7 +246,7 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     @Test
-    void shouldNotDeletePersonProfile_ProfileNotExists() throws ProfileNotExistsException {
+    void shouldNotDeletePersonProfile_ProfileNotExists() {
         String commandId = commandIdOf(DELETE_BY_ID);
         Long profileId = 415L;
 
@@ -276,7 +276,7 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_ProfileNotExists() throws ProfileNotExistsException {
+    void shouldNotDeletePersonProfileInstance_ProfileNotExists() {
         String commandId = commandIdOf(DELETE_BY_ID);
         Long profileId = 416L;
         PersonProfile profile = mock(PersonProfile.class);
@@ -292,7 +292,7 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_NullId() throws ProfileNotExistsException {
+    void shouldNotDeletePersonProfileInstance_NullId() {
         String commandId = commandIdOf(DELETE_BY_ID);
         Long profileId = 416L;
         PersonProfile profile = mock(PersonProfile.class);
@@ -308,7 +308,7 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_NegativeId() throws ProfileNotExistsException {
+    void shouldNotDeletePersonProfileInstance_NegativeId() {
         String commandId = commandIdOf(DELETE_BY_ID);
         Long profileId = -416L;
         PersonProfile profile = mock(PersonProfile.class);
@@ -334,6 +334,6 @@ class PersonProfileFacadeImplTest<T> {
     }
 
     private static String commandIdOf(ProfileCommands command) {
-        return command.toString();
+        return command.id();
     }
 }

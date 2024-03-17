@@ -48,6 +48,6 @@ public class CreateOrUpdateFacultyCommand implements OrganizationCommand<Optiona
      */
     @Override
     public String getId() {
-        return FacultyCommands.CREATE_OR_UPDATE;
+        return FacultyCommands.CREATE_OR_UPDATE.id();
     }
 }

@@ -24,11 +24,9 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 @AllArgsConstructor
-public class OrganizationFacadeImpl implements OrganizationFacade,
-        AuthorityPersonCommands, FacultyCommands, StudentsGroupCommands
-{
+public class OrganizationFacadeImpl implements OrganizationFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
-    private final CommandsFactory factory;
+    private final CommandsFactory<?> factory;
 
     /**
      * To get all authorityPerson
@@ -37,7 +35,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      * @see AuthorityPerson
      */
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
-        return executeSimpleCommand(AuthorityPersonCommands.FIND_ALL, null, factory);
+        return executeTheCommand(AuthorityPersonCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -51,7 +49,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<AuthorityPerson> getAuthorityPersonById(Long id) {
-        return executeSimpleCommand(AuthorityPersonCommands.FIND_BY_ID, id, factory);
+        return executeTheCommand(AuthorityPersonCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -65,7 +63,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
-        return executeSimpleCommand(AuthorityPersonCommands.CREATE_OR_UPDATE, instance, factory);
+        return executeTheCommand(AuthorityPersonCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -77,7 +75,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotExistsException, AuthorityPersonManageFacultyException {
-        String commandId = AuthorityPersonCommands.DELETE;
+        String commandId = AuthorityPersonCommands.DELETE.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
@@ -101,7 +99,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Collection<Faculty> findAllFaculties() {
-        return executeSimpleCommand(FacultyCommands.FIND_ALL, null, factory);
+        return executeTheCommand(FacultyCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -115,7 +113,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<Faculty> getFacultyById(Long id) {
-        return executeSimpleCommand(FacultyCommands.FIND_BY_ID, id, factory);
+        return executeTheCommand(FacultyCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -129,7 +127,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
-        return executeSimpleCommand(FacultyCommands.CREATE_OR_UPDATE, instance, factory);
+        return executeTheCommand(FacultyCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -141,7 +139,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public void deleteFacultyById(Long id) throws FacultyNotExistsException, FacultyIsNotEmptyException {
-        String commandId = FacultyCommands.DELETE;
+        String commandId = FacultyCommands.DELETE.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
@@ -165,7 +163,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
-        return executeSimpleCommand(StudentsGroupCommands.FIND_ALL, null, factory);
+        return executeTheCommand(StudentsGroupCommands.FIND_ALL, null, factory);
     }
 
     /**
@@ -179,7 +177,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<StudentsGroup> getStudentsGroupById(Long id) {
-        return executeSimpleCommand(StudentsGroupCommands.FIND_BY_ID, id, factory);
+        return executeTheCommand(StudentsGroupCommands.FIND_BY_ID, id, factory);
     }
 
     /**
@@ -193,7 +191,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
-        return executeSimpleCommand(StudentsGroupCommands.CREATE_OR_UPDATE, instance, factory);
+        return executeTheCommand(StudentsGroupCommands.CREATE_OR_UPDATE, instance, factory);
     }
 
     /**
@@ -205,7 +203,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
      */
     @Override
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
-        String commandId = StudentsGroupCommands.DELETE;
+        String commandId = StudentsGroupCommands.DELETE.id();
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
@@ -219,5 +217,17 @@ public class OrganizationFacadeImpl implements OrganizationFacade,
                 throwFor(commandId, cmdResult.getException());
             }
         }
+    }
+
+    private static <T> T executeTheCommand(AuthorityPersonCommands command, Object option, CommandsFactory<?> factory) {
+        return executeSimpleCommand(command.id(), option, factory);
+    }
+
+    private static <T> T executeTheCommand(FacultyCommands command, Object option, CommandsFactory<?> factory) {
+        return executeSimpleCommand(command.id(), option, factory);
+    }
+
+    private static <T> T executeTheCommand(StudentsGroupCommands command, Object option, CommandsFactory<?> factory) {
+        return executeSimpleCommand(command.id(), option, factory);
     }
 }
