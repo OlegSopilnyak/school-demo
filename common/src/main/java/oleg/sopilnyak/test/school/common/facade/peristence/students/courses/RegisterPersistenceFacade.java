@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.school.common.facade.peristence;
+package oleg.sopilnyak.test.school.common.facade.peristence.students.courses;
 
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.facade.peristence.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.CommandResult;
 import org.junit.jupiter.api.Test;
