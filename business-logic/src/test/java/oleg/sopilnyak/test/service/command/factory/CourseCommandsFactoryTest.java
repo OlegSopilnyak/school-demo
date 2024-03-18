@@ -38,7 +38,7 @@ class CourseCommandsFactoryTest<T> {
     }
 
     @Test
-    void shouldNotGetTheCommandByCommandId() {
+    void shouldDontGetTheCommandByCommandId() {
         assertThat(factory.command(null)).isNull();
         assertThat(factory.command("cmd4")).isNull();
     }
