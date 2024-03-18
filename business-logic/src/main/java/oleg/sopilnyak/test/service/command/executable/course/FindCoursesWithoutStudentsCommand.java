@@ -29,16 +29,12 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
     public CommandResult<Set<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to find courses without students");
-            Set<Course> courses = persistenceFacade.findCoursesWithoutStudents();
+            final Set<Course> courses = persistenceFacade.findCoursesWithoutStudents();
             log.debug("Got courses without student {}", courses);
-            return CommandResult.<Set<Course>>builder()
-                    .result(Optional.ofNullable(courses))
-                    .success(true)
-                    .build();
+            return CommandResult.<Set<Course>>builder().success(true).result(Optional.of(courses)).build();
         } catch (Exception e) {
             log.error("Cannot find courses without students.", e);
-            return CommandResult.<Set<Course>>builder()
-                    .result(Optional.of(Set.of())).exception(e).success(false).build();
+            return CommandResult.<Set<Course>>builder().success(false).exception(e).result(Optional.of(Set.of())).build();
         }
     }
 

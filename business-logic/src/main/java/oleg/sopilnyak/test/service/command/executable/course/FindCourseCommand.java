@@ -28,17 +28,14 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to find course by ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Course> course = persistenceFacade.findCourseById(id);
+            final Long id = commandParameter(parameter);
+            final Optional<Course> course = persistenceFacade.findCourseById(id);
             log.debug("Got course {} by ID:{}", course, id);
-            return CommandResult.<Optional<Course>>builder()
-                    .result(Optional.ofNullable(course))
-                    .success(true)
-                    .build();
+            return CommandResult.<Optional<Course>>builder().success(true).result(Optional.of(course)).build();
         } catch (Exception e) {
             log.error("Cannot find the course by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder()
-                    .result(Optional.of(Optional.empty())).exception(e).success(false).build();
+            return CommandResult.<Optional<Course>>builder().success(false).exception(e)
+                    .result(Optional.of(Optional.empty())).build();
         }
     }
 

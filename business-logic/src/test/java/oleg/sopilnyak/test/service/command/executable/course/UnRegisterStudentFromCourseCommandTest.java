@@ -33,12 +33,11 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldExecuteCommand() {
         Long id = 130L;
-        Long[] ids = new Long[]{id, id};
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
         when(persistenceFacade.unLink(student, course)).thenReturn(true);
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -50,15 +49,14 @@ class UnRegisterStudentFromCourseCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand() {
+    void shouldNotExecuteCommand_ExceptionThrown() {
         Long id = 131L;
-        Long[] ids = new Long[]{id, id};
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
         doThrow(cannotExecute).when(persistenceFacade).unLink(student, course);
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -72,9 +70,8 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_NoStudent() {
         Long id = 132L;
-        Long[] ids = new Long[]{id, id};
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
 
@@ -86,10 +83,9 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_NoCourse() {
         Long id = 133L;
-        Long[] ids = new Long[]{id, id};
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);

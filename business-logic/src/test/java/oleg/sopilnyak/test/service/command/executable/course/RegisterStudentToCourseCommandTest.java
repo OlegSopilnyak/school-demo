@@ -38,12 +38,11 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldExecuteCommand() {
         Long id = 120L;
-        Long[] ids = new Long[]{id, id};
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
         when(persistenceFacade.link(student, course)).thenReturn(true);
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -55,15 +54,14 @@ class RegisterStudentToCourseCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand() {
+    void shouldNotExecuteCommand_ExceptionThrown() {
         Long id = 123L;
-        Long[] ids = new Long[]{id, id};
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
         doThrow(cannotExecute).when(persistenceFacade).link(student, course);
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -77,7 +75,6 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldExecuteCommand_AlreadyLinked() {
         Long id = 125L;
-        Long[] ids = new Long[]{id, id};
         when(student.getId()).thenReturn(id);
         when(student.getCourses()).thenReturn(List.of(course));
         when(course.getId()).thenReturn(id);
@@ -85,7 +82,7 @@ class RegisterStudentToCourseCommandTest {
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -99,9 +96,8 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_NoStudent() {
         Long id = 121L;
-        Long[] ids = new Long[]{id, id};
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
 
@@ -113,10 +109,9 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_NoCourse() {
         Long id = 122L;
-        Long[] ids = new Long[]{id, id};
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -129,13 +124,11 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_MaximumRooms() {
         Long id = 126L;
-        Long[] ids = new Long[]{id, id};
-        when(student.getId()).thenReturn(id);
         when(course.getStudents()).thenReturn(List.of(student, student));
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);
@@ -149,14 +142,12 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotExecuteCommand_CoursesExceed() {
         Long id = 127L;
-        Long[] ids = new Long[]{id, id};
-        when(student.getId()).thenReturn(id);
         when(student.getCourses()).thenReturn(List.of(course, course));
         when(course.getStudents()).thenReturn(List.of(student));
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
 
-        CommandResult<Boolean> result = command.execute(ids);
+        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
 
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);

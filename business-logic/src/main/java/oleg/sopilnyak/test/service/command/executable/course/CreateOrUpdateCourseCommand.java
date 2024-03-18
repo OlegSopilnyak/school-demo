@@ -28,18 +28,14 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {
             log.debug("Trying to create or update course {}", parameter);
-            Course updated = commandParameter(parameter);
-            Optional<Course> course = persistenceFacade.save(updated);
+            final Course updated = commandParameter(parameter);
+            final Optional<Course> course = persistenceFacade.save(updated);
             log.debug("Got stored course {} from parameter {}", course, updated);
-            return CommandResult.<Optional<Course>>builder()
-                    .result(Optional.ofNullable(course))
-                    .success(true)
-                    .build();
+            return CommandResult.<Optional<Course>>builder().success(true).result(Optional.of(course)).build();
         } catch (Exception e) {
             log.error("Cannot create or update course by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
+            return CommandResult.<Optional<Course>>builder().success(false).exception(e)
+                    .result(Optional.of(Optional.empty())).build();
         }
     }
 

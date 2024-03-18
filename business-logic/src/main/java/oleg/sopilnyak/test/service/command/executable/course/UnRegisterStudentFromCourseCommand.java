@@ -16,7 +16,6 @@ import java.util.Optional;
 /**
  * Command-Implementation: command to un-link the student from the course
  */
-@SuppressWarnings("DuplicatedCode")
 @Slf4j
 @AllArgsConstructor
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean> {
@@ -33,36 +32,32 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to un-link student from course: {}", parameter);
-            Long[] ids = commandParameter(parameter);
-            Long studentId = ids[0];
-            Long courseId = ids[1];
+            final Long[] ids = commandParameter(parameter);
+            final Long studentId = ids[0];
+            final Long courseId = ids[1];
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
+                return CommandResult.<Boolean>builder().success(false)
                         .exception(new StudentNotExistsException("Student with ID:" + studentId + " is not exists."))
-                        .success(false).build();
+                        .result(Optional.of(false)).build();
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
+                return CommandResult.<Boolean>builder().success(false)
                         .exception(new CourseNotExistsException("Course with ID:" + courseId + " is not exists."))
-                        .success(false).build();
+                        .result(Optional.of(false)).build();
             }
 
             log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
-            boolean unLinked = persistenceFacade.unLink(student.get(), course.get());
+            final boolean unLinked = persistenceFacade.unLink(student.get(), course.get());
             log.debug("Un-linked student:{} from course-id:{} {}", studentId, courseId, unLinked);
 
-            return CommandResult.<Boolean>builder().result(Optional.of(unLinked)).success(true).build();
+            return CommandResult.<Boolean>builder().success(true).result(Optional.of(unLinked)).build();
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(false))
-                    .exception(e).success(false).build();
+            return CommandResult.<Boolean>builder().success(false).result(Optional.of(false)).exception(e).build();
         }
     }
 

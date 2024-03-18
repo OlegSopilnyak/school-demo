@@ -31,27 +31,24 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
     public CommandResult<Boolean> execute(Object parameter) {
         try {
             log.debug("Trying to delete course: {}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Course> course = persistenceFacade.findCourseById(id);
+            final Long id = commandParameter(parameter);
+            final Optional<Course> course = persistenceFacade.findCourseById(id);
             if (course.isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder().success(false).result(Optional.empty())
                         .exception(new CourseNotExistsException("Course with ID:" + id + " is not exists."))
-                        .success(false).build();
+                        .build();
             }
             if (!ObjectUtils.isEmpty(course.get().getStudents())) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
+                return CommandResult.<Boolean>builder().success(false).result(Optional.empty())
                         .exception(new CourseWithStudentsException("Course with ID:" + id + " has enrolled students."))
-                        .success(false).build();
+                        .build();
             }
-            boolean success = persistenceFacade.deleteCourse(id);
+            final boolean success = persistenceFacade.deleteCourse(id);
             log.debug("Deleted course {} {}", course.get(), success);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(success))
-                    .success(true)
-                    .build();
+            return CommandResult.<Boolean>builder().success(true).result(Optional.of(success)).build();
         } catch (Exception e) {
             log.error("Cannot delete the course by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty()).exception(e).success(false).build();
+            return CommandResult.<Boolean>builder().success(false).result(Optional.empty()).exception(e).build();
         }
     }
 
