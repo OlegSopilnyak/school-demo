@@ -35,11 +35,11 @@ class CoursesFacadeUnitTest {
     private static final String COURSE_UN_REGISTER = "course.unRegister";
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
-    CommandsFactory factory = buildFactory();
+    CommandsFactory<?> factory = buildFactory();
 
     @Spy
     @InjectMocks
-    CoursesFacadeImpl facade;
+    CoursesFacadeImpl<?> facade;
 
     @Mock
     Course mockedCourse;
@@ -200,7 +200,6 @@ class CoursesFacadeUnitTest {
             StudentCoursesExceedException, StudentNotExistsException {
         String commandId = COURSE_REGISTER;
         Long studentId = 102L;
-        when(mockedStudent.getId()).thenReturn(studentId);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         Long courseId = 205L;
         when(mockedCourse.getId()).thenReturn(courseId);
@@ -322,7 +321,7 @@ class CoursesFacadeUnitTest {
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
-    private CommandsFactory buildFactory() {
+    private CommandsFactory<?> buildFactory() {
         return new CourseCommandsFactory(
                 List.of(
                         spy(new FindCourseCommand(persistenceFacade)),
