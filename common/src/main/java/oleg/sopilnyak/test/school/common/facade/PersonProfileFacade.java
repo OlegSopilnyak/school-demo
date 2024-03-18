@@ -113,6 +113,6 @@ public interface PersonProfileFacade {
     }
 
     private static boolean isInvalid(PersonProfile instance) {
-        return isNull(instance) || isNull(instance.getId()) || instance.getId() < 0L;
+        return isNull(instance) || isNull(instance.getId()) || instance.getId() <= 0L;
     }
 }

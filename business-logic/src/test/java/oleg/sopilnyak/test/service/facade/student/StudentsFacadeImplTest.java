@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,152 +25,146 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StudentsFacadeImplTest<T> {
+class StudentsFacadeImplTest {
+    private static final String STUDENT_FIND_BY_ID = "student.findById";
+    private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
+    private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
+    private static final String STUDENT_DELETE = "student.delete";
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
-    CommandsFactory<T> factory = buildFactory();
+    CommandsFactory<?> factory = buildFactory();
 
     @Spy
     @InjectMocks
-    StudentsFacadeImpl<T> facade;
+    StudentsFacadeImpl<?> facade;
 
     @Mock
     Student mockedStudent;
 
     @Test
     void shouldNotFindById() {
-        String commandId = StudentCommands.FIND_BY_ID.id();
         Long studentId = 100L;
 
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isEmpty();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(studentId);
+        verify(factory).command(STUDENT_FIND_BY_ID);
+        verify(factory.command(STUDENT_FIND_BY_ID)).execute(studentId);
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldFindById() {
-        String commandId = StudentCommands.FIND_BY_ID.id();
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isPresent();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(studentId);
+        verify(factory).command(STUDENT_FIND_BY_ID);
+        verify(factory.command(STUDENT_FIND_BY_ID)).execute(studentId);
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldNotFindEnrolledTo() {
-        String commandId = StudentCommands.FIND_ENROLLED.id();
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).isEmpty();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(courseId);
+        verify(factory).command(STUDENT_FIND_ENROLLED_TO);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).execute(courseId);
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldFindEnrolledTo() {
-        String commandId = StudentCommands.FIND_ENROLLED.id();
         Long courseId = 200L;
         when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).hasSize(1);
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(courseId);
+        verify(factory).command(STUDENT_FIND_ENROLLED_TO);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).execute(courseId);
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldNotFindNotEnrolled() {
-        String commandId = StudentCommands.FIND_NOT_ENROLLED.id();
 
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(null);
+        verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).execute(null);
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldFindNotEnrolled() {
-        String commandId = StudentCommands.FIND_NOT_ENROLLED.id();
         when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).hasSize(1);
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(null);
+        verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).execute(null);
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldNotCreateOrUpdate() {
-        String commandId = StudentCommands.CREATE_OR_UPDATE.id();
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
 
         assertThat(result).isEmpty();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(mockedStudent);
+        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).execute(mockedStudent);
         verify(persistenceFacade).save(mockedStudent);
     }
 
     @Test
     void shouldCreateOrUpdate() {
-        String commandId = StudentCommands.CREATE_OR_UPDATE.id();
         when(persistenceFacade.save(mockedStudent)).thenReturn(Optional.of(mockedStudent));
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
 
         assertThat(result).isPresent();
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(mockedStudent);
+        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).execute(mockedStudent);
         verify(persistenceFacade).save(mockedStudent);
     }
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
-        String commandId = StudentCommands.DELETE.id();
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
         facade.delete(studentId);
 
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(studentId);
+        verify(factory).command(STUDENT_DELETE);
+        verify(factory.command(STUDENT_DELETE)).execute(studentId);
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).deleteStudent(studentId);
     }
 
     @Test
     void shouldNotDelete_StudentNotExists() {
-        String commandId = StudentCommands.DELETE.id();
         Long studentId = 102L;
 
         StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:102 is not exists.");
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(studentId);
+        verify(factory).command(STUDENT_DELETE);
+        verify(factory.command(STUDENT_DELETE)).execute(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
-        String commandId = StudentCommands.DELETE.id();
         Long studentId = 103L;
         when(mockedStudent.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -179,12 +172,12 @@ class StudentsFacadeImplTest<T> {
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).execute(studentId);
+        verify(factory).command(STUDENT_DELETE);
+        verify(factory.command(STUDENT_DELETE)).execute(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
-    private CommandsFactory<T> buildFactory() {
+    private CommandsFactory<?> buildFactory() {
         return new StudentCommandsFactory(
                 Set.of(
                         spy(new FindStudentCommand(persistenceFacade)),
