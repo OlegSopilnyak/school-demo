@@ -8,11 +8,11 @@ import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +20,9 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
-@TestPropertySource(properties = { "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update" })
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class PersistenceFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
@@ -125,7 +125,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         Optional<Course> received = facade.findCourseById(course.getId());
         assertThat(course).isEqualTo(received.orElse(null));
-        assertThat(received.get().getStudents()).contains(student);
+        assertThat(received.orElseThrow().getStudents()).contains(student);
     }
 
     @Test
@@ -216,8 +216,8 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         assertThat(success).isTrue();
         Optional<Course> courseOptional = facade.findCourseById(course.getId());
         Optional<Student> studentOptional = facade.findStudentById(student.getId());
-        assertThat(studentOptional.get().getCourses()).contains(course);
-        assertThat(courseOptional.get().getStudents()).contains(student);
+        assertThat(studentOptional.orElseThrow().getCourses()).contains(course);
+        assertThat(courseOptional.orElseThrow().getStudents()).contains(student);
     }
 
     @Test
@@ -236,8 +236,8 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         assertThat(success).isTrue();
         Optional<Course> courseOptional = facade.findCourseById(course.getId());
         Optional<Student> studentOptional = facade.findStudentById(student.getId());
-        assertThat(studentOptional.get().getCourses()).isEmpty();
-        assertThat(courseOptional.get().getStudents()).isEmpty();
+        assertThat(studentOptional.orElseThrow().getCourses()).isEmpty();
+        assertThat(courseOptional.orElseThrow().getStudents()).isEmpty();
     }
 
 

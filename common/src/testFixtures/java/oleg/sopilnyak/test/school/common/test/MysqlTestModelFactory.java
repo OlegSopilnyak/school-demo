@@ -1,7 +1,10 @@
 package oleg.sopilnyak.test.school.common.test;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
@@ -10,10 +13,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
-@SuppressWarnings("resource")
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
+
+@Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Testcontainers
+@DirtiesContext(classMode = AFTER_CLASS)
 public class MysqlTestModelFactory extends TestModelFactory {
     private static final String TEST_DB_DOCKER_IMAGE_NAME = "mysql:8.0";
     private static final String TEST_DB_DOCKER_CONTAINER_NAME = "school-test-database";
@@ -29,9 +34,13 @@ public class MysqlTestModelFactory extends TestModelFactory {
         registry.add("spring.datasource.password", database::getPassword);
     }
 
-    static {
-        // starting container
+    @BeforeAll
+    static void startContainer() {
         database.start();
     }
 
+    @AfterAll
+    static void stopContainer() {
+        database.stop();
+    }
 }
