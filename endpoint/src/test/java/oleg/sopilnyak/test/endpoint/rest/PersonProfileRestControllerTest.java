@@ -198,7 +198,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             StudentProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isNull();
-            assertProfilesEquals(profile, received, false);
+            assertProfilesEquals(received, profile, false);
             return Optional.of(received);
         }).when(facade).createOrUpdateProfile(any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -216,7 +216,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         verify(facade).createOrUpdateProfile(any(StudentProfile.class));
 
         StudentProfileDto profileDto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
-        assertProfilesEquals(profile, profileDto, false);
+        assertProfilesEquals(profileDto, profile,  false);
     }
 
     @Test
@@ -254,7 +254,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             StudentProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
-            assertProfilesEquals(profile, received, true);
+            assertProfilesEquals(received, profile);
             return Optional.of(received);
         }).when(facade).createOrUpdateProfile(any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -272,7 +272,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         verify(facade).createOrUpdateProfile(any(StudentProfile.class));
 
         StudentProfileDto profileDto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
-        assertProfilesEquals(profile, profileDto, true);
+        assertProfilesEquals(profileDto, profile);
     }
 
     @Test
@@ -363,7 +363,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isNull();
-            assertProfilesEquals(profile, received, false);
+            assertProfilesEquals(received, profile, false);
             return Optional.of(received);
         }).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -383,7 +383,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         PrincipalProfileDto profileDto = MAPPER.readValue(
                 result.getResponse().getContentAsString(),
                 PrincipalProfileDto.class);
-        assertProfilesEquals(profile, profileDto, false);
+        assertProfilesEquals(profileDto, profile, false);
     }
 
     @Test
@@ -421,7 +421,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
-            assertProfilesEquals(profile, received, true);
+            assertProfilesEquals(profile, received);
             return Optional.of(received);
         }).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -441,7 +441,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         PrincipalProfileDto profileDto = MAPPER.readValue(
                 result.getResponse().getContentAsString(),
                 PrincipalProfileDto.class);
-        assertProfilesEquals(profile, profileDto, true);
+        assertProfilesEquals(profileDto, profile);
     }
 
     @Test
@@ -532,7 +532,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             StudentProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
-            assertProfilesEquals(profile, received, true);
+            assertProfilesEquals(received, profile);
             return null;
         }).when(facade).deleteProfile(any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -611,7 +611,7 @@ class PersonProfileRestControllerTest extends TestModelFactory {
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
-            assertProfilesEquals(profile, received, true);
+            assertProfilesEquals(received, profile);
             return null;
         }).when(facade).deleteProfile(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));

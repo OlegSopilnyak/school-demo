@@ -27,13 +27,13 @@ public class TestModelFactory {
         IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i), checkId));
     }
 
-    private static boolean isEmptyInputParameters(Object expected, Object result) {
-        if (isEmpty(expected)) {
-            assertThat(isEmpty(result)).isTrue();
+    private static boolean isEmptyInputParameters(Object actual, Object expected) {
+        if (isEmpty(actual)) {
+            assertThat(isEmpty(expected)).isTrue();
             return true;
         }
-        if (isEmpty(result)) {
-            assertThat(isEmpty(expected)).isTrue();
+        if (isEmpty(expected)) {
+            assertThat(isEmpty(actual)).isTrue();
             return true;
         }
         return false;
@@ -285,29 +285,43 @@ public class TestModelFactory {
         assertThat(expected.getTitle()).isEqualTo(result.getTitle());
         assertThat(expected.getFullName()).isEqualTo(result.getFullName());
     }
-    protected void assertProfilesEquals(PrincipalProfile expected, PrincipalProfile result, boolean checkId){
-        assertProfilesEquals(expected, (PersonProfile)result, checkId);
-        assertThat(expected.getLogin()).isEqualTo(result.getLogin());
-        assertThat(expected.isPassword("")).isEqualTo(result.isPassword(""));
+
+    protected void assertProfilesEquals(PrincipalProfile actual, PrincipalProfile expected) {
+        assertProfilesEquals(actual, expected, true);
     }
-    protected void assertProfilesEquals(StudentProfile expected, StudentProfile result, boolean checkId){
-        assertProfilesEquals(expected, (PersonProfile)result, checkId);
+    protected void assertProfilesEquals(PrincipalProfile actual, PrincipalProfile expected, boolean checkId) {
+        assertPersonProfilesEquals(actual, expected, checkId);
+        assertThat(actual.getLogin()).isEqualTo(expected.getLogin());
+        assertThat(actual.isPassword("")).isEqualTo(expected.isPassword(""));
     }
-    protected void assertProfilesEquals(PersonProfile expected, PersonProfile result, boolean checkId){
-        if (isEmptyInputParameters(expected, result)) return;
+
+    protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected) {
+        assertProfilesEquals(actual, expected, true);
+    }
+    protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected, boolean checkId) {
+        assertPersonProfilesEquals(actual,  expected, checkId);
+    }
+
+    protected void assertPersonProfilesEquals(PersonProfile actual, PersonProfile expected, boolean checkId) {
+        if (isEmptyInputParameters(actual, expected)) return;
         if (checkId) {
-            assertThat(expected.getId()).isEqualTo(result.getId());
+            assertThat(actual.getId()).isEqualTo(expected.getId());
         }
-        assertThat(expected.getPhotoUrl()).isEqualTo(result.getPhotoUrl());
-        assertThat(expected.getEmail()).isEqualTo(result.getEmail());
-        assertThat(expected.getPhone()).isEqualTo(result.getPhone());
-        assertThat(expected.getLocation()).isEqualTo(result.getLocation());
-        assertProfileExtrasEquals(expected, result);
+        assertThat(actual.getPhotoUrl()).isEqualTo(expected.getPhotoUrl());
+        assertThat(actual.getEmail()).isEqualTo(expected.getEmail());
+        assertThat(actual.getPhone()).isEqualTo(expected.getPhone());
+        assertThat(actual.getLocation()).isEqualTo(expected.getLocation());
+        assertProfileExtrasEquals(actual, expected);
     }
-    protected void assertProfileExtrasEquals(PersonProfile expected, PersonProfile result) {
-        if (isEmptyInputParameters(expected, result)) return;
-        Arrays.stream(expected.getExtraKeys())
-                .forEach(key -> assertThat(expected.getExtra(key)).isEqualTo(result.getExtra(key)));
+
+    private static void assertProfileExtrasEquals(PersonProfile actual, PersonProfile expected) {
+        Set<String> actualExtraKeys = Set.of(actual.getExtraKeys());
+        Set<String> expectedExtraKeys = Set.of(expected.getExtraKeys());
+        assertThat(actualExtraKeys).hasSameSizeAs(expectedExtraKeys);
+        actualExtraKeys.forEach(key -> {
+            assertThat(expectedExtraKeys).contains(key);
+            assertThat(actual.getExtra(key)).isEqualTo(expected.getExtra(key));
+        });
     }
 
     protected Faculty makeTestFaculty(Long id) {
@@ -508,7 +522,7 @@ public class TestModelFactory {
 
         @Override
         public String[] getExtraKeys() {
-            return new String[]{"key1", "key2", ExtraKey.WEB.toString()};
+            return new String[]{"key1", "key2", "WEB"};
         }
 
         public Optional<String> getExtra(String key) {

@@ -6,12 +6,74 @@ import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Comparator;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class EndpointMapperTest extends TestModelFactory {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
+
+    @Test
+    void shouldTransformAuthorityPersonToDto() {
+        Long id = 102L;
+        String firstName = "Mary";
+        String lastName = "Bell";
+        String title = "Professor";
+        String gender = "Mrs.";
+        List<Faculty> faculties =
+                makeFaculties(10).stream().sorted(Comparator.comparing(Faculty::getName)).toList();
+        AuthorityPerson person = FakeAuthorityPerson.builder()
+                .id(id).title(title).firstName(firstName).lastName(lastName).gender(gender)
+                .faculties(faculties).build();
+
+        AuthorityPersonDto dto = mapper.toDto(person);
+
+        assertAuthorityPersonEquals(dto, person);
+    }
+
+    @Test
+    void shouldTransformCourseToDto() {
+        Long id = 101L;
+        String name = "courseName";
+        String description = "description";
+        List<Student> students =
+                makeStudents(50).stream().sorted(Comparator.comparing(Student::getFullName)).toList()
+        ;
+        Course course = FakeCourse.builder()
+                .id(id).name(name).description(description).students(students)
+                .build();
+
+        CourseDto dto = mapper.toDto(course);
+
+        assertCourseEquals(dto, course);
+    }
+
+    @Test
+    void shouldTransformFacultyToDto() {
+        Long id = 103L;
+        String name = "English";
+        List<Course> courses = makeCourses(5);
+
+        Faculty faculty = FakeFaculty.builder()
+                .id(id).name(name).courses(courses)
+                .build();
+
+        FacultyDto dto = mapper.toDto(faculty);
+
+        assertFacultyEquals(dto, faculty);
+    }
+
+    @Test
+    void shouldTransformPrincipalProfileToDto() {
+        Long id = 106L;
+        PrincipalProfile profile = FakePrincipalProfile.builder()
+                .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
+                .login("login-" + id)
+                .build();
+
+        PrincipalProfileDto dto = mapper.toDto(profile);
+
+        assertProfilesEquals(dto, profile);
+    }
 
     @Test
     void shouldTransformStudentToDto() {
@@ -23,77 +85,23 @@ class EndpointMapperTest extends TestModelFactory {
         List<Course> courses = makeCourses(5);
         Student student = FakeStudent.builder()
                 .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
-                .courses(courses)
-                .build();
+                .courses(courses).build();
 
         StudentDto dto = mapper.toDto(student);
 
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(firstName).isEqualTo(dto.getFirstName());
-        assertThat(lastName).isEqualTo(dto.getLastName());
-        assertThat(gender).isEqualTo(dto.getGender());
-        assertThat(description).isEqualTo(dto.getDescription());
-        assertCourseLists(courses, dto.getCourses());
+        assertStudentEquals(dto, student);
     }
 
     @Test
-    void shouldTransformCourseToDto() {
-        Long id = 101L;
-        String name = "courseName";
-        String description = "description";
-        List<Student> students = makeStudents(50);
-        Course course = FakeCourse.builder()
-                .id(id).name(name).description(description).students(students)
+    void shouldTransformStudentProfileToDto() {
+        Long id = 105L;
+        StudentProfile profile = FakeStudentsProfile.builder()
+                .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
                 .build();
 
-        CourseDto dto = mapper.toDto(course);
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(name).isEqualTo(dto.getName());
-        assertThat(description).isEqualTo(dto.getDescription());
-        assertStudentLists(students, dto.getStudents());
-    }
+        StudentProfileDto dto = mapper.toDto(profile);
 
-    @Test
-    void shouldTransformAuthorityPersonToDto() {
-        Long id = 102L;
-        String firstName = "Mary";
-        String lastName = "Bell";
-        String title = "Professor";
-        String gender = "Mrs.";
-        AuthorityPerson person = FakeAuthorityPerson.builder()
-                .id(id)
-                .title(title)
-                .firstName(firstName)
-                .lastName(lastName)
-                .gender(gender)
-                .build();
-
-        AuthorityPersonDto dto = mapper.toDto(person);
-
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(title).isEqualTo(dto.getTitle());
-        assertThat(firstName).isEqualTo(dto.getFirstName());
-        assertThat(lastName).isEqualTo(dto.getLastName());
-        assertThat(gender).isEqualTo(dto.getGender());
-    }
-
-    @Test
-    void shouldTransformFacultyToDto() {
-        Long id = 103L;
-        String name = "English";
-        List<Course> courses = makeCourses(5);
-
-        Faculty faculty = FakeFaculty.builder()
-                .id(id)
-                .name(name)
-                .courses(courses)
-                .build();
-
-        FacultyDto dto = mapper.toDto(faculty);
-
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(name).isEqualTo(dto.getName());
-        assertCourseLists(courses, dto.getCourses());
+        assertProfilesEquals(dto, profile);
     }
 
     @Test
@@ -104,49 +112,12 @@ class EndpointMapperTest extends TestModelFactory {
         List<Student> students = makeStudents(20);
 
         StudentsGroup group = FakeStudentsGroup.builder()
-                .id(id)
-                .name(name)
-                .leader(leader)
-                .students(students)
+                .id(id).name(name).leader(leader).students(students)
                 .build();
 
         StudentsGroupDto dto = mapper.toDto(group);
 
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(name).isEqualTo(dto.getName());
-        assertStudentEquals(leader, dto.getLeader());
-        assertStudentLists(students, dto.getStudents());
-    }
-
-    @Test
-    void shouldTransformStudentProfileToDto() {
-        Long id = 105L;
-        StudentProfile profile = makeStudentProfile(id);
-
-        StudentProfileDto dto = mapper.toDto(profile);
-
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
-        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
-        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
-        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
-        assertProfileExtrasEquals(profile, dto);
-    }
-
-    @Test
-    void shouldTransformPrincipalProfileToDto() {
-        Long id = 106L;
-        PrincipalProfile profile = makePrincipalProfile(id);
-
-        PrincipalProfileDto dto = mapper.toDto(profile);
-
-        assertThat(profile.getLogin()).isEqualTo(dto.getLogin());
-        assertThat(id).isEqualTo(dto.getId());
-        assertThat(profile.getEmail()).isEqualTo(dto.getEmail());
-        assertThat(profile.getPhone()).isEqualTo(dto.getPhone());
-        assertThat(profile.getLocation()).isEqualTo(dto.getLocation());
-        assertThat(profile.getPhotoUrl()).isEqualTo(dto.getPhotoUrl());
-        assertProfileExtrasEquals(profile, dto);
+        assertStudentsGroupEquals(dto, group);
     }
 
 }

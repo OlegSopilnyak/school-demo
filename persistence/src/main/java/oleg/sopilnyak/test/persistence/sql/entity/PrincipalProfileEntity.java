@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
  * @see PrincipalProfile
  * @see PersonProfileEntity
  */
+@Data
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -25,9 +26,10 @@ import java.security.NoSuchAlgorithmException;
 
 @Entity
 @DiscriminatorValue("0")
-@Table(indexes = @Index(name = "principal_login",columnList = "login", unique = true))
+@Table(indexes = @Index(name = "principal_login", columnList = "login", unique = true))
 public class PrincipalProfileEntity extends PersonProfileEntity implements PrincipalProfile {
     private String login;
+    @Getter(AccessLevel.NONE)
     private String signature;
 
     /**
@@ -48,7 +50,7 @@ public class PrincipalProfileEntity extends PersonProfileEntity implements Princ
      */
     @Override
     public boolean isPassword(String password) {
-        final String toSign = login +" " + password;
+        final String toSign = login + " " + password;
         try {
             final MessageDigest md = MessageDigest.getInstance("MD5");
             final byte[] digest = md.digest(toSign.getBytes());

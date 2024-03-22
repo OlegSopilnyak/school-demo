@@ -4,9 +4,13 @@ import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.model.*;
 import org.mapstruct.*;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
 import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
@@ -48,6 +52,7 @@ public interface SchoolEntityMapper {
      *
      * @param person instance to convert
      * @return DTO instance
+     * @see AuthorityPersonEntity#setFaculties(List)
      */
     @Named("toAuthorityPersonEntity")
     @Mapping(source = "faculties", target = "faculties", qualifiedByName = "toFacultyEntities")
@@ -58,7 +63,6 @@ public interface SchoolEntityMapper {
      *
      * @param faculty instance to convert
      * @return Entity instance
-     * @see AuthorityPersonEntity#setFaculties(List)
      */
     @Named("toFacultyEntity")
     @Mapping(target = "dean", expression = "java(null)")
@@ -75,19 +79,48 @@ public interface SchoolEntityMapper {
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities")
     StudentsGroupEntity toEntity(StudentsGroup group);
 
+    /**
+     * Convert model-type to Entity
+     *
+     * @param profile instance to convert
+     * @return Entity instance
+     */
+    @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtraMap")
+    StudentProfileEntity toEntity(StudentProfile profile);
+
+    /**
+     * Convert model-type to Entity
+     *
+     * @param profile instance to convert
+     * @return Entity instance
+     */
+    @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtraMap")
+    PrincipalProfileEntity toEntity(PrincipalProfile profile);
+
     @Named("toCourseEntities")
-    default List<Course> toCourses(List<Course> courses) {
-        return courses == null ? Collections.emptyList() : courses.stream().map(course -> (Course) toEntity(course)).toList();
+    default List<Course> toCourses(final List<Course> courses) {
+        return isNull(courses) ? List.of() : courses.stream().map(course -> (Course) toEntity(course)).toList();
     }
 
     @Named("toStudentEntities")
     default List<Student> toStudents(List<Student> students) {
-        return students == null ? Collections.emptyList() : students.stream().map(student -> (Student) toEntity(student)).toList();
+        return isNull(students) ? List.of() : students.stream().map(student -> (Student) toEntity(student)).toList();
     }
 
     @Named("toFacultyEntities")
     default List<Faculty> toFaculties(List<Faculty> faculties) {
-        return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toEntity(faculty)).toList();
+        return isNull(faculties) ? List.of() : faculties.stream().map(faculty -> (Faculty) toEntity(faculty)).toList();
+    }
+
+    @Named("toProfileExtraMap")
+    default Map<String, String> toProfileExtraMap(PersonProfile profile) {
+        return Arrays.stream(profile.getExtraKeys())
+                .filter(key -> profile.getExtra(key).isPresent())
+                .collect(Collectors.toMap(
+                        extraKey -> extraKey, extraKey -> profile.getExtra(extraKey).orElse("unknown"),
+                        (existingValue, replacementValue) -> existingValue,
+                        HashMap::new
+                ));
     }
 
 }

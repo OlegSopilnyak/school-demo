@@ -9,52 +9,8 @@ import org.mapstruct.factory.Mappers;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class SchoolEntityMapperTest extends TestModelFactory {
     private final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
-
-    @Test
-    void shouldTransformStudentToEntity() {
-        Long id = 100L;
-        String firstName = "firstName";
-        String lastName = "lastName";
-        String gender = "gender";
-        String description = "description";
-        List<Course> courses = makeCourses(5);
-        Student student = FakeStudent.builder()
-                .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
-                .courses(courses)
-                .build();
-
-        StudentEntity entity = mapper.toEntity(student);
-
-        assertThat(id).isEqualTo(entity.getId());
-        assertThat(firstName).isEqualTo(entity.getFirstName());
-        assertThat(lastName).isEqualTo(entity.getLastName());
-        assertThat(gender).isEqualTo(entity.getGender());
-        assertThat(description).isEqualTo(entity.getDescription());
-        assertCourseLists(courses, entity.getCourses());
-    }
-
-    @Test
-    void shouldTransformCourseToEntity() {
-        Long id = 101L;
-        String name = "courseName";
-        String description = "description";
-        List<Student> students =
-                makeStudents(50).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
-        Course course = FakeCourse.builder()
-                .id(id).name(name).description(description).students(students)
-                .build();
-
-        CourseEntity entity = mapper.toEntity(course);
-
-        assertThat(id).isEqualTo(entity.getId());
-        assertThat(name).isEqualTo(entity.getName());
-        assertThat(description).isEqualTo(entity.getDescription());
-        assertStudentLists(students, entity.getStudents());
-    }
 
     @Test
     void shouldTransformAuthorityPersonToEntity() {
@@ -72,12 +28,23 @@ class SchoolEntityMapperTest extends TestModelFactory {
 
         AuthorityPersonEntity entity = mapper.toEntity(person);
 
-        assertThat(id).isEqualTo(entity.getId());
-        assertThat(title).isEqualTo(entity.getTitle());
-        assertThat(firstName).isEqualTo(entity.getFirstName());
-        assertThat(lastName).isEqualTo(entity.getLastName());
-        assertThat(gender).isEqualTo(entity.getGender());
-        assertFacultyLists(faculties, entity.getFaculties(), false);
+        assertAuthorityPersonEquals(entity, person);
+    }
+
+    @Test
+    void shouldTransformCourseToEntity() {
+        Long id = 101L;
+        String name = "courseName";
+        String description = "description";
+        List<Student> students =
+                makeStudents(50).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
+        Course course = FakeCourse.builder()
+                .id(id).name(name).description(description).students(students)
+                .build();
+
+        CourseEntity entity = mapper.toEntity(course);
+
+        assertCourseEquals(entity, course);
     }
 
     @Test
@@ -94,10 +61,50 @@ class SchoolEntityMapperTest extends TestModelFactory {
 
         FacultyEntity entity = mapper.toEntity(faculty);
 
-        assertThat(id).isEqualTo(entity.getId());
-        assertThat(name).isEqualTo(entity.getName());
-//        assertAuthorityPersonEquals(dean, entity.getDean());
-        assertCourseLists(courses, entity.getCourses());
+        assertFacultyEquals(entity, faculty);
+    }
+
+    @Test
+    void shouldTransformPrincipalProfileToEntity() {
+        Long id = 106L;
+        PrincipalProfile profile = FakePrincipalProfile.builder()
+                .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
+                .login("login-" + id)
+                .build();
+
+        PrincipalProfileEntity entity = mapper.toEntity(profile);
+
+        assertProfilesEquals(entity, profile);
+    }
+
+    @Test
+    void shouldTransformStudentToEntity() {
+        Long id = 100L;
+        String firstName = "firstName";
+        String lastName = "lastName";
+        String gender = "gender";
+        String description = "description";
+        List<Course> courses = makeCourses(5);
+        Student student = FakeStudent.builder()
+                .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
+                .courses(courses)
+                .build();
+
+        StudentEntity entity = mapper.toEntity(student);
+
+        assertStudentEquals(entity, student);
+    }
+
+    @Test
+    void shouldTransformStudentProfileToEntity() {
+        Long id = 105L;
+        StudentProfile profile = FakeStudentsProfile.builder()
+                .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
+                .build();
+
+        StudentProfileEntity entity = mapper.toEntity(profile);
+
+        assertProfilesEquals(entity, profile);
     }
 
     @Test
@@ -106,20 +113,15 @@ class SchoolEntityMapperTest extends TestModelFactory {
         String name = "Hawks-2020";
         List<Student> students =
                 makeStudents(20).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
-
         Student leader = students.get(10);
         StudentsGroup group = FakeStudentsGroup.builder()
-                .id(id).name(name)
-                .leader(leader)
+                .id(id).name(name).leader(leader)
                 .students(students)
                 .build();
 
         StudentsGroupEntity entity = mapper.toEntity(group);
 
-        assertThat(id).isEqualTo(entity.getId());
-        assertThat(name).isEqualTo(entity.getName());
-        assertStudentEquals(leader, entity.getLeader());
-        assertStudentLists(students, entity.getStudents());
+        assertStudentsGroupEquals(entity, group);
     }
 
 }
