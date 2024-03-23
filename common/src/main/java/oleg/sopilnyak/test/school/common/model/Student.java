@@ -4,21 +4,21 @@ import java.util.List;
 
 /**
  * Model: Type for students in the school
+ *
+ * @see Person
  */
-public interface Student {
-    /**
-     * To get System-ID of the student
-     *
-     * @return the value
-     */
-    Long getId();
+public interface Student extends Person {
+    String TITLE = "student";
 
     /**
-     * To get first-name of the student
+     * To get the title of the authority person
      *
-     * @return first name value
+     * @return person's title value
      */
-    String getFirstName();
+    @Override
+    default String getTitle() {
+        return TITLE;
+    }
 
     /**
      * To get full-name of the student
@@ -28,20 +28,6 @@ public interface Student {
     default String getFullName() {
         return getGender() + ". " + getFirstName() + " " + getLastName();
     }
-
-    /**
-     * To get last-name of the student
-     *
-     * @return last name value
-     */
-    String getLastName();
-
-    /**
-     * To get gender of the student
-     *
-     * @return gender value
-     */
-    String getGender();
 
     /**
      * To get description of the student

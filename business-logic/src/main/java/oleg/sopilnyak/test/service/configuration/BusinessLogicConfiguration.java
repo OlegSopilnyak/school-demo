@@ -22,14 +22,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+@Import({
+        CourseCommandsConfiguration.class,
+        StudentsCommandConfiguration.class,
+        OrganizationCommandsConfiguration.class,
+        ProfileCommandsConfiguration.class
+})
 @Configuration
-@Import(
-        {
-                CourseCommandsConfiguration.class,
-                StudentsCommandConfiguration.class,
-                OrganizationCommandsConfiguration.class,
-                ProfileCommandsConfiguration.class
-        })
 public class BusinessLogicConfiguration {
     @Bean
     public StudentsFacade studentsFacade(

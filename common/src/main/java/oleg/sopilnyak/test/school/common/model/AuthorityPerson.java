@@ -4,43 +4,10 @@ import java.util.List;
 
 /**
  * Model: Type for the authority person in the school
+ *
+ * @see Person
  */
-public interface AuthorityPerson {
-    /**
-     * To get System-ID of the authority person
-     *
-     * @return the value
-     */
-    Long getId();
-
-    /**
-     * To get the title of the authority person
-     *
-     * @return person's title value
-     */
-    String getTitle();
-
-    /**
-     * To get first-name of the authority person
-     *
-     * @return first name value
-     */
-    String getFirstName();
-
-    /**
-     * To get last-name of the authority person
-     *
-     * @return last name value
-     */
-    String getLastName();
-
-    /**
-     * To get gender of the authority person
-     *
-     * @return gender value
-     */
-    String getGender();
-
+public interface AuthorityPerson extends Person {
     /**
      * To get the list of faculties where person is a dean
      *

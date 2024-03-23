@@ -25,8 +25,9 @@ public interface CommandExecutor {
      * @see CommandsFactory
      * @see SchoolCommand
      */
-    static <T> T executeSimpleCommand(String commandId, Object option, CommandsFactory<?> factory) {
-        return executeCommand(takeValidCommand(commandId, factory), option);
+    static <T> T executeSimpleCommand(String commandId, Object option, CommandsFactory factory) {
+        final SchoolCommand<T> command = takeValidCommand(commandId, factory);
+        return executeCommand(command, option);
     }
 
     /**
@@ -46,9 +47,9 @@ public interface CommandExecutor {
      */
     static <T> T executeCommand(SchoolCommand<T> command, Object option) {
         final CommandResult<T> cmdResult = command.execute(option);
-        return !cmdResult.isSuccess() ?
-                throwFor(command.getId(), cmdResult.getException()) :
-                cmdResult.getResult().orElseThrow(createThrowFor(command.getId()));
+        return cmdResult.isSuccess() ?
+                cmdResult.getResult().orElseThrow(createThrowFor(command.getId())) :
+                throwFor(command.getId(), cmdResult.getException());
     }
 
     /**

@@ -33,6 +33,7 @@ public interface PersonProfile {
      * @return the value
      */
     String getPhone();
+
     /**
      * To get person's location (City, State)
      *
@@ -57,8 +58,9 @@ public interface PersonProfile {
      * @see Optional#empty()
      */
     Optional<String> getExtra(String key);
-    default Optional<String> getExtra(ExtraKey key){
-        return key == null ? Optional.empty():getExtra(key.toString());
+
+    default Optional<String> getExtra(ExtraKey key) {
+        return key == null ? Optional.empty() : getExtra(key.name());
     }
 
     /**
