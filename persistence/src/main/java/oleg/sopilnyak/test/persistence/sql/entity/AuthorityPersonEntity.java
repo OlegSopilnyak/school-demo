@@ -25,6 +25,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
+    private Long profileId;
     private String title;
     private String firstName;
     private String lastName;

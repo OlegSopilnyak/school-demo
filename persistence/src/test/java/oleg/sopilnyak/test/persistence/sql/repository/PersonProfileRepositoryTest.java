@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
-class PersonProfileRepositoryIntegrationTest extends MysqlTestModelFactory {
+class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Autowired
     PersonProfileRepository repository;
 
@@ -93,7 +93,7 @@ class PersonProfileRepositoryIntegrationTest extends MysqlTestModelFactory {
         EmptyResultDataAccessException exception =
                 assertThrows(EmptyResultDataAccessException.class, () -> repository.deleteById(id));
 
-        assertThat(exception.getMessage()).contains("entity with id 101 exists!");
+        assertThat(exception.getMessage()).startsWith("No class ").contains("entity with id 101 exists!");
     }
 
     @Test
@@ -179,6 +179,6 @@ class PersonProfileRepositoryIntegrationTest extends MysqlTestModelFactory {
         EmptyResultDataAccessException exception =
                 assertThrows(EmptyResultDataAccessException.class, () -> repository.deleteById(id));
 
-        assertThat(exception.getMessage()).contains("entity with id 201 exists!");
+        assertThat(exception.getMessage()).startsWith("No class ").contains("entity with id 201 exists!");
     }
 }

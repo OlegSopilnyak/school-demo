@@ -16,11 +16,12 @@ import java.util.Set;
 import static java.util.Objects.isNull;
 
 @Data
-@EqualsAndHashCode(exclude = {"courseSet", "group"})
-@ToString(exclude = {"courseSet", "group"})
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@EqualsAndHashCode(exclude = {"courseSet", "group"})
+@ToString(exclude = {"courseSet", "group"})
+
 @Entity
 @Table(name = "students")
 public class StudentEntity implements Student {
@@ -30,10 +31,12 @@ public class StudentEntity implements Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
+    private Long profileId;
     private String firstName;
     private String lastName;
     private String gender;
     private String description;
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinTable(name = "student_course",
             joinColumns = {@JoinColumn(name = "fk_student")},
