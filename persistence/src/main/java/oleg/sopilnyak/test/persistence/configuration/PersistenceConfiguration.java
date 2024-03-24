@@ -21,12 +21,17 @@ import java.util.Properties;
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")
 public class PersistenceConfiguration {
-
     public static final String REAL_PERSISTENCE_FACADE = "realPersistenceFacade";
-    @Value("${school.spring.jpa.show-sql:false}")
-    private Boolean showSQL;
-    @Value("${school.hibernate.hbm2ddl.auto:validate}")
-    private String hbm2ddlAuto;
+    private final Boolean showSQL;
+    private final String hbm2ddlAuto;
+
+    public PersistenceConfiguration(
+            @Value("${school.spring.jpa.show-sql:false}") Boolean showSQL,
+            @Value("${school.hibernate.hbm2ddl.auto:validate}") String hbm2ddlAuto
+    ) {
+        this.showSQL = showSQL;
+        this.hbm2ddlAuto = hbm2ddlAuto;
+    }
 
     @Bean
     public SchoolEntityMapper entityMapper() {
