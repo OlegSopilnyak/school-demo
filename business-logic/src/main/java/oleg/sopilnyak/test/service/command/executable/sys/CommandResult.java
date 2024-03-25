@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable;
+package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

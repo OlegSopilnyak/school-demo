@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable;
 
 
+import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.CommandNotRegisteredInFactoryException;

@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsExc
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
 import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.service.command.executable.CommandResult;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
 import oleg.sopilnyak.test.service.command.id.set.AuthorityPersonCommands;
 
