@@ -9,16 +9,18 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 
+import static java.util.Objects.nonNull;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CommandContext<T> implements Context<T> {
     private SchoolCommand<T> command;
-    private State state = State.INIT;
+    private State state;
     private Object doParameter;
     private Object undoParameter;
-    private Optional<T> result = Optional.empty();
+    private Optional<T> result;
     private Exception exception;
     /**
      * To get the command associated with the context
@@ -64,8 +66,12 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setResult(T value) {
-        if(state == State.WORK && value != null) {
-            result = Optional.of(value);
+        setResult(nonNull(value) ? Optional.of(value) : Optional.empty());
+    }
+
+    public void setResult(Optional<T> result) {
+        if(state == State.WORK) {
+            this.result = result;
             state = State.DONE;
         }
     }
