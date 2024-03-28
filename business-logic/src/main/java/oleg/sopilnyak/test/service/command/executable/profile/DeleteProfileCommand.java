@@ -38,10 +38,10 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
                         .exception(new ProfileNotExistsException("Profile with ID:" + id + " is not exists."))
                         .success(false).build();
             }
-            final boolean deleted = persistenceFacade.deleteProfileById(id);
-            log.debug("Person profile with ID:{} is deleted '{}'", id, deleted);
+            persistenceFacade.deleteProfileById(id);
+            log.debug("Person profile with ID:{} is deleted '{}'", id, true);
             return CommandResult.<Boolean>builder()
-                    .result(Optional.of(deleted))
+                    .result(Optional.of(true))
                     .success(true)
                     .build();
         } catch (Exception e) {

@@ -99,7 +99,7 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
     @Transactional(propagation = Propagation.REQUIRED)
     default void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
         getLog().debug("Deleting the AuthorityPerson with ID:{}", id);
-        Optional<AuthorityPersonEntity> person = getAuthorityPersonRepository().findById(id);
+        final Optional<AuthorityPersonEntity> person = getAuthorityPersonRepository().findById(id);
         if (person.isEmpty()) {
             throw new AuthorityPersonIsNotExistsException("No authorization person with ID:" + id);
         } else if (!person.get().getFaculties().isEmpty()) {

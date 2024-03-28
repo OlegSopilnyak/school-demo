@@ -43,7 +43,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
     /**
      * To create person-profile
      *
-     * @param profile instance to create
+     * @param profile instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfile
      * @see Optional

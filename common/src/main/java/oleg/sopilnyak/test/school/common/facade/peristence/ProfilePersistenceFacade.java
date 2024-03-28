@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.facade.peristence;
 
+import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -88,7 +89,15 @@ public interface ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @return true if success
+     * @throws ProfileNotExistsException if profile with id is not exists
      */
-    boolean deleteProfileById(Long id);
+    void deleteProfileById(Long id) throws ProfileNotExistsException;
+
+    /**
+     * Convert profile to entity bean
+     *
+     * @param profile instance to convert
+     * @return instance ready to use in the repository
+     */
+    PersonProfile toEntity(PersonProfile profile);
 }

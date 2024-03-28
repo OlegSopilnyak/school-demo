@@ -3,8 +3,6 @@ package oleg.sopilnyak.test.service.command.type.base;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 
-import java.util.Optional;
-
 /**
  * Type: Command to execute the business-logic action
  */
@@ -27,8 +25,8 @@ public interface SchoolCommand<T> {
     /**
      * Cast parameter to particular type
      *
-     * @param parameter       actual parameter
-     * @param <P> type of the parameter
+     * @param parameter actual parameter
+     * @param <P>       type of the parameter
      * @return parameter cast to particular type
      */
     @SuppressWarnings("unchecked")
@@ -48,7 +46,6 @@ public interface SchoolCommand<T> {
         return CommandContext.<T>builder()
                 .command(this)
                 .state(Context.State.INIT)
-                .result(Optional.empty())
                 .build();
     }
 
@@ -67,7 +64,6 @@ public interface SchoolCommand<T> {
                 .command(this)
                 .doParameter(input)
                 .state(Context.State.READY)
-                .result(Optional.empty())
                 .build();
     }
 

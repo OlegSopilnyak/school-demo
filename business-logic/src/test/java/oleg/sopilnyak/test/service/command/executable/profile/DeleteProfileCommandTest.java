@@ -26,10 +26,9 @@ class DeleteProfileCommandTest {
     PersonProfile input;
 
     @Test
-    void shouldExecuteCommand() {
+    void shouldExecuteCommand() throws ProfileNotExistsException {
         long id = 404L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
-        when(persistenceFacade.deleteProfileById(id)).thenReturn(true);
 
         CommandResult<Boolean> result = command.execute(id);
 
@@ -43,7 +42,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand_ProfileNotExists() {
+    void shouldNotExecuteCommand_ProfileNotExists() throws ProfileNotExistsException {
         long id = 405L;
 
         CommandResult<Boolean> result = command.execute(id);
@@ -63,7 +62,6 @@ class DeleteProfileCommandTest {
         CommandResult<Boolean> result = command.execute("id");
 
         verify(persistenceFacade, never()).findProfileById(anyLong());
-        verify(persistenceFacade, never()).deleteProfileById(anyLong());
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();
@@ -72,9 +70,9 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand_NullId() {
+    void shouldNotExecuteCommand_NullId() throws ProfileNotExistsException {
         when(persistenceFacade.findProfileById(null)).thenReturn(Optional.of(input));
-        when(persistenceFacade.deleteProfileById(null)).thenThrow(new RuntimeException());
+        doThrow(new RuntimeException()).when(persistenceFacade).deleteProfileById(null);
 
         CommandResult<Boolean> result = command.execute(null);
 
@@ -88,10 +86,10 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand_ExceptionThrown() {
+    void shouldNotExecuteCommand_ExceptionThrown() throws ProfileNotExistsException {
         long id = 405L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
-        when(persistenceFacade.deleteProfileById(id)).thenThrow(new UnsupportedOperationException());
+        doThrow(new UnsupportedOperationException()).when(persistenceFacade).deleteProfileById(id);
 
         CommandResult<Boolean> result = command.execute(id);
 

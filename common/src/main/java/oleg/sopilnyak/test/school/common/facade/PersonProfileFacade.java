@@ -62,7 +62,7 @@ public interface PersonProfileFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    default Optional<StudentProfile> createOrUpdateProfile(StudentProfile input){
+    default Optional<StudentProfile> createOrUpdateProfile(StudentProfile input) {
         return createOrUpdatePersonProfile(input).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 
@@ -75,7 +75,7 @@ public interface PersonProfileFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input){
+    default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input) {
         return createOrUpdatePersonProfile(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 
@@ -112,7 +112,11 @@ public interface PersonProfileFacade {
         deleteProfileById(profile.getId());
     }
 
-    private static boolean isInvalid(PersonProfile instance) {
-        return isNull(instance) || isNull(instance.getId()) || instance.getId() <= 0L;
+    static boolean isInvalid(final PersonProfile instance) {
+        return isNull(instance) || isInvalidId(instance.getId());
+    }
+
+    static boolean isInvalidId(final Long instanceId) {
+        return isNull(instanceId) || instanceId <= 0L;
     }
 }

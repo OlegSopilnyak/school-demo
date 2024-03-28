@@ -353,10 +353,21 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @return true if success
+     * @throws ProfileNotExistsException if profile with id is not exists
      */
     @Override
-    public boolean deleteProfileById(Long id) {
-        return delegator.deleteProfileById(id);
+    public void deleteProfileById(Long id) throws ProfileNotExistsException{
+        delegator.deleteProfileById(id);
+    }
+
+    /**
+     * Convert profile to entity bean
+     *
+     * @param profile instance to convert
+     * @return instance ready to use in the repository
+     */
+    @Override
+    public PersonProfile toEntity(PersonProfile profile) {
+        return profile;
     }
 }

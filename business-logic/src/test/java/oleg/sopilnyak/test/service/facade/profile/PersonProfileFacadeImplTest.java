@@ -233,7 +233,7 @@ class PersonProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeletePersonProfile_ProfileNotExists() {
+    void shouldNotDeletePersonProfile_ProfileNotExists() throws ProfileNotExistsException {
         Long profileId = 415L;
 
         ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfileById(profileId));
@@ -261,7 +261,7 @@ class PersonProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_ProfileNotExists() {
+    void shouldNotDeletePersonProfileInstance_ProfileNotExists() throws ProfileNotExistsException {
         Long profileId = 416L;
         PersonProfile profile = mock(PersonProfile.class);
         when(profile.getId()).thenReturn(profileId);
@@ -276,7 +276,7 @@ class PersonProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_NullId() {
+    void shouldNotDeletePersonProfileInstance_NullId() throws ProfileNotExistsException {
         Long profileId = 416L;
         PersonProfile profile = mock(PersonProfile.class);
         when(profile.getId()).thenReturn(null);
@@ -291,7 +291,7 @@ class PersonProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeletePersonProfileInstance_NegativeId() {
+    void shouldNotDeletePersonProfileInstance_NegativeId() throws ProfileNotExistsException {
         Long profileId = -416L;
         PersonProfile profile = mock(PersonProfile.class);
         when(profile.getId()).thenReturn(profileId);

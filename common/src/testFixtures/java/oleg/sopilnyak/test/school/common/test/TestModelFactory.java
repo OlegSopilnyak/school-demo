@@ -289,6 +289,7 @@ public class TestModelFactory {
     protected void assertProfilesEquals(PrincipalProfile actual, PrincipalProfile expected) {
         assertProfilesEquals(actual, expected, true);
     }
+
     protected void assertProfilesEquals(PrincipalProfile actual, PrincipalProfile expected, boolean checkId) {
         assertPersonProfilesEquals(actual, expected, checkId);
         assertThat(actual.getLogin()).isEqualTo(expected.getLogin());
@@ -298,8 +299,9 @@ public class TestModelFactory {
     protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected) {
         assertProfilesEquals(actual, expected, true);
     }
+
     protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected, boolean checkId) {
-        assertPersonProfilesEquals(actual,  expected, checkId);
+        assertPersonProfilesEquals(actual, expected, checkId);
     }
 
     protected void assertPersonProfilesEquals(PersonProfile actual, PersonProfile expected, boolean checkId) {
@@ -513,7 +515,7 @@ public class TestModelFactory {
 
     @Data
     @SuperBuilder
-    protected static class FakeStudentsProfile implements StudentProfile {
+    protected static class FakePersonProfile implements PersonProfile {
         private Long id;
         private String photoUrl;
         private String email;
@@ -531,9 +533,15 @@ public class TestModelFactory {
     }
 
     @Data
+    @EqualsAndHashCode(callSuper=true)
+    @SuperBuilder
+    protected static class FakeStudentsProfile extends FakePersonProfile implements StudentProfile {
+    }
+
+    @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
-    protected static class FakePrincipalProfile extends FakeStudentsProfile implements PrincipalProfile {
+    protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
         private String login;
     }
 }

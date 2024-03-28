@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.persistence.sql.implementation.OrganizationPersistenceFacadeImplementation;
-import oleg.sopilnyak.test.persistence.sql.implementation.ProfilePersistenceFacadeImplementation;
+import oleg.sopilnyak.test.persistence.sql.implementation.ProfilePersistence;
 import oleg.sopilnyak.test.persistence.sql.implementation.StudentCourseLinkPersistenceFacadeImplementation;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.*;
@@ -27,7 +27,7 @@ import javax.annotation.Resource;
 public class PersistenceFacadeImpl implements PersistenceFacade,
         StudentCourseLinkPersistenceFacadeImplementation,
         OrganizationPersistenceFacadeImplementation,
-        ProfilePersistenceFacadeImplementation {
+        ProfilePersistence {
     @Resource
     StudentRepository studentRepository;
     @Resource
@@ -38,6 +38,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
     FacultyRepository facultyRepository;
     @Resource
     StudentsGroupRepository studentsGroupRepository;
+    @Resource
+    PersonProfileRepository<PersonProfileEntity> personProfileRepository;
     private final SchoolEntityMapper mapper;
     @Getter(AccessLevel.NONE)
     private PersistenceFacade delegate;
