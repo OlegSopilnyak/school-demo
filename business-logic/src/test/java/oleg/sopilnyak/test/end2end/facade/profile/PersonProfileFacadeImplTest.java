@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
@@ -309,7 +309,7 @@ class PersonProfileFacadeImplTest {
         return new ProfileCommandsFactory(
                 Set.of(
                         spy(new FindProfileCommand(persistenceFacade)),
-                        spy(new CreateProfileCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateProfileCommand(persistenceFacade)),
                         spy(new DeleteProfileCommand(persistenceFacade))
                 )
         );

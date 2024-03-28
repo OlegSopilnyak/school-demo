@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.configurations;
 import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
@@ -30,7 +30,7 @@ public class ProfileCommandsConfiguration {
 
     @Bean
     public ProfileCommand<Optional<PersonProfile>> createProfileCommand() {
-        return new CreateProfileCommand(persistenceFacade);
+        return new CreateOrUpdateProfileCommand(persistenceFacade);
     }
 
     @Bean
