@@ -1,12 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
+import java.util.List;
 import java.util.Optional;
 
 @Data
@@ -15,11 +13,15 @@ import java.util.Optional;
 @Builder
 public class CommandContext<T> implements Context<T> {
     private SchoolCommand<T> command;
+    @Setter(AccessLevel.NONE)
     private State state;
     private Object doParameter;
     private Object undoParameter;
     private T resultData;
     private Exception exception;
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private List<State> states;
 
     /**
      * To get the command associated with the context
@@ -33,6 +35,17 @@ public class CommandContext<T> implements Context<T> {
     }
 
     /**
+     * To set up current state of the context
+     *
+     * @param state new current context's state
+     */
+    @Override
+    public void setState(State state) {
+        states.add(state);
+        this.state = state;
+    }
+
+    /**
      * To set up parameter value for command execution
      *
      * @param parameter the value
@@ -41,7 +54,7 @@ public class CommandContext<T> implements Context<T> {
     public void setDoParameter(Object parameter) {
         this.doParameter = parameter;
         if (state == State.INIT) {
-            this.state = State.READY;
+            setState(State.READY);
         }
     }
 
@@ -78,7 +91,16 @@ public class CommandContext<T> implements Context<T> {
     public void setResult(T result) {
         if (state == State.WORK) {
             this.resultData = result;
-            state = State.DONE;
+            setState(State.DONE);
         }
+    }
+
+    /**
+     * To get states of context during context's life-cycle
+     *
+     * @return list of states
+     */
+    public List<State> getStates() {
+        return List.copyOf(states);
     }
 }

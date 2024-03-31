@@ -29,7 +29,7 @@ public class ProfileCommandsConfiguration {
     }
 
     @Bean
-    public ProfileCommand<Optional<PersonProfile>> createProfileCommand() {
+    public ProfileCommand<Optional<? extends PersonProfile>> createProfileCommand() {
         return new CreateOrUpdateProfileCommand(persistenceFacade);
     }
 

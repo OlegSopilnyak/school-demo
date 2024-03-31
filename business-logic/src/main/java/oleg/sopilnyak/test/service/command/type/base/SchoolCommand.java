@@ -3,6 +3,9 @@ package oleg.sopilnyak.test.service.command.type.base;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Type: Command to execute the business-logic action
  */
@@ -43,9 +46,11 @@ public interface SchoolCommand<T> {
      * @see Context.State#INIT
      */
     default Context<T> createContext() {
+        final Context.State startedFrom = Context.State.INIT;
         return CommandContext.<T>builder()
                 .command(this)
-                .state(Context.State.INIT)
+                .states(new ArrayList<>(List.of(startedFrom)))
+                .state(startedFrom)
                 .build();
     }
 
@@ -60,10 +65,12 @@ public interface SchoolCommand<T> {
      * @see Context.State#READY
      */
     default Context<T> createContext(Object input) {
+        final Context.State startedFrom = Context.State.READY;
         return CommandContext.<T>builder()
                 .command(this)
                 .doParameter(input)
-                .state(Context.State.READY)
+                .states(new ArrayList<>(List.of(startedFrom)))
+                .state(startedFrom)
                 .build();
     }
 

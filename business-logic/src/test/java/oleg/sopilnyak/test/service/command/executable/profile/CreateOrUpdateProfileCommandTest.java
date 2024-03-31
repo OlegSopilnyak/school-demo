@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldExecuteCommand() {
 
-        CommandResult<Optional<PersonProfile>> result = command.execute(input);
+        CommandResult<Optional<? extends PersonProfile>> result = command.execute(input);
 
         verify(persistenceFacade).saveProfile(input);
 
@@ -44,7 +45,7 @@ class CreateOrUpdateProfileCommandTest {
         doThrow(cannotExecute).when(persistenceFacade).saveProfile(input);
 
 
-        CommandResult<Optional<PersonProfile>> result = command.execute(input);
+        CommandResult<Optional<? extends PersonProfile>> result = command.execute(input);
 
         verify(persistenceFacade).saveProfile(input);
 
@@ -57,23 +58,26 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldExecuteRedoCommand_ExistsProfileId() {
         Long id = 700L;
-        when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
-        when(persistenceFacade.saveProfile(input)).thenReturn(Optional.of(input));
+        StudentProfile profile = mock(StudentProfile.class);
+        when(profile.getId()).thenReturn(id);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
+        when(persistenceFacade.toEntity(profile)).thenReturn(profile);
+        when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
 
         command.redo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
-        assertThat(context.getUndoParameter()).isEqualTo(input);
+        assertThat(context.getUndoParameter()).isEqualTo(profile);
     }
 
     @Test
     void shouldExecuteRedoCommand_NotExistsProfileId() {
         Long id = -700L;
-        when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.saveProfile(input)).thenReturn(Optional.of(input));
+        StudentProfile profile = mock(StudentProfile.class);
+        when(profile.getId()).thenReturn(id);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
+        when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
 
         command.redo(context);
 
@@ -83,7 +87,7 @@ class CreateOrUpdateProfileCommandTest {
 
     @Test
     void shouldNotExecuteRedoCommand_WrongState() {
-        Context<Optional<PersonProfile>> context = command.createContext();
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
 
         command.redo(context);
 
@@ -92,8 +96,7 @@ class CreateOrUpdateProfileCommandTest {
 
     @Test
     void shouldNotExecuteRedoCommand_NotSaved() {
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.saveProfile(input)).thenReturn(Optional.empty());
+        Context<Optional<? extends PersonProfile>> context = command.createContext(input);
 
         command.redo(context);
 
@@ -102,8 +105,9 @@ class CreateOrUpdateProfileCommandTest {
 
     @Test
     void shouldNotExecuteRedoCommand_SaveExceptionThrown() {
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.saveProfile(input)).thenThrow(new RuntimeException());
+        StudentProfile profile = mock(StudentProfile.class);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
+        when(persistenceFacade.save(profile)).thenThrow(new RuntimeException());
 
         command.redo(context);
 
@@ -115,7 +119,7 @@ class CreateOrUpdateProfileCommandTest {
     void shouldNotExecuteRedoCommand_FindEmptyResult() {
         Long id = 701L;
         when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(input);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.empty());
 
         command.redo(context);
@@ -128,7 +132,7 @@ class CreateOrUpdateProfileCommandTest {
     void shouldNotExecuteRedoCommand_FindExceptionThrown() {
         Long id = 702L;
         when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(input);
         when(persistenceFacade.findProfileById(id)).thenThrow(new RuntimeException());
 
         command.redo(context);
@@ -140,40 +144,43 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldExecuteUndoCommand_ExistsProfile() {
         Long id = 700L;
-        when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
-        when(persistenceFacade.saveProfile(input)).thenReturn(Optional.of(input));
+        StudentProfile profile = mock(StudentProfile.class);
+        when(profile.getId()).thenReturn(id);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
+        when(persistenceFacade.toEntity(profile)).thenReturn(profile);
+        when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
         command.redo(context);
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
-        assertThat(context.getUndoParameter()).isEqualTo(input);
+        assertThat(context.getUndoParameter()).isEqualTo(profile);
 
         command.undo(context);
 
-        verify(persistenceFacade, atLeastOnce()).saveProfile(input);
+        verify(persistenceFacade, atLeastOnce()).saveProfile(profile);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
     }
 
     @Test
     void shouldExecuteUndoCommand_NotWrongProfileId() throws ProfileNotExistsException {
         Long id = -700L;
-        when(input.getId()).thenReturn(id);
-        Context<Optional<PersonProfile>> context = command.createContext(input);
-        when(persistenceFacade.saveProfile(input)).thenReturn(Optional.of(input));
+        StudentProfile profile = mock(StudentProfile.class);
+        when(profile.getId()).thenReturn(id);
+        Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
+        when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
         command.redo(context);
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
 
         command.undo(context);
 
-        verify(persistenceFacade, atLeastOnce()).saveProfile(input);
+        verify(persistenceFacade, atLeastOnce()).save(profile);
         verify(persistenceFacade).deleteProfileById(id);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
     }
 
     @Test
     void shouldNotExecuteUndoCommand_WrongState() {
-        Context<Optional<PersonProfile>> context = command.createContext();
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
 
         command.undo(context);
 
@@ -182,7 +189,7 @@ class CreateOrUpdateProfileCommandTest {
 
     @Test
     void shouldNotExecuteUndoCommand_WrongUndoParameter() {
-        Context<Optional<PersonProfile>> context = command.createContext();
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
 
         command.undo(context);
@@ -194,7 +201,7 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldNotExecuteUndoCommand_DeleteByIdExceptionThrown() throws ProfileNotExistsException {
         Long id = 800L;
-        Context<Optional<PersonProfile>> context = command.createContext();
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(id);
         doThrow(new RuntimeException()).when(persistenceFacade).deleteProfileById(id);
@@ -207,7 +214,7 @@ class CreateOrUpdateProfileCommandTest {
 
     @Test
     void shouldNotExecuteUndoCommand_SaveProfileExceptionThrown() {
-        Context<Optional<PersonProfile>> context = command.createContext();
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(input);
         doThrow(new RuntimeException()).when(persistenceFacade).saveProfile(input);
