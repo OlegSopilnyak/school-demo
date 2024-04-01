@@ -145,13 +145,6 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     // private methods
-    private static boolean isWrongRedoStateOf(Context<Optional<? extends PersonProfile>> context) {
-        return context.getState() != Context.State.READY;
-    }
-
-    private static boolean isWrongUndoStateOf(Context<Optional<? extends PersonProfile>> context) {
-        return context.getState() != Context.State.DONE;
-    }
 
     private static void redoExecutionFailed(final String input, Context<Optional<? extends PersonProfile>> context) {
         final Exception saveError = new ProfileNotExistsException(input);

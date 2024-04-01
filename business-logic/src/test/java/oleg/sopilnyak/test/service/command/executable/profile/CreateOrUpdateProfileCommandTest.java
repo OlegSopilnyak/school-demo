@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
@@ -21,10 +22,13 @@ import static org.mockito.Mockito.*;
 class CreateOrUpdateProfileCommandTest {
     @Mock
     ProfilePersistenceFacade persistenceFacade;
+    @Spy
     @InjectMocks
     CreateOrUpdateProfileCommand command;
     @Mock
     PersonProfile input;
+    @Mock
+    StudentProfile profile;
 
     @Test
     void shouldExecuteCommand() {
@@ -58,7 +62,6 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldExecuteRedoCommand_ExistsProfileId() {
         Long id = 700L;
-        StudentProfile profile = mock(StudentProfile.class);
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
@@ -69,12 +72,12 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
     void shouldExecuteRedoCommand_NotExistsProfileId() {
         Long id = -700L;
-        StudentProfile profile = mock(StudentProfile.class);
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
@@ -83,6 +86,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
@@ -92,6 +96,7 @@ class CreateOrUpdateProfileCommandTest {
         command.redo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
@@ -101,11 +106,11 @@ class CreateOrUpdateProfileCommandTest {
         command.redo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
     void shouldNotExecuteRedoCommand_SaveExceptionThrown() {
-        StudentProfile profile = mock(StudentProfile.class);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenThrow(new RuntimeException());
 
@@ -113,6 +118,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
@@ -126,6 +132,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
@@ -139,12 +146,12 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).isWrongRedoStateOf(context);
     }
 
     @Test
     void shouldExecuteUndoCommand_ExistsProfile() {
         Long id = 700L;
-        StudentProfile profile = mock(StudentProfile.class);
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
@@ -156,6 +163,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undo(context);
 
+        verify(command).isWrongUndoStateOf(context);
         verify(persistenceFacade, atLeastOnce()).saveProfile(profile);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
     }
@@ -163,7 +171,6 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldExecuteUndoCommand_NotWrongProfileId() throws ProfileNotExistsException {
         Long id = -700L;
-        StudentProfile profile = mock(StudentProfile.class);
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
@@ -173,6 +180,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undo(context);
 
+        verify(command).isWrongUndoStateOf(context);
         verify(persistenceFacade, atLeastOnce()).save(profile);
         verify(persistenceFacade).deleteProfileById(id);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
@@ -185,6 +193,7 @@ class CreateOrUpdateProfileCommandTest {
         command.undo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        verify(command).isWrongUndoStateOf(context);
     }
 
     @Test
@@ -196,6 +205,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        verify(command).isWrongUndoStateOf(context);
     }
 
     @Test
@@ -210,6 +220,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).isWrongUndoStateOf(context);
     }
 
     @Test
@@ -223,5 +234,6 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).isWrongUndoStateOf(context);
     }
 }

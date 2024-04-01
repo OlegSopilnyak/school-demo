@@ -75,6 +75,19 @@ public interface SchoolCommand<T> {
     }
 
     /**
+     * Before redo context must be in READY state
+     *
+     * @param context command execution context
+     * @return true if redo is allowed
+     * @see Context
+     * @see Context#getState()
+     * @see Context.State#READY
+     */
+    default boolean isWrongRedoStateOf(Context<T> context) {
+        return context.getState() != Context.State.READY;
+    }
+
+    /**
      * To execute command
      *
      * @param context context of redo execution
@@ -82,6 +95,19 @@ public interface SchoolCommand<T> {
      */
     default void redo(Context<T> context) {
 
+    }
+
+    /**
+     * Before undo context must be in DONE state
+     *
+     * @param context command execution context
+     * @return true if undo is allowed
+     * @see Context
+     * @see Context#getState()
+     * @see Context.State#DONE
+     */
+    default boolean isWrongUndoStateOf(Context<T> context) {
+        return context.getState() != Context.State.DONE;
     }
 
 
@@ -95,4 +121,5 @@ public interface SchoolCommand<T> {
     default void undo(Context<T> context) {
 
     }
+
 }
