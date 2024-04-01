@@ -68,6 +68,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, profile, false);
         assertThat(createContext.getUndoParameter()).isEqualTo(resultProfile.getId());
 
+        verify(command).isWrongRedoStateOf(createContext);
         verify(persistenceFacade).save(profile);
         verify(persistenceFacade).saveProfile(profile);
         verify(createContext).setState(WORK);
