@@ -10,7 +10,6 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +67,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, profile, false);
         assertThat(createContext.getUndoParameter()).isEqualTo(resultProfile.getId());
 
-        verify(command).isWrongRedoStateOf(createContext);
+        verify(command).doRedo(createContext);
         verify(persistenceFacade).save(profile);
         verify(persistenceFacade).saveProfile(profile);
         verify(createContext).setState(WORK);
@@ -101,7 +100,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, toSave, true);
         assertThat(updateContext.getUndoParameter()).isEqualTo(toSave).isNotSameAs(toSave);
 
-        verify(command).isWrongRedoStateOf(updateContext);
+        verify(command).doRedo(updateContext);
         verify(persistenceFacade).save((StudentProfile) toSave);
         verify(persistenceFacade).saveProfile(toSave);
         verify(updateContext).setState(WORK);
@@ -133,7 +132,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertThat(updateContext.getUndoParameter()).isEqualTo(entity).isNotSameAs(entity);
         assertThat(updateContext.getException()).isInstanceOf(ProfileNotExistsException.class);
 
-        verify(command).isWrongRedoStateOf(updateContext);
+        verify(command).doRedo(updateContext);
         verify(updateContext).setState(WORK);
         verify(persistenceFacade).findProfileById(toSave.getId());
         verify(personProfileRepository).findById(toSave.getId());
@@ -156,7 +155,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.redo(context);
 
-        verify(command).isWrongRedoStateOf(context);
+        verify(command, never()).doRedo(context);
         verify(context, times(2)).getState();
         verify(context).setState(FAIL);
     }
@@ -180,7 +179,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, profile, false);
         Long resultId = resultProfile.getId();
 
-        verify(command).isWrongUndoStateOf(createContext);
+        verify(command).doUndo(createContext);
         verify(persistenceFacade).save(profile);
         verify(persistenceFacade).saveProfile(profile);
         verify(createContext, times(2)).setState(WORK);
@@ -219,7 +218,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertThat(resultProfile).isNotNull();
         assertPersonProfilesEquals(resultProfile, toSave, true);
 
-        verify(command).isWrongUndoStateOf(updateContext);
+        verify(command).doUndo(updateContext);
         verify(persistenceFacade).save((StudentProfile) toSave);
         verify(persistenceFacade, times(2)).saveProfile(toSave);
         verify(updateContext, times(2)).setState(WORK);
@@ -240,7 +239,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.undo(context);
 
-        verify(command).isWrongUndoStateOf(context);
+        verify(command, never()).doUndo(context);
         verify(context, times(2)).getState();
         verify(context).setState(FAIL);
     }

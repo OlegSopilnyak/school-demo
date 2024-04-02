@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
@@ -11,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -20,9 +22,15 @@ import static oleg.sopilnyak.test.school.common.facade.PersonProfileFacade.isInv
  * Command-Implementation: command to update person profile instance
  */
 @Slf4j
+@Getter
 @AllArgsConstructor
 public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? extends PersonProfile>> {
     private final ProfilePersistenceFacade persistenceFacade;
+
+    @Override
+    public Logger getLog() {
+        return log;
+    }
 
     /**
      * To update person's profile
@@ -52,24 +60,18 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     /**
-     * To execute command (update person's profile)
+     * To execute command redo with correct context state
      *
      * @param context context of redo execution
      * @see Context
+     * @see Context.State#WORK
      */
     @Override
-    public void redo(Context<Optional<? extends PersonProfile>> context) {
-        if (isWrongRedoStateOf(context)) {
-            log.warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-            return;
-        }
+    public void doRedo(Context<Optional<? extends PersonProfile>> context) {
         final Object parameter = context.getDoParameter();
-        context.setState(Context.State.WORK);
         try {
-            log.debug("Trying to update person profile {}", parameter.toString());
-            final PersonProfile input = commandParameter(parameter);
-            final Long inputId = input.getId();
+            log.debug("Trying to change person profile using: {}", parameter.toString());
+            final Long inputId = ((PersonProfile) parameter).getId();
             final boolean isCreateProfile = isInvalidId(inputId);
             if (!isCreateProfile) {
                 cacheProfileForRollback(context, inputId);
@@ -78,10 +80,10 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
             // checking execution context state
             if (context.getState() == Context.State.FAIL) {
                 // there was a fail during save person profile
-                log.error("Cannot save person profile {}", input);
+                log.error("Cannot save person profile {}", parameter);
                 rollbackCachedProfile(context);
             } else {
-                log.debug("Got saved \nperson profile {}\n for input {}", profile, input);
+                log.debug("Got saved \nperson profile {}\n for input {}", profile, parameter);
                 if (profile.isPresent()) {
                     context.setResult(profile);
                     if (isCreateProfile)
@@ -101,23 +103,17 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     /**
-     * To rollback command's execution (update person's profile)
+     * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
      */
     @Override
-    public void undo(Context<Optional<? extends PersonProfile>> context) {
-        if (isWrongUndoStateOf(context)) {
-            log.warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-            return;
-        }
+    public void doUndo(Context<Optional<? extends PersonProfile>> context) {
         final Object parameter = context.getUndoParameter();
-        log.debug("Trying to delete person profile {}", parameter);
-        context.setState(Context.State.WORK);
         try {
+            log.debug("Trying to undo person profile changes using: {}", parameter.toString());
             if (parameter instanceof Long id) {
                 persistenceFacade.deleteProfileById(id);
                 log.debug("Got deleted \nperson profile ID:{}\n success: {}", id, true);
@@ -145,26 +141,10 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     // private methods
-
     private static void redoExecutionFailed(final String input, Context<Optional<? extends PersonProfile>> context) {
         final Exception saveError = new ProfileNotExistsException(input);
         saveError.fillInStackTrace();
         context.failed(saveError);
-    }
-
-    private void cacheProfileForRollback(Context<Optional<? extends PersonProfile>> context, Long inputId) throws ProfileNotExistsException {
-        final PersonProfile existsProfile = persistenceFacade.findProfileById(inputId)
-                .orElseThrow(() -> new ProfileNotExistsException("PersonProfile with ID:" + inputId + " is not exists."));
-        // saving the copy of exists entity for undo operation
-        context.setUndoParameter(persistenceFacade.toEntity(existsProfile));
-    }
-
-    private void rollbackCachedProfile(Context<Optional<? extends PersonProfile>> context) {
-        final Object oldProfile = context.getUndoParameter();
-        if (oldProfile instanceof PersonProfile profile) {
-            log.debug("Restoring changed value of profile {}", profile);
-            persistenceFacade.saveProfile(profile);
-        }
     }
 
     private Optional<? extends PersonProfile> savePersonProfile(Context<Optional<? extends PersonProfile>> context) {
@@ -178,5 +158,4 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
             return Optional.empty();
         }
     }
-
 }

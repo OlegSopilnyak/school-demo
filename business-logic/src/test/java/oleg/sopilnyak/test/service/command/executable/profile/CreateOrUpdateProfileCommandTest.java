@@ -72,7 +72,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -86,7 +86,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -96,7 +96,7 @@ class CreateOrUpdateProfileCommandTest {
         command.redo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command, never()).doRedo(context);
     }
 
     @Test
@@ -106,7 +106,7 @@ class CreateOrUpdateProfileCommandTest {
         command.redo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -118,7 +118,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -132,7 +132,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -146,7 +146,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).isWrongRedoStateOf(context);
+        verify(command).doRedo(context);
     }
 
     @Test
@@ -163,7 +163,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undo(context);
 
-        verify(command).isWrongUndoStateOf(context);
+        verify(command).doUndo(context);
         verify(persistenceFacade, atLeastOnce()).saveProfile(profile);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
     }
@@ -180,7 +180,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undo(context);
 
-        verify(command).isWrongUndoStateOf(context);
+        verify(command).doUndo(context);
         verify(persistenceFacade, atLeastOnce()).save(profile);
         verify(persistenceFacade).deleteProfileById(id);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
@@ -193,7 +193,7 @@ class CreateOrUpdateProfileCommandTest {
         command.undo(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        verify(command).isWrongUndoStateOf(context);
+        verify(command, never()).doUndo(context);
     }
 
     @Test
@@ -205,7 +205,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        verify(command).isWrongUndoStateOf(context);
+        verify(command).doUndo(context);
     }
 
     @Test
@@ -220,7 +220,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).isWrongUndoStateOf(context);
+        verify(command).doUndo(context);
     }
 
     @Test
@@ -234,6 +234,6 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).isWrongUndoStateOf(context);
+        verify(command).doUndo(context);
     }
 }

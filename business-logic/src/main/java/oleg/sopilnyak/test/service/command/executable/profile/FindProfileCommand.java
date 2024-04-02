@@ -1,12 +1,14 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -14,9 +16,15 @@ import java.util.Optional;
  * Command-Implementation: command to get profile by id
  */
 @Slf4j
+@Getter
 @AllArgsConstructor
 public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile>> {
     private final ProfilePersistenceFacade persistenceFacade;
+
+    @Override
+    public Logger getLog() {
+        return log;
+    }
 
     /**
      * To find profile (no matter type) by id
