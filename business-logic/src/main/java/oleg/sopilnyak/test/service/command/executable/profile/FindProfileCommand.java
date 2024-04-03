@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -50,6 +51,28 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
             return CommandResult.<Optional<PersonProfile>>builder()
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context.State#WORK
+     */
+    @Override
+    public void doRedo(Context<Optional<PersonProfile>> context) {
+        final Object parameter = context.getDoParameter();
+        try {
+            log.debug("Trying to find person profile by ID:{}", parameter.toString());
+            final Long id = commandParameter(parameter);
+            final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
+            log.debug("Got profile {} by ID:{}", profile, id);
+            context.setResult(profile);
+        } catch (Exception e) {
+            log.error("Cannot find the profile by ID:{}", parameter, e);
+            context.failed(e);
         }
     }
 

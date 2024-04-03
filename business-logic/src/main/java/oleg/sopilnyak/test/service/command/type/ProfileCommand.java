@@ -82,7 +82,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context.State#WORK
      */
     default void doRedo(Context<T> context){
-
+        context.setState(Context.State.DONE);
     }
 
     /**
@@ -112,6 +112,6 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context#getUndoParameter()
      */
     default void doUndo(Context<T> context){
-
+        context.setState(Context.State.UNDONE);
     }
 }
