@@ -9,7 +9,6 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -137,7 +136,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      */
     @Override
     public String getId() {
-        return ProfileCommands.CREATE_OR_UPDATE.id();
+        return ProfileCommand.CREATE_OR_UPDATE_COMMAND_ID;
     }
 
     // private methods

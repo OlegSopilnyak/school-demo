@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFac
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
-import oleg.sopilnyak.test.service.command.id.set.ProfileCommands;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
@@ -83,6 +82,6 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      */
     @Override
     public String getId() {
-        return ProfileCommands.FIND_BY_ID.id();
+        return ProfileCommand.FIND_BY_ID_COMMAND_ID;
     }
 }

@@ -11,6 +11,9 @@ import org.slf4j.Logger;
  * Type for school-profile command
  */
 public interface ProfileCommand<T> extends SchoolCommand<T> {
+    String FIND_BY_ID_COMMAND_ID="profile.person.findById";
+    String DELETE_BY_ID_COMMAND_ID="profile.person.deleteById";
+    String CREATE_OR_UPDATE_COMMAND_ID="profile.person.createOrUpdate";
     /**
      * To get reference to profile's persistence facade
      *

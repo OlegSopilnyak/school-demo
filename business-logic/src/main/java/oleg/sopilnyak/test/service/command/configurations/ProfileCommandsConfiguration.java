@@ -23,17 +23,17 @@ import java.util.Optional;
 public class ProfileCommandsConfiguration {
     private final ProfilePersistenceFacade persistenceFacade;
 
-    @Bean
+    @Bean(ProfileCommand.FIND_BY_ID_COMMAND_ID)
     public ProfileCommand<Optional<PersonProfile>> findProfileCommand() {
         return new FindProfileCommand(persistenceFacade);
     }
 
-    @Bean
+    @Bean(ProfileCommand.CREATE_OR_UPDATE_COMMAND_ID)
     public ProfileCommand<Optional<? extends PersonProfile>> createProfileCommand() {
         return new CreateOrUpdateProfileCommand(persistenceFacade);
     }
 
-    @Bean
+    @Bean(ProfileCommand.DELETE_BY_ID_COMMAND_ID)
     public ProfileCommand<Boolean> deleteProfileCommand() {
         return new DeleteProfileCommand(persistenceFacade);
     }
