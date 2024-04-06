@@ -144,6 +144,21 @@ class DeleteProfileCommandTest {
     }
 
     @Test
+    void shouldNotExecuteCommandRedo_WrongParameterType() throws ProfileNotExistsException {
+        Context<Boolean> context = command.createContext("id");
+
+        command.redo(context);
+
+        assertThat(context.getResult()).contains(false);
+        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        assertThat(context.getException()).isInstanceOf(ClassCastException.class);
+
+        verify(command).doRedo(context);
+        verify(persistenceFacade, never()).findProfileById(anyLong());
+        verify(persistenceFacade, never()).deleteProfileById(anyLong());
+    }
+
+    @Test
     void shouldNotExecuteCommandRedo_ExceptionThrown() throws ProfileNotExistsException {
         long id = 416L;
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);

@@ -95,6 +95,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.redo(context);
 
+        assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         verify(command, never()).doRedo(context);
     }
@@ -105,7 +106,9 @@ class CreateOrUpdateProfileCommandTest {
 
         command.redo(context);
 
+        assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+
         verify(command).doRedo(context);
     }
 
@@ -146,6 +149,17 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).doRedo(context);
+    }
+
+    @Test
+    void shouldNotExecuteRedoCommand_WrongParameterType() {
+        Context<Optional<? extends PersonProfile>> context = command.createContext("input");
+
+        command.redo(context);
+
+        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        assertThat(context.getException()).isInstanceOf(ClassCastException.class);
         verify(command).doRedo(context);
     }
 
@@ -199,6 +213,20 @@ class CreateOrUpdateProfileCommandTest {
     @Test
     void shouldNotExecuteUndoCommand_WrongUndoParameter() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
+        context.setState(Context.State.DONE);
+
+        command.undo(context);
+
+        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        verify(command).doUndo(context);
+    }
+
+    @Test
+    void shouldNotExecuteUndoCommand_WrongParameterType() {
+        Context<Optional<? extends PersonProfile>> context = command.createContext();
+        context.setState(Context.State.WORK);
+        context.setUndoParameter("param");
         context.setState(Context.State.DONE);
 
         command.undo(context);

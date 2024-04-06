@@ -26,7 +26,7 @@ public interface CommandExecutor {
      * @see CommandsFactory
      * @see SchoolCommand
      */
-    static <T> T executeSimpleCommand(String commandId, Object option, CommandsFactory factory) {
+    static  <T,P> T executeSimpleCommand(String commandId, Object option, CommandsFactory<P> factory) {
         final SchoolCommand<T> command = takeValidCommand(commandId, factory);
         return executeCommand(command, option);
     }

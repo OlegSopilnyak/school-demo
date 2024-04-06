@@ -3,7 +3,6 @@ package oleg.sopilnyak.test.end2end.service.command.executable.profile;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -26,7 +25,6 @@ import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -126,26 +124,22 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.redo(updateContext);
 
-        Optional<? extends PersonProfile> result = updateContext.getResult().orElse(null);
-        assertThat(result).isNull();
-        assertThat(updateContext.getState()).isEqualTo(FAIL);
+        assertThat(updateContext.getResult().orElse(null)).isEmpty();
+        assertThat(updateContext.getState()).isEqualTo(DONE);
         assertThat(updateContext.getUndoParameter()).isEqualTo(entity).isNotSameAs(entity);
-        assertThat(updateContext.getException()).isInstanceOf(ProfileNotExistsException.class);
+        assertThat(updateContext.getException()).isNull();
 
         verify(command).doRedo(updateContext);
         verify(updateContext).setState(WORK);
         verify(persistenceFacade).findProfileById(toSave.getId());
         verify(personProfileRepository).findById(toSave.getId());
-        verify(updateContext).setUndoParameter(any(PersonProfileEntity.class));
+        verify(updateContext).setUndoParameter(entity);
 
         verify(persistenceFacade).save((PrincipalProfile) toSave);
         verify(persistenceFacade).saveProfile(toSave);
         verify(personProfileRepository).saveAndFlush(toSave);
         verify(personProfileRepository).deleteById(anyLong());
         verify(personProfileRepository).flush();
-
-        verify(updateContext).setState(FAIL);
-        verify(updateContext).setException(any(ProfileNotExistsException.class));
     }
 
     @Test

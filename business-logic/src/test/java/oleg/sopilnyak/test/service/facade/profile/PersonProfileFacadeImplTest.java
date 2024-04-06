@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileComma
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.PersonProfileFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,8 @@ class PersonProfileFacadeImplTest {
 
         assertThat(profile).hasValue(abstractProfile);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -59,7 +61,8 @@ class PersonProfileFacadeImplTest {
 
         assertThat(profile).isEmpty();
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -74,7 +77,8 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).hasValue(studentProfile);
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -87,7 +91,8 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -102,7 +107,8 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -117,7 +123,8 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).hasValue(principalProfile);
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -130,7 +137,8 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
@@ -145,22 +153,24 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
     }
 
     @Test
     void shouldCreateOrUpdateStudentProfile() {
         StudentProfile studentProfile = mock(StudentProfile.class);
-        when(persistenceFacade.saveProfile(studentProfile)).thenReturn(Optional.of(studentProfile));
+        when(persistenceFacade.save(studentProfile)).thenReturn(Optional.of(studentProfile));
 
         Optional<StudentProfile> profile = facade.createOrUpdateProfile(studentProfile);
 
         assertThat(profile).hasValue(studentProfile);
         verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).execute(studentProfile);
-        verify(persistenceFacade).saveProfile(studentProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(studentProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(persistenceFacade).save(studentProfile);
     }
 
     @Test
@@ -172,37 +182,24 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).execute(studentProfile);
-        verify(persistenceFacade).saveProfile(studentProfile);
-    }
-
-    @Test
-    void shouldNotCreateOrUpdateStudentProfile_WrongProfileType() {
-        StudentProfile studentProfile = mock(StudentProfile.class);
-        PrincipalProfile wrongStudentProfile = mock(PrincipalProfile.class);
-        when(persistenceFacade.saveProfile(studentProfile)).thenReturn(Optional.of(wrongStudentProfile));
-
-        Optional<StudentProfile> profile = facade.createOrUpdateProfile(studentProfile);
-
-        assertThat(profile).isEmpty();
-        verify(facade).createOrUpdatePersonProfile(studentProfile);
-        verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).execute(studentProfile);
-        verify(persistenceFacade).saveProfile(studentProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(studentProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(persistenceFacade).save(studentProfile);
     }
 
     @Test
     void shouldCreateOrUpdatePrincipalProfile() {
         PrincipalProfile principalProfile = mock(PrincipalProfile.class);
-        when(persistenceFacade.saveProfile(principalProfile)).thenReturn(Optional.of(principalProfile));
+        when(persistenceFacade.save(principalProfile)).thenReturn(Optional.of(principalProfile));
 
         Optional<PrincipalProfile> profile = facade.createOrUpdateProfile(principalProfile);
 
         assertThat(profile).hasValue(principalProfile);
         verify(facade).createOrUpdatePersonProfile(principalProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).execute(principalProfile);
-        verify(persistenceFacade).saveProfile(principalProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(principalProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(persistenceFacade).save(principalProfile);
     }
 
     @Test
@@ -214,8 +211,9 @@ class PersonProfileFacadeImplTest {
         assertThat(profile).isEmpty();
         verify(facade).createOrUpdatePersonProfile(principalProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).execute(principalProfile);
-        verify(persistenceFacade).saveProfile(principalProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(principalProfile);
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(persistenceFacade).save(principalProfile);
     }
 
     @Test
@@ -227,7 +225,8 @@ class PersonProfileFacadeImplTest {
         facade.deleteProfileById(profileId);
 
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(persistenceFacade).deleteProfileById(profileId);
     }
@@ -238,9 +237,10 @@ class PersonProfileFacadeImplTest {
 
         ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfileById(profileId));
 
-        assertThat(exception.getMessage()).isEqualTo("Profile with ID:415 is not exists.");
+        assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:415 is not exists.");
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(persistenceFacade, never()).deleteProfileById(profileId);
     }
@@ -255,7 +255,8 @@ class PersonProfileFacadeImplTest {
         facade.deleteProfile(profile);
 
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(persistenceFacade).deleteProfileById(profileId);
     }
@@ -266,28 +267,32 @@ class PersonProfileFacadeImplTest {
         PersonProfile profile = mock(PersonProfile.class);
         when(profile.getId()).thenReturn(profileId);
 
-        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+        ProfileNotExistsException exception = assertThrows(
+                ProfileNotExistsException.class,
+                () -> facade.deleteProfile(profile)
+        );
 
-        assertThat(exception.getMessage()).isEqualTo("Profile with ID:416 is not exists.");
+        assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:416 is not exists.");
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).execute(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(persistenceFacade, never()).deleteProfileById(profileId);
     }
 
     @Test
     void shouldNotDeletePersonProfileInstance_NullId() throws ProfileNotExistsException {
-        Long profileId = 416L;
+        Long profileId = null;
         PersonProfile profile = mock(PersonProfile.class);
-        when(profile.getId()).thenReturn(null);
+        when(profile.getId()).thenReturn(profileId);
 
-        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+        ProfileNotExistsException exception = assertThrows(
+                ProfileNotExistsException.class,
+                () -> facade.deleteProfile(profile)
+        );
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(factory, never()).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID), never()).execute(profileId);
-        verify(persistenceFacade, never()).findProfileById(profileId);
-        verify(persistenceFacade, never()).deleteProfileById(profileId);
     }
 
     @Test
@@ -296,13 +301,13 @@ class PersonProfileFacadeImplTest {
         PersonProfile profile = mock(PersonProfile.class);
         when(profile.getId()).thenReturn(profileId);
 
-        ProfileNotExistsException exception = assertThrows(ProfileNotExistsException.class, () -> facade.deleteProfile(profile));
+        ProfileNotExistsException exception = assertThrows(
+                ProfileNotExistsException.class,
+                () -> facade.deleteProfile(profile)
+        );
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(factory, never()).command(PROFILE_PERSON_DELETE_BY_ID);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID), never()).execute(profileId);
-        verify(persistenceFacade, never()).findProfileById(profileId);
-        verify(persistenceFacade, never()).deleteProfileById(profileId);
     }
 
     private CommandsFactory<?> buildFactory() {

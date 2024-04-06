@@ -82,16 +82,13 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
                 log.error("Cannot save person profile {}", parameter);
                 rollbackCachedProfile(context);
             } else {
+                // save person profile operation is done successfully
                 log.debug("Got saved \nperson profile {}\n for input {}", profile, parameter);
-                if (profile.isPresent()) {
-                    context.setResult(profile);
-                    if (isCreateProfile)
-                        // saving created profile.id for undo operation
-                        context.setUndoParameter(profile.get().getId());
-                } else {
-                    rollbackCachedProfile(context);
-                    redoExecutionFailed("PersonProfile with ID:" + inputId
-                            + (isCreateProfile ? " is not created." : " is not updated."), context);
+                context.setResult(profile);
+
+                if (profile.isPresent() && isCreateProfile) {
+                    // saving created profile.id for undo operation
+                    context.setUndoParameter(profile.get().getId());
                 }
             }
         } catch (Exception e) {

@@ -11,9 +11,23 @@ import org.slf4j.Logger;
  * Type for school-profile command
  */
 public interface ProfileCommand<T> extends SchoolCommand<T> {
-    String FIND_BY_ID_COMMAND_ID="profile.person.findById";
-    String DELETE_BY_ID_COMMAND_ID="profile.person.deleteById";
-    String CREATE_OR_UPDATE_COMMAND_ID="profile.person.createOrUpdate";
+    /**
+     * ID of findById profile command
+     */
+    String FIND_BY_ID_COMMAND_ID = "profile.person.findById";
+    /**
+     * ID of deleteById profile command
+     */
+    String DELETE_BY_ID_COMMAND_ID = "profile.person.deleteById";
+    /**
+     * ID of createOrUpdate profile command
+     */
+    String CREATE_OR_UPDATE_COMMAND_ID = "profile.person.createOrUpdate";
+    /**
+     * The name of commands-factory SpringBean
+     */
+    String FACTORY_BEAN_NAME = "profileCommandsFactory";
+
     /**
      * To get reference to profile's persistence facade
      *
@@ -21,12 +35,13 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      */
     ProfilePersistenceFacade getPersistenceFacade();
 
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
     Logger getLog();
 
-    /**
-     * The name of commands-factory SpringBean
-     */
-    String FACTORY_BEAN_NAME = "profileCommandsFactory";
 
     /**
      * To cache into context old value of the profile for possible roll;back
@@ -84,7 +99,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context.State#WORK
      */
-    default void doRedo(Context<T> context){
+    default void doRedo(Context<T> context) {
         context.setState(Context.State.DONE);
     }
 
@@ -114,7 +129,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void doUndo(Context<T> context){
+    default void doUndo(Context<T> context) {
         context.setState(Context.State.UNDONE);
     }
 }
