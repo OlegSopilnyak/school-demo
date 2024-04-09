@@ -102,6 +102,23 @@ public interface Context<T> {
         setException(exception);
     }
 
+
+    /**
+     * To add change-context-state listener
+     *
+     * @param listener the listener of context-state changes
+     * @see StateChangedListener
+     */
+    void addStateListener(StateChangedListener listener);
+
+    /**
+     * To remove change-context-state listener
+     *
+     * @param listener the listener of context-state changes
+     * @see StateChangedListener
+     */
+    void removeStateListener(StateChangedListener listener);
+
     /**
      * The enumeration of context's state
      */
@@ -118,5 +135,13 @@ public interface Context<T> {
         FAIL,
         // command undo(...) is finished successfully
         UNDONE
+    }
+
+    /**
+     * The listener of context's state changing
+     *
+     */
+    interface StateChangedListener {
+        void stateChanged(Context<?> context, State previous, State newOne);
     }
 }

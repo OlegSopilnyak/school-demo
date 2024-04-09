@@ -4,6 +4,8 @@ import lombok.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,36 +15,35 @@ import java.util.Optional;
 @Builder
 public class CommandContext<T> implements Context<T> {
     private SchoolCommand<T> command;
-    @Setter(AccessLevel.NONE)
-    private State state;
     private Object doParameter;
     private Object undoParameter;
     private T resultData;
     private Exception exception;
+
+    @Setter(AccessLevel.NONE)
+    private State state;
+
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private List<State> states;
+    @Builder.Default
+    private final List<State> states = Collections.synchronizedList(new LinkedList<>());
 
-    /**
-     * To get the command associated with the context
-     *
-     * @return command instance
-     * @see SchoolCommand
-     */
-    @Override
-    public SchoolCommand<T> getCommand() {
-        return command;
-    }
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @Builder.Default
+    private final List<StateChangedListener> listeners = Collections.synchronizedList(new LinkedList<>());
 
     /**
      * To set up current state of the context
      *
-     * @param state new current context's state
+     * @param newState new current context's state
      */
     @Override
-    public void setState(State state) {
-        states.add(state);
-        this.state = state;
+    public void setState(final State newState) {
+        final State oldState = this.state;
+        this.states.add(newState);
+        this.state = newState;
+        notifyStateChangedListeners(oldState, newState);
     }
 
     /**
@@ -102,5 +103,32 @@ public class CommandContext<T> implements Context<T> {
      */
     public List<State> getStates() {
         return List.copyOf(states);
+    }
+
+    /**
+     * To add change context state listener
+     *
+     * @param listener the listener of context-state changes
+     * @see StateChangedListener
+     */
+    @Override
+    public void addStateListener(final StateChangedListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * To remove change-context-state listener
+     *
+     * @param listener the listener of context-state changes
+     * @see StateChangedListener
+     */
+    @Override
+    public void removeStateListener(final StateChangedListener listener) {
+        listeners.remove(listener);
+    }
+
+    // private methods
+    private void notifyStateChangedListeners(final State old, final State state) {
+        this.listeners.forEach(listener -> listener.stateChanged(this, old, state));
     }
 }
