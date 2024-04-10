@@ -88,16 +88,7 @@ public interface Context<T> {
      * @see Exception
      */
     void setException(Exception exception);
-
-    /**
-     * Command execution for context is failed
-     *
-     * @param exception thrown exception during command execution
-     * @see Exception
-     * @see Context##setState(State)
-     * @see Context.State#FAIL
-     */
-    default void failed(Exception exception) {
+     default void failed(Exception exception) {
         setState(State.FAIL);
         setException(exception);
     }
@@ -133,6 +124,8 @@ public interface Context<T> {
         DONE,
         // command execution is finished unsuccessfully
         FAIL,
+        // further command execution is canceled
+        CANCEL,
         // command undo(...) is finished successfully
         UNDONE
     }

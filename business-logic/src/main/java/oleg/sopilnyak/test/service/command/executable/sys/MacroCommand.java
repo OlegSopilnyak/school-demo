@@ -90,22 +90,9 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             final Lock failLock = new ReentrantLock();
 
             final Deque<Context> nested = wrapper.getNestedContexts();
+
             final CountDownLatch executed = new CountDownLatch(nested.size());
-            final Context.StateChangedListener listener = (ctx, previous, newOne) -> {
-                switch (newOne) {
-                    case INIT, READY, WORK, UNDONE -> {
-                    }
-                    case DONE -> {
-                        addContextInto(done, ctx, doneLock);
-                        executed.countDown();
-                    }
-                    case FAIL -> {
-                        addContextInto(fail, ctx, failLock);
-                        executed.countDown();
-                    }
-                    default -> throw new IllegalStateException("Unexpected value: " + newOne);
-                }
-            };
+            final Context.StateChangedListener listener = buildListener(done, doneLock, executed, fail, failLock);
 
             // run nested contexts
             runNestedContexts(nested, listener);
@@ -121,7 +108,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
                 // exists failed contexts
                 context.failed(fail.getFirst().getException());
                 // rollback all done contexts
-                rollback(done);
+                rollbackNestedDoneContexts(done);
             }
         } catch (Exception e) {
             getLog().error("Cannot do redo of '{}' with input {}", getId(), input, e);
@@ -142,7 +129,11 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         getLog().debug("Do undo for {}", parameter);
         try {
             final Deque<Context> done = commandParameter(parameter);
-            rollback(done);
+            rollbackNestedDoneContexts(done);
+            final Optional<Context> fail = done.stream().filter(ctx -> ctx.getState() == Context.State.FAIL).findFirst();
+            if (fail.isPresent()) {
+                throw fail.get().getException();
+            }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             getLog().error("Cannot run redo for command:'{}'", getId(), e);
@@ -167,8 +158,8 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     /**
      * To run macro-command's nested contexts
      *
-     * @param nestedContexts   nested contexts collection
-     * @param listener listener of context-state-change
+     * @param nestedContexts nested contexts collection
+     * @param listener       listener of context-state-change
      * @see MacroCommand#createContext(Object)
      * @see Deque
      * @see LinkedList
@@ -199,7 +190,43 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         return context;
     }
 
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param doneNestedContexts collection of contexts with DONE state
+     * @see Context.State#DONE
+     */
+    protected void rollbackNestedDoneContexts(final Deque<Context> doneNestedContexts) {
+        doneNestedContexts.forEach(this::rollbackContext);
+    }
+
     // private methods
+    private void rollbackContext(Context nestedContext) {
+        try {
+            nestedContext.getCommand().undo(nestedContext);
+        } catch (Exception e) {
+            getLog().error("Cannot rollback for {}", nestedContext, e);
+            nestedContext.failed(e);
+        }
+    }
+
+    private static Context.StateChangedListener buildListener(Deque<Context> done, Lock doneLock, CountDownLatch executed, Deque<Context> fail, Lock failLock) {
+        return (ctx, previous, newOne) -> {
+            switch (newOne) {
+                case INIT, READY, WORK, UNDONE, CANCEL -> {
+                }
+                case DONE -> {
+                    addContextInto(done, ctx, doneLock);
+                    executed.countDown();
+                }
+                case FAIL -> {
+                    addContextInto(fail, ctx, failLock);
+                    executed.countDown();
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + newOne);
+            }
+        };
+    }
 
     private static void addContextInto(final Deque<Context> contexts, final Context context, final Lock locker) {
         locker.lock();
@@ -208,9 +235,5 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         } finally {
             locker.unlock();
         }
-    }
-
-    private static void rollback(final Deque<Context> done) {
-        done.forEach(ctx -> ctx.getCommand().undo(ctx));
     }
 }
