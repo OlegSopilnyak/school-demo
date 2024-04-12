@@ -24,7 +24,9 @@ public class FindAllFacultiesCommand implements OrganizationCommand<Set<Faculty>
      *
      * @param parameter not used
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Set<Faculty>> execute(Object parameter) {
         try {

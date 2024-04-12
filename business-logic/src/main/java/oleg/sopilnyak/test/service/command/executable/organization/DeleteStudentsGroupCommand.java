@@ -25,7 +25,9 @@ public class DeleteStudentsGroupCommand implements OrganizationCommand<Boolean> 
      *
      * @param parameter system students-group-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {

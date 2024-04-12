@@ -35,14 +35,14 @@ public interface Context<T> {
      *
      * @return the value of parameter
      */
-    Object getDoParameter();
+    Object getRedoParameter();
 
     /**
      * To set up parameter value for command execution
      *
      * @param parameter the value
      */
-    void setDoParameter(Object parameter);
+    void setRedoParameter(Object parameter);
 
     /**
      * To get parameter value for rollback previous command execution changes

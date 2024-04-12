@@ -23,7 +23,9 @@ public class CreateOrUpdateFacultyCommand implements OrganizationCommand<Optiona
      *
      * @param parameter faculty instance to save
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<Faculty>> execute(Object parameter) {
         try {

@@ -23,7 +23,9 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
      *
      * @param parameter student instance
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {

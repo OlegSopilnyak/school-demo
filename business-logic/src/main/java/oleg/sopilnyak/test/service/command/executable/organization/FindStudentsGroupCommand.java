@@ -23,7 +23,9 @@ public class FindStudentsGroupCommand implements OrganizationCommand<Optional<St
      *
      * @param parameter system students-group-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<StudentsGroup>> execute(Object parameter) {
         try {

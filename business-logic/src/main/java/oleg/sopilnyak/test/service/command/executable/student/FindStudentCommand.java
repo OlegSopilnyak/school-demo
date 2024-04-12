@@ -23,7 +23,9 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
      *
      * @param parameter system student-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<Student>> execute(Object parameter) {
         try {

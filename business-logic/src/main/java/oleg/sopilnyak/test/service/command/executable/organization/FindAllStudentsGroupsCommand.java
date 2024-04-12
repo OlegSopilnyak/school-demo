@@ -24,7 +24,9 @@ public class FindAllStudentsGroupsCommand implements OrganizationCommand<Set<Stu
      *
      * @param parameter not used
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Set<StudentsGroup>> execute(Object parameter) {
         try {

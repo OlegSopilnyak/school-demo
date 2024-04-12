@@ -9,13 +9,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class CommandContext<T> implements Context<T> {
     private SchoolCommand<T> command;
-    private Object doParameter;
+    private Object redoParameter;
     private Object undoParameter;
     private T resultData;
     private Exception exception;
@@ -52,8 +54,8 @@ public class CommandContext<T> implements Context<T> {
      * @param parameter the value
      */
     @Override
-    public void setDoParameter(Object parameter) {
-        this.doParameter = parameter;
+    public void setRedoParameter(Object parameter) {
+        this.redoParameter = parameter;
         if (state == State.INIT) {
             setState(State.READY);
         }
@@ -129,6 +131,7 @@ public class CommandContext<T> implements Context<T> {
 
     // private methods
     private void notifyStateChangedListeners(final State old, final State state) {
+        if (isNull(this.listeners)) return;
         this.listeners.forEach(listener -> listener.stateChanged(this, old, state));
     }
 }

@@ -12,7 +12,11 @@ public interface SchoolCommand<T> {
      *
      * @param parameter command's parameter
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
+     * @see this#redo(Context)
+     * @see this#undo(Context)
      */
+    @Deprecated(forRemoval = true)
     CommandResult<T> execute(Object parameter);
 
     /**
@@ -54,12 +58,12 @@ public interface SchoolCommand<T> {
      * @param input context's doParameter value
      * @return context instance
      * @see Context
-     * @see Context#getDoParameter()
+     * @see Context#getRedoParameter()
      * @see CommandContext
      * @see Context.State#READY
      */
     default Context<T> createContext(Object input) {
-        final Context<T> context = CommandContext.<T>builder().command(this).doParameter(input).build();
+        final Context<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;

@@ -23,7 +23,9 @@ public class CreateOrUpdateAuthorityPersonCommand implements OrganizationCommand
      *
      * @param parameter authority person instance to save
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<AuthorityPerson>> execute(Object parameter) {
         try {

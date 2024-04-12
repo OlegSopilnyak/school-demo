@@ -25,7 +25,9 @@ public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Studen
      *
      * @param parameter not used
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Set<Student>> execute(Object parameter) {
         try {

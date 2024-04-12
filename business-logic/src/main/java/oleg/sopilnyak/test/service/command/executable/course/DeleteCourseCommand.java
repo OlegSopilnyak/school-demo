@@ -26,7 +26,9 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
      *
      * @param parameter system course-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {

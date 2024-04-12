@@ -23,7 +23,9 @@ public class CreateOrUpdateStudentsGroupCommand implements OrganizationCommand<O
      *
      * @param parameter students group instance to save
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<StudentsGroup>> execute(Object parameter) {
         try {

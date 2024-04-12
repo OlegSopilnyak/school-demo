@@ -33,7 +33,9 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      * @return execution's result
      * @see Optional
      * @see PersonProfile
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<PersonProfile>> execute(Object parameter) {
         try {
@@ -62,7 +64,7 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      */
     @Override
     public void doRedo(Context<Optional<PersonProfile>> context) {
-        final Object parameter = context.getDoParameter();
+        final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find person profile by ID:{}", parameter.toString());
             final Long id = commandParameter(parameter);

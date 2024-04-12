@@ -24,7 +24,9 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
      *
      * @param parameter not used
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Set<Course>> execute(Object parameter) {
         try {

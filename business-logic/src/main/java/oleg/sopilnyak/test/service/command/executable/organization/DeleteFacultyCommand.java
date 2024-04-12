@@ -25,7 +25,9 @@ public class DeleteFacultyCommand implements OrganizationCommand<Boolean> {
      *
      * @param parameter system faculty-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {

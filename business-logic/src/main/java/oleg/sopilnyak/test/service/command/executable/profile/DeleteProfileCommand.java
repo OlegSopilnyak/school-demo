@@ -33,7 +33,9 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      * @param parameter system-id of person-profile to delete
      * @return execution's result
      * @see PersonProfile
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {
@@ -79,7 +81,7 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      */
     @Override
     public void doRedo(Context<Boolean> context) {
-        final Object parameter = context.getDoParameter();
+        final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to delete person profile using: {}", parameter.toString());
             final Long id = commandParameter(parameter);

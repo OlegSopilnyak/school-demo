@@ -23,7 +23,9 @@ public class FindFacultyCommand implements OrganizationCommand<Optional<Faculty>
      *
      * @param parameter system faculty-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<Faculty>> execute(Object parameter) {
         try {

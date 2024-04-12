@@ -38,7 +38,9 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      * @return execution's result
      * @see Optional
      * @see PrincipalProfile
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<? extends PersonProfile>> execute(Object parameter) {
         try {
@@ -67,7 +69,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      */
     @Override
     public void doRedo(Context<Optional<? extends PersonProfile>> context) {
-        final Object parameter = context.getDoParameter();
+        final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to change person profile using: {}", parameter.toString());
             final Long inputId = ((PersonProfile) parameter).getId();
@@ -144,7 +146,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     private Optional<? extends PersonProfile> savePersonProfile(Context<Optional<? extends PersonProfile>> context) {
-        final Object input = context.getDoParameter();
+        final Object input = context.getRedoParameter();
         if (input instanceof PrincipalProfile principalProfile) {
             return persistenceFacade.save(principalProfile);
         } else if (input instanceof StudentProfile studentProfile) {

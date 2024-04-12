@@ -24,7 +24,9 @@ public class FindAllAuthorityPersonsCommand implements OrganizationCommand<Set<A
      *
      * @param parameter not used
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Set<AuthorityPerson>> execute(Object parameter) {
         try {

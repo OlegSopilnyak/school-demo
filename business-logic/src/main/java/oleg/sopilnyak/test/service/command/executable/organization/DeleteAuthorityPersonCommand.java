@@ -25,7 +25,9 @@ public class DeleteAuthorityPersonCommand implements OrganizationCommand<Boolean
      *
      * @param parameter system authority-person-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {

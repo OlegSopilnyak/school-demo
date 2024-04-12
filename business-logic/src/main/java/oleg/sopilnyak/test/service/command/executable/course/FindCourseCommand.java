@@ -23,7 +23,9 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
      *
      * @param parameter system course-id
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Optional<Course>> execute(Object parameter) {
         try {

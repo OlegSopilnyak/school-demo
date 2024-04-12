@@ -27,7 +27,9 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      *
      * @param parameter the array of [student-id, course-id]
      * @return execution's result
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     @Override
     public CommandResult<Boolean> execute(Object parameter) {
         try {

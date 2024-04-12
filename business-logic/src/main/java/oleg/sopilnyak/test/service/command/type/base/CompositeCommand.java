@@ -1,8 +1,14 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandParameterWrapper;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of commands
@@ -31,14 +37,56 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
     void add(SchoolCommand command);
 
     /**
-     * To create the execution context (make contexts for each command)
+     * To create command's context with doParameter
      *
-     * @param parameter command's input parameter value
-     * @return built context
-     * @see CompositeCommand#commands()
+     * @param input context's doParameter value
+     * @return context instance
+     * @see Context
+     * @see Context#getRedoParameter()
+     * @see CommandContext
+     * @see Context.State#READY
+     * @see SchoolCommand#createContext()
      */
-    default Context<T> prepareContexts(Object parameter) {
-        return createContext(parameter);
+    @Override
+    default Context<T> createContext(Object input) {
+        final Context<T> context = createContext();
+        // assemble input parameter for redo
+        context.setRedoParameter(CommandParameterWrapper.builder()
+                .input(input)
+                .nestedContexts(commands().stream()
+                        .map(cmd -> prepareContext(cmd, input))
+                        .collect(Collectors.toCollection(LinkedList::new)))
+                .build());
+        return context;
+    }
+
+    /**
+     * To prepare context for particular command
+     *
+     * @param nestedCommand     nested command instance
+     * @param macroCommandInput macro-command input parameter
+     * @return built context of the command for input parameter
+     * @see SchoolCommand
+     * @see SchoolCommand#createContext(Object)
+     * @see Context
+     */
+    default Context prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
+        return nestedCommand.createContext(macroCommandInput);
+    }
+
+    /**
+     * To execute command's business-logic
+     *
+     * @param parameter command's parameter
+     * @return execution's result
+     * @see this#redo(Context)
+     * @see this#undo(Context)
+     * @deprecated commands are going to work through redo/undo
+     */
+    @Deprecated(forRemoval = true)
+    @Override
+    default CommandResult<T> execute(Object parameter) {
+        return CommandResult.<T>builder().success(false).result(Optional.empty()).build();
     }
 
     /**
