@@ -29,7 +29,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @see Context.State#CANCEL
      */
     @Override
-    protected void redoNested(Deque<Context> nestedContexts, Context.StateChangedListener listener) {
+    protected void redoNestedContexts(Deque<Context> nestedContexts, Context.StateChangedListener listener) {
         final AtomicBoolean failed = new AtomicBoolean(false);
         final AtomicReference<Context> previousContext = new AtomicReference<>(null);
         nestedContexts.forEach(current -> {
@@ -40,7 +40,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
                 current.removeStateListener(listener);
             } else {
                 // transfer previous context result to current one
-                configureCurrentDoInput(previousContext.get(), current);
+                configureCurrentRedoParameter(previousContext.get(), current);
                 // current redo context executing
                 final Context afterRedo = redoNestedCommand(current, listener);
                 if (afterRedo.getState() == Context.State.DONE) {
@@ -84,7 +84,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
     }
 
     // private methods
-    private void configureCurrentDoInput(Context source, Context target) {
+    private void configureCurrentRedoParameter(Context source, Context target) {
         if (isNull(source) || source.getState() != Context.State.DONE) return;
         final SchoolCommand<?> sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;

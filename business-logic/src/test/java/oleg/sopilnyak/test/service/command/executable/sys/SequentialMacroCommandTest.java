@@ -65,7 +65,7 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(intCommand, parameter * 10);
         Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
 
-        command.redoNested(wrapper.getNestedContexts(), listener);
+        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(command.commands().size());
         // check contexts states
@@ -108,7 +108,7 @@ class SequentialMacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(booleanCommand).redo(any(Context.class));
         Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
 
-        command.redoNested(wrapper.getNestedContexts(), listener);
+        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(1);
         Context nestedContext;
@@ -147,7 +147,7 @@ class SequentialMacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).redo(any(Context.class));
         Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
 
-        command.redoNested(wrapper.getNestedContexts(), listener);
+        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isZero();
         Context nestedContext;

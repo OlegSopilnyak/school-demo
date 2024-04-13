@@ -79,7 +79,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
                 }
             };
             // run redo for nested contexts
-            redoNested(nested, listener);
+            redoNestedContexts(nested, listener);
             // wait for all commands finished
             executed.await();
             // after run, done and fail dequeues processing
@@ -101,7 +101,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see Context
      * @see Context.StateChangedListener
      */
-    protected void redoNested(final Deque<Context> nestedContexts, final Context.StateChangedListener listener) {
+    protected void redoNestedContexts(final Deque<Context> nestedContexts, final Context.StateChangedListener listener) {
         nestedContexts.forEach(ctx -> redoNestedCommand(ctx, listener));
     }
 
