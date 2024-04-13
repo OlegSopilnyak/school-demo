@@ -158,21 +158,22 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     protected Deque<Context> rollbackNestedDoneContexts(final Deque<Context> nestedContexts) {
         return nestedContexts.stream()
-                .map(this::rollbackDoneContext)
+                .map(ctx -> rollbackDoneContext(ctx.getCommand(), ctx))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
      * To rollback changes for contexts with state DONE
      *
+     * @param nestedCommand nested command to do undo with nested context
      * @param nestedContext nested context with DONE state
      * @see SchoolCommand#undo(Context)
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    protected Context rollbackDoneContext(final Context nestedContext) {
+    protected Context rollbackDoneContext(SchoolCommand nestedCommand, final Context nestedContext) {
         try {
-            nestedContext.getCommand().undo(nestedContext);
+            nestedCommand.undo(nestedContext);
         } catch (Exception e) {
             getLog().error("Cannot rollback for {}", nestedContext, e);
             nestedContext.failed(e);

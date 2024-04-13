@@ -32,20 +32,24 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
     protected void redoNested(Deque<Context> nestedContexts, Context.StateChangedListener listener) {
         final AtomicBoolean failed = new AtomicBoolean(false);
         final AtomicReference<Context> previousContext = new AtomicReference<>(null);
-        nestedContexts.forEach(context -> {
+        nestedContexts.forEach(current -> {
             if (failed.get()) {
                 // previous command's redo context.state had Context.State.FAIL
-                context.addStateListener(listener);
-                context.setState(Context.State.CANCEL);
-                context.removeStateListener(listener);
+                current.addStateListener(listener);
+                current.setState(Context.State.CANCEL);
+                current.removeStateListener(listener);
             } else {
                 // transfer previous context result to current one
-                configureCurrentDoInput(previousContext.get(), context);
+                configureCurrentDoInput(previousContext.get(), current);
                 // current redo context executing
-                final Context current = redoNestedCommand(context, listener);
-                final boolean isGoodResult = current.getState()  == Context.State.DONE;
-                if (isGoodResult) previousContext.getAndSet(current);
-                failed.compareAndSet(false, !isGoodResult);
+                final Context afterRedo = redoNestedCommand(current, listener);
+                if (afterRedo.getState() == Context.State.DONE) {
+                    // redo successful
+                    previousContext.getAndSet(afterRedo);
+                } else {
+                    // redo failed
+                    failed.compareAndSet(false, true);
+                }
             }
         });
     }
@@ -54,8 +58,11 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * To transfer result form previous command to current context
      *
      * @param previousCommand previous successfully executed command
-     * @param previousResult the result of previous command execution
-     * @param targetContext current command context to execute
+     * @param previousResult  the result of previous command execution
+     * @param targetContext   current command context to execute command's redo
+     * @see Context
+     * @see SchoolCommand#
+     * @see Optional
      */
     protected void transferPreviousRedoResult(SchoolCommand previousCommand, Optional previousResult, Context targetContext) {
     }
@@ -69,9 +76,11 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      */
     @Override
     protected Deque<Context> rollbackNestedDoneContexts(Deque<Context> nestedContexts) {
-        final List<Context> reverted = nestedContexts.stream().toList();
+        final List<Context> reverted = new ArrayList<>(nestedContexts);
         Collections.reverse(reverted);
-        return reverted.stream().map(this::rollbackDoneContext).collect(Collectors.toCollection(LinkedList::new));
+        return reverted.stream()
+                .map(ctx -> rollbackDoneContext(ctx.getCommand(), ctx))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
