@@ -89,7 +89,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(profile.orElse(null), inputProfile, false);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -104,7 +104,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(profile).isEmpty();
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -122,7 +122,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -138,7 +138,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -156,7 +156,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -174,7 +174,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -190,7 +190,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -208,7 +208,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).findById(profileId);
         verify(factory).command(PROFILE_PERSON_FIND_BY_ID);
         verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
     }
@@ -224,7 +224,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(studentProfile);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).saveProfile(studentProfile);
         verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
     }
@@ -243,7 +243,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).createOrUpdatePersonProfile(null);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(null);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
     }
 
     @Test
@@ -260,7 +260,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).createOrUpdatePersonProfile(studentProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(studentProfile);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).saveProfile(studentProfile);
         verify(personProfileRepository, atLeastOnce()).saveAndFlush(any(PersonProfileEntity.class));
     }
@@ -276,7 +276,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).createOrUpdatePersonProfile(principalProfile);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(principalProfile);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).saveProfile(principalProfile);
         verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
     }
@@ -295,7 +295,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).createOrUpdatePersonProfile(null);
         verify(factory).command(PROFILE_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).createContext(null);
-        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
     }
 
     @Test
@@ -311,7 +311,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(database.findProfileById(profileId)).isEmpty();
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
         verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository, atLeastOnce()).findById(profileId);
         verify(persistenceFacade).deleteProfileById(profileId);
@@ -329,7 +329,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:415 is not exists.");
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
         verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
         verify(persistenceFacade, never()).deleteProfileById(profileId);
@@ -348,7 +348,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(database.findProfileById(profileId)).isEmpty();
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
         verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository, atLeastOnce()).findById(profileId);
         verify(persistenceFacade).deleteProfileById(profileId);
@@ -367,7 +367,7 @@ class PersonProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:416 is not exists.");
         verify(factory).command(PROFILE_PERSON_DELETE_BY_ID);
         verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).createContext(profileId);
-        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).redo(any(Context.class));
+        verify(factory.command(PROFILE_PERSON_DELETE_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findProfileById(profileId);
         verify(personProfileRepository).findById(profileId);
         verify(persistenceFacade, never()).deleteProfileById(profileId);

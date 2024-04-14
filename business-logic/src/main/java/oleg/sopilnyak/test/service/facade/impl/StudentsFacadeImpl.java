@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
@@ -89,7 +88,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(studentId);
         if (cmdResult.isSuccess()) {
-            return cmdResult.getResult().orElseThrow(CommandExecutor.createThrowFor(commandId));
+            return cmdResult.getResult().orElseThrow(createThrowFor(commandId));
         } else {
             final Exception executionException = cmdResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);

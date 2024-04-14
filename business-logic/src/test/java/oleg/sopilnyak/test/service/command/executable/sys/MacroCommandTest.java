@@ -155,9 +155,9 @@ class MacroCommandTest {
         assertThat(macroContext.getCommand()).isEqualTo(command);
         assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
 
-        command.redo(macroContext);
+        command.doCommand(macroContext);
 
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
         assertThat(macroContext.getState()).isEqualTo(DONE);
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
@@ -173,9 +173,9 @@ class MacroCommandTest {
 
         verify(command).redoNestedContexts(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         verify(command).redoNestedCommand(eq(doubleContext), any(Context.StateChangedListener.class));
-        verify(doubleCommand).redo(doubleContext);
+        verify(doubleCommand).doCommand(doubleContext);
         verify(command).redoNestedCommand(eq(intContext), any(Context.StateChangedListener.class));
-        verify(intCommand).redo(intContext);
+        verify(intCommand).doCommand(intContext);
     }
 
     @Test
@@ -192,11 +192,11 @@ class MacroCommandTest {
 
         wrapper.getNestedContexts().clear();
 
-        command.redo(macroContext);
+        command.doCommand(macroContext);
 
         assertThat(macroContext.getState()).isEqualTo(FAIL);
         assertThat(macroContext.getException()).isInstanceOf(NoSuchElementException.class);
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
         verify(command).redoNestedContexts(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
     }
 
@@ -211,11 +211,11 @@ class MacroCommandTest {
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
 
-        command.redo(macroContext);
+        command.doCommand(macroContext);
 
         assertThat(macroContext.getState()).isEqualTo(FAIL);
         assertThat(macroContext.getException()).isInstanceOf(NullPointerException.class);
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
         verify(command).redoNestedContexts(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
     }
 
@@ -223,12 +223,12 @@ class MacroCommandTest {
     void shouldDontMacroCommandRedo_MacroContextThrows() {
         int parameter = 128;
         Context<Integer> macroContext = command.createContext(parameter);
-        doThrow(UnableExecuteCommandException.class).when(command).doRedo(macroContext);
+        doThrow(UnableExecuteCommandException.class).when(command).executeDo(macroContext);
 
-        Exception exception = assertThrows(UnableExecuteCommandException.class, () -> command.redo(macroContext));
+        Exception exception = assertThrows(UnableExecuteCommandException.class, () -> command.doCommand(macroContext));
 
         assertThat(exception).isInstanceOf(UnableExecuteCommandException.class);
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
     }
 
     @Test
@@ -237,16 +237,16 @@ class MacroCommandTest {
         allowCreateRealContexts(parameter);
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
-        doThrow(UnableExecuteCommandException.class).when(intCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(intCommand).doCommand(any(Context.class));
         Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
         assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
 
-        command.redo(macroContext);
+        command.doCommand(macroContext);
 
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         Context<?> doubleContext = wrapper.getNestedContexts().getFirst();
@@ -259,22 +259,22 @@ class MacroCommandTest {
         verify(command).redoNestedContexts(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
 
         verify(command).redoNestedCommand(eq(doubleContext), any(Context.StateChangedListener.class));
-        verify(doubleCommand).redo(doubleContext);
+        verify(doubleCommand).doCommand(doubleContext);
         verify(command).redoNestedCommand(eq(intContext), any(Context.StateChangedListener.class));
-        verify(intCommand).redo(intContext);
+        verify(intCommand).doCommand(intContext);
 
         assertThat(macroContext.getState()).isEqualTo(FAIL);
         assertThat(macroContext.getException()).isEqualTo(intContext.getException());
         verify(command).rollbackNestedDoneContexts(any(Deque.class));
-        verify(doubleCommand).undo(wrapper.getNestedContexts().pop());
-        verify(booleanCommand).undo(wrapper.getNestedContexts().pop());
+        verify(doubleCommand).undoCommand(wrapper.getNestedContexts().pop());
+        verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
     }
 
     @Test
     void shouldDontMacroCommandRedo_FirstNestedContextThrows() {
         int parameter = 109;
         allowCreateRealContexts(parameter);
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
         configureNestedRedoResult(intCommand, parameter * 10);
         configureNestedRedoResult(booleanCommand, true);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -283,9 +283,9 @@ class MacroCommandTest {
         assertThat(macroContext.getCommand()).isEqualTo(command);
         assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
 
-        command.redo(macroContext);
+        command.doCommand(macroContext);
 
-        verify(command).doRedo(macroContext);
+        verify(command).executeDo(macroContext);
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         Context<?> doubleContext = wrapper.getNestedContexts().getFirst();
@@ -298,16 +298,16 @@ class MacroCommandTest {
         verify(command).redoNestedContexts(any(Deque.class), any(Context.StateChangedListener.class));
 
         verify(command).redoNestedCommand(eq(doubleContext), any(Context.StateChangedListener.class));
-        verify(doubleCommand).redo(doubleContext);
+        verify(doubleCommand).doCommand(doubleContext);
         verify(command).redoNestedCommand(eq(intContext), any(Context.StateChangedListener.class));
-        verify(intCommand).redo(intContext);
+        verify(intCommand).doCommand(intContext);
 
         assertThat(macroContext.getState()).isEqualTo(FAIL);
         assertThat(macroContext.getException()).isEqualTo(doubleContext.getException());
         verify(command).rollbackNestedDoneContexts(any(Deque.class));
         wrapper.getNestedContexts().pop();
-        verify(booleanCommand).undo(wrapper.getNestedContexts().pop());
-        verify(intCommand).undo(wrapper.getNestedContexts().pop());
+        verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
+        verify(intCommand).undoCommand(wrapper.getNestedContexts().pop());
     }
 
     @Test
@@ -318,7 +318,7 @@ class MacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        command.redo(macroContext);
+        command.doCommand(macroContext);
         assertThat(macroContext.getState()).isEqualTo(DONE);
         Deque<Context<?>> nestedDoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
@@ -326,14 +326,14 @@ class MacroCommandTest {
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        command.undo(macroContext);
+        command.undoCommand(macroContext);
 
         assertThat(macroContext.getState()).isEqualTo(UNDONE);
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(UNDONE));
 
-        verify(command).doUndo(macroContext);
+        verify(command).executeUndo(macroContext);
         verify(command).rollbackNestedDoneContexts(nestedDoneContexts);
-        nestedDoneContexts.forEach(ctx -> verify(ctx.getCommand()).undo(ctx));
+        nestedDoneContexts.forEach(ctx -> verify(ctx.getCommand()).undoCommand(ctx));
     }
 
     @Test
@@ -344,16 +344,16 @@ class MacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        command.redo(macroContext);
+        command.doCommand(macroContext);
         assertThat(macroContext.getState()).isEqualTo(DONE);
         Deque<Context<?>> nestedDoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
-        doThrow(UnableExecuteCommandException.class).when(command).doUndo(macroContext);
+        doThrow(UnableExecuteCommandException.class).when(command).executeUndo(macroContext);
 
-        Exception exception = assertThrows(UnableExecuteCommandException.class, () -> command.undo(macroContext));
+        Exception exception = assertThrows(UnableExecuteCommandException.class, () -> command.undoCommand(macroContext));
 
         assertThat(exception).isInstanceOf(UnableExecuteCommandException.class);
-        verify(command).doUndo(macroContext);
+        verify(command).executeUndo(macroContext);
         verify(command, never()).rollbackNestedDoneContexts(nestedDoneContexts);
     }
 
@@ -365,17 +365,17 @@ class MacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        command.redo(macroContext);
+        command.doCommand(macroContext);
         assertThat(macroContext.getState()).isEqualTo(DONE);
         Deque<Context<?>> nestedDoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
         configureNestedUndoStatus(doubleCommand);
-        doThrow(UnableExecuteCommandException.class).when(booleanCommand).undo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(booleanCommand).undoCommand(any(Context.class));
         configureNestedUndoStatus(intCommand);
 
-        command.undo(macroContext);
+        command.undoCommand(macroContext);
 
-        verify(command).doUndo(macroContext);
+        verify(command).executeUndo(macroContext);
         verify(command).rollbackNestedDoneContexts(nestedDoneContexts);
         Context current = nestedDoneContexts.pop();
         assertThat(current.getState()).isEqualTo(UNDONE);
@@ -435,7 +435,7 @@ class MacroCommandTest {
 
         assertThat(counter.get()).isEqualTo(3);
         wrapper.getNestedContexts().forEach(ctx -> {
-            verify(ctx.getCommand()).redo(ctx);
+            verify(ctx.getCommand()).doCommand(ctx);
             assertThat(ctx.getState()).isEqualTo(DONE);
         });
     }
@@ -450,7 +450,7 @@ class MacroCommandTest {
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
-        doThrow(UnableExecuteCommandException.class).when(intCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(intCommand).doCommand(any(Context.class));
         Context.StateChangedListener listener = (context, previous, newOne) -> {
             if (newOne == DONE) {
                 counter.incrementAndGet();
@@ -461,13 +461,13 @@ class MacroCommandTest {
 
         assertThat(counter.get()).isEqualTo(2);
         Context current = wrapper.getNestedContexts().pop();
-        verify(current.getCommand()).redo(current);
+        verify(current.getCommand()).doCommand(current);
         assertThat(current.getState()).isEqualTo(DONE);
         current = wrapper.getNestedContexts().pop();
-        verify(current.getCommand()).redo(current);
+        verify(current.getCommand()).doCommand(current);
         assertThat(current.getState()).isEqualTo(DONE);
         current = wrapper.getNestedContexts().pop();
-        verify(current.getCommand()).redo(current);
+        verify(current.getCommand()).doCommand(current);
         assertThat(current.getState()).isEqualTo(FAIL);
         assertThat(current.getException()).isInstanceOf(UnableExecuteCommandException.class);
     }
@@ -490,7 +490,7 @@ class MacroCommandTest {
         Context<?> done = command.redoNestedCommand(wrapper.getNestedContexts().getFirst(), listener);
 
         assertThat(counter.get()).isEqualTo(1);
-        verify(done.getCommand()).redo(done);
+        verify(done.getCommand()).doCommand(done);
         assertThat(done.getState()).isEqualTo(DONE);
 
     }
@@ -519,7 +519,7 @@ class MacroCommandTest {
         Context<Integer> macroContext = command.createContext(parameter);
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
         Context.StateChangedListener listener = (context, previous, newOne) -> {
             if (newOne == DONE) {
                 counter.incrementAndGet();
@@ -558,7 +558,7 @@ class MacroCommandTest {
             context.setState(WORK);
             context.setResult(result);
             return null;
-        }).when(nextedCommand).redo(any(Context.class));
+        }).when(nextedCommand).doCommand(any(Context.class));
     }
 
     private <T> void configureNestedUndoStatus(SchoolCommand<T> nextedCommand) {
@@ -567,6 +567,6 @@ class MacroCommandTest {
             context.setState(WORK);
             context.setState(UNDONE);
             return null;
-        }).when(nextedCommand).undo(any(Context.class));
+        }).when(nextedCommand).undoCommand(any(Context.class));
     }
 }

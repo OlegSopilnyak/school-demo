@@ -45,7 +45,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
                 configureCurrentRedoParameter(previousContext.get(), current);
                 // current redo context executing
                 final Context<?> afterRedo = redoNestedCommand(current, listener);
-                if (afterRedo.getState() == Context.State.DONE) {
+                if (afterRedo.isDone()) {
                     // redo successful
                     previousContext.getAndSet(afterRedo);
                 } else {
@@ -87,7 +87,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
 
     // private methods
     private void configureCurrentRedoParameter(Context<?> source, Context<?> target) {
-        if (isNull(source) || source.getState() != Context.State.DONE) return;
+        if (isNull(source) || !source.isDone()) return;
         final SchoolCommand<?> sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
         final Optional<?> sourceCommandResult = source.getResult();

@@ -13,8 +13,8 @@ public interface SchoolCommand<T> {
      * @param parameter command's parameter
      * @return execution's result
      * @deprecated commands are going to work through redo/undo
-     * @see this#redo(Context)
-     * @see this#undo(Context)
+     * @see this#doCommand(Context)
+     * @see this#undoCommand(Context)
      */
     @Deprecated(forRemoval = true)
     CommandResult<T> execute(Object parameter);
@@ -83,12 +83,12 @@ public interface SchoolCommand<T> {
     }
 
     /**
-     * To execute command
+     * To do command execution with Context
      *
      * @param context context of redo execution
      * @see Context
      */
-    default void redo(Context<?> context) {
+    default void doCommand(Context<?> context) {
 
     }
 
@@ -102,7 +102,7 @@ public interface SchoolCommand<T> {
      * @see Context.State#DONE
      */
     default boolean isWrongUndoStateOf(Context<?> context) {
-        return context.getState() != Context.State.DONE;
+        return !context.isDone();
     }
 
 
@@ -113,7 +113,7 @@ public interface SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void undo(Context<?> context) {
+    default void undoCommand(Context<?> context) {
 
     }
 

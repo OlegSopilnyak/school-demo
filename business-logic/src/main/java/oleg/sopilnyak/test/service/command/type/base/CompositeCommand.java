@@ -81,8 +81,8 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      *
      * @param parameter command's parameter
      * @return execution's result
-     * @see this#redo(Context)
-     * @see this#undo(Context)
+     * @see this#doCommand(Context)
+     * @see this#undoCommand(Context)
      * @deprecated commands are going to work through redo/undo
      */
     @Deprecated(forRemoval = true)
@@ -98,14 +98,14 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      */
     @Override
-    default void redo(Context<?> context) {
+    default void doCommand(Context<?> context) {
         if (isWrongRedoStateOf(context)) {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         } else {
             // start redo with correct context state
             context.setState(Context.State.WORK);
-            doRedo(context);
+            executeDo(context);
         }
     }
 
@@ -116,7 +116,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context.State#WORK
      */
-    default void doRedo(Context<?> context) {
+    default void executeDo(Context<?> context) {
         context.setState(Context.State.DONE);
     }
 
@@ -128,14 +128,14 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context#getUndoParameter()
      */
     @Override
-    default void undo(Context<?> context) {
+    default void undoCommand(Context<?> context) {
         if (isWrongUndoStateOf(context)) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         } else {
             // start undo with correct context state
             context.setState(Context.State.WORK);
-            doUndo(context);
+            executeUndo(context);
         }
     }
 
@@ -146,7 +146,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void doUndo(Context<?> context) {
+    default void executeUndo(Context<?> context) {
         context.setState(Context.State.UNDONE);
     }
 }

@@ -81,7 +81,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      */
     @Override
-    default void redo(Context<?> context) {
+    default void doCommand(Context<?> context) {
         if (isWrongRedoStateOf(context)) {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -111,7 +111,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context#getUndoParameter()
      */
     @Override
-    default void undo(Context<?> context) {
+    default void undoCommand(Context<?> context) {
         if (isWrongUndoStateOf(context)) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);

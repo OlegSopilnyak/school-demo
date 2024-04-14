@@ -123,12 +123,12 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommandRedo() throws ProfileNotExistsException {
+    void shouldExecuteCommandDoCommand() throws ProfileNotExistsException {
         StudentProfile student = persistStudentProfile();
         long id = student.getId();
         Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(true);
         assertThat(context.getUndoParameter()).isEqualTo(student).isNotSameAs(student);
@@ -146,11 +146,11 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommandRedo_NoProfile() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_NoProfile() throws ProfileNotExistsException {
         long id = 415L;
         Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -164,13 +164,13 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommandUndo() {
+    void shouldExecuteCommandUndoCommand() {
         StudentProfile student = persistStudentProfile();
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(student);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         assertThat(context.getException()).isNull();
@@ -182,12 +182,12 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommandUndo_WrongUndoParameter() {
+    void shouldNotExecuteCommandUndo_WrongUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter("input");
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);

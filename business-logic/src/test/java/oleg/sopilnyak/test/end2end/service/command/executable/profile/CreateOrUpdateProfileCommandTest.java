@@ -51,11 +51,11 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldRedoCommand_Create() {
+    void shouldDoCommandCommand_Create() {
         StudentProfile profile = makeStudentProfile(null);
         Context<Optional<? extends PersonProfile>> createContext = spy(command.createContext(profile));
 
-        command.redo(createContext);
+        command.doCommand(createContext);
 
         assertThat(createContext.getState()).isEqualTo(DONE);
         Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) createContext.getResult().orElse(null);
@@ -78,7 +78,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldRedoCommand_Update() {
+    void shouldDoCommandCommand_Update() {
         PersonProfile profile = makeStudentProfile(null);
         PersonProfileEntity entity = (PersonProfileEntity) persistenceFacade.toEntity(profile);
         personProfileRepository.saveAndFlush(entity);
@@ -88,7 +88,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         PersonProfileEntity toSave = (PersonProfileEntity) persistenceFacade.toEntity(entity);
         Context<Optional<? extends PersonProfile>> updateContext = spy(command.createContext(toSave));
 
-        command.redo(updateContext);
+        command.doCommand(updateContext);
 
         assertThat(updateContext.getState()).isEqualTo(DONE);
         Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) updateContext.getResult().orElse(null);
@@ -110,7 +110,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDontRedoCommand_Update_WrongProfileType() {
+    void shouldDontDoCommandCommand_Update_WrongProfileType() {
         PersonProfile profile = makeStudentProfile(null);
         PersonProfileEntity entity = (PersonProfileEntity) persistenceFacade.toEntity(profile);
         personProfileRepository.saveAndFlush(entity);
@@ -122,7 +122,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         toSave.setEmail(toSave.getEmail() + " : AnotherOneEmail");
         Context<Optional<? extends PersonProfile>> updateContext = spy(command.createContext(toSave));
 
-        command.redo(updateContext);
+        command.doCommand(updateContext);
 
         assertThat((Optional<PersonProfile>) updateContext.getResult().orElse(Optional.empty())).isEmpty();
         assertThat(updateContext.getState()).isEqualTo(DONE);
@@ -144,10 +144,10 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDontRedoCommand_WrongContextState() {
+    void shouldDontDoCommandCommand_WrongContextState() {
         Context<Optional<? extends PersonProfile>> context = spy(command.createContext());
 
-        command.redo(context);
+        command.doCommand(context);
 
         verify(command, never()).doRedo(context);
         verify(context, times(2)).getState();
@@ -156,33 +156,22 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUndoCommand_Create() {
+    void shouldUndoCommandCommand_Create() {
         StudentProfile profile = makeStudentProfile(null);
         Context<Optional<? extends PersonProfile>> createContext = spy(command.createContext(profile));
-        command.redo(createContext);
-        assertThat(createContext.getState()).isEqualTo(DONE);
-
-        command.undo(createContext);
-
-        assertThat(createContext.getState()).isEqualTo(UNDONE);
-
+        command.doCommand(createContext);
+        assertThat(createContext.isDone()).isTrue();
         Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) createContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
-        PersonProfile resultProfile = result.orElse(null);
-        assertThat(resultProfile).isNotNull();
-        assertPersonProfilesEquals(resultProfile, profile, false);
-        Long resultId = resultProfile.getId();
-
-        verify(command).doUndo(createContext);
-        verify(persistenceFacade).save(profile);
-        verify(persistenceFacade).saveProfile(profile);
-        verify(createContext, times(2)).setState(WORK);
-        verify(persistenceFacade).toEntity(profile);
-        verify(personProfileRepository).saveAndFlush((PersonProfileEntity) resultProfile);
+        Long resultId = result.orElse(null).getId();
         verify(createContext).setUndoParameter(resultId);
-        verify(createContext).setResult(Optional.of(resultProfile));
-        verify(createContext).setState(DONE);
+        reset(command, createContext, persistenceFacade, personProfileRepository);
 
+        command.undoCommand(createContext);
+
+        assertThat(createContext.getState()).isEqualTo(UNDONE);
+        verify(command).doUndo(createContext);
+        verify(createContext).setState(WORK);
         verify(createContext).getUndoParameter();
         assertThat(createContext.getUndoParameter()).isEqualTo(resultId);
         verify(personProfileRepository).deleteById(resultId);
@@ -192,7 +181,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUndoCommand_Update() {
+    void shouldUndoCommandCommand_Update() {
         PersonProfile profile = makeStudentProfile(null);
         PersonProfileEntity entity = (PersonProfileEntity) persistenceFacade.toEntity(profile);
         personProfileRepository.saveAndFlush(entity);
@@ -201,10 +190,10 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         entity.setEmail(profile.getEmail() + ": AnotherOne");
         PersonProfileEntity toSave = (PersonProfileEntity) persistenceFacade.toEntity(entity);
         Context<Optional<? extends PersonProfile>> updateContext = spy(command.createContext(toSave));
-        command.redo(updateContext);
+        command.doCommand(updateContext);
         assertThat(updateContext.getState()).isEqualTo(DONE);
 
-        command.undo(updateContext);
+        command.undoCommand(updateContext);
 
         Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) updateContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
@@ -228,10 +217,10 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDontUndoCommand_WrongContextState() {
+    void shouldDontUndoCommandCommand_WrongContextState() {
         Context<Optional<? extends PersonProfile>> context = spy(command.createContext());
 
-        command.undo(context);
+        command.undoCommand(context);
 
         verify(command, never()).doUndo(context);
         verify(context, times(2)).getState();

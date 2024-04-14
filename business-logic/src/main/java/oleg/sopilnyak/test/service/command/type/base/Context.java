@@ -81,6 +81,7 @@ public interface Context<T> {
      * @see Exception
      */
     Exception getException();
+
     /**
      * To set up exception occurring during command execution
      *
@@ -88,9 +89,30 @@ public interface Context<T> {
      * @see Exception
      */
     void setException(Exception exception);
-     default void failed(Exception exception) {
+
+    /**
+     * Mark context as failed
+     *
+     * @param exception cause of failure
+     * @see Exception
+     * @see this#setState(State)
+     * @see Context.State#FAIL
+     * @see this#setException(Exception)
+     */
+    default void failed(Exception exception) {
         setState(State.FAIL);
         setException(exception);
+    }
+
+    /**
+     * To check is context is done
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#DONE
+     * */
+    default boolean isDone() {
+        return getState() == State.DONE;
     }
 
 
@@ -132,7 +154,6 @@ public interface Context<T> {
 
     /**
      * The listener of context's state changing
-     *
      */
     interface StateChangedListener {
         void stateChanged(Context<?> context, State previous, State newOne);

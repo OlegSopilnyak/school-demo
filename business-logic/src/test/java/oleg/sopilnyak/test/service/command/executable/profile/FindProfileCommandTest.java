@@ -71,12 +71,12 @@ class FindProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandRedo() {
+    void shouldExecuteCommandDoCommand() {
         Long id = 404L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
         Context<Optional<PersonProfile>> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(Optional.of(profile));
         assertThat(context.getState()).isEqualTo(DONE);
@@ -87,11 +87,11 @@ class FindProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandRedo_NotFound() {
+    void shouldNotExecuteCommandDoCommand_NotFound() {
         Long id = 405L;
         Context<Optional<PersonProfile>> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat((Optional) context.getResult().orElse(Optional.empty())).isEmpty();
         assertThat(context.getState()).isEqualTo(DONE);
@@ -102,11 +102,11 @@ class FindProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandRedo_WrongParameterType() {
+    void shouldNotExecuteCommandDoCommand_WrongParameterType() {
         Long id = 406L;
         Context<Optional<PersonProfile>> context = command.createContext("" + id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(FAIL);
@@ -117,12 +117,12 @@ class FindProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandUndo() {
+    void shouldExecuteCommandUndoCommand() {
         Long id = 414L;
         Context<Optional<PersonProfile>> context = command.createContext(id);
         context.setState(DONE);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();

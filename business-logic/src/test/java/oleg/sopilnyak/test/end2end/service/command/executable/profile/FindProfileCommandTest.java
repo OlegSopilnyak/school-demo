@@ -90,12 +90,12 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommandRedo() {
+    void shouldExecuteCommandDoCommand() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
         Context<Optional<PersonProfile>> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).isNotEmpty().contains(Optional.of(profile));
         assertThat(context.getState()).isEqualTo(DONE);
@@ -108,11 +108,11 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommandRedo_NotFound() {
+    void shouldNotExecuteCommandDoCommand_NotFound() {
         Long id = 405L;
         Context<Optional<PersonProfile>> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat((Optional<PersonProfile>)context.getResult().orElse(Optional.empty())).isEmpty();
         assertThat(context.getState()).isEqualTo(DONE);
@@ -125,11 +125,11 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommandRedo_WrongParameterType() {
+    void shouldNotExecuteCommandDoCommand_WrongParameterType() {
         Long id = 406L;
         Context<Optional<PersonProfile>> context = command.createContext("" + id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(FAIL);
@@ -141,12 +141,12 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommandUndo() {
+    void shouldExecuteCommandUndoCommand() {
         Long id = 414L;
         Context<Optional<PersonProfile>> context = command.createContext(id);
         context.setState(DONE);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();

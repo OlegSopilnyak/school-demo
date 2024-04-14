@@ -60,7 +60,7 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteRedoCommand_ExistsProfileId() {
+    void shouldExecuteDoCommandCommand_ExistsProfileId() {
         Long id = 700L;
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
@@ -68,7 +68,7 @@ class CreateOrUpdateProfileCommandTest {
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
@@ -76,13 +76,13 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteRedoCommand_NotExistsProfileId() {
+    void shouldExecuteDoCommandCommand_NotExistsProfileId() {
         Long id = -700L;
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
@@ -90,10 +90,10 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_WrongState() {
+    void shouldNotExecuteDoCommandCommand_WrongState() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -101,10 +101,10 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_NotSaved() {
+    void shouldNotExecuteDoCommandCommand_NotSaved() {
         Context<Optional<? extends PersonProfile>> context = command.createContext(input);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -113,11 +113,11 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_SaveExceptionThrown() {
+    void shouldNotExecuteDoCommandCommand_SaveExceptionThrown() {
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenThrow(new RuntimeException());
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -125,13 +125,13 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_FindEmptyResult() {
+    void shouldNotExecuteDoCommandCommand_FindEmptyResult() {
         Long id = 701L;
         when(input.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(input);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.empty());
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
@@ -139,13 +139,13 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_FindExceptionThrown() {
+    void shouldNotExecuteDoCommandCommand_FindExceptionThrown() {
         Long id = 702L;
         when(input.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(input);
         when(persistenceFacade.findProfileById(id)).thenThrow(new RuntimeException());
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -153,10 +153,10 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteRedoCommand_WrongParameterType() {
+    void shouldNotExecuteDoCommandCommand_WrongParameterType() {
         Context<Optional<? extends PersonProfile>> context = command.createContext("input");
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
@@ -164,18 +164,18 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteUndoCommand_ExistsProfile() {
+    void shouldExecuteUndoCommandCommand_ExistsProfile() {
         Long id = 700L;
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
-        command.redo(context);
+        command.doCommand(context);
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         verify(command).doUndo(context);
         verify(persistenceFacade, atLeastOnce()).saveProfile(profile);
@@ -183,16 +183,16 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteUndoCommand_NotWrongProfileId() throws ProfileNotExistsException {
+    void shouldExecuteUndoCommandCommand_NotWrongProfileId() throws ProfileNotExistsException {
         Long id = -700L;
         when(profile.getId()).thenReturn(id);
         Context<Optional<? extends PersonProfile>> context = command.createContext(profile);
         when(persistenceFacade.save(profile)).thenReturn(Optional.of(profile));
-        command.redo(context);
+        command.doCommand(context);
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         verify(command).doUndo(context);
         verify(persistenceFacade, atLeastOnce()).save(profile);
@@ -201,21 +201,21 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_WrongState() {
+    void shouldNotExecuteUndoCommandCommand_WrongState() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         verify(command, never()).doUndo(context);
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_WrongUndoParameter() {
+    void shouldNotExecuteUndoCommand_WrongUndoCommandParameter() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
@@ -223,13 +223,13 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_WrongParameterType() {
+    void shouldNotExecuteUndoCommandCommand_WrongParameterType() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter("param");
         context.setState(Context.State.DONE);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
@@ -237,14 +237,14 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_DeleteByIdExceptionThrown() throws ProfileNotExistsException {
+    void shouldNotExecuteUndoCommandCommand_DeleteByIdExceptionThrown() throws ProfileNotExistsException {
         Long id = 800L;
         Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(id);
         doThrow(new RuntimeException()).when(persistenceFacade).deleteProfileById(id);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -252,13 +252,13 @@ class CreateOrUpdateProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_SaveProfileExceptionThrown() {
+    void shouldNotExecuteUndoCommandCommand_SaveProfileExceptionThrown() {
         Context<Optional<? extends PersonProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(input);
         doThrow(new RuntimeException()).when(persistenceFacade).saveProfile(input);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);

@@ -105,13 +105,13 @@ class SequentialMacroCommandTest {
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        doThrow(UnableExecuteCommandException.class).when(booleanCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(booleanCommand).doCommand(any(Context.class));
         Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
 
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(1);
-        Context nestedContext;
+        Context<?> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
         verify(command).redoNestedCommand(nestedContext, listener);
@@ -144,7 +144,7 @@ class SequentialMacroCommandTest {
         CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).redo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
         Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
 
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
@@ -179,7 +179,7 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        command.redo(macroContext);
+        command.doCommand(macroContext);
         Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(booleanCommand);
@@ -215,9 +215,9 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        command.redo(macroContext);
+        command.doCommand(macroContext);
         Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).undo(any(Context.class));
+        doThrow(UnableExecuteCommandException.class).when(doubleCommand).undoCommand(any(Context.class));
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
@@ -282,19 +282,19 @@ class SequentialMacroCommandTest {
 
     private <T> void configureNestedRedoResult(SchoolCommand<T> nextedCommand, T result) {
         doAnswer(invocationOnMock -> {
-            Context context = invocationOnMock.getArgument(0, Context.class);
+            Context<?> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
             context.setResult(result);
             return null;
-        }).when(nextedCommand).redo(any(Context.class));
+        }).when(nextedCommand).doCommand(any(Context.class));
     }
 
     private <T> void configureNestedUndoStatus(SchoolCommand<T> nextedCommand) {
         doAnswer(invocationOnMock -> {
-            Context context = invocationOnMock.getArgument(0, Context.class);
+            Context<?> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
             context.setState(UNDONE);
             return null;
-        }).when(nextedCommand).undo(any(Context.class));
+        }).when(nextedCommand).undoCommand(any(Context.class));
     }
 }

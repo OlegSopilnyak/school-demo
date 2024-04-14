@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -12,7 +13,6 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 import static oleg.sopilnyak.test.service.command.type.ProfileCommand.*;
@@ -30,6 +30,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      *
      * @param id system-id of the profile
      * @return profile instance or empty() if not exists
+     * @see CommandExecutor#doSimpleCommand(String, Object, CommandsFactory)
      * @see PersonProfile
      * @see PersonProfile#getId()
      * @see ProfileCommand#FIND_BY_ID_COMMAND_ID
@@ -38,7 +39,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      */
     @Override
     public Optional<PersonProfile> findById(Long id) {
-        return executeSimpleCommandWithContext(FIND_BY_ID_COMMAND_ID, id, factory);
+        return doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
     }
 
     /**
@@ -46,6 +47,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      *
      * @param profile instance to create or update
      * @return created instance or Optional#empty()
+     * @see CommandExecutor#doSimpleCommand(String, Object, CommandsFactory)
      * @see PersonProfile
      * @see ProfileCommand#CREATE_OR_UPDATE_COMMAND_ID
      * @see Optional
@@ -53,7 +55,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      */
     @Override
     public Optional<PersonProfile> createOrUpdatePersonProfile(PersonProfile profile) {
-        return executeSimpleCommandWithContext(CREATE_OR_UPDATE_COMMAND_ID, profile, factory);
+        return doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, profile, factory);
     }
 
     /**
@@ -63,7 +65,7 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
      * @throws ProfileNotExistsException throws if the profile with system-id does not exist in the database
      * @see ProfileCommand#DELETE_BY_ID_COMMAND_ID
      * @see ProfileCommand#createContext(Object)
-     * @see ProfileCommand#redo(Context)
+     * @see ProfileCommand#doCommand(Context)
      * @see Context
      * @see Context#getState()
      */
@@ -72,9 +74,9 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
         final SchoolCommand<Boolean> command = takeValidCommand(DELETE_BY_ID_COMMAND_ID, factory);
         final Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
-        if (context.getState() == Context.State.DONE) {
+        if (context.isDone()) {
             log.debug("Deleted profile with ID:{} successfully.", id);
         } else {
             deleteProfileExceptionProcessing(context.getException());
@@ -82,25 +84,6 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
     }
 
     // private methods
-    private <P> P executeSimpleCommandWithContext(String commandId, Object parameter, CommandsFactory<T> factory) {
-        final SchoolCommand<?> command = takeValidCommand(commandId, factory);
-        final Context<?> context = command.createContext(parameter);
-
-        log.debug("Running command: '{}' with context: {}", commandId, context);
-        command.redo(context);
-        log.debug("Ran command: '{}' with context: {}", commandId, context);
-
-        if (context.getState() == Context.State.DONE) {
-            final P result = (P) context.getResult().orElse(null);
-            return isNull(result) ? throwFor(commandId, new NullPointerException("Result is empty")) : result;
-        }
-
-        final Exception exception = context.getException();
-        log.warn("Something went wrong", exception);
-        return nonNull(exception) ? throwFor(commandId, exception) :
-                throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
-    }
-
     private static void deleteProfileExceptionProcessing(Exception deleteException) throws ProfileNotExistsException {
         final String commandId = DELETE_BY_ID_COMMAND_ID;
         log.warn("Something went wrong with profile deletion", deleteException);

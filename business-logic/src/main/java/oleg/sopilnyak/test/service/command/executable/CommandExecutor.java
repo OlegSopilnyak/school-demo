@@ -3,10 +3,12 @@ package oleg.sopilnyak.test.service.command.executable;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.CommandNotRegisteredInFactoryException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Objects.nonNull;
@@ -16,23 +18,70 @@ import static java.util.Objects.nonNull;
  */
 public interface CommandExecutor {
     /**
+     * To do simple school-command using Context
+     *
+     * @param commandId command-id
+     * @param input     command input parameter
+     * @param factory   factory of the commands
+     * @param <T>       type of command result
+     * @param <P>       type of commands factory
+     * @return result of command execution
+     * @see CommandsFactory
+     * @see SchoolCommand
+     */
+    static <T, P> T doSimpleCommand(String commandId, Object input, CommandsFactory<P> factory) {
+        final SchoolCommand<T> command = takeValidCommand(commandId, factory);
+        return doCommand(command, input);
+    }
+
+
+    /**
+     * To do simple command with parameter(s) using Context
+     *
+     * @param command command to do
+     * @param input   command's parameter(s)
+     * @param <T>     type of command result
+     * @return result of command execution
+     * @see SchoolCommand#createContext(Object)
+     * @see SchoolCommand#doCommand(Context)
+     * @see Context
+     * @see Context#getResult()
+     * @see Context#getState()
+     * @see CommandExecutor#throwFor(String, Exception)
+     * @see CommandExecutor#createThrowFor(String)
+     */
+    private static <T> T doCommand(SchoolCommand<T> command, Object input) {
+        final String commandId = command.getId();
+        final Context<T> context = command.createContext(input);
+        // doing command's do
+        command.doCommand(context);
+        // getting command's do result
+        final Optional<T> result = context.getResult();
+        // returning result
+        return context.isDone() ?
+                result.orElseThrow(createThrowFor(commandId)) :
+                throwFor(commandId, context.getException());
+    }
+
+    /**
      * To execute simple school-command
      *
      * @param commandId command-id
      * @param option    command option
      * @param factory   factory of the commands
      * @param <T>       type of command result
+     * @param <P>       type of commands factory
      * @return result of command execution
      * @see CommandsFactory
      * @see SchoolCommand
      */
-    static  <T,P> T executeSimpleCommand(String commandId, Object option, CommandsFactory<P> factory) {
+    static <T, P> T executeSimpleCommand(String commandId, Object option, CommandsFactory<P> factory) {
         final SchoolCommand<T> command = takeValidCommand(commandId, factory);
         return executeCommand(command, option);
     }
 
     /**
-     * To execute simple command with parameters
+     * To execute simple command with parameter(s)
      *
      * @param command command to execute
      * @param option  command's parameter(s)
@@ -46,7 +95,7 @@ public interface CommandExecutor {
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandExecutor#createThrowFor(String)
      */
-    static <T> T executeCommand(SchoolCommand<T> command, Object option) {
+    private static <T> T executeCommand(SchoolCommand<T> command, Object option) {
         final CommandResult<T> cmdResult = command.execute(option);
         return cmdResult.isSuccess() ?
                 cmdResult.getResult().orElseThrow(createThrowFor(command.getId())) :

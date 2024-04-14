@@ -52,7 +52,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see Context.State#WORK
      */
     @Override
-    public void doRedo(final Context<?> context) {
+    public void executeDo(final Context<?> context) {
         final Object input = context.getRedoParameter();
         getLog().debug("Do redo for {}", input);
         try {
@@ -122,7 +122,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         nestedContext.addStateListener(listener);
         final SchoolCommand<P> command = nestedContext.getCommand();
         try {
-            command.redo(nestedContext);
+            command.doCommand(nestedContext);
         } catch (Exception e) {
             getLog().error("Cannot run redo for command:'{}'", command.getId(), e);
             nestedContext.failed(e);
@@ -140,7 +140,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see Context#getUndoParameter()
      */
     @Override
-    public void doUndo(final Context<?> context) {
+    public void executeUndo(final Context<?> context) {
         final Object parameter = context.getUndoParameter();
         getLog().debug("Do undo for {}", parameter);
         try {
@@ -174,13 +174,13 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      *
      * @param nestedCommand nested command to do undo with nested context
      * @param nestedContext nested context with DONE state
-     * @see SchoolCommand#undo(Context)
+     * @see SchoolCommand#undoCommand(Context)
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
     protected Context<?> rollbackDoneContext(SchoolCommand<?> nestedCommand, final Context<?> nestedContext) {
         try {
-            nestedCommand.undo(nestedContext);
+            nestedCommand.undoCommand(nestedContext);
         } catch (Exception e) {
             getLog().error("Cannot rollback for {}", nestedContext, e);
             nestedContext.failed(e);

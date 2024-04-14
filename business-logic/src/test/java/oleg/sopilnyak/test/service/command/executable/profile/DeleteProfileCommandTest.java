@@ -109,13 +109,13 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandRedo() throws ProfileNotExistsException {
+    void shouldExecuteCommandDoCommand() throws ProfileNotExistsException {
         long id = 414L;
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
         Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(true);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
@@ -128,11 +128,11 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandRedo_NoProfile() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_NoProfile() throws ProfileNotExistsException {
         long id = 415L;
         Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -144,10 +144,10 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandRedo_WrongParameterType() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_WrongParameterType() throws ProfileNotExistsException {
         Context<Boolean> context = command.createContext("id");
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -159,14 +159,14 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandRedo_ExceptionThrown() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_ExceptionThrown() throws ProfileNotExistsException {
         long id = 416L;
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
         doThrow(new UnsupportedOperationException()).when(persistenceFacade).deleteProfileById(id);
         Context<Boolean> context = command.createContext(id);
 
-        command.redo(context);
+        command.doCommand(context);
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
@@ -178,12 +178,12 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandUndo() {
+    void shouldExecuteCommandUndoCommand() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(profile);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         assertThat(context.getException()).isNull();
@@ -193,12 +193,12 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandUndo_WrongUndoParameter() {
+    void shouldNotExecuteCommandUndo_WrongUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter("input");
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
@@ -208,13 +208,13 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandUndo_ExceptionThrown() {
+    void shouldNotExecuteCommandUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(input);
         doThrow(new UnsupportedOperationException()).when(persistenceFacade).saveProfile(input);
 
-        command.undo(context);
+        command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
