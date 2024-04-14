@@ -15,5 +15,5 @@ import java.util.Deque;
 @ToString
 public class CommandParameterWrapper {
     private Object input;
-    private Deque<Context> nestedContexts;
+    private Deque<Context<?>> nestedContexts;
 }

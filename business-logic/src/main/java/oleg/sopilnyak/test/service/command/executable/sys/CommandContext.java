@@ -19,7 +19,7 @@ public class CommandContext<T> implements Context<T> {
     private SchoolCommand<T> command;
     private Object redoParameter;
     private Object undoParameter;
-    private T resultData;
+    private Object resultData;
     private Exception exception;
 
     @Setter(AccessLevel.NONE)
@@ -80,7 +80,7 @@ public class CommandContext<T> implements Context<T> {
      * @see State#DONE
      */
     @Override
-    public Optional<T> getResult() {
+    public Optional getResult() {
         return Optional.ofNullable(resultData);
     }
 
@@ -91,7 +91,7 @@ public class CommandContext<T> implements Context<T> {
      * @see State#DONE
      */
     @Override
-    public void setResult(T result) {
+    public void setResult(Object result) {
         if (state == State.WORK) {
             this.resultData = result;
             setState(State.DONE);

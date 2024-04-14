@@ -58,7 +58,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         command.redo(createContext);
 
         assertThat(createContext.getState()).isEqualTo(DONE);
-        Optional<? extends PersonProfile> result = createContext.getResult().orElse(null);
+        Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) createContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
         PersonProfile resultProfile = result.orElse(null);
         assertThat(resultProfile).isNotNull();
@@ -91,7 +91,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         command.redo(updateContext);
 
         assertThat(updateContext.getState()).isEqualTo(DONE);
-        Optional<? extends PersonProfile> result = updateContext.getResult().orElse(null);
+        Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) updateContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
         PersonProfile resultProfile = result.orElse(null);
         assertThat(resultProfile).isNotNull();
@@ -124,7 +124,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.redo(updateContext);
 
-        assertThat(updateContext.getResult().orElse(null)).isEmpty();
+        assertThat((Optional<PersonProfile>) updateContext.getResult().orElse(Optional.empty())).isEmpty();
         assertThat(updateContext.getState()).isEqualTo(DONE);
         assertThat(updateContext.getUndoParameter()).isEqualTo(entity).isNotSameAs(entity);
         assertThat(updateContext.getException()).isNull();
@@ -166,7 +166,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         assertThat(createContext.getState()).isEqualTo(UNDONE);
 
-        Optional<? extends PersonProfile> result = createContext.getResult().orElse(null);
+        Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) createContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
         PersonProfile resultProfile = result.orElse(null);
         assertThat(resultProfile).isNotNull();
@@ -206,7 +206,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.undo(updateContext);
 
-        Optional<? extends PersonProfile> result = updateContext.getResult().orElse(null);
+        Optional<? extends PersonProfile> result = (Optional<? extends PersonProfile>) updateContext.getResult().orElse(null);
         assertThat(result).isNotNull().isNotEmpty();
         PersonProfile resultProfile = result.orElse(null);
         assertThat(resultProfile).isNotNull();

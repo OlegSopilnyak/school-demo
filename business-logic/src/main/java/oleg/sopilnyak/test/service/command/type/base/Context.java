@@ -64,7 +64,7 @@ public interface Context<T> {
      * @return the value of result
      * @see State#DONE
      */
-    Optional<T> getResult();
+    Optional getResult();
 
     /**
      * To set up the result of command execution
@@ -72,7 +72,7 @@ public interface Context<T> {
      * @param value the value of result
      * @see State#DONE
      */
-    void setResult(T value);
+    void setResult(Object value);
 
     /**
      * To get exception occurring during command execution

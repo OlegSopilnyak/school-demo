@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of commands
+ *
+ * @param <T> type of macro-command
  */
 public interface CompositeCommand<T> extends SchoolCommand<T> {
 
@@ -27,14 +29,14 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      *
      * @return collection of included commands
      */
-    Collection<SchoolCommand> commands();
+    Collection<SchoolCommand<?>> commands();
 
     /**
      * To add the command
      *
      * @param command the instance to add
      */
-    void add(SchoolCommand command);
+    void add(SchoolCommand<?> command);
 
     /**
      * To create command's context with doParameter
@@ -70,7 +72,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see SchoolCommand#createContext(Object)
      * @see Context
      */
-    default Context prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
+    default Context<?> prepareContext(SchoolCommand<?> nestedCommand, Object macroCommandInput) {
         return nestedCommand.createContext(macroCommandInput);
     }
 
@@ -96,7 +98,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      */
     @Override
-    default void redo(Context<T> context) {
+    default void redo(Context<?> context) {
         if (isWrongRedoStateOf(context)) {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -114,7 +116,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context.State#WORK
      */
-    default void doRedo(Context<T> context) {
+    default void doRedo(Context<?> context) {
         context.setState(Context.State.DONE);
     }
 
@@ -126,7 +128,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context#getUndoParameter()
      */
     @Override
-    default void undo(Context<T> context) {
+    default void undo(Context<?> context) {
         if (isWrongUndoStateOf(context)) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -144,7 +146,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void doUndo(Context<T> context) {
+    default void doUndo(Context<?> context) {
         context.setState(Context.State.UNDONE);
     }
 }

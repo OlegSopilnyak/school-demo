@@ -68,7 +68,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      * @see Context.State#WORK
      */
     @Override
-    public void doRedo(Context<Optional<? extends PersonProfile>> context) {
+    public void doRedo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to change person profile using: {}", parameter.toString());
@@ -108,7 +108,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      * @see Context#getUndoParameter()
      */
     @Override
-    public void doUndo(Context<Optional<? extends PersonProfile>> context) {
+    public void doUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo person profile changes using: {}", parameter.toString());
@@ -139,13 +139,13 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     // private methods
-    private static void redoExecutionFailed(final String input, Context<Optional<? extends PersonProfile>> context) {
+    private static void redoExecutionFailed(final String input, Context<?> context) {
         final Exception saveError = new ProfileNotExistsException(input);
         saveError.fillInStackTrace();
         context.failed(saveError);
     }
 
-    private Optional<? extends PersonProfile> savePersonProfile(Context<Optional<? extends PersonProfile>> context) {
+    private Optional<? extends PersonProfile> savePersonProfile(Context<?> context) {
         final Object input = context.getRedoParameter();
         if (input instanceof PrincipalProfile principalProfile) {
             return persistenceFacade.save(principalProfile);

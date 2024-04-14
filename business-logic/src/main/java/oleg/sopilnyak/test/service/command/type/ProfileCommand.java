@@ -54,7 +54,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context#setUndoParameter(Object)
      */
-    default void cacheProfileForRollback(Context<T> context, Long inputId) throws ProfileNotExistsException {
+    default void cacheProfileForRollback(Context<?> context, Long inputId) throws ProfileNotExistsException {
         final PersonProfile existsProfile = getPersistenceFacade().findProfileById(inputId)
                 .orElseThrow(() -> new ProfileNotExistsException("PersonProfile with ID:" + inputId + " is not exists."));
         // saving the copy of exists entity for undo operation
@@ -66,7 +66,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      *
      * @param context command execution context
      */
-    default void rollbackCachedProfile(Context<T> context) {
+    default void rollbackCachedProfile(Context<?> context) {
         final Object oldProfile = context.getUndoParameter();
         if (oldProfile instanceof PersonProfile profile) {
             getLog().debug("Restoring changed value of profile {}", profile);
@@ -81,7 +81,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      */
     @Override
-    default void redo(Context<T> context) {
+    default void redo(Context<?> context) {
         if (isWrongRedoStateOf(context)) {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -99,7 +99,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context.State#WORK
      */
-    default void doRedo(Context<T> context) {
+    default void doRedo(Context<?> context) {
         context.setState(Context.State.DONE);
     }
 
@@ -111,7 +111,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context#getUndoParameter()
      */
     @Override
-    default void undo(Context<T> context) {
+    default void undo(Context<?> context) {
         if (isWrongUndoStateOf(context)) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -129,7 +129,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void doUndo(Context<T> context) {
+    default void doUndo(Context<?> context) {
         context.setState(Context.State.UNDONE);
     }
 }

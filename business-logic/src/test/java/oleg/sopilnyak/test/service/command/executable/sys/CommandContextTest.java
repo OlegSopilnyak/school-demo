@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CommandContextTest {
 
-    CommandContext<Boolean> context = CommandContext.<Boolean>builder().build();
+    CommandContext<Object> context = CommandContext.builder().build();
 
     @Test
     void shouldAddStatesInCorrectOrder() {

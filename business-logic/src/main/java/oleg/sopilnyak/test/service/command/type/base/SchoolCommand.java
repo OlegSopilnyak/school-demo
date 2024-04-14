@@ -47,7 +47,7 @@ public interface SchoolCommand<T> {
      * @see Context.State#INIT
      */
     default Context<T> createContext() {
-        final Context<T> context = CommandContext.<T>builder().command(this).build();
+        final CommandContext<T> context = CommandContext.<T>builder().command(this).build();
         context.setState(Context.State.INIT);
         return context;
     }
@@ -63,7 +63,7 @@ public interface SchoolCommand<T> {
      * @see Context.State#READY
      */
     default Context<T> createContext(Object input) {
-        final Context<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
+        final CommandContext<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
@@ -78,7 +78,7 @@ public interface SchoolCommand<T> {
      * @see Context#getState()
      * @see Context.State#READY
      */
-    default boolean isWrongRedoStateOf(Context<T> context) {
+    default boolean isWrongRedoStateOf(Context<?> context) {
         return context.getState() != Context.State.READY;
     }
 
@@ -88,7 +88,7 @@ public interface SchoolCommand<T> {
      * @param context context of redo execution
      * @see Context
      */
-    default void redo(Context<T> context) {
+    default void redo(Context<?> context) {
 
     }
 
@@ -101,7 +101,7 @@ public interface SchoolCommand<T> {
      * @see Context#getState()
      * @see Context.State#DONE
      */
-    default boolean isWrongUndoStateOf(Context<T> context) {
+    default boolean isWrongUndoStateOf(Context<?> context) {
         return context.getState() != Context.State.DONE;
     }
 
@@ -113,7 +113,7 @@ public interface SchoolCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void undo(Context<T> context) {
+    default void undo(Context<?> context) {
 
     }
 

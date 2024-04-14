@@ -70,7 +70,7 @@ class SequentialMacroCommandTest {
         assertThat(counter.get()).isEqualTo(command.commands().size());
         // check contexts states
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
-        Context nestedContext;
+        Context<?> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
         verify(command).redoNestedCommand(nestedContext, listener);
@@ -180,17 +180,17 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
         command.redo(macroContext);
-        Deque<Context> nestedUndoneContexts = (Deque<Context>) macroContext.getUndoParameter();
+        Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<?>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
-        List<Context> params = nestedUndoneContexts.stream().toList();
-        List<Context> undone = rollbackResults.stream().toList();
+        List<Context<?>> params = nestedUndoneContexts.stream().toList();
+        List<Context<?>> undone = rollbackResults.stream().toList();
         // check revers
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts states
@@ -216,21 +216,21 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
         command.redo(macroContext);
-        Deque<Context> nestedUndoneContexts = (Deque<Context>) macroContext.getUndoParameter();
+        Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).undo(any(Context.class));
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<?>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
-        List<Context> params = nestedUndoneContexts.stream().toList();
-        List<Context> undone = rollbackResults.stream().toList();
+        List<Context<?>> params = nestedUndoneContexts.stream().toList();
+        List<Context<?>> undone = rollbackResults.stream().toList();
         // check revers
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts order and states
-        Context nestedContext;
+        Context<?> nestedContext;
         nestedContext = rollbackResults.pop();
         verify(command).rollbackDoneContext(intCommand, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(UNDONE);
@@ -244,7 +244,7 @@ class SequentialMacroCommandTest {
     }
 
     static class FakeMacroCommand extends SequentialMacroCommand<Integer> {
-        private final Logger logger = LoggerFactory.getLogger(MacroCommandTest.FakeMacroCommand.class);
+        private final Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
         @Override
         public Logger getLog() {

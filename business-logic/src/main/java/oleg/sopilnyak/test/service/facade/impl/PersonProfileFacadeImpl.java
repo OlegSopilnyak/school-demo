@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 import static oleg.sopilnyak.test.service.command.type.ProfileCommand.*;
@@ -82,15 +83,16 @@ public class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
 
     // private methods
     private <P> P executeSimpleCommandWithContext(String commandId, Object parameter, CommandsFactory<T> factory) {
-        final SchoolCommand<P> command = takeValidCommand(commandId, factory);
-        final Context<P> context = command.createContext(parameter);
+        final SchoolCommand<?> command = takeValidCommand(commandId, factory);
+        final Context<?> context = command.createContext(parameter);
 
         log.debug("Running command: '{}' with context: {}", commandId, context);
         command.redo(context);
         log.debug("Ran command: '{}' with context: {}", commandId, context);
 
         if (context.getState() == Context.State.DONE) {
-            return context.getResult().orElseThrow(createThrowFor(commandId));
+            final P result = (P) context.getResult().orElse(null);
+            return isNull(result) ? throwFor(commandId, new NullPointerException("Result is empty")) : result;
         }
 
         final Exception exception = context.getException();

@@ -114,7 +114,7 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
         command.redo(context);
 
-        assertThat(context.getResult().orElse(Optional.empty())).isEmpty();
+        assertThat((Optional<PersonProfile>)context.getResult().orElse(Optional.empty())).isEmpty();
         assertThat(context.getState()).isEqualTo(DONE);
         assertThat(context.getException()).isNull();
 
@@ -131,7 +131,7 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
 
         command.redo(context);
 
-        assertThat(context.getResult().orElse(Optional.empty())).isEmpty();
+        assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(FAIL);
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
 

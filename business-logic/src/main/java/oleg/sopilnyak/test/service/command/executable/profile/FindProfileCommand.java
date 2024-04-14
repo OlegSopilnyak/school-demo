@@ -63,7 +63,7 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      * @see Context.State#WORK
      */
     @Override
-    public void doRedo(Context<Optional<PersonProfile>> context) {
+    public void doRedo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find person profile by ID:{}", parameter.toString());
