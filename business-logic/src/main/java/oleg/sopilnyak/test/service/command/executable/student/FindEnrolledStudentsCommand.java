@@ -3,7 +3,6 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.RegisterPersistenceFacade;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -49,13 +48,14 @@ public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>>
     }
 
     /**
+     * To find enrolled students by course-id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
      * @see Context
      * @see Context#setResult(Object)
      * @see Context.State#WORK
-     * @see StudentsPersistenceFacade#findStudentById(Long)
+     * @see RegisterPersistenceFacade#findEnrolledStudentsByCourseId(Long)
      */
     @Override
     public void executeDo(Context<?> context) {

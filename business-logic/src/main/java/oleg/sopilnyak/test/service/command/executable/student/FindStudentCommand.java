@@ -46,6 +46,7 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     }
 
     /**
+     * To find student by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
