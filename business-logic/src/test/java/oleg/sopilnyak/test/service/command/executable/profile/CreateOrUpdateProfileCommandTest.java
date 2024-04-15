@@ -72,7 +72,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(profile);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -86,7 +86,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getUndoParameter()).isEqualTo(id);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -97,7 +97,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        verify(command, never()).doRedo(context);
+        verify(command, never()).executeDo(context);
     }
 
     @Test
@@ -109,7 +109,7 @@ class CreateOrUpdateProfileCommandTest {
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -121,7 +121,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -135,7 +135,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -149,7 +149,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -160,7 +160,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
     }
 
     @Test
@@ -177,7 +177,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undoCommand(context);
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade, atLeastOnce()).saveProfile(profile);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
     }
@@ -194,7 +194,7 @@ class CreateOrUpdateProfileCommandTest {
 
         command.undoCommand(context);
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade, atLeastOnce()).save(profile);
         verify(persistenceFacade).deleteProfileById(id);
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
@@ -207,7 +207,7 @@ class CreateOrUpdateProfileCommandTest {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        verify(command, never()).doUndo(context);
+        verify(command, never()).executeUndo(context);
     }
 
     @Test
@@ -219,7 +219,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
     }
 
     @Test
@@ -233,7 +233,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
     }
 
     @Test
@@ -248,7 +248,7 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
     }
 
     @Test
@@ -262,6 +262,6 @@ class CreateOrUpdateProfileCommandTest {
 
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
     }
 }

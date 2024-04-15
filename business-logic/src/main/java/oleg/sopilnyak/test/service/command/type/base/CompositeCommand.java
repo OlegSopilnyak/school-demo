@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Type: Command to execute the couple of commands
  *
- * @param <T> type of macro-command
+ * @param <T> type of macro-command result
  */
 public interface CompositeCommand<T> extends SchoolCommand<T> {
 
@@ -25,7 +25,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
     Logger getLog();
 
     /**
-     * To get the collection of commands used it composite
+     * To get the collection of nested commands used it composite
      *
      * @return collection of included commands
      */
@@ -52,7 +52,7 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
     @Override
     default Context<T> createContext(Object input) {
         final Context<T> context = createContext();
-        // assemble input parameter for redo
+        // assemble input parameter contexts for redo
         context.setRedoParameter(CommandParameterWrapper.builder()
                 .input(input)
                 .nestedContexts(commands().stream()
@@ -100,24 +100,13 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
     @Override
     default void doCommand(Context<?> context) {
         if (isWrongRedoStateOf(context)) {
-            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
+            getLog().warn("Cannot do command '{}' with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         } else {
-            // start redo with correct context state
+            // start do execution with correct context state
             context.setState(Context.State.WORK);
             executeDo(context);
         }
-    }
-
-    /**
-     * To execute command redo with correct context state
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context.State#WORK
-     */
-    default void executeDo(Context<?> context) {
-        context.setState(Context.State.DONE);
     }
 
     /**
@@ -137,16 +126,5 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
             context.setState(Context.State.WORK);
             executeUndo(context);
         }
-    }
-
-    /**
-     * To rollback command's execution with correct context state
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context#getUndoParameter()
-     */
-    default void executeUndo(Context<?> context) {
-        context.setState(Context.State.UNDONE);
     }
 }

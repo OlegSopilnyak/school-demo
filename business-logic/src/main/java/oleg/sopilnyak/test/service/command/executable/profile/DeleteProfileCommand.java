@@ -80,7 +80,7 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      * @see Context.State#WORK
      */
     @Override
-    public void doRedo(Context<?> context) {
+    public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to delete person profile using: {}", parameter.toString());
@@ -105,7 +105,7 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      * @see Context#getUndoParameter()
      */
     @Override
-    public void doUndo(Context<?> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo person profile deletion using: {}", parameter.toString());

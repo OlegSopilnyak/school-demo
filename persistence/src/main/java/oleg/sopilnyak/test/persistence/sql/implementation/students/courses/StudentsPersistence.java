@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Persistence facade implementation for students entities
  */
-public interface StudentsPersistenceFacadeImplementation extends StudentsPersistenceFacade {
+public interface StudentsPersistence extends StudentsPersistenceFacade {
     Logger getLog();
 
     SchoolEntityMapper getMapper();

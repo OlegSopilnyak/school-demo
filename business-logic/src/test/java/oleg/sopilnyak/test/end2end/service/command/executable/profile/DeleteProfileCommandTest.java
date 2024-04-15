@@ -135,7 +135,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade, atLeastOnce()).findProfileById(id);
         verify(personProfileRepository, atLeastOnce()).findById(id);
         verify(persistenceFacade).deleteProfileById(id);
@@ -156,7 +156,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
         verify(personProfileRepository).findById(id);
         verify(persistenceFacade, never()).deleteProfileById(id);
@@ -175,7 +175,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade).saveProfile(student);
         verify(personProfileRepository).saveAndFlush((PersonProfileEntity) student);
     }
@@ -192,7 +192,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade, never()).saveProfile(any(PersonProfile.class));
     }
 

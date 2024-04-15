@@ -65,7 +65,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, profile, false);
         assertThat(createContext.getUndoParameter()).isEqualTo(resultProfile.getId());
 
-        verify(command).doRedo(createContext);
+        verify(command).executeDo(createContext);
         verify(persistenceFacade).save(profile);
         verify(persistenceFacade).saveProfile(profile);
         verify(createContext).setState(WORK);
@@ -98,7 +98,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertPersonProfilesEquals(resultProfile, toSave, true);
         assertThat(updateContext.getUndoParameter()).isEqualTo(toSave).isNotSameAs(toSave);
 
-        verify(command).doRedo(updateContext);
+        verify(command).executeDo(updateContext);
         verify(persistenceFacade).save((StudentProfile) toSave);
         verify(persistenceFacade).saveProfile(toSave);
         verify(updateContext).setState(WORK);
@@ -129,7 +129,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertThat(updateContext.getUndoParameter()).isEqualTo(entity).isNotSameAs(entity);
         assertThat(updateContext.getException()).isNull();
 
-        verify(command).doRedo(updateContext);
+        verify(command).executeDo(updateContext);
         verify(updateContext).setState(WORK);
         verify(persistenceFacade).findProfileById(toSave.getId());
         verify(personProfileRepository).findById(toSave.getId());
@@ -149,7 +149,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.doCommand(context);
 
-        verify(command, never()).doRedo(context);
+        verify(command, never()).executeDo(context);
         verify(context, times(2)).getState();
         verify(context).setState(FAIL);
     }
@@ -170,7 +170,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         command.undoCommand(createContext);
 
         assertThat(createContext.getState()).isEqualTo(UNDONE);
-        verify(command).doUndo(createContext);
+        verify(command).executeUndo(createContext);
         verify(createContext).setState(WORK);
         verify(createContext).getUndoParameter();
         assertThat(createContext.getUndoParameter()).isEqualTo(resultId);
@@ -201,7 +201,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
         assertThat(resultProfile).isNotNull();
         assertPersonProfilesEquals(resultProfile, toSave, true);
 
-        verify(command).doUndo(updateContext);
+        verify(command).executeUndo(updateContext);
         verify(persistenceFacade).save((StudentProfile) toSave);
         verify(persistenceFacade, times(2)).saveProfile(toSave);
         verify(updateContext, times(2)).setState(WORK);
@@ -222,7 +222,7 @@ class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        verify(command, never()).doUndo(context);
+        verify(command, never()).executeUndo(context);
         verify(context, times(2)).getState();
         verify(context).setState(FAIL);
     }

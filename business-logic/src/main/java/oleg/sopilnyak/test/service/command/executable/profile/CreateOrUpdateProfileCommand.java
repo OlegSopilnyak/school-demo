@@ -68,7 +68,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      * @see Context.State#WORK
      */
     @Override
-    public void doRedo(Context<?> context) {
+    public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to change person profile using: {}", parameter.toString());
@@ -108,7 +108,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
      * @see Context#getUndoParameter()
      */
     @Override
-    public void doUndo(Context<?> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo person profile changes using: {}", parameter.toString());

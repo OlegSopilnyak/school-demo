@@ -88,19 +88,8 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
         } else {
             // start redo with correct context state
             context.setState(Context.State.WORK);
-            doRedo(context);
+            executeDo(context);
         }
-    }
-
-    /**
-     * To execute command redo with correct context state
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context.State#WORK
-     */
-    default void doRedo(Context<?> context) {
-        context.setState(Context.State.DONE);
     }
 
     /**
@@ -118,18 +107,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
         } else {
             // start undo with correct context state
             context.setState(Context.State.WORK);
-            doUndo(context);
+            executeUndo(context);
         }
-    }
-
-    /**
-     * To rollback command's execution with correct context state
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context#getUndoParameter()
-     */
-    default void doUndo(Context<?> context) {
-        context.setState(Context.State.UNDONE);
     }
 }

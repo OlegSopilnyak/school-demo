@@ -6,10 +6,9 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Stud
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import org.slf4j.Logger;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.CREATE_OR_UPDATE;
 
 /**
  * Command-Implementation: command to update the student
@@ -53,6 +52,16 @@ public class CreateOrUpdateStudentCommand implements StudentCommand<Optional<Stu
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE.id();
+        return CREATE_OR_UPDATE_COMMAND_ID;
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
     }
 }

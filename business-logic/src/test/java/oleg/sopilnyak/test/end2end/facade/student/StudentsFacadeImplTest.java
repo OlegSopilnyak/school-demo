@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).execute(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
@@ -78,8 +80,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isNotEmpty();
         assertStudentEquals(newStudent, student.get(), false);
-        verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).execute(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
@@ -94,8 +96,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).execute(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -108,7 +110,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).execute(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -123,7 +126,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertCourseEquals(course, database.findCourseById(courseId).orElse(null), false);
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).execute(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -141,7 +145,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).execute(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -153,7 +158,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).execute(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -166,7 +172,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).execute(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 

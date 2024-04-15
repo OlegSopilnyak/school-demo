@@ -110,9 +110,13 @@ public interface Context<T> {
      * @return true if done
      * @see this#getState()
      * @see Context.State#DONE
-     * */
+     */
     default boolean isDone() {
         return getState() == State.DONE;
+    }
+
+    default boolean isReady() {
+        return getState() == State.READY;
     }
 
 

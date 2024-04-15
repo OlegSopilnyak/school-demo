@@ -82,7 +82,7 @@ class FindProfileCommandTest {
         assertThat(context.getState()).isEqualTo(DONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
     }
 
@@ -97,7 +97,7 @@ class FindProfileCommandTest {
         assertThat(context.getState()).isEqualTo(DONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
     }
 
@@ -112,7 +112,7 @@ class FindProfileCommandTest {
         assertThat(context.getState()).isEqualTo(FAIL);
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade, never()).findProfileById(id);
     }
 
@@ -127,6 +127,6 @@ class FindProfileCommandTest {
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
     }
 }

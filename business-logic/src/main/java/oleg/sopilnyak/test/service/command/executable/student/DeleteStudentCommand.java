@@ -8,11 +8,10 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Stud
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import org.slf4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.DELETE;
 
 /**
  * Command-Implementation: command to delete the student
@@ -69,6 +68,16 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return DELETE.id();
+        return DELETE_COMMAND_ID;
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
     }
 }

@@ -122,7 +122,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.DONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
         verify(persistenceFacade).deleteProfileById(id);
     }
@@ -138,7 +138,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
         verify(persistenceFacade, never()).deleteProfileById(id);
     }
@@ -153,7 +153,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade, never()).findProfileById(anyLong());
         verify(persistenceFacade, never()).deleteProfileById(anyLong());
     }
@@ -172,7 +172,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
 
-        verify(command).doRedo(context);
+        verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
         verify(persistenceFacade).deleteProfileById(id);
     }
@@ -188,7 +188,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         assertThat(context.getException()).isNull();
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade).saveProfile(profile);
     }
 
@@ -203,7 +203,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade, never()).saveProfile(any(PersonProfile.class));
     }
 
@@ -219,7 +219,7 @@ class DeleteProfileCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
 
-        verify(command).doUndo(context);
+        verify(command).executeUndo(context);
         verify(persistenceFacade).saveProfile(input);
     }
 }

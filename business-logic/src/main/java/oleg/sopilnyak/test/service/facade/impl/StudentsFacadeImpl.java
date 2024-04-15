@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.id.set.StudentCommands;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
@@ -16,7 +15,7 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.id.set.StudentCommands.*;
+import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
 
 /**
  * Service: To process command for school's student-facade
@@ -37,7 +36,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public Optional<Student> findById(Long studentId) {
-        return executeTheCommand(FIND_BY_ID, studentId, factory);
+        return doSimpleCommand(FIND_BY_ID_COMMAND_ID, studentId, factory);
     }
 
     /**
@@ -48,7 +47,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public Set<Student> findEnrolledTo(Long courseId) {
-        return executeTheCommand(FIND_ENROLLED, courseId, factory);
+        return doSimpleCommand(FIND_ENROLLED_COMMAND_ID, courseId, factory);
     }
 
     /**
@@ -58,7 +57,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public Set<Student> findNotEnrolled() {
-        return executeTheCommand(FIND_NOT_ENROLLED, null, factory);
+        return doSimpleCommand(FIND_NOT_ENROLLED_COMMAND_ID, null, factory);
     }
 
     /**
@@ -71,7 +70,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public Optional<Student> createOrUpdate(Student student) {
-        return executeTheCommand(CREATE_OR_UPDATE, student, factory);
+        return executeSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, student, factory);
     }
 
     /**
@@ -84,7 +83,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public boolean delete(Long studentId) throws StudentNotExistsException, StudentWithCoursesException {
-        String commandId = DELETE.id();
+        String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(studentId);
         if (cmdResult.isSuccess()) {
@@ -105,7 +104,4 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
         }
     }
 
-    private static <T> T executeTheCommand(StudentCommands command, Object option, CommandsFactory<?> factory) {
-        return executeSimpleCommand(command.id(), option, factory);
-    }
 }
