@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
-class CoursesFacadeIntegrationTest extends MysqlTestModelFactory {
+class CoursesFacadeImplTest extends MysqlTestModelFactory {
     public static final String COURSE_FIND_BY_ID = "course.findById";
     public static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
     public static final String COURSE_FIND_WITHOUT_STUDENTS = "course.findWithoutStudents";

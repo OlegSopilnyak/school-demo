@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Cour
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -48,6 +48,16 @@ public class CreateOrUpdateCourseCommand implements CourseCommand<Optional<Cours
      */
     @Override
     public String getId() {
-        return CourseCommands.CREATE_OR_UPDATE.id();
+        return CREATE_OR_UPDATE_COMMAND_ID;
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
     }
 }

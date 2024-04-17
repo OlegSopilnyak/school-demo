@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CoursesFacadeUnitTest {
+class CoursesFacadeImplTest {
     private static final String COURSE_FIND_BY_ID = "course.findById";
     private static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
     private static final String COURSE_FIND_WITHOUT_STUDENTS = "course.findWithoutStudents";

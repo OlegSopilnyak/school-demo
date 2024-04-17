@@ -12,10 +12,26 @@ public interface StudentCommand<T> extends SchoolCommand<T> {
      * The name of commands-factory SpringBean
      */
     String FACTORY_BEAN_NAME = "studentCommandsFactory";
+
+    /**
+     * ID of student's findById command
+     */
     String FIND_BY_ID_COMMAND_ID = "student.findById";
+    /**
+     * ID of student's findEnrolledTo command
+     */
     String FIND_ENROLLED_COMMAND_ID = "student.findEnrolledTo";
+    /**
+     * ID of student's findNotEnrolled command
+     */
     String FIND_NOT_ENROLLED_COMMAND_ID = "student.findNotEnrolled";
+    /**
+     * ID of student's createOrUpdate command
+     */
     String CREATE_OR_UPDATE_COMMAND_ID = "student.createOrUpdate";
+    /**
+     * ID of student's delete command
+     */
     String DELETE_COMMAND_ID = "student.delete";
 
     /**

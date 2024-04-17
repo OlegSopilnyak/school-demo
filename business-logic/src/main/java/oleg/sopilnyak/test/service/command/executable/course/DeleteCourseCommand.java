@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Cour
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
+import org.slf4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
@@ -61,6 +61,16 @@ public class DeleteCourseCommand implements CourseCommand<Boolean> {
      */
     @Override
     public String getId() {
-        return CourseCommands.DELETE.id();
+        return DELETE_COMMAND_ID;
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
     }
 }

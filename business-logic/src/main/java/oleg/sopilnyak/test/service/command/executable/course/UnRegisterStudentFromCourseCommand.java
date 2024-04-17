@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -70,6 +70,16 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      */
     @Override
     public String getId() {
-        return CourseCommands.UN_REGISTER.id();
+        return UN_REGISTER_COMMAND_ID;
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
     }
 }

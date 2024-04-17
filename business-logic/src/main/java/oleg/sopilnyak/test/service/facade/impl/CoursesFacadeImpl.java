@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.id.set.CourseCommands;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
@@ -15,7 +14,7 @@ import java.util.Set;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.id.set.CourseCommands.*;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.*;
 
 /**
  * Service: To process command for school's courses facade
@@ -38,7 +37,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Optional<Course> findById(Long courseId) {
-        return executeTheCommand(FIND_BY_ID, courseId, factory);
+        return executeSimpleCommand(FIND_BY_ID_COMMAND_ID, courseId, factory);
     }
 
     /**
@@ -49,7 +48,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Set<Course> findRegisteredFor(Long studentId) {
-        return executeTheCommand(FIND_REGISTERED, studentId, factory);
+        return executeSimpleCommand(FIND_REGISTERED_COMMAND_ID, studentId, factory);
     }
 
     /**
@@ -59,7 +58,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Set<Course> findWithoutStudents() {
-        return executeTheCommand(FIND_NOT_REGISTERED, null, factory);
+        return executeSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
     }
 
     /**
@@ -72,7 +71,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Optional<Course> createOrUpdate(Course course) {
-        return executeTheCommand(CREATE_OR_UPDATE, course, factory);
+        return executeSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, course, factory);
     }
 
     /**
@@ -84,7 +83,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
-        final String commandId = DELETE.id();
+        final String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(courseId);
         if (!commandExecutionResult.isSuccess()) {
@@ -117,7 +116,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
     public void register(Long studentId, Long courseId)
             throws StudentNotExistsException, CourseNotExistsException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
-        final String commandId = REGISTER.id();
+        final String commandId = REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
         if (!commandExecutionResult.isSuccess()) {
@@ -150,7 +149,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
-        final String commandId = UN_REGISTER.id();
+        final String commandId = UN_REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
         if (!commandExecutionResult.isSuccess()) {
@@ -168,9 +167,4 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
             }
         }
     }
-
-    private static <T> T executeTheCommand(CourseCommands command, Object option, CommandsFactory<?> factory) {
-        return executeSimpleCommand(command.id(), option, factory);
-    }
-
 }
