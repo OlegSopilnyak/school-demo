@@ -32,8 +32,8 @@ class SchoolEntityMapperTest extends TestModelFactory {
     }
 
     @Test
-    void shouldTransformCourseToEntity() {
-        Long id = 101L;
+    void shouldTransformCourseToEntityGraph() {
+        Long id = 108L;
         String name = "courseName";
         String description = "description";
         List<Student> students =
@@ -41,6 +41,27 @@ class SchoolEntityMapperTest extends TestModelFactory {
         Course course = FakeCourse.builder()
                 .id(id).name(name).description(description).students(students)
                 .build();
+
+        CourseEntity entity = mapper.toEntity(course);
+
+        assertCourseEquals(entity, course);
+    }
+
+    @Test
+    void shouldTransformCourseToEntityCycle() {
+        Long id = 109L;
+        String name = "courseName";
+        String description = "description";
+        List<Student> students =
+                makeStudents(50).stream().sorted(Comparator.comparing(Student::getFullName)).toList();
+        Course course = FakeCourse.builder()
+                .id(id).name(name).description(description).students(students)
+                .build();
+        students.forEach(student -> {
+            if (student instanceof FakeStudent fake) {
+                fake.setCourses(List.of(course));
+            }
+        });
 
         CourseEntity entity = mapper.toEntity(course);
 
@@ -78,7 +99,7 @@ class SchoolEntityMapperTest extends TestModelFactory {
     }
 
     @Test
-    void shouldTransformStudentToEntity() {
+    void shouldTransformStudentToEntityGraph() {
         Long id = 100L;
         String firstName = "firstName";
         String lastName = "lastName";
@@ -89,6 +110,29 @@ class SchoolEntityMapperTest extends TestModelFactory {
                 .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
                 .courses(courses)
                 .build();
+
+        StudentEntity entity = mapper.toEntity(student);
+
+        assertStudentEquals(entity, student);
+    }
+
+    @Test
+    void shouldTransformStudentToEntityCycled() {
+        Long id = 101L;
+        String firstName = "firstName";
+        String lastName = "lastName";
+        String gender = "gender";
+        String description = "description";
+        List<Course> courses = makeCourses(5);
+        Student student = FakeStudent.builder()
+                .id(id).firstName(firstName).lastName(lastName).gender(gender).description(description)
+                .courses(courses)
+                .build();
+        courses.forEach(course -> {
+            if (course instanceof FakeCourse fake) {
+                fake.setStudents(List.of(student));
+            }
+        });
 
         StudentEntity entity = mapper.toEntity(student);
 

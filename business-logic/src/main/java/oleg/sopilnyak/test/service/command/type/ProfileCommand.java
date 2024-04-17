@@ -44,7 +44,7 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
 
 
     /**
-     * To cache into context old value of the profile for possible roll;back
+     * To cache into context old value of the profile for possible rollback
      *
      * @param context command execution context
      * @param inputId system-id of the profile
@@ -67,8 +67,8 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
      * @param context command execution context
      */
     default void rollbackCachedProfile(Context<?> context) {
-        final Object oldProfile = context.getUndoParameter();
-        if (oldProfile instanceof PersonProfile profile) {
+        final Object undoParameter = context.getUndoParameter();
+        if (undoParameter instanceof PersonProfile profile) {
             getLog().debug("Restoring changed value of profile {}", profile);
             getPersistenceFacade().saveProfile(profile);
         }

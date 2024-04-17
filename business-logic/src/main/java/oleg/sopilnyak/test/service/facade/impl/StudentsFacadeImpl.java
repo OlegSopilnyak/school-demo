@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
@@ -23,7 +23,6 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
 @Slf4j
 @AllArgsConstructor
 public class StudentsFacadeImpl<T> implements StudentsFacade {
-    public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory<T> factory;
 
     /**
@@ -70,7 +69,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      */
     @Override
     public Optional<Student> createOrUpdate(Student student) {
-        return executeSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, student, factory);
+        return doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, student, factory);
     }
 
     /**
@@ -85,23 +84,26 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
     public boolean delete(Long studentId) throws StudentNotExistsException, StudentWithCoursesException {
         String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        final CommandResult<Boolean> cmdResult = command.execute(studentId);
-        if (cmdResult.isSuccess()) {
-            return cmdResult.getResult().orElseThrow(createThrowFor(commandId));
+        final Context<Boolean> context = command.createContext(studentId);
+
+        command.doCommand(context);
+
+        if (context.isDone()) {
+            log.debug("Deleted student with ID:{} successfully.", studentId);
+            return true;
+        }
+
+        final Exception doException = context.getException();
+        log.warn("Something went wrong", doException);
+        if (doException instanceof StudentNotExistsException studentNotExistsException) {
+            throw studentNotExistsException;
+        } else if (doException instanceof StudentWithCoursesException studentWithCoursesException) {
+            throw studentWithCoursesException;
+        } else if (nonNull(doException)) {
+            return throwFor(commandId, doException);
         } else {
-            final Exception executionException = cmdResult.getException();
-            log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof StudentNotExistsException exception) {
-                throw exception;
-            } else if (executionException instanceof StudentWithCoursesException exception) {
-                throw exception;
-            } else if (nonNull(executionException)) {
-                return throwFor(commandId, executionException);
-            } else {
-                log.error("For command-id:'{}' there is not exception after command execution.", commandId);
-                return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
-            }
+            log.error("For command-id:'{}' there is not exception after command execution.", commandId);
+            return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
         }
     }
-
 }

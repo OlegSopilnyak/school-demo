@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
+import static oleg.sopilnyak.test.school.common.facade.PersonProfileFacade.isInvalidId;
+
 /**
  * Command-Implementation: command to delete person profile instance by id
  */
@@ -85,6 +87,9 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
         try {
             log.debug("Trying to delete person profile using: {}", parameter.toString());
             final Long id = commandParameter(parameter);
+            if (isInvalidId(id)) {
+                throw new ProfileNotExistsException("PersonProfile with ID:" + id + " is not exists.");
+            }
             cacheProfileForRollback(context, id);
             persistenceFacade.deleteProfileById(id);
             context.setResult(true);

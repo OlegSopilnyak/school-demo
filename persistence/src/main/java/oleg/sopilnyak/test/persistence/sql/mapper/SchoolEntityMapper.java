@@ -23,6 +23,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
         nullValueCheckStrategy = ALWAYS,
         builder = @Builder(disableBuilder = true)
 )
+
 public interface SchoolEntityMapper {
     /**
      * Convert model-type to Entity<BR/>Set ManyToOne field to null
@@ -31,6 +32,7 @@ public interface SchoolEntityMapper {
      * @return Entity instance
      * @see FacultyEntity#setCourses(List)
      */
+    @Named("toCourseEntity")
     @Mapping(target = "faculty", expression = "java(null)")
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentEntities", dependsOn = "id")
     CourseEntity toEntity(Course course);
@@ -99,13 +101,21 @@ public interface SchoolEntityMapper {
 
     @Named("toCourseEntities")
     default List<Course> toCourses(final List<Course> courses) {
-        return isNull(courses) ? List.of() : courses.stream().map(course -> (Course) toEntity(course)).toList();
+        return isNull(courses) ? List.of() : courses.stream().map(course -> (Course) toEntityOnly(course)).toList();
     }
+
+    @Mapping(target = "students", ignore = true)
+    @Mapping(target = "studentSet", expression = "java(null)")
+    CourseEntity toEntityOnly(Course course);
 
     @Named("toStudentEntities")
     default List<Student> toStudents(List<Student> students) {
-        return isNull(students) ? List.of() : students.stream().map(student -> (Student) toEntity(student)).toList();
+        return isNull(students) ? List.of() : students.stream().map(student -> (Student) toEntityOnly(student)).toList();
     }
+
+    @Mapping(target = "courses", ignore = true)
+    @Mapping(target = "courseSet", expression = "java(null)")
+    StudentEntity toEntityOnly(Student student);
 
     @Named("toFacultyEntities")
     default List<Faculty> toFaculties(List<Faculty> faculties) {

@@ -32,6 +32,7 @@ class StudentsFacadeImplTest {
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
     private static final String STUDENT_DELETE = "student.delete";
+
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
     CommandsFactory<?> factory = buildFactory();
@@ -129,7 +130,8 @@ class StudentsFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).execute(mockedStudent);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(mockedStudent);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockedStudent);
     }
 
@@ -141,7 +143,8 @@ class StudentsFacadeImplTest {
 
         assertThat(result).isPresent();
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).execute(mockedStudent);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(mockedStudent);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockedStudent);
     }
 
@@ -149,11 +152,13 @@ class StudentsFacadeImplTest {
     void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
 
         facade.delete(studentId);
 
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).deleteStudent(studentId);
     }
@@ -166,7 +171,8 @@ class StudentsFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:102 is not exists.");
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
@@ -175,12 +181,14 @@ class StudentsFacadeImplTest {
         Long studentId = 103L;
         when(mockedStudent.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 

@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
@@ -8,17 +9,25 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Stud
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.base.ChangeStudentCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
+
+import static oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade.isInvalidId;
 
 /**
  * Command-Implementation: command to delete the student
  */
 @Slf4j
 @AllArgsConstructor
-public class DeleteStudentCommand implements StudentCommand<Boolean> {
+public class DeleteStudentCommand implements
+        ChangeStudentCommand,
+        StudentCommand<Boolean> {
+    public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
+    @Getter
     private final StudentsPersistenceFacade persistenceFacade;
 
     /**
@@ -38,13 +47,13 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
             if (student.isEmpty()) {
                 return CommandResult.<Boolean>builder()
                         .result(Optional.of(false))
-                        .exception(new StudentNotExistsException("Student with ID:" + id + " is not exists."))
+                        .exception(new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + id + " is not exists."))
                         .success(false).build();
             }
             if (!ObjectUtils.isEmpty(student.get().getCourses())) {
                 return CommandResult.<Boolean>builder()
                         .result(Optional.of(false))
-                        .exception(new StudentWithCoursesException("Student with ID:" + id + " has registered courses."))
+                        .exception(new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses."))
                         .success(false).build();
             }
             boolean result = persistenceFacade.deleteStudent(id);
@@ -58,6 +67,64 @@ public class DeleteStudentCommand implements StudentCommand<Boolean> {
             return CommandResult.<Boolean>builder()
                     .result(Optional.of(false))
                     .exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * To delete the student by student-id<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        final Object parameter = context.getRedoParameter();
+        try {
+            log.debug("Trying to delete student by ID: {}", parameter.toString());
+            final Long inputId = commandParameter(parameter);
+            if (isInvalidId(inputId)) {
+                throw new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
+            }
+            final Student student = (Student) cacheEntityForRollback(inputId);
+            if (!ObjectUtils.isEmpty(student.getCourses())) {
+                throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
+            }
+            // cached student saved to context for futher undo
+            context.setUndoParameter(student);
+            persistenceFacade.deleteStudent(inputId);
+            context.setResult(true);
+        } catch (Exception e) {
+            log.error("Cannot save the student {}", parameter, e);
+            context.failed(e);
+            rollbackCachedEntity(context);
+        }
+    }
+
+    /**
+     * To rollback delete the student by student-id<BR/>
+     * To rollback command's execution with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context#getUndoParameter()
+     */
+    @Override
+    public void executeUndo(Context<?> context) {
+        final Object parameter = context.getUndoParameter();
+        try {
+            log.debug("Trying to undo student deletion using: {}", parameter.toString());
+            if (parameter instanceof Student student) {
+                final Optional<Student> restored = persistenceFacade.save(student);
+                log.debug("Got restored student {}", restored.orElse(null));
+            } else {
+                throw new NullPointerException("Wrong undo parameter :" + parameter);
+            }
+            context.setState(Context.State.UNDONE);
+        } catch (Exception e) {
+            log.error("Cannot undo student deletion {}", parameter, e);
+            context.failed(e);
         }
     }
 

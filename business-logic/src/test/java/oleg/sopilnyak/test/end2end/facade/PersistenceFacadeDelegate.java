@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class PersistenceFacadeDelegate implements PersistenceFacade {
     final PersistenceFacade delegator;
+
     public PersistenceFacadeDelegate(PersistenceFacade persistenceFacade) {
         this.delegator = persistenceFacade;
     }
@@ -322,6 +323,17 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * Convert student to entity bean
+     *
+     * @param student instance to convert
+     * @return instance ready to use in the repository
+     */
+    @Override
+    public Student toEntity(Student student) {
+        return delegator.toEntity(student);
+    }
+
+    /**
      * To get person-profile instance by id
      *
      * @param id system-id of the course
@@ -356,7 +368,7 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * @throws ProfileNotExistsException if profile with id is not exists
      */
     @Override
-    public void deleteProfileById(Long id) throws ProfileNotExistsException{
+    public void deleteProfileById(Long id) throws ProfileNotExistsException {
         delegator.deleteProfileById(id);
     }
 

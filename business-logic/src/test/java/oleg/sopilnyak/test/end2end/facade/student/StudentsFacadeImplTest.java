@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.end2end.facade.student;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
@@ -13,11 +15,13 @@ import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -42,8 +46,14 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
     private static final String STUDENT_DELETE = "student.delete";
+
+
+    @SpyBean
+    @Autowired
+    StudentRepository studentRepository;
     @Autowired
     PersistenceFacade database;
+
     PersistenceFacade persistenceFacade;
     CommandsFactory<?> factory;
 
@@ -54,6 +64,17 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new StudentsFacadeImpl<>(factory));
+    }
+
+    @AfterEach
+    void tearDown() {
+        reset(studentRepository);
+    }
+
+    @Test
+    void allComponentsShouldBeValid() {
+        assertThat(studentRepository).isNotNull();
+        assertThat(database).isNotNull();
     }
 
     @Test
@@ -68,6 +89,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
+        verify(studentRepository).findById(studentId);
     }
 
     @Test
@@ -83,6 +105,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
+        verify(studentRepository).findById(studentId);
     }
 
     @Test
@@ -99,6 +122,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+        verify(studentRepository).findStudentEntitiesByCourseSetId(courseId);
     }
 
     @Test
@@ -113,6 +137,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+        verify(studentRepository).findStudentEntitiesByCourseSetId(courseId);
     }
 
     @Test
@@ -129,6 +154,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+        verify(studentRepository).findStudentEntitiesByCourseSetId(courseId);
     }
 
     @Test
@@ -148,6 +174,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
+        verify(studentRepository).findStudentEntitiesByCourseSetEmpty();
     }
 
     @Test
@@ -161,6 +188,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
+        verify(studentRepository).findStudentEntitiesByCourseSetEmpty();
     }
 
     @Test
@@ -175,19 +203,46 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
+        verify(studentRepository).findStudentEntitiesByCourseSetEmpty();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldCreateOrUpdate() {
-        Student student = mock(Student.class);
+    void shouldCreateOrUpdate_Create() {
+        Student student = makeClearTestStudent();
 
         Optional<Student> result = facade.createOrUpdate(student);
 
         assertThat(result).isNotEmpty();
+        assertStudentEquals(student, result.get(), false);
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).execute(student);
-        verify(persistenceFacade).save(any(Student.class));
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(student);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(persistenceFacade).save(student);
+        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldCreateOrUpdate_Update() {
+        Student student = getPersistentStudent(makeClearTestStudent());
+        Student oldStudent = persistenceFacade.toEntity(student);
+        if (oldStudent instanceof StudentEntity entity) {
+            entity.setFirstName(student.getFirstName() + "-newOne");
+        }
+        reset(persistenceFacade, studentRepository);
+
+        Optional<Student> result = facade.createOrUpdate(oldStudent);
+
+        assertThat(result).isNotEmpty();
+        assertStudentEquals(oldStudent, result.get());
+        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(student);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(student.getId());
+        verify(studentRepository).findById(student.getId());
+        verify(persistenceFacade).save(oldStudent);
+        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -198,13 +253,20 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
             student.setCourses(List.of());
         }
         Long studentId = getPersistentStudent(newStudent).getId();
+        assertThat(database.findStudentById(studentId)).isPresent();
+        reset(studentRepository);
 
         facade.delete(studentId);
 
         assertThat(database.findStudentById(studentId)).isEmpty();
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).deleteStudent(studentId);
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(studentRepository, times(2)).findById(studentId);
+        verify(studentRepository).deleteById(studentId);
+        verify(studentRepository).flush();
     }
 
     @Test
@@ -216,8 +278,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(studentRepository).findById(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
+        verify(studentRepository, never()).deleteById(studentId);
+        verify(studentRepository, never()).flush();
     }
 
     @Test
@@ -229,8 +296,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).execute(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(studentRepository).findById(studentId);
         verify(persistenceFacade, never()).deleteStudent(studentId);
+        verify(studentRepository, never()).deleteById(studentId);
+        verify(studentRepository, never()).flush();
     }
 
     // private methods

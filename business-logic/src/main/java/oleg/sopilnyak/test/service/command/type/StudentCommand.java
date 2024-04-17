@@ -25,6 +25,7 @@ public interface StudentCommand<T> extends SchoolCommand<T> {
      */
     Logger getLog();
 
+
     /**
      * To execute command
      *

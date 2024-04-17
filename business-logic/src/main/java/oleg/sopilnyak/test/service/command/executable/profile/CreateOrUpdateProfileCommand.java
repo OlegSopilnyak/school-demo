@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static oleg.sopilnyak.test.school.common.facade.PersonProfileFacade.isInvalidId;
 
+
 /**
  * Command-Implementation: command to update person profile instance
  */
@@ -61,6 +62,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     /**
+     * To update person's profile<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
@@ -101,6 +103,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
     }
 
     /**
+     * To rollback update person's profile<BR/>
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
