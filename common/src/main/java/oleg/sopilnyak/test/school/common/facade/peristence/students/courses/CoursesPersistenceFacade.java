@@ -37,4 +37,12 @@ public interface CoursesPersistenceFacade {
      * @return true if the course deletion successfully
      */
     boolean deleteCourse(Long courseId);
+
+    /**
+     * Convert course to entity bean
+     *
+     * @param course instance to convert
+     * @return instance ready to use in the repository
+     */
+    Course toEntity(Course course);
 }

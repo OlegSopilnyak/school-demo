@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Regi
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -38,6 +39,33 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
         } catch (Exception e) {
             log.error("Cannot find courses registered to student ID:{}", parameter, e);
             return CommandResult.<Set<Course>>builder().success(false).exception(e).result(Optional.of(Set.of())).build();
+        }
+    }
+
+    /**
+     * To find courses registered to student by id <BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see RegisterPersistenceFacade#findCoursesRegisteredForStudent(Long)
+     * @see Context
+     * @see Context#setResult(Object)
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        final Object parameter = context.getRedoParameter();
+        try {
+            log.debug("Trying to find courses registered to student ID: {}", parameter);
+
+            final Long id = commandParameter(parameter);
+            final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
+
+            log.debug("Got courses {} for student ID:{}", courses, id);
+            context.setResult(courses);
+        } catch (Exception e) {
+            log.error("Cannot find courses registered to student ID:{}", parameter, e);
+            context.failed(e);
         }
     }
 

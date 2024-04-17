@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
-import oleg.sopilnyak.test.persistence.sql.implementation.students.courses.CoursesPersistenceFacadeImplementation;
+import oleg.sopilnyak.test.persistence.sql.implementation.students.courses.CoursesPersistence;
 import oleg.sopilnyak.test.persistence.sql.implementation.students.courses.RegisterPersistenceFacadeImplementation;
 import oleg.sopilnyak.test.persistence.sql.implementation.students.courses.StudentsPersistence;
 import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPersistenceFacade;
@@ -10,6 +10,6 @@ import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPers
  */
 public interface StudentCourseLinkPersistenceFacadeImplementation extends StudentCourseLinkPersistenceFacade,
         StudentsPersistence,
-        CoursesPersistenceFacadeImplementation,
+        CoursesPersistence,
         RegisterPersistenceFacadeImplementation {
 }

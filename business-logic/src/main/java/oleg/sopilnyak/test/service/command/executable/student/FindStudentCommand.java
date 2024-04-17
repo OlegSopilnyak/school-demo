@@ -59,7 +59,7 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find person profile by ID:{}", parameter.toString());
+            log.debug("Trying to find student by ID:{}", parameter.toString());
 
             final Long id = commandParameter(parameter);
             final Optional<Student> student = persistenceFacade.findStudentById(id);

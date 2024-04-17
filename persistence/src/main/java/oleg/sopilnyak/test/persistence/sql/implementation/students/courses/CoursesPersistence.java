@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Persistence facade implementation for courses entities
  */
-public interface CoursesPersistenceFacadeImplementation extends CoursesPersistenceFacade {
+public interface CoursesPersistence extends CoursesPersistenceFacade {
     Logger getLog();
 
     SchoolEntityMapper getMapper();
@@ -66,5 +66,16 @@ public interface CoursesPersistenceFacadeImplementation extends CoursesPersisten
         getCourseRepository().deleteById(id);
         getCourseRepository().flush();
         return true;
+    }
+
+    /**
+     * Convert course to entity bean
+     *
+     * @param course instance to convert
+     * @return instance ready to use in the repository
+     */
+    @Override
+    default Course toEntity(Course course) {
+        return getMapper().toEntity(course);
     }
 }

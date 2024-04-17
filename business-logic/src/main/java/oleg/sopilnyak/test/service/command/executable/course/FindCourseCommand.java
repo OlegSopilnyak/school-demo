@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Cour
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -38,6 +39,33 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
             log.error("Cannot find the course by ID:{}", parameter, e);
             return CommandResult.<Optional<Course>>builder().success(false).exception(e)
                     .result(Optional.of(Optional.empty())).build();
+        }
+    }
+
+    /**
+     * To find course by id<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see CoursesPersistenceFacade#findCourseById(Long)
+     * @see Context
+     * @see Context#setResult(Object)
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        final Object parameter = context.getRedoParameter();
+        try {
+            log.debug("Trying to find course by ID:{}", parameter.toString());
+
+            final Long id = commandParameter(parameter);
+            final Optional<Course> course = persistenceFacade.findCourseById(id);
+
+            log.debug("Got course {} by ID:{}", course, id);
+            context.setResult(course);
+        } catch (Exception e) {
+            log.error("Cannot find the course by ID:{}", parameter, e);
+            context.failed(e);
         }
     }
 

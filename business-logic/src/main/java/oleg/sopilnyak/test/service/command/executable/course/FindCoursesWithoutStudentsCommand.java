@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Regi
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -37,6 +38,31 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
         } catch (Exception e) {
             log.error("Cannot find courses without students.", e);
             return CommandResult.<Set<Course>>builder().success(false).exception(e).result(Optional.of(Set.of())).build();
+        }
+    }
+
+    /**
+     * To find courses without students<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see RegisterPersistenceFacade#findCoursesWithoutStudents()
+     * @see Context
+     * @see Context#setResult(Object)
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        try {
+            log.debug("Trying to find courses without students");
+
+            final Set<Course> courses = persistenceFacade.findCoursesWithoutStudents();
+
+            log.debug("Got courses without student {}", courses);
+            context.setResult(courses);
+        } catch (Exception e) {
+            log.error("Cannot find courses without students.", e);
+            context.failed(e);
         }
     }
 

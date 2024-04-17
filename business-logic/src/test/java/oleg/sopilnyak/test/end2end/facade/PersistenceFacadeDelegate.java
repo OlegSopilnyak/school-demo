@@ -62,6 +62,17 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * Convert course to entity bean
+     *
+     * @param course instance to convert
+     * @return instance ready to use in the repository
+     */
+    @Override
+    public Course toEntity(Course course) {
+        return delegator.toEntity(course);
+    }
+
+    /**
      * To get all authority persons of the school
      *
      * @return the set of authority persons

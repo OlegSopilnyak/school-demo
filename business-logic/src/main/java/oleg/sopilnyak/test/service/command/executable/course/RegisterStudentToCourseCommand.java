@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -87,6 +88,107 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             return CommandResult.<Boolean>builder().success(false).exception(e).result(Optional.of(false)).build();
+        }
+    }
+
+    /**
+     * To link the student to the course<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see StudentCourseLinkPersistenceFacade#findStudentById(Long)
+     * @see StudentCourseLinkPersistenceFacade#findCourseById(Long)
+     * @see StudentCourseLinkPersistenceFacade#toEntity(Student)
+     * @see StudentCourseLinkPersistenceFacade#toEntity(Course)
+     * @see StudentCourseLinkPersistenceFacade#link(Student, Course)
+     * @see Context
+     * @see Context#setUndoParameter(Object)
+     * @see Context#setResult(Object)
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        final Object parameter = context.getRedoParameter();
+        try {
+            log.debug("Trying to register student to course: {}", parameter);
+            final Long[] ids = commandParameter(parameter);
+            final Long studentId = ids[0];
+            final Long courseId = ids[1];
+            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
+            if (student.isEmpty()) {
+                log.debug("No such student with id:{}", studentId);
+                throw new StudentNotExistsException("Student with ID:" + studentId + " is not exists.");
+            }
+            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
+            if (course.isEmpty()) {
+                log.debug("No such course with id:{}", courseId);
+                throw new CourseNotExistsException("Course with ID:" + courseId + " is not exists.");
+            }
+            final Student existingStudent = student.get();
+            final Course existingCourse = course.get();
+            if (isLinked(existingStudent, existingCourse)) {
+                log.debug("student: {} with course {} are already linked", studentId, courseId);
+                context.setResult(true);
+                return;
+            }
+            if (existingCourse.getStudents().size() >= maximumRooms) {
+                log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
+                throw new NoRoomInTheCourseException("Course with ID:" + courseId + " does not have enough rooms.");
+            }
+            if (existingStudent.getCourses().size() >= coursesExceed) {
+                log.debug("Student with id:{} has more than {} courses", studentId, coursesExceed);
+                throw new StudentCoursesExceedException("Student with ID:" + studentId + " exceeds maximum courses.");
+            }
+
+            log.debug("Linking student:{} to course:{}", studentId, courseId);
+
+            final Object[] forUndo = new Object[]{
+                    persistenceFacade.toEntity(existingStudent),
+                    persistenceFacade.toEntity(existingCourse)
+            };
+            final boolean linked = persistenceFacade.link(existingStudent, existingCourse);
+            if (linked) {
+                context.setUndoParameter(forUndo);
+                context.setResult(true);
+            } else {
+                context.setResult(false);
+            }
+
+            log.debug("Linked student:{} to course {} {}", studentId, courseId, linked);
+        } catch (Exception e) {
+            log.error("Cannot link student to course {}", parameter, e);
+            context.failed(e);
+        }
+    }
+
+    /**
+     * To link the student to the course<BR/>
+     * To rollback command's execution with correct context state
+     *
+     * @param context context of redo execution
+     * @see StudentCourseLinkPersistenceFacade#unLink(Student, Course)
+     * @see Context
+     * @see Context#getUndoParameter()
+     */
+    @Override
+    public void executeUndo(Context<?> context) {
+        final Object parameter = context.getUndoParameter();
+        if (isNull(parameter)) {
+            log.debug("Undo parameter is null");
+            context.setState(Context.State.UNDONE);
+        } else {
+            try {
+                log.debug("Trying to undo student to course linking using: {}", parameter);
+
+                final Object[] forUndo = commandParameter(parameter);
+                final boolean success = persistenceFacade.unLink((Student) forUndo[0], (Course) forUndo[1]);
+                context.setState(Context.State.UNDONE);
+
+                log.debug("Undone student to course linking {}", success);
+            } catch (Exception e) {
+                log.error("Cannot undo student to course linking for {}", parameter, e);
+                context.failed(e);
+            }
         }
     }
 
