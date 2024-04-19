@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -115,7 +116,7 @@ public class CreateOrUpdateStudentCommand implements
                 persistenceFacade.save(student);
                 log.debug("Got restored \nstudent {}\n success: {}", student, true);
             } else {
-                throw new NullPointerException("Wrong undo parameter :" + parameter);
+                throw new StudentNotExistsException("Wrong undo parameter :" + parameter);
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

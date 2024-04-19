@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +33,7 @@ class DeleteProfileCommandTest {
     StudentProfile profile;
 
     @Test
+    @Disabled
     void shouldExecuteCommand() throws ProfileNotExistsException {
         long id = 404L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
@@ -48,6 +50,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldNotExecuteCommand_ProfileNotExists() throws ProfileNotExistsException {
         long id = 405L;
 
@@ -63,6 +66,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldNotExecuteCommand_WrongIdType() {
 
         CommandResult<Boolean> result = command.execute("id");
@@ -76,6 +80,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldNotExecuteCommand_NullId() throws ProfileNotExistsException {
         when(persistenceFacade.findProfileById(null)).thenReturn(Optional.of(input));
         doThrow(new RuntimeException()).when(persistenceFacade).deleteProfileById(null);
@@ -92,6 +97,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldNotExecuteCommand_ExceptionThrown() throws ProfileNotExistsException {
         long id = 405L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));

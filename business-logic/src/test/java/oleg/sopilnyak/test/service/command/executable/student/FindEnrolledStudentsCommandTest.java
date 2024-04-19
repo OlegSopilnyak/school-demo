@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Set;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -26,6 +30,7 @@ class FindEnrolledStudentsCommandTest {
     FindEnrolledStudentsCommand command;
 
     @Test
+    @Disabled
     void shouldExecuteCommand() {
         Long id = 210L;
 
@@ -38,6 +43,7 @@ class FindEnrolledStudentsCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldExecuteCommand_StudentsFound() {
         Long id = 211L;
         when(persistenceFacade.findEnrolledStudentsByCourseId(id)).thenReturn(Set.of(instance));
@@ -51,6 +57,7 @@ class FindEnrolledStudentsCommandTest {
     }
 
     @Test
+    @Disabled
     void shouldNotExecuteCommand() {
         Long id = 212L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
@@ -62,5 +69,65 @@ class FindEnrolledStudentsCommandTest {
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(Set.of(mock(Student.class)))).isEmpty();
         assertThat(result.getException()).isEqualTo(cannotExecute);
+    }
+
+    @Test
+    void shouldDoCommand_StudentsNotFound() {
+        Long id = 210L;
+        Context<Set<Student>> context = command.createContext(id);
+
+        command.doCommand(context);
+
+        assertThat(context.isDone()).isTrue();
+        assertThat(context.getResult()).isPresent();
+        Set<Student> result = (Set<Student>) context.getResult().orElseThrow();
+        assertThat(result).isEmpty();
+        verify(command).executeDo(context);
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(id);
+    }
+
+    @Test
+    void shouldDoCommand_StudentsFound() {
+        Long id = 211L;
+        when(persistenceFacade.findEnrolledStudentsByCourseId(id)).thenReturn(Set.of(instance));
+        Context<Set<Student>> context = command.createContext(id);
+
+        command.doCommand(context);
+
+        assertThat(context.isDone()).isTrue();
+        assertThat(context.getResult()).isPresent();
+        Set<Student> result = (Set<Student>) context.getResult().orElseThrow();
+        assertThat(result).isEqualTo(Set.of(instance));
+        verify(command).executeDo(context);
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(id);
+    }
+
+    @Test
+    void shouldNotDoCommand_ExceptionThrown() {
+        Long id = 212L;
+        RuntimeException cannotExecute = new RuntimeException("Cannot find");
+        doThrow(cannotExecute).when(persistenceFacade).findEnrolledStudentsByCourseId(id);
+        Context<Set<Student>> context = command.createContext(id);
+
+        command.doCommand(context);
+
+        assertThat(context.isDone()).isFalse();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isEqualTo(cannotExecute);
+        verify(command).executeDo(context);
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(id);
+    }
+
+    @Test
+    void shouldExecuteCommandUndoCommand() {
+        Context<Set<Student>> context = command.createContext();
+        context.setState(DONE);
+
+        command.undoCommand(context);
+
+        assertThat(context.getState()).isEqualTo(UNDONE);
+        assertThat(context.getException()).isNull();
+
+        verify(command).executeUndo(context);
     }
 }
