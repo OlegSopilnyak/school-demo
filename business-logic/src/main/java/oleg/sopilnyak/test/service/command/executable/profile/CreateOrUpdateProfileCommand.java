@@ -81,7 +81,7 @@ public class CreateOrUpdateProfileCommand implements ProfileCommand<Optional<? e
             }
             final Optional<? extends PersonProfile> profile = savePersonProfile(context);
             // checking execution context state
-            if (context.getState() == Context.State.FAIL) {
+            if (context.isFailed()) {
                 // there was a fail during save person profile
                 log.error("Cannot save person profile {}", parameter);
                 rollbackCachedProfile(context);

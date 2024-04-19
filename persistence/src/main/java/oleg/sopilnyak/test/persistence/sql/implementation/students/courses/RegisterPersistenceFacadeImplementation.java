@@ -98,11 +98,14 @@ public interface RegisterPersistenceFacadeImplementation extends RegisterPersist
             return false;
         }
 
-        if (!studentEntity.get().add(courseEntity.get())) {
+        final StudentEntity studentPureEntity = studentEntity.get();
+        final CourseEntity coursePureEntity = courseEntity.get();
+
+        if (!studentPureEntity.add(coursePureEntity)) {
             return false;
         }
 
-        getStudentRepository().saveAndFlush(studentEntity.get());
+        getStudentRepository().saveAndFlush(studentPureEntity);
         return true;
     }
 
@@ -127,11 +130,14 @@ public interface RegisterPersistenceFacadeImplementation extends RegisterPersist
             return false;
         }
 
-        if (!studentEntity.get().remove(courseEntity.get())) {
+        final StudentEntity studentPureEntity = studentEntity.get();
+        final CourseEntity coursePureEntity = courseEntity.get();
+
+        if (!studentPureEntity.remove(coursePureEntity)) {
             return false;
         }
 
-        getStudentRepository().saveAndFlush(studentEntity.get());
+        getStudentRepository().saveAndFlush(studentPureEntity);
         return true;
     }
 }

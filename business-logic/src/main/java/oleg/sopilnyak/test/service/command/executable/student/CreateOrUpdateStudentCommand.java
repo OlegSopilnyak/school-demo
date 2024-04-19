@@ -3,7 +3,6 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
 import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -73,9 +72,9 @@ public class CreateOrUpdateStudentCommand implements
             if (!isCreateStudent) {
                 context.setUndoParameter(cacheEntityForRollback(inputId));
             }
-            final Optional<Student> student = persistStudent(context);
+            final Optional<Student> student = persistRedoEntity(context);
             // checking execution context state
-            if (context.getState() == Context.State.FAIL) {
+            if (context.isFailed()) {
                 // there was a fail during save student
                 log.error("Cannot save student {}", parameter);
                 rollbackCachedEntity(context);
@@ -111,7 +110,7 @@ public class CreateOrUpdateStudentCommand implements
             log.debug("Trying to undo student changes using: {}", parameter.toString());
             if (parameter instanceof Long id) {
                 persistenceFacade.deleteStudent(id);
-                log.debug("Got deleted \npstudent ID:{}\n success: {}", id, true);
+                log.debug("Got deleted \nstudent ID:{}\n success: {}", id, true);
             } else if (parameter instanceof Student student) {
                 persistenceFacade.save(student);
                 log.debug("Got restored \nstudent {}\n success: {}", student, true);
@@ -143,22 +142,5 @@ public class CreateOrUpdateStudentCommand implements
     @Override
     public Logger getLog() {
         return log;
-    }
-
-    // private methods
-    private static void redoExecutionFailed(final String input, Context<?> context) {
-        final Exception saveError = new StudentNotExistsException(input);
-        saveError.fillInStackTrace();
-        context.failed(saveError);
-    }
-
-    private Optional<Student> persistStudent(Context<?> context) {
-        final Object input = context.getRedoParameter();
-        if (input instanceof Student student) {
-            return persistenceFacade.save(student);
-        } else {
-            redoExecutionFailed("Wrong type of student :" + input.getClass().getName(), context);
-            return Optional.empty();
-        }
     }
 }

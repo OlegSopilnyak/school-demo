@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 import java.util.Optional;
@@ -37,7 +37,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Optional<Course> findById(Long courseId) {
-        return executeSimpleCommand(FIND_BY_ID_COMMAND_ID, courseId, factory);
+        return doSimpleCommand(FIND_BY_ID_COMMAND_ID, courseId, factory);
     }
 
     /**
@@ -48,7 +48,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Set<Course> findRegisteredFor(Long studentId) {
-        return executeSimpleCommand(FIND_REGISTERED_COMMAND_ID, studentId, factory);
+        return doSimpleCommand(FIND_REGISTERED_COMMAND_ID, studentId, factory);
     }
 
     /**
@@ -58,7 +58,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Set<Course> findWithoutStudents() {
-        return executeSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
+        return doSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
     }
 
     /**
@@ -71,7 +71,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      */
     @Override
     public Optional<Course> createOrUpdate(Course course) {
-        return executeSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, course, factory);
+        return doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, course, factory);
     }
 
     /**
@@ -85,20 +85,26 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
     public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
         final String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        final CommandResult<Boolean> commandExecutionResult = command.execute(courseId);
-        if (!commandExecutionResult.isSuccess()) {
-            final Exception executionException = commandExecutionResult.getException();
-            log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof CourseNotExistsException exception) {
-                throw exception;
-            } else if (executionException instanceof CourseWithStudentsException exception) {
-                throw exception;
-            } else if (nonNull(executionException)) {
-                throwFor(commandId, executionException);
-            } else {
-                log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
-            }
+        final Context<Boolean> context = command.createContext(courseId);
+
+        command.doCommand(context);
+
+        if (context.isDone()) {
+            log.debug("Deleted course with ID:{} successfully.", courseId);
+            return;
+        }
+
+        final Exception doException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, doException);
+        if (doException instanceof CourseNotExistsException exception) {
+            throw exception;
+        } else if (doException instanceof CourseWithStudentsException exception) {
+            throw exception;
+        } else if (nonNull(doException)) {
+            throwFor(commandId, doException);
+        } else {
+            log.error(WRONG_COMMAND_EXECUTION, commandId);
+            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
         }
     }
 
@@ -118,24 +124,30 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
             NoRoomInTheCourseException, StudentCoursesExceedException {
         final String commandId = REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
-        if (!commandExecutionResult.isSuccess()) {
-            final Exception executionException = commandExecutionResult.getException();
-            log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof StudentNotExistsException exception) {
-                throw exception;
-            } else if (executionException instanceof CourseNotExistsException exception) {
-                throw exception;
-            } else if (executionException instanceof NoRoomInTheCourseException exception) {
-                throw exception;
-            } else if (executionException instanceof StudentCoursesExceedException exception) {
-                throw exception;
-            } else if (nonNull(executionException)) {
-                throwFor(commandId, executionException);
-            } else {
-                log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
-            }
+        final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+
+        command.doCommand(context);
+
+        if (context.isDone()) {
+            log.debug("Linked course:{} to student:{} successfully.", courseId, studentId);
+            return;
+        }
+
+        final Exception doException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, doException);
+        if (doException instanceof StudentNotExistsException exception) {
+            throw exception;
+        } else if (doException instanceof CourseNotExistsException exception) {
+            throw exception;
+        } else if (doException instanceof NoRoomInTheCourseException exception) {
+            throw exception;
+        } else if (doException instanceof StudentCoursesExceedException exception) {
+            throw exception;
+        } else if (nonNull(doException)) {
+            throwFor(commandId, doException);
+        } else {
+            log.error(WRONG_COMMAND_EXECUTION, commandId);
+            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
         }
     }
 
@@ -151,20 +163,26 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
     public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
         final String commandId = UN_REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
-        final CommandResult<Boolean> commandExecutionResult = command.execute(new Long[]{studentId, courseId});
-        if (!commandExecutionResult.isSuccess()) {
-            final Exception executionException = commandExecutionResult.getException();
-            log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof StudentNotExistsException exception) {
-                throw exception;
-            } else if (executionException instanceof CourseNotExistsException exception) {
-                throw exception;
-            } else if (nonNull(executionException)) {
-                throwFor(commandId, executionException);
-            } else {
-                log.error(WRONG_COMMAND_EXECUTION, commandId);
-                throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
-            }
+        final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+
+        command.doCommand(context);
+
+        if (context.isDone()) {
+            log.debug("Unlinked course:{} from student:{} successfully.", courseId, studentId);
+            return;
+        }
+
+        final Exception doException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, doException);
+        if (doException instanceof StudentNotExistsException exception) {
+            throw exception;
+        } else if (doException instanceof CourseNotExistsException exception) {
+            throw exception;
+        } else if (nonNull(doException)) {
+            throwFor(commandId, doException);
+        } else {
+            log.error(WRONG_COMMAND_EXECUTION, commandId);
+            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
         }
     }
 }

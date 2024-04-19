@@ -71,7 +71,7 @@ public class DeleteStudentCommand implements
     }
 
     /**
-     * To delete the student by student-id<BR/>
+     * DO: To delete the student by student-id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
@@ -91,7 +91,7 @@ public class DeleteStudentCommand implements
             if (!ObjectUtils.isEmpty(student.getCourses())) {
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
             }
-            // cached student saved to context for futher undo
+            // cached student saved to context for further undo
             context.setUndoParameter(student);
             persistenceFacade.deleteStudent(inputId);
             context.setResult(true);

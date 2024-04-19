@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.Stud
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
 /**
  * Type for update school-student command
  */
@@ -51,6 +53,28 @@ public interface ChangeStudentCommand {
         if (undoParameter instanceof Student student) {
             getLog().debug("Restoring changed value of student {}", student);
             getPersistenceFacade().save(student);
+        }
+    }
+
+    /**
+     * To persist entity
+     *
+     * @param context command's do context
+     * @return saved instance or empty
+     * @see Student
+     * @see Optional#empty()
+     */
+    default Optional<Student> persistRedoEntity(Context<?> context) {
+        final Object input = context.getRedoParameter();
+        if (input instanceof Student student) {
+            return getPersistenceFacade().save(student);
+        } else {
+            final String message = "Wrong type of student :" + input.getClass().getName();
+            final Exception saveError = new StudentNotExistsException(message);
+            saveError.fillInStackTrace();
+            getLog().error(message, saveError);
+            context.failed(saveError);
+            return Optional.empty();
         }
     }
 }

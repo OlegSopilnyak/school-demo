@@ -119,6 +119,10 @@ public interface Context<T> {
         return getState() == State.READY;
     }
 
+    default boolean isFailed() {
+        return getState() == State.FAIL;
+    }
+
 
     /**
      * To add change-context-state listener
@@ -135,6 +139,7 @@ public interface Context<T> {
      * @see StateChangedListener
      */
     void removeStateListener(StateChangedListener listener);
+
 
     /**
      * The enumeration of context's state

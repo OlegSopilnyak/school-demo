@@ -146,7 +146,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         try {
             final Deque<Context<?>> done = commandParameter(parameter);
             rollbackNestedDoneContexts(done);
-            final Optional<Context<?>> fail = done.stream().filter(ctx -> ctx.getState() == Context.State.FAIL).findFirst();
+            final Optional<Context<?>> fail = done.stream().filter(Context::isFailed).findFirst();
             if (fail.isPresent()) {
                 throw fail.get().getException();
             }
@@ -197,7 +197,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
         if (failed.isEmpty()) {
             // no failed contexts
             context.setUndoParameter(done);
-            context.setResult(nested.getLast().getResult().orElse(null));
+            context.setResult(nested.getLast().getResult().orElseThrow());
         } else {
             // exists failed contexts
             context.failed(failed.getFirst().getException());

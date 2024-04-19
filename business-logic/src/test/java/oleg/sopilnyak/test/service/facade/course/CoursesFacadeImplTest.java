@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +55,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_FIND_BY_ID);
-        verify(factory.command(COURSE_FIND_BY_ID)).execute(courseId);
+        verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
+        verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
     }
 
@@ -67,7 +69,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isPresent();
         verify(factory).command(COURSE_FIND_BY_ID);
-        verify(factory.command(COURSE_FIND_BY_ID)).execute(courseId);
+        verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
+        verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
     }
 
@@ -80,7 +83,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).hasSize(1);
         verify(factory).command(COURSE_FIND_REGISTERED_FOR);
-        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).execute(studentId);
+        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
+        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
     }
 
@@ -92,7 +96,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_FIND_REGISTERED_FOR);
-        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).execute(studentId);
+        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
+        verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
     }
 
@@ -104,7 +109,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).hasSize(1);
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).execute(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 
@@ -115,7 +121,8 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).execute(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 
@@ -127,7 +134,9 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isPresent();
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
-        verify(factory.command(COURSE_CREATE_OR_UPDATE)).execute(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade).save(mockedCourse);
     }
 
@@ -138,7 +147,9 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
-        verify(factory.command(COURSE_CREATE_OR_UPDATE)).execute(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade).save(mockedCourse);
     }
 
@@ -146,11 +157,13 @@ class CoursesFacadeImplTest {
     void shouldDelete() throws CourseNotExistsException, CourseWithStudentsException {
         Long courseId = 202L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
 
         facade.delete(courseId);
 
         verify(factory).command(COURSE_DELETE);
-        verify(factory.command(COURSE_DELETE)).execute(courseId);
+        verify(factory.command(COURSE_DELETE)).createContext(courseId);
+        verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).deleteCourse(courseId);
     }
@@ -163,7 +176,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:203 is not exists.");
         verify(factory).command(COURSE_DELETE);
-        verify(factory.command(COURSE_DELETE)).execute(courseId);
+        verify(factory.command(COURSE_DELETE)).createContext(courseId);
+        verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).deleteCourse(courseId);
     }
@@ -173,12 +187,14 @@ class CoursesFacadeImplTest {
         Long courseId = 204L;
         when(mockedCourse.getStudents()).thenReturn(List.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:204 has enrolled students.");
         verify(factory).command(COURSE_DELETE);
-        verify(factory.command(COURSE_DELETE)).execute(courseId);
+        verify(factory.command(COURSE_DELETE)).createContext(courseId);
+        verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).deleteCourse(courseId);
     }
@@ -196,7 +212,8 @@ class CoursesFacadeImplTest {
         facade.register(studentId, courseId);
 
         verify(factory).command(COURSE_REGISTER);
-        verify(factory.command(COURSE_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).link(mockedStudent, mockedCourse);
@@ -211,7 +228,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 is not exists.");
         verify(factory).command(COURSE_REGISTER);
-        verify(factory.command(COURSE_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -225,7 +243,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:207 is not exists.");
         verify(factory).command(COURSE_REGISTER);
-        verify(factory.command(COURSE_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -241,7 +260,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:105 exceeds maximum courses.");
         verify(factory).command(COURSE_REGISTER);
-        verify(factory.command(COURSE_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -257,7 +277,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:209 does not have enough rooms.");
         verify(factory).command(COURSE_REGISTER);
-        verify(factory.command(COURSE_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -271,7 +292,8 @@ class CoursesFacadeImplTest {
         facade.unRegister(studentId, courseId);
 
         verify(factory).command(COURSE_UN_REGISTER);
-        verify(factory.command(COURSE_UN_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).unLink(mockedStudent, mockedCourse);
     }
 
@@ -284,7 +306,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:108 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);
-        verify(factory.command(COURSE_UN_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
@@ -298,7 +321,8 @@ class CoursesFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:212 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);
-        verify(factory.command(COURSE_UN_REGISTER)).execute(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
+        verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
