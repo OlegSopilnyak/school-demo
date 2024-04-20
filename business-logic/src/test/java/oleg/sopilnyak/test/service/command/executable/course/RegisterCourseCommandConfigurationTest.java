@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CourseCommandsConfiguration.class})
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
-class CourseCommandsConfigurationTest<T> {
+class RegisterCourseCommandConfigurationTest<T> {
     final String REGISTER_COMMAND_ID = "course.register";
     @MockBean
     PersistenceFacade persistenceFacade;

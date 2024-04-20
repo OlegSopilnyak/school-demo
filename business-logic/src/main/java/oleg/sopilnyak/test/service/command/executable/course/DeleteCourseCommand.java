@@ -81,7 +81,7 @@ public class DeleteCourseCommand implements
             if (isInvalidId(inputId)) {
                 throw new CourseNotExistsException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
             }
-            final Course course = (Course) cacheEntityForRollback(inputId);
+            final Course course = cacheEntityForRollback(inputId);
             if (!ObjectUtils.isEmpty(course.getStudents())) {
                 throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + inputId + " has enrolled students.");
             }
@@ -113,7 +113,7 @@ public class DeleteCourseCommand implements
                 final Optional<Course> restored = persistenceFacade.save(course);
                 log.debug("Got restored student {}", restored.orElse(null));
             } else {
-                throw new NullPointerException("Wrong undo parameter :" + parameter);
+                throw new CourseNotExistsException("Wrong undo parameter :" + parameter);
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

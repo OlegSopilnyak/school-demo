@@ -36,7 +36,7 @@ public interface ChangeCourseCommand {
      * @see Context
      * @see Context#setUndoParameter(Object)
      */
-    default Object cacheEntityForRollback(Long inputId) throws CourseNotExistsException {
+    default Course cacheEntityForRollback(Long inputId) throws CourseNotExistsException {
         final Course existsEntity = getPersistenceFacade().findCourseById(inputId)
                 .orElseThrow(() -> new CourseNotExistsException("Course with ID:" + inputId + " is not exists."));
         // return copy of exists entity for undo operation
