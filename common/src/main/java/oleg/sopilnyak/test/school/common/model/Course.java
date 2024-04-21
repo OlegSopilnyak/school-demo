@@ -1,18 +1,15 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import oleg.sopilnyak.test.school.common.model.base.BaseType;
+
 import java.util.List;
 
 /**
  * Model: Type for courses in the school
+ *
+ * @see BaseType
  */
-public interface Course {
-    /**
-     * To get System-ID of the course
-     *
-     * @return the value
-     */
-    Long getId();
-
+public interface Course extends BaseType {
     /**
      * To get the name of the course in the school
      *

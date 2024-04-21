@@ -1,8 +1,10 @@
 package oleg.sopilnyak.test.school.common.exception;
 
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+
 /**
  * Exception: throws when you want to delete profile which is not created before
- * @see oleg.sopilnyak.test.school.common.model.PersonProfile
+ * @see PersonProfile
  */
 public class ProfileNotExistsException extends Exception {
     /**

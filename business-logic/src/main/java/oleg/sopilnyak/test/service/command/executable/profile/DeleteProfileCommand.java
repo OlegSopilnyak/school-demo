@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.school.common.facade.PersonProfileFacade.isInvalidId;
+import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isInvalidId;
 
 /**
  * Command-Implementation: command to delete person profile instance by id

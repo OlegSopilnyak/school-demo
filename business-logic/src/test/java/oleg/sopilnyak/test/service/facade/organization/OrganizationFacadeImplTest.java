@@ -1,9 +1,20 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
 import oleg.sopilnyak.test.school.common.exception.*;
-import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.service.command.executable.organization.*;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.factory.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.facade.impl.OrganizationFacadeImpl;

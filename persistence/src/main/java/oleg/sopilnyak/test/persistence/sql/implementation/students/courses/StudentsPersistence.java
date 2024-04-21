@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.persistence.sql.implementation.students.courses;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Propagation;

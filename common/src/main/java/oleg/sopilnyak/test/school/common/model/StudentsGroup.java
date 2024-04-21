@@ -1,18 +1,15 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import oleg.sopilnyak.test.school.common.model.base.BaseType;
+
 import java.util.List;
 
 /**
  * Model: Type for the group of students in the school
+ *
+ * @see BaseType
  */
-public interface StudentsGroup {
-    /**
-     * To get System-ID of the students' group
-     *
-     * @return the value
-     */
-    Long getId();
-
+public interface StudentsGroup extends BaseType {
     /**
      * To get the name of the students' group
      *

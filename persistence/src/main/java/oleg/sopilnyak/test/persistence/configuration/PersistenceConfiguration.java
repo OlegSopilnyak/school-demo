@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.persistence.configuration;
 
 import oleg.sopilnyak.test.persistence.sql.PersistenceFacadeImpl;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

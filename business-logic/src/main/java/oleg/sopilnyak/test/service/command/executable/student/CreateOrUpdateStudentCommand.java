@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
 
 
 /**

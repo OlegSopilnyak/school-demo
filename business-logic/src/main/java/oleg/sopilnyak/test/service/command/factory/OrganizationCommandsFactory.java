@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.base.OrganizationCommand;
 
 import java.util.Collection;
 

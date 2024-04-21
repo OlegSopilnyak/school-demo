@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

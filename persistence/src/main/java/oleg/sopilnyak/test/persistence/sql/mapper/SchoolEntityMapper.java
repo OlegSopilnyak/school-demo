@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.persistence.sql.mapper;
 
 import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import org.mapstruct.*;
 
 import java.util.Arrays;

@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;

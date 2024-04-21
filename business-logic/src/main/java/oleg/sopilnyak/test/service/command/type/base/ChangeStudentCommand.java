@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
 

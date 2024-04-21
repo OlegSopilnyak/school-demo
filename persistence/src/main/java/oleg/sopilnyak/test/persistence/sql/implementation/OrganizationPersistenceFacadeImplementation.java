@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.persistence.sql.repository.AuthorityPersonRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.FacultyRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.StudentsGroupRepository;
 import oleg.sopilnyak.test.school.common.exception.*;
-import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;

@@ -7,8 +7,9 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
+import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class FacultiesRestController {
     public static final String VAR_NAME = "facultyId";
     public static final String WRONG_FACULTY_ID = "Wrong faculty-id: '";
     // delegate for requests processing
-    private final OrganizationFacade facade;
+    private final FacultyFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @GetMapping

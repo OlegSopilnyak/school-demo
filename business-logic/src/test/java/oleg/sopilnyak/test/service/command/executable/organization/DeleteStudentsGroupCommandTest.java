@@ -2,9 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

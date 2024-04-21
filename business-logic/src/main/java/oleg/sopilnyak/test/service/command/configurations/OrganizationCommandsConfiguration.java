@@ -1,14 +1,31 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import lombok.AllArgsConstructor;
-import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.command.executable.organization.*;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.factory.AuthorityPersonCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.OrganizationCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.FacultyCommand;
+import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.type.base.OrganizationCommand;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -99,14 +116,38 @@ public class OrganizationCommandsConfiguration {
      */
 
     /**
-     * Builder for profile commands factory instance
+     * Builder for authority person commands factory
      *
-     * @param commands injected by Spring list of commands having type OrganizationCommand
+     * @param commands injected by Spring list of commands having type AuthorityPersonCommand
      * @return singleton
-     * @see OrganizationCommand
+     * @see AuthorityPersonCommand
      */
-    @Bean(name = OrganizationCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> organizationCommandsFactory(final Collection<OrganizationCommand<T>> commands) {
-        return new OrganizationCommandsFactory<>(commands);
+    @Bean(name = AuthorityPersonCommand.FACTORY_BEAN_NAME)
+    public <T> CommandsFactory<T> authorityPersonCommandFactory(final Collection<AuthorityPersonCommand<T>> commands) {
+        return new AuthorityPersonCommandsFactory<>(commands);
+    }
+
+    /**
+     * Builder for faculty commands factory
+     *
+     * @param commands injected by Spring list of commands having type AuthorityPersonCommand
+     * @return singleton
+     * @see FacultyCommand
+     */
+    @Bean(name = FacultyCommand.FACTORY_BEAN_NAME)
+    public <T> CommandsFactory<T> facultyCommandFactory(final Collection<FacultyCommand<T>> commands) {
+        return new FacultyCommandsFactory<>(commands);
+    }
+
+    /**
+     * Builder for students group commands factory
+     *
+     * @param commands injected by Spring list of commands having type AuthorityPersonCommand
+     * @return singleton
+     * @see StudentsGroupCommand
+     */
+    @Bean(name = StudentsGroupCommand.FACTORY_BEAN_NAME)
+    public <T> CommandsFactory<T> studentsGroupCommandFactory(final Collection<StudentsGroupCommand<T>> commands) {
+        return new StudentsGroupCommandsFactory<>(commands);
     }
 }

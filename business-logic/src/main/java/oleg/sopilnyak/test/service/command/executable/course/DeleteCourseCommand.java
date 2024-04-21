@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -16,7 +16,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
 
 /**
  * Command-Implementation: command to delete the course by id

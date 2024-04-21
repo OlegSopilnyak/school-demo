@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 
 /**
  * Type for school-student command
+ *
+ * @see SchoolCommand
+ * @see oleg.sopilnyak.test.school.common.model.Student
  */
 public interface StudentCommand<T> extends SchoolCommand<T> {
     /**

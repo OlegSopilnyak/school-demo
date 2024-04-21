@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import oleg.sopilnyak.test.school.common.model.base.Person;
+
 import java.util.List;
 
 /**

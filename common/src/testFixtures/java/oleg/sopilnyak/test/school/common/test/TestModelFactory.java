@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.util.*;
 import java.util.stream.IntStream;

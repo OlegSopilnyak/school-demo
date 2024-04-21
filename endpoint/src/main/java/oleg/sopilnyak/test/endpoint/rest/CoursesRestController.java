@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;

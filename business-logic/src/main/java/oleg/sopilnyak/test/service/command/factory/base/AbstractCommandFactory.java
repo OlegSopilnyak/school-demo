@@ -32,7 +32,7 @@ public abstract class AbstractCommandFactory<T> implements CommandsFactory<T> {
      * @see SchoolCommand#getId()
      */
     @Override
-        public SchoolCommand<T> command(String commandId) {
+    public SchoolCommand<T> command(String commandId) {
         return commandMap.get(commandId);
     }
 }

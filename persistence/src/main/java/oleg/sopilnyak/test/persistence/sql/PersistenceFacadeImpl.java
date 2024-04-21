@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.persistence.sql.implementation.ProfilePersistence;
 import oleg.sopilnyak.test.persistence.sql.implementation.StudentCourseLinkPersistenceFacadeImplementation;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.*;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;

@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;

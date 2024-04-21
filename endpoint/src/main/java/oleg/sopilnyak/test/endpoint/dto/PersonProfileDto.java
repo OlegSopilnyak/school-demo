@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.*;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.io.IOException;
 import java.util.Map;

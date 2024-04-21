@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.CoursesFacade;
+import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

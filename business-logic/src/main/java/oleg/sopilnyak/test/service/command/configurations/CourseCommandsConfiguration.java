@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import lombok.AllArgsConstructor;
-import oleg.sopilnyak.test.school.common.facade.peristence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;

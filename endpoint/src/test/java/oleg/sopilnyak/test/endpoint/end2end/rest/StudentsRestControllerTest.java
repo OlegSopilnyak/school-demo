@@ -9,8 +9,8 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;

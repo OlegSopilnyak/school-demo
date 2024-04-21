@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.factory;
 
-import oleg.sopilnyak.test.service.command.type.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.base.OrganizationCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

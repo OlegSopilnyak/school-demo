@@ -1,7 +1,11 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+
 /**
  * Model: Type for person's profile for authority/principal person
+ *
+ * @see PersonProfile
  */
 public interface PrincipalProfile extends PersonProfile {
     /**

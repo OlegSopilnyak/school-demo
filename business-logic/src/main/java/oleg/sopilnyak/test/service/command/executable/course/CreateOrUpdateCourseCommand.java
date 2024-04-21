@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.school.common.facade.peristence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
 
 /**
  * Command-Implementation: command to update the course

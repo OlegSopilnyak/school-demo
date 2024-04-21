@@ -1,8 +1,9 @@
 package oleg.sopilnyak.test.end2end.facade;
 
 import oleg.sopilnyak.test.school.common.exception.*;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.util.Optional;
 import java.util.Set;

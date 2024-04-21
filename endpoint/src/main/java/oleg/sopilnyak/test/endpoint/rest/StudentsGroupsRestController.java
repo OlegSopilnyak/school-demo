@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ import static java.util.Objects.isNull;
 public class StudentsGroupsRestController {
     public static final String VAR_NAME = "groupId";
     // delegate for requests processing
-    private final OrganizationFacade facade;
+    private final StudentsGroupFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @GetMapping

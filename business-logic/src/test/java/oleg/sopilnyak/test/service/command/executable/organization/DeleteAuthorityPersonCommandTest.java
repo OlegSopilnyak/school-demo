@@ -2,9 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.facade.peristence.OrganizationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import lombok.AllArgsConstructor;
-import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;

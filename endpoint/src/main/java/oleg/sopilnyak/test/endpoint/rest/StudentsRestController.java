@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.StudentsFacade;
+import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;

@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.PersonProfileFacade;
+import oleg.sopilnyak.test.school.common.business.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import org.mapstruct.factory.Mappers;

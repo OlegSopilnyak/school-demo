@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
-import static oleg.sopilnyak.test.school.common.facade.PersonProfileFacade.isInvalidId;
+import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isInvalidId;
 
 /**
  * Persistence facade implementation for person-profile entities

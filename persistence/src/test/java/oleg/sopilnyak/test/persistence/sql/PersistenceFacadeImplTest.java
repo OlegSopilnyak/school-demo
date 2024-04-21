@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.persistence.sql;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.exception.*;
-import oleg.sopilnyak.test.school.common.facade.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;

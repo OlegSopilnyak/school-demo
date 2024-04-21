@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.facade.peristence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;

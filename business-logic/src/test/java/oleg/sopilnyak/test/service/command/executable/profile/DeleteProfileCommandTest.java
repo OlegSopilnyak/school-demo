@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
-import oleg.sopilnyak.test.school.common.facade.peristence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
