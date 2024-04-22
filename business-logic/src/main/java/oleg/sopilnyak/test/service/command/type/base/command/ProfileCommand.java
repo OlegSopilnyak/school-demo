@@ -1,8 +1,8 @@
-package oleg.sopilnyak.test.service.command.type;
+package oleg.sopilnyak.test.service.command.type.base.command;
 
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import org.slf4j.Logger;
@@ -12,21 +12,11 @@ import org.slf4j.Logger;
  */
 public interface ProfileCommand<T> extends SchoolCommand<T> {
     /**
-     * ID of findById profile command
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
      */
-    String FIND_BY_ID_COMMAND_ID = "profile.person.findById";
-    /**
-     * ID of deleteById profile command
-     */
-    String DELETE_BY_ID_COMMAND_ID = "profile.person.deleteById";
-    /**
-     * ID of createOrUpdate profile command
-     */
-    String CREATE_OR_UPDATE_COMMAND_ID = "profile.person.createOrUpdate";
-    /**
-     * The name of commands-factory SpringBean
-     */
-    String FACTORY_BEAN_NAME = "profileCommandsFactory";
+    Logger getLog();
 
     /**
      * To get reference to profile's persistence facade
@@ -36,27 +26,19 @@ public interface ProfileCommand<T> extends SchoolCommand<T> {
     ProfilePersistenceFacade getPersistenceFacade();
 
     /**
-     * To get reference to command's logger
-     *
-     * @return reference to the logger
-     */
-    Logger getLog();
-
-
-    /**
      * To cache into context old value of the profile for possible rollback
      *
      * @param context command execution context
      * @param inputId system-id of the profile
-     * @throws ProfileNotExistsException if profile does not exist
+     * @throws NotExistProfileException if profile does not exist
      * @see ProfilePersistenceFacade
      * @see ProfilePersistenceFacade#findProfileById(Long)
      * @see Context
      * @see Context#setUndoParameter(Object)
      */
-    default void cacheProfileForRollback(Context<?> context, Long inputId) throws ProfileNotExistsException {
+    default void cacheProfileForRollback(Context<?> context, Long inputId) throws NotExistProfileException {
         final PersonProfile existsProfile = getPersistenceFacade().findProfileById(inputId)
-                .orElseThrow(() -> new ProfileNotExistsException("PersonProfile with ID:" + inputId + " is not exists."));
+                .orElseThrow(() -> new NotExistProfileException("PersonProfile with ID:" + inputId + " is not exists."));
         // saving the copy of exists entity for undo operation
         context.setUndoParameter(getPersistenceFacade().toEntity(existsProfile));
     }

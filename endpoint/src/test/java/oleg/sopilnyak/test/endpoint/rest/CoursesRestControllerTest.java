@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -262,7 +262,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldDeleteCourseValidId_CourseNotExistsException() throws Exception {
         Long id = 103L;
         String requestPath = "/courses/" + id;
-        doThrow(new CourseNotExistsException("Wrong course")).when(facade).delete(id);
+        doThrow(new NotExistCourseException("Wrong course")).when(facade).delete(id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)

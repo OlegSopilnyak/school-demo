@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -34,7 +34,7 @@ class DeleteProfileCommandTest {
 
     @Test
     @Disabled
-    void shouldExecuteCommand() throws ProfileNotExistsException {
+    void shouldExecuteCommand() throws NotExistProfileException {
         long id = 404L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
 
@@ -51,7 +51,7 @@ class DeleteProfileCommandTest {
 
     @Test
     @Disabled
-    void shouldNotExecuteCommand_ProfileNotExists() throws ProfileNotExistsException {
+    void shouldNotExecuteCommand_ProfileNotExists() throws NotExistProfileException {
         long id = 405L;
 
         CommandResult<Boolean> result = command.execute(id);
@@ -62,7 +62,7 @@ class DeleteProfileCommandTest {
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();
         assertThat(result.getResult().get()).isFalse();
-        assertThat(result.getException()).isInstanceOf(ProfileNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistProfileException.class);
     }
 
     @Test
@@ -81,7 +81,7 @@ class DeleteProfileCommandTest {
 
     @Test
     @Disabled
-    void shouldNotExecuteCommand_NullId() throws ProfileNotExistsException {
+    void shouldNotExecuteCommand_NullId() throws NotExistProfileException {
         when(persistenceFacade.findProfileById(null)).thenReturn(Optional.of(input));
         doThrow(new RuntimeException()).when(persistenceFacade).deleteProfileById(null);
 
@@ -98,7 +98,7 @@ class DeleteProfileCommandTest {
 
     @Test
     @Disabled
-    void shouldNotExecuteCommand_ExceptionThrown() throws ProfileNotExistsException {
+    void shouldNotExecuteCommand_ExceptionThrown() throws NotExistProfileException {
         long id = 405L;
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(input));
         doThrow(new UnsupportedOperationException()).when(persistenceFacade).deleteProfileById(id);
@@ -115,7 +115,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandDoCommand() throws ProfileNotExistsException {
+    void shouldExecuteCommandDoCommand() throws NotExistProfileException {
         long id = 414L;
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));
@@ -134,7 +134,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandDoCommand_NoProfile() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_NoProfile() throws NotExistProfileException {
         long id = 415L;
         Context<Boolean> context = command.createContext(id);
 
@@ -142,7 +142,7 @@ class DeleteProfileCommandTest {
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
 
         verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);
@@ -150,7 +150,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandDoCommand_WrongParameterType() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_WrongParameterType() throws NotExistProfileException {
         Context<Boolean> context = command.createContext("id");
 
         command.doCommand(context);
@@ -165,7 +165,7 @@ class DeleteProfileCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommandDoCommand_ExceptionThrown() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_ExceptionThrown() throws NotExistProfileException {
         long id = 416L;
         when(persistenceFacade.toEntity(profile)).thenReturn(profile);
         when(persistenceFacade.findProfileById(id)).thenReturn(Optional.of(profile));

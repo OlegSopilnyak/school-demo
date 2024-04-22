@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.persistence.organization;
 
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
 import java.util.Optional;
@@ -47,11 +47,11 @@ public interface StudentsGroupPersistenceFacade {
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws StudentsGroupNotExistsException   throws when you want to delete students group which is not created before
+     * @throws NotExistStudentsGroupException   throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     void deleteStudentsGroup(Long id) throws
-            StudentsGroupNotExistsException,
+            NotExistStudentsGroupException,
             StudentGroupWithStudentsException;
 }

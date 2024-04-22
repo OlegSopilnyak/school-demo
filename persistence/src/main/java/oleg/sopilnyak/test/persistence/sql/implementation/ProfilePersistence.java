@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -81,11 +81,11 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @throws ProfileNotExistsException if profile with id is not exists
+     * @throws NotExistProfileException if profile with id is not exists
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default void deleteProfileById(Long id) throws ProfileNotExistsException {
+    default void deleteProfileById(Long id) throws NotExistProfileException {
         getLog().debug("Deleting PersonProfile with ID:{}", id);
         if (this.findProfileById(id).isPresent()) {
             getPersonProfileRepository().deleteById(id);
@@ -93,7 +93,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
             getLog().debug("Deleted PersonProfile with ID:{}", id);
         } else {
             getLog().warn("PersonProfile with ID:{} is not exists.", id);
-            throw new ProfileNotExistsException("PersonProfile with ID:" + id + " is not exists.");
+            throw new NotExistProfileException("PersonProfile with ID:" + id + " is not exists.");
         }
     }
 

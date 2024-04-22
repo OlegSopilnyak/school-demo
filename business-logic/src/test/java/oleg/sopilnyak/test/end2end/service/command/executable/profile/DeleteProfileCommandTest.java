@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.service.command.executable.profile;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -57,7 +57,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommand() throws ProfileNotExistsException {
+    void shouldExecuteCommand() throws NotExistProfileException {
         long id = persistStudentProfile().getId();
 
         CommandResult<Boolean> result = command.execute(id);
@@ -76,7 +76,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommand_ProfileNotExists() throws ProfileNotExistsException {
+    void shouldNotExecuteCommand_ProfileNotExists() throws NotExistProfileException {
         long id = 405L;
 
         CommandResult<Boolean> result = command.execute(id);
@@ -88,7 +88,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isPresent();
         assertThat(result.getResult().get()).isFalse();
-        assertThat(result.getException()).isInstanceOf(ProfileNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistProfileException.class);
     }
 
     @Test
@@ -107,7 +107,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommand_NullId() throws ProfileNotExistsException {
+    void shouldNotExecuteCommand_NullId() throws NotExistProfileException {
 
         CommandResult<Boolean> result = command.execute(null);
 
@@ -123,7 +123,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteCommandDoCommand() throws ProfileNotExistsException {
+    void shouldExecuteCommandDoCommand() throws NotExistProfileException {
         StudentProfile student = persistStudentProfile();
         long id = student.getId();
         Context<Boolean> context = command.createContext(id);
@@ -146,7 +146,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteCommandDoCommand_NoProfile() throws ProfileNotExistsException {
+    void shouldNotExecuteCommandDoCommand_NoProfile() throws NotExistProfileException {
         long id = 415L;
         Context<Boolean> context = command.createContext(id);
 
@@ -154,7 +154,7 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.getResult()).contains(false);
         assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        assertThat(context.getException()).isInstanceOf(ProfileNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
 
         verify(command).executeDo(context);
         verify(persistenceFacade).findProfileById(id);

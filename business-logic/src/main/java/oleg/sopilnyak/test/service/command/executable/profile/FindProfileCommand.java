@@ -3,11 +3,11 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -15,16 +15,10 @@ import java.util.Optional;
 /**
  * Command-Implementation: command to get profile by id
  */
-@Slf4j
 @Getter
 @AllArgsConstructor
-public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile>> {
+public abstract class FindProfileCommand<T> implements ProfileCommand<T> {
     private final ProfilePersistenceFacade persistenceFacade;
-
-    @Override
-    public Logger getLog() {
-        return log;
-    }
 
     /**
      * To find profile (no matter type) by id
@@ -37,20 +31,20 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<Optional<PersonProfile>> execute(Object parameter) {
+    public CommandResult<T> execute(Object parameter) {
         try {
-            log.debug("Trying to find profile by ID:{}", parameter);
+            getLog().debug("Trying to find profile by ID:{}", parameter);
             final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
-            log.debug("Got profile {} by ID:{}", profile, id);
-            return CommandResult.<Optional<PersonProfile>>builder()
-                    .result(Optional.ofNullable(profile))
+            getLog().debug("Got profile {} by ID:{}", profile, id);
+            return CommandResult.<T>builder()
+                    .result(Optional.ofNullable((T)profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot find the profile by ID:{}", parameter, e);
-            return CommandResult.<Optional<PersonProfile>>builder()
-                    .result(Optional.of(Optional.empty()))
+            getLog().error("Cannot find the profile by ID:{}", parameter, e);
+            return CommandResult.<T>builder()
+                    .result((Optional<T>) Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
         }
     }
@@ -66,24 +60,14 @@ public class FindProfileCommand implements ProfileCommand<Optional<PersonProfile
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find person profile by ID:{}", parameter.toString());
+            getLog().debug("Trying to find person profile by ID:{}", parameter.toString());
             final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
-            log.debug("Got profile {} by ID:{}", profile, id);
+            getLog().debug("Got profile {} by ID:{}", profile, id);
             context.setResult(profile);
         } catch (Exception e) {
-            log.error("Cannot find the profile by ID:{}", parameter, e);
+            getLog().error("Cannot find the profile by ID:{}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return ProfileCommand.FIND_BY_ID_COMMAND_ID;
     }
 }

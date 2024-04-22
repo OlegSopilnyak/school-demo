@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.CannotRegisterToCourseException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,10 +34,10 @@ public class RegisterCourseController {
             facade.register(studentId, courseId);
             log.debug("Registered student: {} to course: {}", studentId, courseId);
             return ResponseEntity.ok().build();
-        } catch (StudentNotExistsException e) {
+        } catch (NotExistStudentException e) {
             log.error("Student with id: {} is not exist", studentId);
             throw new ResourceNotFoundException("Student with id: " + studentId + IS_NOT_EXIST_PHRASE);
-        } catch (CourseNotExistsException e) {
+        } catch (NotExistCourseException e) {
             log.error("Course with id: {} is not exist", courseId);
             throw new ResourceNotFoundException("Course with id: " + courseId + IS_NOT_EXIST_PHRASE);
         } catch (NoRoomInTheCourseException e) {
@@ -64,10 +64,10 @@ public class RegisterCourseController {
             facade.unRegister(studentId, courseId);
             log.debug("Un-Registered student: {} to course: {}", studentId, courseId);
             return ResponseEntity.ok().build();
-        } catch (StudentNotExistsException e) {
+        } catch (NotExistStudentException e) {
             log.error("Student with id: {} is not exist", studentId);
             throw new ResourceNotFoundException("Student with id: " + studentId + IS_NOT_EXIST_PHRASE);
-        } catch (CourseNotExistsException e) {
+        } catch (NotExistCourseException e) {
             log.error("Course with id: {} is not exist", courseId);
             throw new ResourceNotFoundException("Course with id: " + courseId + IS_NOT_EXIST_PHRASE);
         } catch (Exception e) {

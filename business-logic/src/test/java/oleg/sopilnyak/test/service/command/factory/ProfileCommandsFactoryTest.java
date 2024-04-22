@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory;
 
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
+import oleg.sopilnyak.test.service.command.factory.base.ProfileCommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +28,7 @@ class ProfileCommandsFactoryTest<T> {
         when(command1.getId()).thenReturn("cmd1");
         when(command2.getId()).thenReturn("cmd2");
         when(command3.getId()).thenReturn("cmd3");
-        factory = new ProfileCommandsFactory<>(List.of(command1, command2, command3));
+//        factory = new ProfileCommandsFactory<>(List.of(command1, command2, command3));
     }
 
     @Test

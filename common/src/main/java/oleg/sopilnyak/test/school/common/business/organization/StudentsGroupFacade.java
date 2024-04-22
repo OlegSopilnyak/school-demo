@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.organization;
 
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
@@ -49,18 +49,18 @@ public interface StudentsGroupFacade extends OrganizationFacade {
      * To delete students group instance from the school
      *
      * @param id system-id of the faculty to delete
-     * @throws StudentsGroupNotExistsException   throws when students group is not exists
+     * @throws NotExistStudentsGroupException   throws when students group is not exists
      * @throws StudentGroupWithStudentsException throws when students group has students
      */
     void deleteStudentsGroupById(Long id)
-            throws StudentsGroupNotExistsException,
+            throws NotExistStudentsGroupException,
             StudentGroupWithStudentsException;
 
     default void deleteStudentsGroup(StudentsGroup instance)
-            throws StudentsGroupNotExistsException,
+            throws NotExistStudentsGroupException,
             StudentGroupWithStudentsException {
         if (isInvalid(instance)) {
-            throw new StudentsGroupNotExistsException("Wrong " + instance + " to delete");
+            throw new NotExistStudentsGroupException("Wrong " + instance + " to delete");
         }
         deleteStudentsGroupById(instance.getId());
     }

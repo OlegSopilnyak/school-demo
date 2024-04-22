@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -260,7 +260,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteProfileById() throws ProfileNotExistsException {
+    void shouldDeleteProfileById() throws NotExistProfileException {
         StudentProfile profile = makeStudentProfile(null);
         Optional<StudentProfile> student = persistence.save(profile);
         assertThat(student).isNotEmpty();
@@ -279,8 +279,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
     void shouldDontDeleteProfileById() {
         Long id = 504L;
 
-        ProfileNotExistsException exception =
-                assertThrows(ProfileNotExistsException.class, () -> persistence.deleteProfileById(id));
+        NotExistProfileException exception =
+                assertThrows(NotExistProfileException.class, () -> persistence.deleteProfileById(id));
 
         verify(personProfileRepository).findById(id);
         assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:504 is not exists.");

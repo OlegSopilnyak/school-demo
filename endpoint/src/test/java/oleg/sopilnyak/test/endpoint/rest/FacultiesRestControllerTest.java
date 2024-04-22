@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
+import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -37,7 +38,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
-    OrganizationFacade facade;
+    FacultyFacade facade;
     @Spy
     @InjectMocks
     FacultiesRestController controller;

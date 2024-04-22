@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.ChangeCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
@@ -23,6 +24,7 @@ import static oleg.sopilnyak.test.school.common.persistence.students.courses.Stu
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class DeleteCourseCommand implements
         ChangeCourseCommand,
         CourseCommand<Boolean> {
@@ -46,7 +48,7 @@ public class DeleteCourseCommand implements
             final Optional<Course> course = persistenceFacade.findCourseById(id);
             if (course.isEmpty()) {
                 return CommandResult.<Boolean>builder().success(false).result(Optional.empty())
-                        .exception(new CourseNotExistsException(COURSE_WITH_ID_PREFIX + id + " is not exists."))
+                        .exception(new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists."))
                         .build();
             }
             if (!ObjectUtils.isEmpty(course.get().getStudents())) {
@@ -79,7 +81,7 @@ public class DeleteCourseCommand implements
             log.debug("Trying to delete course by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
             if (isInvalidId(inputId)) {
-                throw new CourseNotExistsException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
+                throw new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
             }
             final Course course = cacheEntityForRollback(inputId);
             if (!ObjectUtils.isEmpty(course.getStudents())) {
@@ -113,7 +115,7 @@ public class DeleteCourseCommand implements
                 final Optional<Course> restored = persistenceFacade.save(course);
                 log.debug("Got restored student {}", restored.orElse(null));
             } else {
-                throw new CourseNotExistsException("Wrong undo parameter :" + parameter);
+                throw new NotExistCourseException("Wrong undo parameter :" + parameter);
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

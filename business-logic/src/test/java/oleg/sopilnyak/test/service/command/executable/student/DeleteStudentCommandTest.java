@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -78,7 +78,7 @@ class DeleteStudentCommandTest {
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(StudentNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistStudentException.class);
     }
 
     @Test
@@ -146,7 +146,7 @@ class DeleteStudentCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeDo(context);
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade, never()).toEntity(instance);

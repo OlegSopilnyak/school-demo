@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.facade.impl;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -75,18 +75,18 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonIsNotExistsException   throws when authorityPerson is not exists
+     * @throws NotExistAuthorityPersonException   throws when authorityPerson is not exists
      * @throws AuthorityPersonManageFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     @Override
-    public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotExistsException, AuthorityPersonManageFacultyException {
+    public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
         String commandId = AuthorityPersonCommand.DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof AuthorityPersonIsNotExistsException exception) {
+            if (executionException instanceof NotExistAuthorityPersonException exception) {
                 throw exception;
             } else if (executionException instanceof AuthorityPersonManageFacultyException exception) {
                 throw exception;

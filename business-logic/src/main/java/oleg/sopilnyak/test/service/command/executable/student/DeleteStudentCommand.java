@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.ChangeStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
@@ -23,6 +24,7 @@ import static oleg.sopilnyak.test.school.common.persistence.students.courses.Stu
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class DeleteStudentCommand implements
         ChangeStudentCommand,
         StudentCommand<Boolean> {
@@ -47,7 +49,7 @@ public class DeleteStudentCommand implements
             if (student.isEmpty()) {
                 return CommandResult.<Boolean>builder()
                         .result(Optional.of(false))
-                        .exception(new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + id + " is not exists."))
+                        .exception(new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists."))
                         .success(false).build();
             }
             if (!ObjectUtils.isEmpty(student.get().getCourses())) {
@@ -85,7 +87,7 @@ public class DeleteStudentCommand implements
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
             if (isInvalidId(inputId)) {
-                throw new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
+                throw new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
             }
             final Student student = (Student) cacheEntityForRollback(inputId);
             if (!ObjectUtils.isEmpty(student.getCourses())) {

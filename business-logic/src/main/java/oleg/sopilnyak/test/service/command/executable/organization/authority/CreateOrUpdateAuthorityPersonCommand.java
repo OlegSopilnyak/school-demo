@@ -2,11 +2,12 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -15,8 +16,9 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class CreateOrUpdateAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final AuthorityPersonPersistenceFacade persistenceFacade;
 
     /**
      * To create or update authority person instance

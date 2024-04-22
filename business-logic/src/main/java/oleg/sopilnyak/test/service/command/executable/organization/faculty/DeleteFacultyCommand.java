@@ -4,11 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.FacultyCommand;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -17,8 +18,9 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class DeleteFacultyCommand implements FacultyCommand<Boolean> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final FacultyPersistenceFacade persistenceFacade;
 
     /**
      * To delete faculty by id

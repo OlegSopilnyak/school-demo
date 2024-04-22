@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
@@ -111,7 +111,7 @@ public class StudentsRestController {
             facade.delete(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | StudentNotExistsException e) {
+        } catch (NumberFormatException | NotExistStudentException e) {
             log.error("Wrong student-id: '{}'", studentId);
             throw new ResourceNotFoundException("Wrong student-id: '" + studentId + "'");
         } catch (Exception e) {

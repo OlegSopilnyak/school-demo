@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -83,7 +83,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(StudentNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistStudentException.class);
     }
 
     @Test
@@ -99,7 +99,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(CourseNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistCourseException.class);
     }
 
     @Test
@@ -137,7 +137,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeDo(context);
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade, never()).findCourseById(id);
@@ -154,7 +154,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(CourseNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
         verify(persistenceFacade).findStudentById(id);
         verify(persistenceFacade).findCourseById(id);

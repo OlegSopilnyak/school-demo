@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -77,11 +77,11 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      *
      * @param studentId system-id of the student
      * @return true if success
-     * @throws StudentNotExistsException   throws when student it not exists
+     * @throws NotExistStudentException   throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     @Override
-    public boolean delete(Long studentId) throws StudentNotExistsException, StudentWithCoursesException {
+    public boolean delete(Long studentId) throws NotExistStudentException, StudentWithCoursesException {
         String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(studentId);
@@ -95,7 +95,7 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
 
         final Exception doException = context.getException();
         log.warn("Something went wrong", doException);
-        if (doException instanceof StudentNotExistsException studentNotExistsException) {
+        if (doException instanceof NotExistStudentException studentNotExistsException) {
             throw studentNotExistsException;
         } else if (doException instanceof StudentWithCoursesException studentWithCoursesException) {
             throw studentWithCoursesException;

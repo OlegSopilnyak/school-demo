@@ -290,7 +290,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPerson() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    void shouldDeleteAuthorityPerson() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         AuthorityPerson person = makeTestAuthorityPerson(null);
         Optional<AuthorityPerson> saved = facade.save(person);
         assertThat(saved).isNotEmpty();
@@ -428,7 +428,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteStudentsGroup() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+    void shouldDeleteStudentsGroup() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         StudentsGroup group = makeTestStudentsGroup(null);
         Optional<StudentsGroup> saved = facade.save(group);
         assertThat(saved).isNotEmpty();

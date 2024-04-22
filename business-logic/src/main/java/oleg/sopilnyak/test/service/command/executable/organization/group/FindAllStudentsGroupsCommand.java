@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,8 +18,9 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final StudentsGroupPersistenceFacade persistenceFacade;
 
     /**
      * To execute command's business-logic

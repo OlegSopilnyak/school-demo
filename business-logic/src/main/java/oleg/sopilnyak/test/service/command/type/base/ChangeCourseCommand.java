@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import org.slf4j.Logger;
@@ -29,16 +29,16 @@ public interface ChangeCourseCommand {
      * To cache into context old value of the course instance for possible rollback
      *
      * @param inputId system-id of the course
-     * @throws CourseNotExistsException if student is not exist
+     * @throws NotExistCourseException if student is not exist
      * @see CoursesPersistenceFacade
      * @see CoursesPersistenceFacade#findCourseById(Long)
      * @see CoursesPersistenceFacade#toEntity(Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
      */
-    default Course cacheEntityForRollback(Long inputId) throws CourseNotExistsException {
+    default Course cacheEntityForRollback(Long inputId) throws NotExistCourseException {
         final Course existsEntity = getPersistenceFacade().findCourseById(inputId)
-                .orElseThrow(() -> new CourseNotExistsException("Course with ID:" + inputId + " is not exists."));
+                .orElseThrow(() -> new NotExistCourseException("Course with ID:" + inputId + " is not exists."));
         // return copy of exists entity for undo operation
         return getPersistenceFacade().toEntity(existsEntity);
     }
@@ -70,7 +70,7 @@ public interface ChangeCourseCommand {
             return getPersistenceFacade().save(course);
         } else {
             final String message = "Wrong type of course :" + input.getClass().getName();
-            final Exception saveError = new CourseNotExistsException(message);
+            final Exception saveError = new NotExistCourseException(message);
             saveError.fillInStackTrace();
             getLog().error(message, saveError);
             context.failed(saveError);

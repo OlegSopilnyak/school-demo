@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
+import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
-    OrganizationFacade facade;
+    AuthorityPersonFacade facade;
     @Spy
     @InjectMocks
     AuthorityPersonsRestController controller;
@@ -271,7 +271,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
         Long id = 304L;
         String requestPath = RequestMappingRoot.AUTHORITIES + "/" + id;
-        doThrow(new AuthorityPersonIsNotExistsException("Cannot delete not exists authority-person"))
+        doThrow(new NotExistAuthorityPersonException("Cannot delete not exists authority-person"))
                 .when(facade).deleteAuthorityPersonById(id);
         MvcResult result =
                 mockMvc.perform(

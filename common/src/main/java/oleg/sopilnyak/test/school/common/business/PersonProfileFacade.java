@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business;
 
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.util.Optional;
@@ -26,34 +26,34 @@ public interface PersonProfileFacade {
     /**
      * To create person-profile
      *
-     * @param profile instance to create
+     * @param profile instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfile
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<PersonProfile> createOrUpdatePersonProfile(PersonProfile profile);
+    Optional<PersonProfile> createOrUpdate(PersonProfile profile);
 
     /**
      * To delete profile by system-id
      *
      * @param id value of system-id
-     * @throws ProfileNotExistsException throws if profile with id does not exist
+     * @throws NotExistProfileException throws if profile with id does not exist
      */
-    void deleteProfileById(Long id) throws ProfileNotExistsException;
+    void deleteById(Long id) throws NotExistProfileException;
 
     /**
      * To delete the profile
      *
      * @param profile instance to delete
-     * @throws ProfileNotExistsException throws if profile with id does not exist
+     * @throws NotExistProfileException throws if profile with id does not exist
      * @see PersonProfile
      */
-    default void deleteProfile(PersonProfile profile) throws ProfileNotExistsException {
+    default void delete(PersonProfile profile) throws NotExistProfileException {
         if (isInvalid(profile)) {
-            throw new ProfileNotExistsException("Wrong " + profile + " to delete");
+            throw new NotExistProfileException("Wrong " + profile + " to delete");
         }
-        deleteProfileById(profile.getId());
+        deleteById(profile.getId());
     }
 
     static boolean isInvalid(final PersonProfile instance) {

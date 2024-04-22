@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 
 import java.util.Collection;
@@ -13,11 +14,11 @@ import java.util.Collection;
  * @see AbstractCommandFactory
  * @see AuthorityPersonCommand
  */
-public class AuthorityPersonCommandsFactory<T> extends AbstractCommandFactory<T> implements CommandsFactory<T> {
+public class AuthorityPersonCommandsFactory<T> extends OrganizationCommandsFactory<T> implements CommandsFactory<T> {
     public static final String NAME = "Organization.AuthorityPersons";
 
     public AuthorityPersonCommandsFactory(Collection<AuthorityPersonCommand<T>> commands) {
-        super.applyFactoryCommands(commands);
+        super(commands);
     }
 
     /**

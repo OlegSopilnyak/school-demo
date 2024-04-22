@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -175,7 +175,7 @@ class CreateOrUpdateStudentCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeUndo(context);
         verify(persistenceFacade, never()).save(instance);
     }

@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.FacultyCommand;
 
 import java.util.Collection;
@@ -13,11 +14,11 @@ import java.util.Collection;
  * @see AbstractCommandFactory
  * @see FacultyCommand
  */
-public class FacultyCommandsFactory<T> extends AbstractCommandFactory<T> implements CommandsFactory<T> {
+public class FacultyCommandsFactory<T> extends OrganizationCommandsFactory<T> implements CommandsFactory<T> {
     public static final String NAME = "Organization.Faculties";
 
     public FacultyCommandsFactory(Collection<FacultyCommand<T>> commands) {
-        super.applyFactoryCommands(commands);
+        super(commands);
     }
 
     /**

@@ -2,11 +2,12 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,8 +17,9 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final AuthorityPersonPersistenceFacade persistenceFacade;
 
     /**
      * To execute command's business-logic

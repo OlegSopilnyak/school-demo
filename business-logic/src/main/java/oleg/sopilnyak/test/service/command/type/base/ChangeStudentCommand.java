@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
@@ -29,16 +29,16 @@ public interface ChangeStudentCommand {
      * To cache into context old value of the student instance for possible rollback
      *
      * @param inputId system-id of the student
-     * @throws StudentNotExistsException if student is not exist
+     * @throws NotExistStudentException if student is not exist
      * @see StudentsPersistenceFacade
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see StudentsPersistenceFacade#toEntity(Student)
      * @see Context
      * @see Context#setUndoParameter(Object)
      */
-    default Object cacheEntityForRollback(Long inputId) throws StudentNotExistsException {
+    default Object cacheEntityForRollback(Long inputId) throws NotExistStudentException {
         final Student existsEntity = getPersistenceFacade().findStudentById(inputId)
-                .orElseThrow(() -> new StudentNotExistsException("Student with ID:" + inputId + " is not exists."));
+                .orElseThrow(() -> new NotExistStudentException("Student with ID:" + inputId + " is not exists."));
         // return copy of exists entity for undo operation
         return getPersistenceFacade().toEntity(existsEntity);
     }
@@ -70,7 +70,7 @@ public interface ChangeStudentCommand {
             return getPersistenceFacade().save(student);
         } else {
             final String message = "Wrong type of student :" + input.getClass().getName();
-            final Exception saveError = new StudentNotExistsException(message);
+            final Exception saveError = new NotExistStudentException(message);
             saveError.fillInStackTrace();
             getLog().error(message, saveError);
             context.failed(saveError);

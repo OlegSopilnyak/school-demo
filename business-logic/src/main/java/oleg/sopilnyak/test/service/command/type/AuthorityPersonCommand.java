@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type;
 
-import oleg.sopilnyak.test.service.command.type.base.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.base.command.OrganizationCommand;
 
 /**
  * Type for school-organization authority persons management command

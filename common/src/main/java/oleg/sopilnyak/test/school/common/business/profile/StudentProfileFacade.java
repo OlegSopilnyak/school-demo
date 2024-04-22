@@ -37,6 +37,6 @@ public interface StudentProfileFacade extends PersonProfileFacade {
      * @see Optional#empty()
      */
     default Optional<StudentProfile> createOrUpdateProfile(StudentProfile input) {
-        return createOrUpdatePersonProfile(input).map(p -> p instanceof StudentProfile profile ? profile : null);
+        return createOrUpdate(input).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 }

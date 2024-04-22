@@ -117,12 +117,23 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      *
      * @param id system-id of the authority person
      * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws AuthorityPersonIsNotExistsException   throws when you want to delete authority person who is not created before
+     * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
      * @see AuthorityPerson
      */
     @Override
-    public void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    public void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         delegator.deleteAuthorityPerson(id);
+    }
+
+    /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    @Override
+    public AuthorityPerson toEntity(AuthorityPerson type) {
+        return delegator.toEntity(type);
     }
 
     /**
@@ -220,12 +231,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws StudentsGroupNotExistsException   throws when you want to delete students group which is not created before
+     * @throws NotExistStudentsGroupException   throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     @Override
-    public void deleteStudentsGroup(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
+    public void deleteStudentsGroup(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         delegator.deleteStudentsGroup(id);
     }
 
@@ -377,10 +388,10 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @throws ProfileNotExistsException if profile with id is not exists
+     * @throws NotExistProfileException if profile with id is not exists
      */
     @Override
-    public void deleteProfileById(Long id) throws ProfileNotExistsException {
+    public void deleteProfileById(Long id) throws NotExistProfileException {
         delegator.deleteProfileById(id);
     }
 

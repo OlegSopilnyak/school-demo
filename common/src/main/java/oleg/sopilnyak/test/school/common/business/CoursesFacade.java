@@ -68,21 +68,21 @@ public interface CoursesFacade {
      * To delete course from the school
      *
      * @param courseId system-id of the course to delete
-     * @throws CourseNotExistsException    throws when course it not exists
+     * @throws NotExistCourseException    throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
-    void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException;
+    void delete(Long courseId) throws NotExistCourseException, CourseWithStudentsException;
 
     /**
      * To delete course from the school
      *
      * @param course course instance to delete
-     * @throws CourseNotExistsException    throws when course it not exists
+     * @throws NotExistCourseException    throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
-    default void delete(Course course) throws CourseNotExistsException, CourseWithStudentsException {
+    default void delete(Course course) throws NotExistCourseException, CourseWithStudentsException {
         if (isInvalid(course)) {
-            throw new CourseNotExistsException("Wrong " + course + " to delete.");
+            throw new NotExistCourseException("Wrong " + course + " to delete.");
         }
         delete(course.getId());
     }
@@ -92,13 +92,13 @@ public interface CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws StudentNotExistsException     throws when student is not exists
-     * @throws CourseNotExistsException      throws if course is not exists
+     * @throws NotExistStudentException     throws when student is not exists
+     * @throws NotExistCourseException      throws if course is not exists
      * @throws NoRoomInTheCourseException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     void register(Long studentId, Long courseId) throws
-            StudentNotExistsException, CourseNotExistsException,
+            NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException;
 
     /**
@@ -106,18 +106,18 @@ public interface CoursesFacade {
      *
      * @param student student instance
      * @param course  course instance
-     * @throws StudentNotExistsException     throws when student is not exists
-     * @throws CourseNotExistsException      throws if course is not exists
+     * @throws NotExistStudentException     throws when student is not exists
+     * @throws NotExistCourseException      throws if course is not exists
      * @throws NoRoomInTheCourseException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     default void register(Student student, Course course) throws
-            StudentNotExistsException, CourseNotExistsException,
+            NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
         if (isInvalid(student)) {
-            throw new StudentNotExistsException("Wrong student " + student + " for registration.");
+            throw new NotExistStudentException("Wrong student " + student + " for registration.");
         } else if (isInvalid(course)) {
-            throw new CourseNotExistsException("Wrong course " + course + " for registration.");
+            throw new NotExistCourseException("Wrong course " + course + " for registration.");
         }
         register(student.getId(), course.getId());
     }
@@ -127,24 +127,24 @@ public interface CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws StudentNotExistsException throws when student is not exists
-     * @throws CourseNotExistsException  throws if course is not exists
+     * @throws NotExistStudentException throws when student is not exists
+     * @throws NotExistCourseException  throws if course is not exists
      */
-    void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException;
+    void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException;
 
     /**
      * To un-register the student from the school course
      *
      * @param student student instance
      * @param course  course instance
-     * @throws StudentNotExistsException throws when student is not exists
-     * @throws CourseNotExistsException  throws if course is not exists
+     * @throws NotExistStudentException throws when student is not exists
+     * @throws NotExistCourseException  throws if course is not exists
      */
-    default void unRegister(Student student, Course course) throws StudentNotExistsException, CourseNotExistsException {
+    default void unRegister(Student student, Course course) throws NotExistStudentException, NotExistCourseException {
         if (isInvalid(student)) {
-            throw new StudentNotExistsException("Wrong student " + student + " for un-registration.");
+            throw new NotExistStudentException("Wrong student " + student + " for un-registration.");
         } else if (isInvalid(course)) {
-            throw new CourseNotExistsException("Wrong course " + course + " for un-registration.");
+            throw new NotExistCourseException("Wrong course " + course + " for un-registration.");
         }
         unRegister(student.getId(), course.getId());
     }

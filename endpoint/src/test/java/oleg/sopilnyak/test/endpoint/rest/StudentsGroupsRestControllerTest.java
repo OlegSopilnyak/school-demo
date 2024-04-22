@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     private final static ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
-    OrganizationFacade facade;
+    StudentsGroupFacade facade;
     @Spy
     @InjectMocks
     StudentsGroupsRestController controller;

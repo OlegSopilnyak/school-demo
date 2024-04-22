@@ -10,16 +10,18 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.ChangeCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
 
 /**
- * Command-Implementation: command to update the course
+ * Command-Implementation: command to create or update the course
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class CreateOrUpdateCourseCommand implements
         ChangeCourseCommand,
         CourseCommand<Optional<Course>> {

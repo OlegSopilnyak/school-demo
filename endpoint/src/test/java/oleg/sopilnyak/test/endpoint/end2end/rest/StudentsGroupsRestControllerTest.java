@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -53,7 +54,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade database;
     @Autowired
-    OrganizationFacade facade;
+    StudentsGroupFacade facade;
 
     StudentsGroupsRestController controller;
     MockMvc mockMvc;

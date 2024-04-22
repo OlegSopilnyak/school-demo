@@ -19,13 +19,12 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.FindAll
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.factory.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.FacultyCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.type.base.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.base.command.OrganizationCommand;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

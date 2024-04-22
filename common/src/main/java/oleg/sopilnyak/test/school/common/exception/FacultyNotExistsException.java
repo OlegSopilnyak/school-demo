@@ -1,10 +1,12 @@
 package oleg.sopilnyak.test.school.common.exception;
 
 /**
- * Exception: throws when you want to delete faculty which is not created before
+ * Exception: throws when you want to delete or update faculty which is not created before
+ *
+ * @see EntityNotExistException
  * @see oleg.sopilnyak.test.school.common.model.Faculty
  */
-public class FacultyNotExistsException extends Exception {
+public class FacultyNotExistsException extends EntityNotExistException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by

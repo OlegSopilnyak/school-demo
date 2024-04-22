@@ -9,6 +9,8 @@ public interface RequestMappingRoot {
     String REGISTER = "/register";
     String AUTHORITIES = "/authorities";
     String PROFILES = "/profiles";
+    String STUDENT_PROFILES = "/profiles/students";
+    String PRINCIPAL_PROFILES = "/profiles/principals";
     String FACULTIES = "/faculties";
     String STUDENT_GROUPS = "/student-groups";
 }

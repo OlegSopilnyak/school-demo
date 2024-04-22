@@ -92,16 +92,16 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
      *
      * @param id system-id of the authority person
      * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws AuthorityPersonIsNotExistsException   throws when you want to delete authority person who is not created before
+     * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
      * @see AuthorityPerson
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    default void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         getLog().debug("Deleting the AuthorityPerson with ID:{}", id);
         final Optional<AuthorityPersonEntity> person = getAuthorityPersonRepository().findById(id);
         if (person.isEmpty()) {
-            throw new AuthorityPersonIsNotExistsException("No authorization person with ID:" + id);
+            throw new NotExistAuthorityPersonException("No authorization person with ID:" + id);
         } else if (!person.get().getFaculties().isEmpty()) {
             throw new AuthorityPersonManageFacultyException("Authorization person with ID:" + id + " is not empty");
         }
@@ -228,17 +228,17 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws StudentsGroupNotExistsException   throws when you want to delete students group which is not created before
+     * @throws NotExistStudentsGroupException   throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default void deleteStudentsGroup(Long id) throws StudentsGroupNotExistsException, StudentGroupWithStudentsException {
+    default void deleteStudentsGroup(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         getLog().debug("Deleting students group ID:{}", id);
         final Optional<StudentsGroupEntity> group = getStudentsGroupRepository().findById(id);
         if (group.isEmpty()) {
-            throw new StudentsGroupNotExistsException("No students group with ID:" + id);
+            throw new NotExistStudentsGroupException("No students group with ID:" + id);
         } else if (!group.get().getStudents().isEmpty()) {
             throw new StudentGroupWithStudentsException("Students group with ID:" + id + " is not empty");
         }
@@ -246,6 +246,17 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
         getStudentsGroupRepository().flush();
         getLog().debug("Deleted students group ID:{}", id);
 
+    }
+
+    /**
+     * To transform model type to the entity
+     *
+     * @param person source instance
+     * @return entity instance
+     */
+    @Override
+    default AuthorityPerson toEntity(AuthorityPerson person){
+        return getMapper().toEntity(person);
     }
 
     private static boolean isForCreate(Long id) {

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.persistence.organization;
 
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
@@ -48,11 +48,18 @@ public interface AuthorityPersonPersistenceFacade {
      *
      * @param id system-id of the authority person
      * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws AuthorityPersonIsNotExistsException   throws when you want to delete authority person who is not created before
+     * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
      * @see AuthorityPerson
      */
     void deleteAuthorityPerson(Long id) throws
             AuthorityPersonManageFacultyException,
-            AuthorityPersonIsNotExistsException;
+            NotExistAuthorityPersonException;
 
+    /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    AuthorityPerson toEntity(AuthorityPerson type);
 }

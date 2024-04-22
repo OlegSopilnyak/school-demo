@@ -1,5 +1,7 @@
-package oleg.sopilnyak.test.service.command.type.base;
+package oleg.sopilnyak.test.service.command.type.base.command;
 
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import org.slf4j.Logger;
 
 /**

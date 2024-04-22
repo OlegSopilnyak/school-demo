@@ -2,13 +2,14 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -17,8 +18,9 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final AuthorityPersonPersistenceFacade persistenceFacade;
 
     /**
      * To find authority person by id

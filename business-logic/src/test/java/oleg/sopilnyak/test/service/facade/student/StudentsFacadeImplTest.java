@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.student;
 
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -149,7 +149,7 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldDelete() throws StudentWithCoursesException, StudentNotExistsException {
+    void shouldDelete() throws StudentWithCoursesException, NotExistStudentException {
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
@@ -167,7 +167,7 @@ class StudentsFacadeImplTest {
     void shouldNotDelete_StudentNotExists() {
         Long studentId = 102L;
 
-        StudentNotExistsException exception = assertThrows(StudentNotExistsException.class, () -> facade.delete(studentId));
+        NotExistStudentException exception = assertThrows(NotExistStudentException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:102 is not exists.");
         verify(factory).command(STUDENT_DELETE);

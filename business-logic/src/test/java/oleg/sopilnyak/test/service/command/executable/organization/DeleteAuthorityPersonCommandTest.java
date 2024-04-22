@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization;
 
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
 import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -31,7 +31,7 @@ class DeleteAuthorityPersonCommandTest {
     AuthorityPerson person;
 
     @Test
-    void shouldExecuteCommand() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    void shouldExecuteCommand() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 310L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(person));
 
@@ -53,7 +53,7 @@ class DeleteAuthorityPersonCommandTest {
         verify(persistenceFacade).findAuthorityPersonById(id);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(AuthorityPersonIsNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
     }
 
     @Test
@@ -71,7 +71,7 @@ class DeleteAuthorityPersonCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand() throws AuthorityPersonManageFacultyException, AuthorityPersonIsNotExistsException {
+    void shouldNotExecuteCommand() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 313L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
         doThrow(cannotExecute).when(persistenceFacade).deleteAuthorityPerson(id);

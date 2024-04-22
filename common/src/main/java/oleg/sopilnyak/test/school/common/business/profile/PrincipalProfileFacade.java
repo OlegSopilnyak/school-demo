@@ -36,6 +36,6 @@ public interface PrincipalProfileFacade extends PersonProfileFacade {
      * @see Optional#empty()
      */
     default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input) {
-        return createOrUpdatePersonProfile(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
+        return createOrUpdate(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 }

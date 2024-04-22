@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.organization;
 
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonIsNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -49,18 +49,18 @@ public interface AuthorityPersonFacade extends OrganizationFacade {
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonIsNotExistsException   throws when authorityPerson is not exists
+     * @throws NotExistAuthorityPersonException   throws when authorityPerson is not exists
      * @throws AuthorityPersonManageFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     void deleteAuthorityPersonById(Long id)
-            throws AuthorityPersonIsNotExistsException,
+            throws NotExistAuthorityPersonException,
             AuthorityPersonManageFacultyException;
 
     default void deleteAuthorityPerson(AuthorityPerson instance)
-            throws AuthorityPersonIsNotExistsException,
+            throws NotExistAuthorityPersonException,
             AuthorityPersonManageFacultyException {
         if (isInvalid(instance)) {
-            throw new AuthorityPersonIsNotExistsException("Wrong " + instance + " to delete");
+            throw new NotExistAuthorityPersonException("Wrong " + instance + " to delete");
         }
         deleteAuthorityPersonById(instance.getId());
     }

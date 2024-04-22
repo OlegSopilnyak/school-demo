@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     private final StudentsPersistenceFacade persistenceFacade;
 

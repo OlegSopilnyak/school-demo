@@ -78,11 +78,11 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      * To delete course from the school
      *
      * @param courseId system-id of the course to delete
-     * @throws CourseNotExistsException    throws when course it not exists
+     * @throws NotExistCourseException    throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
     @Override
-    public void delete(Long courseId) throws CourseNotExistsException, CourseWithStudentsException {
+    public void delete(Long courseId) throws NotExistCourseException, CourseWithStudentsException {
         final String commandId = DELETE_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(courseId);
@@ -96,7 +96,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
 
         final Exception doException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof CourseNotExistsException exception) {
+        if (doException instanceof NotExistCourseException exception) {
             throw exception;
         } else if (doException instanceof CourseWithStudentsException exception) {
             throw exception;
@@ -113,14 +113,14 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws StudentNotExistsException     throws when student is not exists
-     * @throws CourseNotExistsException      throws if course is not exists
+     * @throws NotExistStudentException     throws when student is not exists
+     * @throws NotExistCourseException      throws if course is not exists
      * @throws NoRoomInTheCourseException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     @Override
     public void register(Long studentId, Long courseId)
-            throws StudentNotExistsException, CourseNotExistsException,
+            throws NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
         final String commandId = REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
@@ -135,9 +135,9 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
 
         final Exception doException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof StudentNotExistsException exception) {
+        if (doException instanceof NotExistStudentException exception) {
             throw exception;
-        } else if (doException instanceof CourseNotExistsException exception) {
+        } else if (doException instanceof NotExistCourseException exception) {
             throw exception;
         } else if (doException instanceof NoRoomInTheCourseException exception) {
             throw exception;
@@ -156,11 +156,11 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws StudentNotExistsException throws when student is not exists
-     * @throws CourseNotExistsException  throws if course is not exists
+     * @throws NotExistStudentException throws when student is not exists
+     * @throws NotExistCourseException  throws if course is not exists
      */
     @Override
-    public void unRegister(Long studentId, Long courseId) throws StudentNotExistsException, CourseNotExistsException {
+    public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
         final String commandId = UN_REGISTER_COMMAND_ID;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
@@ -174,9 +174,9 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
 
         final Exception doException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof StudentNotExistsException exception) {
+        if (doException instanceof NotExistStudentException exception) {
             throw exception;
-        } else if (doException instanceof CourseNotExistsException exception) {
+        } else if (doException instanceof NotExistCourseException exception) {
             throw exception;
         } else if (nonNull(doException)) {
             throwFor(commandId, doException);

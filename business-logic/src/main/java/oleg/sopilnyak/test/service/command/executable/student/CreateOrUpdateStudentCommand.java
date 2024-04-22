@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.ChangeStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import static oleg.sopilnyak.test.school.common.persistence.students.courses.Stu
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class CreateOrUpdateStudentCommand implements
         ChangeStudentCommand,
         StudentCommand<Optional<Student>> {
@@ -116,7 +118,7 @@ public class CreateOrUpdateStudentCommand implements
                 persistenceFacade.save(student);
                 log.debug("Got restored \nstudent {}\n success: {}", student, true);
             } else {
-                throw new StudentNotExistsException("Wrong undo parameter :" + parameter);
+                throw new NotExistStudentException("Wrong undo parameter :" + parameter);
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

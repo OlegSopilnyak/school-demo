@@ -2,13 +2,14 @@ package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -17,8 +18,9 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class DeleteStudentsGroupCommand implements StudentsGroupCommand<Boolean> {
-    private final OrganizationPersistenceFacade persistenceFacade;
+    private final StudentsGroupPersistenceFacade persistenceFacade;
 
     /**
      * To delete students group by id
@@ -37,7 +39,7 @@ public class DeleteStudentsGroupCommand implements StudentsGroupCommand<Boolean>
             if (group.isEmpty()) {
                 return CommandResult.<Boolean>builder()
                         .result(Optional.of(false))
-                        .exception(new StudentsGroupNotExistsException("StudentsGroup with ID:" + id + " is not exists."))
+                        .exception(new NotExistStudentsGroupException("StudentsGroup with ID:" + id + " is not exists."))
                         .success(false).build();
             } else if (!group.get().getStudents().isEmpty()) {
                 return CommandResult.<Boolean>builder()

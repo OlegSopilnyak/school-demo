@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.Set;
@@ -17,6 +18,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> {
     private final RegisterPersistenceFacade persistenceFacade;
 

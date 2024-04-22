@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
-import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import org.mapstruct.factory.Mappers;
@@ -96,7 +96,7 @@ public class StudentsGroupsRestController {
             facade.deleteStudentsGroupById(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | StudentsGroupNotExistsException e) {
+        } catch (NumberFormatException | NotExistStudentsGroupException e) {
             log.error("Wrong students-group-id: '{}'", groupId);
             throw new ResourceNotFoundException("Wrong students-group-id: '" + groupId + "'");
         } catch (Exception e) {

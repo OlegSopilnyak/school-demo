@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -81,7 +81,7 @@ class DeleteCourseCommandTest {
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isEmpty();
-        assertThat(result.getException()).isInstanceOf(CourseNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistCourseException.class);
     }
 
     @Test
@@ -132,7 +132,7 @@ class DeleteCourseCommandTest {
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getUndoParameter()).isNull();
-        assertThat(context.getException()).isInstanceOf(CourseNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
         verify(persistenceFacade).findCourseById(id);
         verify(persistenceFacade, never()).deleteCourse(id);
@@ -182,7 +182,7 @@ class DeleteCourseCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(CourseNotExistsException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
 
         verify(command).executeUndo(context);
         verify(persistenceFacade, never()).save(course);

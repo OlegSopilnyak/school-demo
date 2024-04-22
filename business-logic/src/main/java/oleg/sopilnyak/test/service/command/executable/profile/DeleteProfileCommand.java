@@ -2,14 +2,12 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.ProfileNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.ProfileCommand;
+import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import org.slf4j.Logger;
 
 import java.util.Optional;
 
@@ -18,16 +16,10 @@ import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isI
 /**
  * Command-Implementation: command to delete person profile instance by id
  */
-@Slf4j
 @Getter
 @AllArgsConstructor
-public class DeleteProfileCommand implements ProfileCommand<Boolean> {
+public abstract class DeleteProfileCommand<T> implements ProfileCommand<T> {
     private final ProfilePersistenceFacade persistenceFacade;
-
-    @Override
-    public Logger getLog() {
-        return log;
-    }
 
     /**
      * To delete person's profile by id
@@ -39,39 +31,29 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<Boolean> execute(Object parameter) {
+    public CommandResult<T> execute(Object parameter) {
         try {
-            log.debug("Trying to delete person profile {}", parameter);
+            getLog().debug("Trying to delete person profile {}", parameter);
             final Long id = commandParameter(parameter);
             final Optional<PersonProfile> profile = persistenceFacade.findProfileById(id);
             if (profile.isEmpty()) {
-                log.debug("Person profile with ID:{} is not exists.", id);
-                return CommandResult.<Boolean>builder().result(Optional.of(false))
-                        .exception(new ProfileNotExistsException("Profile with ID:" + id + " is not exists."))
+                getLog().debug("Person profile with ID:{} is not exists.", id);
+                return CommandResult.<T>builder().result(Optional.of((T)Boolean.FALSE))
+                        .exception(new NotExistProfileException("Profile with ID:" + id + " is not exists."))
                         .success(false).build();
             }
             persistenceFacade.deleteProfileById(id);
-            log.debug("Person profile with ID:{} is deleted '{}'", id, true);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(true))
+            getLog().debug("Person profile with ID:{} is deleted '{}'", id, true);
+            return CommandResult.<T>builder()
+                    .result(Optional.of((T)Boolean.TRUE))
                     .success(true)
                     .build();
         } catch (Exception e) {
-            log.error("Cannot delete the person profile {}", parameter, e);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(false))
+            getLog().error("Cannot delete the person profile {}", parameter, e);
+            return CommandResult.<T>builder()
+                    .result(Optional.of((T)Boolean.FALSE))
                     .exception(e).success(false).build();
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return ProfileCommand.DELETE_BY_ID_COMMAND_ID;
     }
 
     /**
@@ -85,18 +67,18 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to delete person profile using: {}", parameter.toString());
+            getLog().debug("Trying to delete person profile using: {}", parameter.toString());
             final Long id = commandParameter(parameter);
             if (isInvalidId(id)) {
-                throw new ProfileNotExistsException("PersonProfile with ID:" + id + " is not exists.");
+                throw new NotExistProfileException("PersonProfile with ID:" + id + " is not exists.");
             }
             cacheProfileForRollback(context, id);
             persistenceFacade.deleteProfileById(id);
             context.setResult(true);
-            log.debug("Deleted person profile with ID: {}", id);
+            getLog().debug("Deleted person profile with ID: {}", id);
         } catch (Exception e) {
             context.setResult(false);
-            log.error("Cannot delete profile with :{}", parameter, e);
+            getLog().error("Cannot delete profile with :{}", parameter, e);
             context.failed(e);
             rollbackCachedProfile(context);
         }
@@ -113,16 +95,16 @@ public class DeleteProfileCommand implements ProfileCommand<Boolean> {
     public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            log.debug("Trying to undo person profile deletion using: {}", parameter.toString());
+            getLog().debug("Trying to undo person profile deletion using: {}", parameter.toString());
             if (parameter instanceof PersonProfile profile) {
                 persistenceFacade.saveProfile(profile);
-                log.debug("Got restored person profile {}", profile);
+                getLog().debug("Got restored person profile {}", profile);
             } else {
                 throw new NullPointerException("Wrong undo parameter :" + parameter);
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
-            log.error("Cannot undo profile deletion {}", parameter, e);
+            getLog().error("Cannot undo profile deletion {}", parameter, e);
             context.failed(e);
         }
     }

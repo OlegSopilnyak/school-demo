@@ -3,10 +3,10 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -14,6 +14,8 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -27,14 +29,17 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
     @Getter
+    @Value("${school.courses.maximum.rooms:50}")
     private final int maximumRooms;
     @Getter
+    @Value("${school.students.maximum.courses:5}")
     private final int coursesExceed;
 
     /**
@@ -56,14 +61,14 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
                 return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX))
+                        .exception(new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX))
                         .build();
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
                 return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new CourseNotExistsException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX))
+                        .exception(new NotExistCourseException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX))
                         .build();
             }
             if (isLinked(student.get(), course.get())) {
@@ -120,12 +125,12 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                throw new StudentNotExistsException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX);
+                throw new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX);
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                throw new CourseNotExistsException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX);
+                throw new NotExistCourseException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX);
             }
 
             final Student existingStudent = student.get();

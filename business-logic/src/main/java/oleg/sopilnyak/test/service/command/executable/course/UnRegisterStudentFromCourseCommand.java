@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
-import oleg.sopilnyak.test.school.common.exception.StudentNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ import static java.util.Objects.isNull;
  */
 @Slf4j
 @AllArgsConstructor
+@Component
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean> {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
@@ -45,14 +47,14 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
                 return CommandResult.<Boolean>builder().success(false)
-                        .exception(new StudentNotExistsException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX))
+                        .exception(new NotExistStudentException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX))
                         .result(Optional.of(false)).build();
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
                 return CommandResult.<Boolean>builder().success(false)
-                        .exception(new CourseNotExistsException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX))
+                        .exception(new NotExistCourseException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX))
                         .result(Optional.of(false)).build();
             }
 
@@ -93,12 +95,12 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                throw new StudentNotExistsException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX);
+                throw new NotExistStudentException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX);
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                throw new CourseNotExistsException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX);
+                throw new NotExistCourseException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX);
             }
 
             final Student existingStudent = student.get();

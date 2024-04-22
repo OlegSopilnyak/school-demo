@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
 import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
-import oleg.sopilnyak.test.school.common.exception.CourseNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import org.mapstruct.factory.Mappers;
@@ -113,7 +113,7 @@ public class CoursesRestController {
             facade.delete(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | CourseNotExistsException e) {
+        } catch (NumberFormatException | NotExistCourseException e) {
             log.error("Wrong course-id: '{}'", courseId);
             throw new ResourceNotFoundException(WRONG_COURSE_ID_MESSAGE + courseId + "'");
         } catch (Exception e) {

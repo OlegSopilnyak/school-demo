@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization;
 
+import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.StudentsGroupNotExistsException;
 import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -31,7 +31,7 @@ class DeleteStudentsGroupCommandTest {
     StudentsGroup instance;
 
     @Test
-    void shouldExecuteCommand() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+    void shouldExecuteCommand() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 510L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(instance));
 
@@ -45,7 +45,7 @@ class DeleteStudentsGroupCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand() throws StudentGroupWithStudentsException, StudentsGroupNotExistsException {
+    void shouldNotExecuteCommand() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 511L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
         doThrow(cannotExecute).when(persistenceFacade).deleteStudentsGroup(id);
@@ -69,7 +69,7 @@ class DeleteStudentsGroupCommandTest {
         verify(persistenceFacade).findStudentsGroupById(id);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(StudentsGroupNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistStudentsGroupException.class);
     }
 
     @Test
