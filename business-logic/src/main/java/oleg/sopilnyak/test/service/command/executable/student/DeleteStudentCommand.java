@@ -1,16 +1,15 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.ChangeStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -23,14 +22,18 @@ import static oleg.sopilnyak.test.school.common.persistence.students.courses.Stu
  * Command-Implementation: command to delete the student
  */
 @Slf4j
-@AllArgsConstructor
+@Getter
 @Component
-public class DeleteStudentCommand implements
-        ChangeStudentCommand,
-        StudentCommand<Boolean> {
+public class DeleteStudentCommand
+        extends SchoolCommandCache<Student>
+        implements StudentCommand<Boolean> {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
-    @Getter
     private final StudentsPersistenceFacade persistenceFacade;
+
+    public DeleteStudentCommand(StudentsPersistenceFacade persistenceFacade) {
+        super(Student.class);
+        this.persistenceFacade = persistenceFacade;
+    }
 
     /**
      * To delete the student by student-id
@@ -87,10 +90,16 @@ public class DeleteStudentCommand implements
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
             if (isInvalidId(inputId)) {
+                log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", inputId);
                 throw new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
             }
-            final Student student = (Student) cacheEntityForRollback(inputId);
+
+            final Student student = retrieveEntity(inputId,
+                    persistenceFacade::findStudentById, persistenceFacade::toEntity,
+                    () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists."));
+
             if (!ObjectUtils.isEmpty(student.getCourses())) {
+                log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", inputId);
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
             }
             // cached student saved to context for further undo
@@ -100,7 +109,7 @@ public class DeleteStudentCommand implements
         } catch (Exception e) {
             log.error("Cannot save the student {}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context);
+            rollbackCachedEntity(context, persistenceFacade::save);
         }
     }
 
@@ -117,12 +126,10 @@ public class DeleteStudentCommand implements
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student deletion using: {}", parameter.toString());
-            if (parameter instanceof Student student) {
-                final Optional<Student> restored = persistenceFacade.save(student);
-                log.debug("Got restored student {}", restored.orElse(null));
-            } else {
-                throw new NullPointerException("Wrong undo parameter :" + parameter);
-            }
+            final Student student = rollbackCachedEntity(context, persistenceFacade::save)
+                    .orElseThrow(() -> new NullPointerException("Wrong undo parameter :" + parameter));
+
+            log.debug("Restored in database: {}", student);
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);

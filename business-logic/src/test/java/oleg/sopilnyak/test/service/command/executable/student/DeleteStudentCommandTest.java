@@ -177,6 +177,7 @@ class DeleteStudentCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter(instance);
+        when(persistenceFacade.save(instance)).thenReturn(Optional.of(instance));
 
         command.undoCommand(context);
 

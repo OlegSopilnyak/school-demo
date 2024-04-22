@@ -29,6 +29,7 @@ public interface ChangeStudentCommand {
      * To cache into context old value of the student instance for possible rollback
      *
      * @param inputId system-id of the student
+     * @return copy of the entity
      * @throws NotExistStudentException if student is not exist
      * @see StudentsPersistenceFacade
      * @see StudentsPersistenceFacade#findStudentById(Long)
