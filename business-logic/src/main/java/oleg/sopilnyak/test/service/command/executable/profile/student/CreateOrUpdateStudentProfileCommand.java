@@ -9,39 +9,47 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.UnaryOperator;
 
 
 /**
  * Command-Implementation: command to update student profile instance
  *
  * @see StudentProfileCommand
- * @see oleg.sopilnyak.test.school.common.model.StudentProfile
+ * @see StudentProfile
  * @see ProfilePersistenceFacade
  * @see oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity
  */
 @Slf4j
 @Component
 public class CreateOrUpdateStudentProfileCommand
-        extends CreateOrUpdateProfileCommand<Optional<StudentProfile>>
+        extends CreateOrUpdateProfileCommand<Optional<StudentProfile>, StudentProfile>
         implements StudentProfileCommand<Optional<StudentProfile>> {
 
     /**
      * Constructor
      *
-     * @param persistenceFacade
+     * @param persistenceFacade facade of persistence layer
      */
     public CreateOrUpdateStudentProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(persistenceFacade);
+        super(StudentProfile.class, persistenceFacade);
     }
 
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
     @Override
-    public String getId() {
-        return CREATE_OR_UPDATE_COMMAND_ID;
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
+    }
+
+    @Override
+    protected UnaryOperator<StudentProfile> functionCopyEntity() {
+        return entity -> (StudentProfile) persistence.toEntity(entity);
+    }
+
+    @Override
+    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
+        return persistence::save;
     }
 
     /**
@@ -52,5 +60,15 @@ public class CreateOrUpdateStudentProfileCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CREATE_OR_UPDATE_COMMAND_ID;
     }
 }

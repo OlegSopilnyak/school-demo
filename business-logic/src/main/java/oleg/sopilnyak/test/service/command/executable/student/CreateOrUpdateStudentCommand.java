@@ -1,34 +1,40 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.ChangeStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 
 /**
  * Command-Implementation: command to update the student
+ *
+ * @see SchoolCommandCache
+ * @see Student
+ * @see StudentsPersistenceFacade
  */
 @Slf4j
-@AllArgsConstructor
 @Component
-public class CreateOrUpdateStudentCommand implements
-        ChangeStudentCommand,
-        StudentCommand<Optional<Student>> {
-    @Getter
-    private final StudentsPersistenceFacade persistenceFacade;
+public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
+        implements StudentCommand<Optional<Student>> {
+    private final StudentsPersistenceFacade persistence;
+
+    public CreateOrUpdateStudentCommand(StudentsPersistenceFacade persistence) {
+        super(Student.class);
+        this.persistence = persistence;
+    }
 
     /**
      * To update student entity
@@ -43,7 +49,7 @@ public class CreateOrUpdateStudentCommand implements
         try {
             log.debug("Trying to update student:{}", parameter);
             Student student = commandParameter(parameter);
-            Optional<Student> resultStudent = persistenceFacade.save(student);
+            Optional<Student> resultStudent = persistence.save(student);
             log.debug("Got student {}", resultStudent);
             return CommandResult.<Optional<Student>>builder()
                     .result(Optional.ofNullable(resultStudent))
@@ -71,30 +77,35 @@ public class CreateOrUpdateStudentCommand implements
         try {
             log.debug("Trying to change student using: {}", parameter.toString());
             final Long inputId = ((Student) parameter).getId();
-            final boolean isCreateStudent = isInvalidId(inputId);
+            final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateStudent) {
-                context.setUndoParameter(cacheEntityForRollback(inputId));
+                // cached student is storing to context for further rollback (undo)
+                context.setUndoParameter(
+                        retrieveEntity(inputId, persistence::findStudentById, persistence::toEntity,
+                                () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.")
+                        )
+                );
             }
-            final Optional<Student> student = persistRedoEntity(context);
+            final Optional<Student> student = persistRedoEntity(context, persistence::save);
             // checking execution context state
             if (context.isFailed()) {
                 // there was a fail during save student
-                log.error("Cannot save student {}", parameter);
-                rollbackCachedEntity(context);
+                log.error("Cannot save student '{}'", parameter);
+                rollbackCachedEntity(context, persistence::save);
             } else {
-                // save student operation is done successfully
+                // store student operation is done successfully
                 log.debug("Got saved \nstudent {}\n for input {}", student, parameter);
                 context.setResult(student);
 
                 if (student.isPresent() && isCreateStudent) {
-                    // saving created student.id for undo operation
+                    // storing created student.id for undo operation
                     context.setUndoParameter(student.get().getId());
                 }
             }
         } catch (Exception e) {
-            log.error("Cannot save the student {}", parameter, e);
+            rollbackCachedEntity(context, persistence::save);
+            log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context);
         }
     }
 
@@ -105,21 +116,15 @@ public class CreateOrUpdateStudentCommand implements
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
+     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
      */
     @Override
     public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student changes using: {}", parameter.toString());
-            if (parameter instanceof Long id) {
-                persistenceFacade.deleteStudent(id);
-                log.debug("Got deleted \nstudent ID:{}\n success: {}", id, true);
-            } else if (parameter instanceof Student student) {
-                persistenceFacade.save(student);
-                log.debug("Got restored \nstudent {}\n success: {}", student, true);
-            } else {
-                throw new NotExistStudentException("Wrong undo parameter :" + parameter);
-            }
+            rollbackCachedEntity(context, persistence::save, persistence::deleteStudent,
+                    () -> new NotExistStudentException("Wrong undo parameter :" + parameter));
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student change {}", parameter, e);

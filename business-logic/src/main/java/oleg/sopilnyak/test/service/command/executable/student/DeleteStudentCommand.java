@@ -1,38 +1,41 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the student
+ *
+ * @see SchoolCommandCache
+ * @see Student
+ * @see StudentsPersistenceFacade
  */
 @Slf4j
-@Getter
 @Component
-public class DeleteStudentCommand
-        extends SchoolCommandCache<Student>
-        implements StudentCommand<Boolean> {
-    public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
-    private final StudentsPersistenceFacade persistenceFacade;
+public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand<Boolean> {
+    private final StudentsPersistenceFacade persistence;
 
-    public DeleteStudentCommand(StudentsPersistenceFacade persistenceFacade) {
+    public DeleteStudentCommand(StudentsPersistenceFacade persistence) {
         super(Student.class);
-        this.persistenceFacade = persistenceFacade;
+        this.persistence = persistence;
     }
 
     /**
@@ -48,7 +51,7 @@ public class DeleteStudentCommand
         try {
             log.debug("Trying to delete the student ID:{}", parameter);
             Long id = commandParameter(parameter);
-            Optional<Student> student = persistenceFacade.findStudentById(id);
+            Optional<Student> student = persistence.findStudentById(id);
             if (student.isEmpty()) {
                 return CommandResult.<Boolean>builder()
                         .result(Optional.of(false))
@@ -61,7 +64,7 @@ public class DeleteStudentCommand
                         .exception(new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses."))
                         .success(false).build();
             }
-            boolean result = persistenceFacade.deleteStudent(id);
+            boolean result = persistence.deleteStudent(id);
             log.debug("Deleted student: {} success is '{}'", id, result);
             return CommandResult.<Boolean>builder()
                     .result(Optional.of(result))
@@ -76,12 +79,15 @@ public class DeleteStudentCommand
     }
 
     /**
-     * DO: To delete the student by student-id<BR/>
+     * DO: To delete the student by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
      * @see Context
+     * @see Context#getRedoParameter()
      * @see Context.State#WORK
+     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier) )
+     * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -89,47 +95,51 @@ public class DeleteStudentCommand
         try {
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
-            if (isInvalidId(inputId)) {
+            final EntityNotExistException notFoundException =
+                    new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
+            if (PersistenceFacadeUtilities.isInvalidId(inputId)) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", inputId);
-                throw new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
+                throw notFoundException;
             }
 
-            final Student student = retrieveEntity(inputId,
-                    persistenceFacade::findStudentById, persistenceFacade::toEntity,
-                    () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists."));
+            final Student dbStudent = retrieveEntity(inputId,
+                    persistence::findStudentById, persistence::toEntity,
+                    () -> notFoundException);
 
-            if (!ObjectUtils.isEmpty(student.getCourses())) {
+            if (!ObjectUtils.isEmpty(dbStudent.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", inputId);
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
             }
-            // cached student saved to context for further undo
-            context.setUndoParameter(student);
-            persistenceFacade.deleteStudent(inputId);
+
+            // cached student is storing to context for further rollback (undo)
+            context.setUndoParameter(dbStudent);
+            persistence.deleteStudent(inputId);
             context.setResult(true);
         } catch (Exception e) {
-            log.error("Cannot save the student {}", parameter, e);
+            rollbackCachedEntity(context, persistence::save);
+            log.error("Cannot delete the student {}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistenceFacade::save);
         }
     }
 
     /**
-     * To rollback delete the student by student-id<BR/>
+     * UNDO: To delete the student by id<BR/>
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
+     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
      */
     @Override
     public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student deletion using: {}", parameter.toString());
-            final Student student = rollbackCachedEntity(context, persistenceFacade::save)
-                    .orElseThrow(() -> new NullPointerException("Wrong undo parameter :" + parameter));
+            final Student student = rollbackCachedEntity(context, persistence::save)
+                    .orElseThrow(() -> new NotExistStudentException("Wrong undo parameter :" + parameter));
 
-            log.debug("Restored in database: {}", student);
+            log.debug("Updated in database: '{}'", student);
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);

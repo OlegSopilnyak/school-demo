@@ -3,13 +3,13 @@ package oleg.sopilnyak.test.service.command.executable.profile.student;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.type.StudentProfileCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.function.LongFunction;
 
 
 /**
@@ -23,16 +23,21 @@ import java.util.Optional;
 @Slf4j
 @Component
 public class FindStudentProfileCommand
-        extends FindProfileCommand<Optional<StudentProfile>>
+        extends FindProfileCommand<Optional<StudentProfile>, StudentProfile>
         implements StudentProfileCommand<Optional<StudentProfile>> {
 
     /**
      * Constructor
      *
-     * @param persistenceFacade persistence facade instance
+     * @param persistence persistence facade instance
      */
-    public FindStudentProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(persistenceFacade);
+    public FindStudentProfileCommand(ProfilePersistenceFacade persistence) {
+        super(persistence);
+    }
+
+    @Override
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
     }
 
     /**

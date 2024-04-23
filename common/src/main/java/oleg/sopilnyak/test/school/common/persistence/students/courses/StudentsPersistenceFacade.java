@@ -4,8 +4,6 @@ import oleg.sopilnyak.test.school.common.model.Student;
 
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
-
 /**
  * Persistence facade for students entities
  */
@@ -47,8 +45,4 @@ public interface StudentsPersistenceFacade {
      * @return instance ready to use in the repository
      */
     Student toEntity(Student student);
-
-    static boolean isInvalidId(final Long instanceId) {
-        return isNull(instanceId) || instanceId <= 0L;
-    }
 }

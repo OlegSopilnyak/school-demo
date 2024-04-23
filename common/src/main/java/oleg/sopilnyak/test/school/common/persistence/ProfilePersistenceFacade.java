@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.school.common.persistence;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.util.Optional;
 
@@ -20,7 +19,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    default Optional<StudentProfile> findStudentProfileById(Long id){
+    default Optional<StudentProfile> findStudentProfileById(Long id) {
         return findProfileById(id).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 
@@ -33,7 +32,7 @@ public interface ProfilePersistenceFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    default Optional<PrincipalProfile> findPrincipalProfileById(Long id){
+    default Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
         return findProfileById(id).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 
@@ -89,9 +88,9 @@ public interface ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @throws NotExistProfileException if profile with id is not exists
+     * @return true if success
      */
-    void deleteProfileById(Long id) throws NotExistProfileException;
+    boolean deleteProfileById(Long id);
 
     /**
      * Convert profile to entity bean

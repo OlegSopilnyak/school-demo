@@ -163,6 +163,7 @@ class DeleteCourseCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter(course);
+        when(persistenceFacade.save(course)).thenReturn(Optional.of(course));
 
         command.undoCommand(context);
 

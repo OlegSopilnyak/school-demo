@@ -8,6 +8,11 @@ import oleg.sopilnyak.test.service.command.type.PrincipalProfileCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.UnaryOperator;
+
 /**
  * Command-Implementation: command to delete principal profile instance by id
  *
@@ -19,15 +24,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DeletePrincipalProfileCommand
-        extends DeleteProfileCommand<Boolean>
+        extends DeleteProfileCommand<Boolean, PrincipalProfile>
         implements PrincipalProfileCommand<Boolean> {
     /**
      * Constructor
      *
-     * @param persistenceFacade persistence facade instance
+     * @param persistence persistence facade instance
      */
-    public DeletePrincipalProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(persistenceFacade);
+    public DeletePrincipalProfileCommand(ProfilePersistenceFacade persistence) {
+        super(PrincipalProfile.class, persistence);
+    }
+
+    @Override
+    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
+        return persistence::findPrincipalProfileById;
+    }
+
+    @Override
+    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
+        return entity -> (PrincipalProfile) persistence.toEntity(entity);
+    }
+
+    @Override
+    protected Function<PrincipalProfile, Optional<PrincipalProfile>> functionSave() {
+        return persistence::save;
     }
 
     /**

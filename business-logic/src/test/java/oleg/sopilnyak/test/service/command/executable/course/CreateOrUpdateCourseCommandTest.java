@@ -124,7 +124,8 @@ class CreateOrUpdateCourseCommandTest {
         Long id = -102L;
         when(course.getId()).thenReturn(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
-        doThrow(cannotExecute).when(persistenceFacade).save(course);
+        when(persistenceFacade.save(course)).thenThrow(cannotExecute).thenReturn(Optional.of(course));
+//        doThrow(cannotExecute).when(persistenceFacade).save(course);
 
         Context<Optional<Course>> context = command.createContext(course);
 

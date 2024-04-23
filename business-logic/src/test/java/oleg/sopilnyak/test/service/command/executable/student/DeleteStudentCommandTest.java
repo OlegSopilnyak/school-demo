@@ -196,7 +196,7 @@ class DeleteStudentCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeUndo(context);
         verify(persistenceFacade, never()).save(instance);
     }

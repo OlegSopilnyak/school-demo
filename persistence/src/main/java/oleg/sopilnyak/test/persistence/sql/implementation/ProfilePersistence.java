@@ -81,16 +81,17 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @throws NotExistProfileException if profile with id is not exists
+     * @return true if success
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default void deleteProfileById(Long id) throws NotExistProfileException {
+    default boolean deleteProfileById(Long id) {
         getLog().debug("Deleting PersonProfile with ID:{}", id);
         if (this.findProfileById(id).isPresent()) {
             getPersonProfileRepository().deleteById(id);
             getPersonProfileRepository().flush();
             getLog().debug("Deleted PersonProfile with ID:{}", id);
+            return true;
         } else {
             getLog().warn("PersonProfile with ID:{} is not exists.", id);
             throw new NotExistProfileException("PersonProfile with ID:" + id + " is not exists.");

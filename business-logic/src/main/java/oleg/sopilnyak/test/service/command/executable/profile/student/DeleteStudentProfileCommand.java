@@ -1,11 +1,17 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.type.StudentProfileCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete student profile instance by id
@@ -18,15 +24,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DeleteStudentProfileCommand
-        extends DeleteProfileCommand<Boolean>
+        extends DeleteProfileCommand<Boolean, StudentProfile>
         implements StudentProfileCommand<Boolean> {
     /**
      * Constructor
      *
-     * @param persistenceFacade persistence facade instance
+     * @param persistence persistence facade instance
      */
-    public DeleteStudentProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(persistenceFacade);
+    public DeleteStudentProfileCommand(ProfilePersistenceFacade persistence) {
+        super(StudentProfile.class, persistence);
+    }
+
+    @Override
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
+    }
+
+    @Override
+    protected UnaryOperator<StudentProfile> functionCopyEntity() {
+        return entity -> (StudentProfile) persistence.toEntity(entity);
+    }
+
+    @Override
+    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
+        return persistence::save;
     }
 
     /**

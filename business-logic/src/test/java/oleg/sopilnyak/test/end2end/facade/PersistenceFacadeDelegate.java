@@ -388,11 +388,11 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @throws NotExistProfileException if profile with id is not exists
+     * @return true if success
      */
     @Override
-    public void deleteProfileById(Long id) throws NotExistProfileException {
-        delegator.deleteProfileById(id);
+    public boolean deleteProfileById(Long id) {
+        return delegator.deleteProfileById(id);
     }
 
     /**
@@ -403,6 +403,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      */
     @Override
     public PersonProfile toEntity(PersonProfile profile) {
-        return profile;
+        return delegator.toEntity(profile);
     }
 }

@@ -1,28 +1,41 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
+import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isInvalidId;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 
 /**
  * Command-Implementation: command to update person profile instance
  */
-@Getter
-@AllArgsConstructor
-public abstract class CreateOrUpdateProfileCommand<T> implements ProfileCommand<T> {
-    private final ProfilePersistenceFacade persistenceFacade;
+public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
+        extends SchoolCommandCache<C>
+        implements ProfileCommand<T> {
+
+    protected final ProfilePersistenceFacade persistence;
+
+    protected CreateOrUpdateProfileCommand(Class<C> entityType, ProfilePersistenceFacade persistence) {
+        super(entityType);
+        this.persistence = persistence;
+    }
+
+    protected abstract LongFunction<Optional<C>> functionFindById();
+
+    protected abstract UnaryOperator<C> functionCopyEntity();
+
+    protected abstract Function<C, Optional<C>> functionSave();
 
     /**
      * To update person's profile
@@ -38,11 +51,11 @@ public abstract class CreateOrUpdateProfileCommand<T> implements ProfileCommand<
     public CommandResult<T> execute(Object parameter) {
         try {
             getLog().debug("Trying to update person profile {}", parameter);
-            final PersonProfile input = commandParameter(parameter);
-            final Optional<PersonProfile> profile = persistenceFacade.saveProfile(input);
+            final C input = commandParameter(parameter);
+            final Optional<C> profile = functionSave().apply(input);
             getLog().debug("Got saved \nperson profile {}\n for input {}", profile, input);
             return CommandResult.<T>builder()
-                    .result(Optional.of((T)profile))
+                    .result(Optional.of((T) profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
@@ -59,24 +72,33 @@ public abstract class CreateOrUpdateProfileCommand<T> implements ProfileCommand<
      *
      * @param context context of redo execution
      * @see Context
+     * @see Context#getRedoParameter()
      * @see Context.State#WORK
+     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see this#persistRedoEntity(Context, Function)
+     * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            getLog().debug("Trying to change person profile using: {}", parameter.toString());
-            final Long inputId = ((PersonProfile) parameter).getId();
-            final boolean isCreateProfile = isInvalidId(inputId);
+            getLog().debug("Trying to change person profile using: {}", parameter);
+            final Long inputId = ((C) parameter).getId();
+            final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
-                cacheProfileForRollback(context, inputId);
+                // cached profile is storing to context for further rollback (undo)
+                context.setUndoParameter(
+                        retrieveEntity(inputId, functionFindById(), functionCopyEntity(),
+                                () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + inputId + " is not exists.")
+                        )
+                );
             }
-            final Optional<? extends PersonProfile> profile = savePersonProfile(context);
+            final Optional<C> profile = persistRedoEntity(context, functionSave());
             // checking execution context state
             if (context.isFailed()) {
                 // there was a fail during save person profile
                 getLog().error("Cannot save person profile {}", parameter);
-                rollbackCachedProfile(context);
+                rollbackCachedEntity(context, functionSave());
             } else {
                 // save person profile operation is done successfully
                 getLog().debug("Got saved \nperson profile {}\n for input {}", profile, parameter);
@@ -90,7 +112,7 @@ public abstract class CreateOrUpdateProfileCommand<T> implements ProfileCommand<
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
             context.failed(e);
-            rollbackCachedProfile(context);
+            rollbackCachedEntity(context, functionSave());
         }
     }
 
@@ -101,44 +123,22 @@ public abstract class CreateOrUpdateProfileCommand<T> implements ProfileCommand<
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
+     * @see Context.State#UNDONE
+     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
+     * @see ProfilePersistenceFacade#deleteProfileById(Long)
      */
     @Override
     public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            getLog().debug("Trying to undo person profile changes using: {}", parameter.toString());
-            if (parameter instanceof Long id) {
-                persistenceFacade.deleteProfileById(id);
-                getLog().debug("Got deleted \nperson profile ID:{}\n success: {}", id, true);
-            } else if (parameter instanceof PersonProfile profile) {
-                persistenceFacade.saveProfile(profile);
-                getLog().debug("Got restored \nperson profile {}\n success: {}", profile, true);
-            } else {
-                throw new NullPointerException("Wrong undo parameter :" + parameter);
-            }
+            getLog().debug("Trying to undo person profile changes using: {}", parameter);
+
+            rollbackCachedEntity(context, functionSave(), persistence::deleteProfileById,
+                    () -> new NotExistProfileException("Wrong undo parameter :" + parameter));
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             getLog().error("Cannot undo profile change {}", parameter, e);
             context.failed(e);
-        }
-    }
-
-    // private methods
-    private static void redoExecutionFailed(final String input, Context<?> context) {
-        final Exception saveError = new NotExistProfileException(input);
-        saveError.fillInStackTrace();
-        context.failed(saveError);
-    }
-
-    private Optional<? extends PersonProfile> savePersonProfile(Context<?> context) {
-        final Object input = context.getRedoParameter();
-        if (input instanceof PrincipalProfile principalProfile) {
-            return persistenceFacade.save(principalProfile);
-        } else if (input instanceof StudentProfile studentProfile) {
-            return persistenceFacade.save(studentProfile);
-        } else {
-            redoExecutionFailed("Wrong type of person profile :" + input.getClass().getName(), context);
-            return Optional.empty();
         }
     }
 }

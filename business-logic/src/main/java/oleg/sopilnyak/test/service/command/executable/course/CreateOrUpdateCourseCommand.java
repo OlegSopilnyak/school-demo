@@ -1,32 +1,32 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.base.ChangeCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
-
 /**
  * Command-Implementation: command to create or update the course
  */
 @Slf4j
-@AllArgsConstructor
 @Component
-public class CreateOrUpdateCourseCommand implements
-        ChangeCourseCommand,
-        CourseCommand<Optional<Course>> {
-    @Getter
+public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
+        implements CourseCommand<Optional<Course>> {
     private final CoursesPersistenceFacade persistenceFacade;
+
+    public CreateOrUpdateCourseCommand(CoursesPersistenceFacade persistenceFacade) {
+        super(Course.class);
+        this.persistenceFacade = persistenceFacade;
+    }
 
     /**
      * To create or update the course
@@ -65,27 +65,33 @@ public class CreateOrUpdateCourseCommand implements
         try {
             log.debug("Trying to create or update course {}", parameter);
             final Long inputId = ((Course) parameter).getId();
-            final boolean isCreateCourse = isInvalidId(inputId);
+            final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateCourse) {
-                context.setUndoParameter(cacheEntityForRollback(inputId));
+                // cached course is storing to context for further rollback (undo)
+                context.setUndoParameter(
+                        retrieveEntity(inputId, persistenceFacade::findCourseById, persistenceFacade::toEntity,
+                                () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.")
+                        )
+                );
             }
-            final Optional<Course> course = persistRedoEntity(context);
+            final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);
             // checking execution context state
             if (context.isFailed()) {
-                // there was a fail during save course
+                // there was a fail during store course
                 log.error("Cannot save course {}", parameter);
-                rollbackCachedEntity(context);
+                rollbackCachedEntity(context, persistenceFacade::save);
             } else {
-                // save course operation is done successfully
+                // store course operation is done successfully
                 log.debug("Got saved \ncourse {}\n for input {}", course, parameter);
                 context.setResult(course);
 
                 if (course.isPresent() && isCreateCourse) {
-                    // saving created course.id for undo operation
+                    // storing created course.id for undo operation
                     context.setUndoParameter(course.get().getId());
                 }
             }
         } catch (Exception e) {
+            rollbackCachedEntity(context, persistenceFacade::save);
             log.error("Cannot create or update course by ID:{}", parameter, e);
             context.failed(e);
         }
@@ -104,15 +110,10 @@ public class CreateOrUpdateCourseCommand implements
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo course changes using: {}", parameter.toString());
-            if (parameter instanceof Long id) {
-                persistenceFacade.deleteCourse(id);
-                log.debug("Got deleted \ncourse ID:{}\n success: {}", id, true);
-            } else if (parameter instanceof Course course) {
-                persistenceFacade.save(course);
-                log.debug("Got restored \ncourse {}\n success: {}", course, true);
-            } else {
-                throw new NullPointerException("Wrong undo parameter :" + parameter);
-            }
+
+            rollbackCachedEntity(context, persistenceFacade::save, persistenceFacade::deleteCourse,
+                    () -> new NotExistCourseException("Wrong undo parameter :" + parameter));
+
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo course change {}", parameter, e);

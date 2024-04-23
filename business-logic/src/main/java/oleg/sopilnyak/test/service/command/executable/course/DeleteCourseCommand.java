@@ -1,36 +1,42 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.base.ChangeCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
-
-import static oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade.isInvalidId;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the course by id
+ *
+ * @see SchoolCommandCache
+ * @see Course
+ * @see CoursesPersistenceFacade
  */
 @Slf4j
-@AllArgsConstructor
 @Component
-public class DeleteCourseCommand implements
-        ChangeCourseCommand,
-        CourseCommand<Boolean> {
-    public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
-    @Getter
+public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
     private final CoursesPersistenceFacade persistenceFacade;
+
+    public DeleteCourseCommand(CoursesPersistenceFacade persistenceFacade) {
+        super(Course.class);
+        this.persistenceFacade = persistenceFacade;
+    }
 
     /**
      * To delete course by id
@@ -67,12 +73,15 @@ public class DeleteCourseCommand implements
 
 
     /**
-     * DO: To delete course by id<BR/>
+     * DO: To delete the course by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
      * @see Context
+     * @see Context#getRedoParameter()
      * @see Context.State#WORK
+     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier) )
+     * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -80,43 +89,49 @@ public class DeleteCourseCommand implements
         try {
             log.debug("Trying to delete course by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
-            if (isInvalidId(inputId)) {
-                throw new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
+            final EntityNotExistException notFoundException =
+                    new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
+            if (PersistenceFacadeUtilities.isInvalidId(inputId)) {
+                throw notFoundException;
             }
-            final Course course = cacheEntityForRollback(inputId);
-            if (!ObjectUtils.isEmpty(course.getStudents())) {
+
+            final Course dbCourse = retrieveEntity(inputId, persistenceFacade::findCourseById,
+                    persistenceFacade::toEntity, () -> notFoundException);
+
+            if (!ObjectUtils.isEmpty(dbCourse.getStudents())) {
+                log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", inputId);
                 throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + inputId + " has enrolled students.");
             }
-            // cached course saved to context for further rollback (undo)
-            context.setUndoParameter(course);
+
+            // cached course is storing to context for further rollback (undo)
+            context.setUndoParameter(dbCourse);
             persistenceFacade.deleteCourse(inputId);
             context.setResult(true);
         } catch (Exception e) {
-            log.error("Cannot save the student {}", parameter, e);
+            rollbackCachedEntity(context, persistenceFacade::save);
+            log.error("Cannot save the course '{}'", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context);
         }
     }
 
     /**
-     * UNDO: To delete course by id<BR/>
+     * UNDO: To delete the course by id<BR/>
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
+     * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
     public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo course deletion using: {}", parameter.toString());
-            if (parameter instanceof Course course) {
-                final Optional<Course> restored = persistenceFacade.save(course);
-                log.debug("Got restored student {}", restored.orElse(null));
-            } else {
-                throw new NotExistCourseException("Wrong undo parameter :" + parameter);
-            }
+            final Course course = rollbackCachedEntity(context, persistenceFacade::save)
+                    .orElseThrow(() -> new NotExistCourseException("Wrong undo parameter :" + parameter));
+            log.debug("Updated in database: '{}'", course);
+
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);
