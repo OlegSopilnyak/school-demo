@@ -53,6 +53,7 @@ public abstract class FindProfileCommand<T, C extends PersonProfile> implements 
     }
 
     /**
+     * DO: To find profile (no matter type) by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution

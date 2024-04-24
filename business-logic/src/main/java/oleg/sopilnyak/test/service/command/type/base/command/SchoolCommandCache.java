@@ -9,10 +9,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 import static java.util.Objects.nonNull;
 
@@ -63,46 +60,46 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     /**
      * To restore in database the entity from cache(context)
      *
-     * @param context command execution context
-     * @param save    function for saving the undo entity
+     * @param context    command execution context
+     * @param facadeSave function for saving the undo entity
      * @return saved entity
      * @see Context
      * @see Function#apply(Object)
      * @see LongFunction#apply(long)
      * @see Supplier#get()
-     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
+     * @see this#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
      */
-    protected Optional<T> rollbackCachedEntity(Context<?> context, Function<T, Optional<T>> save) {
-        return rollbackCachedEntity(context, save, null, null);
+    protected Optional<T> rollbackCachedEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
+        return rollbackCachedEntity(context, facadeSave, null, null);
     }
 
     /**
      * To restore in database the entity from cache(context)
      *
-     * @param context command execution context
-     * @param save    function for saving the undo entity
-     * @param deleteById function for delete created entity
+     * @param context           command execution context
+     * @param facadeSave        function for saving the undo entity
+     * @param facadeDeleteById  function for delete created entity
      * @param exceptionSupplier the source of entity-not-found exception
      * @return restored in the database cached entity
      * @see Context#getUndoParameter()
      * @see Function#apply(Object)
      * @see LongFunction#apply(long)
      * @see Supplier#get()
-     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
+     * @see this#rollbackCachedEntity(Context, Function)
      */
-    protected Optional<T> rollbackCachedEntity(Context<?> context,
-                                               Function<T, Optional<T>> save,
-                                               LongFunction<Boolean> deleteById,
-                                               Supplier<? extends EntityNotExistException> exceptionSupplier) {
+    protected Optional<T> rollbackCachedEntity(final Context<?> context,
+                                               final Function<T, Optional<T>> facadeSave,
+                                               final LongConsumer facadeDeleteById,
+                                               final Supplier<? extends EntityNotExistException> exceptionSupplier) {
         final Object parameter = context.getUndoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().info("Restoring changed value of {}\n'{}'", entityName, parameter);
-            return save.apply((T) parameter);
-        } else if (nonNull(deleteById)) {
+            return facadeSave.apply((T) parameter);
+        } else if (nonNull(facadeDeleteById)) {
             getLog().info("Deleting created value of {} with ID:{}", entityName, parameter);
             if (parameter instanceof Long id) {
-                final boolean success = deleteById.apply(id);
-                getLog().info("Got deleted {} with ID:{} success: {}", entityName, id, success);
+                facadeDeleteById.accept(id);
+                getLog().info("Got deleted {} with ID:{} successfully", entityName, id);
             } else {
                 getLog().info("Cannot delete {} with ID:{} because '{}'", entityName, parameter, exceptionSupplier.get().getMessage());
                 throw exceptionSupplier.get();
@@ -117,21 +114,58 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param context command's do context
      * @return saved instance or empty
      * @see Optional#empty()
+     * @see NotExistStudentException
      */
-    protected Optional<T> persistRedoEntity(Context<?> context, Function<T, Optional<T>> save) {
+    protected Optional<T> persistRedoEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
         final Object parameter = context.getRedoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().info("Storing changed value of {} '{}'", entityName, parameter);
-            return save.apply((T) parameter);
+            return facadeSave.apply((T) parameter);
         } else {
             if (nonNull(parameter)) {
-                final String message = "Wrong type of student :" + parameter.getClass().getName();
-                final Exception saveError = new NotExistStudentException(message);
+                final String message = "Wrong type of " + entityName + ":" + parameter.getClass().getName();
+                final Exception saveError = new EntityNotExistException(message);
                 saveError.fillInStackTrace();
                 getLog().error(message, saveError);
                 context.failed(saveError);
             }
             return Optional.empty();
+        }
+    }
+
+    /**
+     * To do checking after persistence of the entity
+     *
+     * @param context         command's do context
+     * @param rollbackProcess process to run after persistence fail
+     * @param persisted       persisted entity instance
+     * @param isCreateEntity  if true there was new entity creation action
+     * @see Context
+     * @see Context#getRedoParameter()
+     * @see Context#setResult(Object)
+     * @see Context#setUndoParameter(Object)
+     * @see Optional
+     * @see Runnable#run()
+     */
+    protected void afterPersistCheck(final Context<?> context,
+                                     final Runnable rollbackProcess,
+                                     final Optional<T> persisted,
+                                     final boolean isCreateEntity) {
+        final Object input = context.getRedoParameter();
+        // checking execution context state
+        if (context.isFailed()) {
+            // there was a fail during store entity
+            getLog().error("Cannot save {} {}", entityName, input);
+            rollbackProcess.run();
+        } else {
+            // store entity operation is done successfully
+            getLog().info("Got stored {} {}\nfrom parameter {}", entityName, persisted, input);
+            context.setResult(persisted);
+
+            if (persisted.isPresent() && isCreateEntity) {
+                // storing created entity.id for undo operation
+                context.setUndoParameter(persisted.get().getId());
+            }
         }
     }
 }

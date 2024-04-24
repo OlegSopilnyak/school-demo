@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.FacultyCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,10 @@ import java.util.Optional;
 
 /**
  * Command-Implementation: command to get faculty by id
+ *
+ * @see Faculty
+ * @see FacultyCommand
+ * @see FacultyPersistenceFacade
  */
 @Slf4j
 @AllArgsConstructor
@@ -44,6 +49,34 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
             return CommandResult.<Optional<Faculty>>builder()
                     .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * DO: To find faculty by id<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see FacultyPersistenceFacade#findFacultyById(Long)
+     * @see Context
+     * @see Context#getRedoParameter()
+     * @see Context#setResult(Object)
+     * @see Context.State#WORK
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        final Object parameter = context.getRedoParameter();
+        try {
+            log.debug("Trying to find faculty by ID:{}", parameter);
+            final Long id = commandParameter(parameter);
+
+            final Optional<Faculty> entity = persistenceFacade.findFacultyById(id);
+
+            log.debug("Got faculty {} by ID:{}", entity, id);
+            context.setResult(entity);
+        } catch (Exception e) {
+            log.error("Cannot find the faculty by ID:{}", parameter, e);
+            context.failed(e);
         }
     }
 

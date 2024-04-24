@@ -19,7 +19,8 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
+public class CreateOrUpdateCourseCommand
+        extends SchoolCommandCache<Course>
         implements CourseCommand<Optional<Course>> {
     private final CoursesPersistenceFacade persistenceFacade;
 
@@ -63,6 +64,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to create or update course {}", parameter);
             final Long inputId = ((Course) parameter).getId();
             final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(inputId);
@@ -76,20 +78,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
             }
             final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);
             // checking execution context state
-            if (context.isFailed()) {
-                // there was a fail during store course
-                log.error("Cannot save course {}", parameter);
-                rollbackCachedEntity(context, persistenceFacade::save);
-            } else {
-                // store course operation is done successfully
-                log.debug("Got saved \ncourse {}\n for input {}", course, parameter);
-                context.setResult(course);
-
-                if (course.isPresent() && isCreateCourse) {
-                    // storing created course.id for undo operation
-                    context.setUndoParameter(course.get().getId());
-                }
-            }
+            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistenceFacade::save), course, isCreateCourse);
         } catch (Exception e) {
             rollbackCachedEntity(context, persistenceFacade::save);
             log.error("Cannot create or update course by ID:{}", parameter, e);

@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +19,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
-import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isInvalidId;
 
 /**
  * Persistence facade implementation for person-profile entities
@@ -66,7 +66,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
         final Long profileId = entity.getId();
         final PersonProfileEntity saved = getPersonProfileRepository().saveAndFlush(entity);
         final Long savedId = saved.getId();
-        if (isInvalidId(profileId) || Objects.equals(profileId, savedId)) {
+        if (PersistenceFacadeUtilities.isInvalidId(profileId) || Objects.equals(profileId, savedId)) {
             getLog().debug("Saved PersonProfile '{}'", saved);
             return Optional.of(saved);
         } else {
@@ -81,17 +81,15 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @return true if success
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default boolean deleteProfileById(Long id) {
+    default void deleteProfileById(Long id) {
         getLog().debug("Deleting PersonProfile with ID:{}", id);
         if (this.findProfileById(id).isPresent()) {
             getPersonProfileRepository().deleteById(id);
             getPersonProfileRepository().flush();
             getLog().debug("Deleted PersonProfile with ID:{}", id);
-            return true;
         } else {
             getLog().warn("PersonProfile with ID:{} is not exists.", id);
             throw new NotExistProfileException("PersonProfile with ID:" + id + " is not exists.");

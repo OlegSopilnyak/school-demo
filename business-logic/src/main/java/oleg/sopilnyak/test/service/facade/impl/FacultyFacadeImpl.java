@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -74,18 +74,18 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
      * To delete faculty from the school
      *
      * @param id system-id of the faculty to delete
-     * @throws FacultyNotExistsException  throws when faculty is not exists
+     * @throws NotExistFacultyException  throws when faculty is not exists
      * @throws FacultyIsNotEmptyException throws when faculty has courses
      */
     @Override
-    public void deleteFacultyById(Long id) throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    public void deleteFacultyById(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
         String commandId = FacultyCommand.DELETE;
         final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
         CommandResult<Boolean> cmdResult = command.execute(id);
         if (!cmdResult.isSuccess()) {
             final Exception executionException = cmdResult.getException();
             log.warn(SOMETHING_WENT_WRONG, executionException);
-            if (executionException instanceof FacultyNotExistsException exception) {
+            if (executionException instanceof NotExistFacultyException exception) {
                 throw exception;
             } else if (executionException instanceof FacultyIsNotEmptyException exception) {
                 throw exception;

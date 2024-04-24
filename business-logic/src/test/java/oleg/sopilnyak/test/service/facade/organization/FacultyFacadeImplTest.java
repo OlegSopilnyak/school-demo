@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -116,7 +116,7 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteFacultyById() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 402L;
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
@@ -129,10 +129,10 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldNoDeleteFacultyById_FacultyNotExists() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 403L;
 
-        FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
+        NotExistFacultyException thrown = assertThrows(NotExistFacultyException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
@@ -142,7 +142,7 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 404L;
         when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));

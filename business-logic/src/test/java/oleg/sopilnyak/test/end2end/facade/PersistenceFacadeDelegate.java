@@ -55,11 +55,10 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * Delete course by id
      *
      * @param courseId system-id of the course
-     * @return true if the course deletion successfully
      */
     @Override
-    public boolean deleteCourse(Long courseId) {
-        return delegator.deleteCourse(courseId);
+    public void deleteCourse(Long courseId) {
+        delegator.deleteCourse(courseId);
     }
 
     /**
@@ -101,15 +100,15 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     /**
      * Create or update authority person
      *
-     * @param authorityPerson authority person instance to store
+     * @param person authority person instance to store
      * @return authority person instance or empty(), if instance couldn't store
      * @see AuthorityPerson
      * @see Optional
      * @see Optional#empty()
      */
     @Override
-    public Optional<AuthorityPerson> save(AuthorityPerson authorityPerson) {
-        return delegator.save(authorityPerson);
+    public Optional<AuthorityPerson> save(AuthorityPerson person) {
+        return delegator.save(person);
     }
 
     /**
@@ -121,8 +120,8 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * @see AuthorityPerson
      */
     @Override
-    public void deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
-        delegator.deleteAuthorityPerson(id);
+    public boolean deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+        return delegator.deleteAuthorityPerson(id);
     }
 
     /**
@@ -179,13 +178,24 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete faculty by id
      *
      * @param id system-id of the faculty
-     * @throws FacultyNotExistsException  throws when you want to delete faculty which is not created before
+     * @throws NotExistFacultyException  throws when you want to delete faculty which is not created before
      * @throws FacultyIsNotEmptyException throws when you want to delete faculty which has courses
      * @see Faculty
      */
     @Override
-    public void deleteFaculty(Long id) throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    public void deleteFaculty(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
         delegator.deleteFaculty(id);
+    }
+
+    /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    @Override
+    public Faculty toEntity(Faculty type) {
+        return delegator.toEntity(type);
     }
 
     /**
@@ -388,11 +398,10 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @return true if success
      */
     @Override
-    public boolean deleteProfileById(Long id) {
-        return delegator.deleteProfileById(id);
+    public void deleteProfileById(Long id) {
+        delegator.deleteProfileById(id);
     }
 
     /**

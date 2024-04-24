@@ -62,9 +62,9 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
                         .exception(new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + id + " has enrolled students."))
                         .build();
             }
-            final boolean success = persistenceFacade.deleteCourse(id);
-            log.debug("Deleted course {} {}", course.get(), success);
-            return CommandResult.<Boolean>builder().success(true).result(Optional.of(success)).build();
+            persistenceFacade.deleteCourse(id);
+            log.debug("Deleted course {} successfully.", course.get());
+            return CommandResult.<Boolean>builder().success(true).result(Optional.of(true)).build();
         } catch (Exception e) {
             log.error("Cannot delete the course by ID:{}", parameter, e);
             return CommandResult.<Boolean>builder().success(false).result(Optional.empty()).exception(e).build();

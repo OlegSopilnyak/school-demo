@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -14,15 +15,19 @@ import java.util.Set;
 
 /**
  * Command-Implementation: command to get all authority persons of the school
+ *
+ * @see AuthorityPerson
+ * @see AuthorityPersonCommand
+ * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
 @AllArgsConstructor
 @Component
 public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
-    private final AuthorityPersonPersistenceFacade persistenceFacade;
+    private final AuthorityPersonPersistenceFacade persistence;
 
     /**
-     * To execute command's business-logic
+     * To get all authority persons of the school
      *
      * @param parameter not used
      * @return execution's result
@@ -33,7 +38,7 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
     public CommandResult<Set<AuthorityPerson>> execute(Object parameter) {
         try {
             log.debug("Trying to get all authority persons");
-            final Set<AuthorityPerson> staff = persistenceFacade.findAllAuthorityPersons();
+            final Set<AuthorityPerson> staff = persistence.findAllAuthorityPersons();
             log.debug("Got authority persons {}", staff);
             return CommandResult.<Set<AuthorityPerson>>builder()
                     .result(Optional.ofNullable(staff))
@@ -44,6 +49,30 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
             return CommandResult.<Set<AuthorityPerson>>builder()
                     .result(Optional.of(Set.of()))
                     .exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * DO: To get all authority persons of the school<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context.State#WORK
+     * @see AuthorityPersonPersistenceFacade#findAllAuthorityPersons()
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        try {
+            log.debug("Trying to get all authority persons");
+
+            final Set<AuthorityPerson> staff = persistence.findAllAuthorityPersons();
+
+            log.debug("Got authority persons {}", staff);
+            context.setResult(staff);
+        } catch (Exception e) {
+            log.error("Cannot find any authority person", e);
+            context.failed(e);
         }
     }
 

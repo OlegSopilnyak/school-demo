@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -15,6 +14,10 @@ import java.util.Optional;
 
 /**
  * Command-Implementation: command to get authority person by id
+ *
+ * @see AuthorityPerson
+ * @see AuthorityPersonCommand
+ * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
 @AllArgsConstructor
@@ -50,12 +53,13 @@ public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Option
     }
 
     /**
-     * To find course by id<BR/>
+     * DO: To find authority person by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see CoursesPersistenceFacade#findCourseById(Long)
+     * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see Context
+     * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
      * @see Context.State#WORK
      */
@@ -63,10 +67,10 @@ public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Option
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find course by ID:{}", parameter.toString());
-
+            log.debug("Trying to find authority person by ID:{}", parameter);
             final Long id = commandParameter(parameter);
-            Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
+
+            final Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
 
             log.debug("Got authority person {} by ID:{}", person, id);
             context.setResult(person);

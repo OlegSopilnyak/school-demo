@@ -36,9 +36,8 @@ public interface CoursesPersistenceFacade {
      * Delete course by id
      *
      * @param courseId system-id of the course
-     * @return true if the course deletion successfully
      */
-    boolean deleteCourse(Long courseId);
+    void deleteCourse(Long courseId);
 
     /**
      * Convert course to entity bean

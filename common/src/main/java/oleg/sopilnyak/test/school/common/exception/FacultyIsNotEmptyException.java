@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.school.common.exception;
 /**
  * Exception: throws when you want to delete faculty which has courses
  */
-public class FacultyIsNotEmptyException extends Exception{
+public class FacultyIsNotEmptyException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by

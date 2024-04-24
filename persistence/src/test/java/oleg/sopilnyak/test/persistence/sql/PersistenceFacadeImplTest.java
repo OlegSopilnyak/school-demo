@@ -357,7 +357,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteFaculty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldDeleteFaculty() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Faculty faculty = makeTestFaculty(null);
         Optional<Faculty> saved = facade.save(faculty);
         assertThat(saved).isNotEmpty();

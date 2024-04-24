@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -325,7 +324,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
         String requestPath = RequestMappingRoot.FACULTIES;
-        doThrow(new FacultyNotExistsException("Faculty '" + id + "' not exists."))
+        doThrow(new NotExistFacultyException("Faculty '" + id + "' not exists."))
                 .when(facade).deleteFaculty(any(FacultyDto.class));
         MvcResult result =
                 mockMvc.perform(

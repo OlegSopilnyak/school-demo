@@ -88,9 +88,8 @@ public interface ProfilePersistenceFacade {
      * To delete the profile by profile-id
      *
      * @param id the system-id of the profile
-     * @return true if success
      */
-    boolean deleteProfileById(Long id);
+    void deleteProfileById(Long id);
 
     /**
      * Convert profile to entity bean

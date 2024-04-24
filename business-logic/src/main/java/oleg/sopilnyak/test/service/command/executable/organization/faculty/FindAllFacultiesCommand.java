@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.FacultyCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -13,16 +14,20 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Command-Implementation: command to get all authority persons of the school
+ * Command-Implementation: command to get all faculties of the school
+ *
+ * @see Faculty
+ * @see FacultyCommand
+ * @see FacultyPersistenceFacade
  */
 @Slf4j
 @AllArgsConstructor
 @Component
 public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
-    private final FacultyPersistenceFacade persistenceFacade;
+    private final FacultyPersistenceFacade persistence;
 
     /**
-     * To execute command's business-logic
+     * To get all faculties of the school
      *
      * @param parameter not used
      * @return execution's result
@@ -33,7 +38,7 @@ public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
     public CommandResult<Set<Faculty>> execute(Object parameter) {
         try {
             log.debug("Trying to get all faculties");
-            final Set<Faculty> faculties = persistenceFacade.findAllFaculties();
+            final Set<Faculty> faculties = persistence.findAllFaculties();
             log.debug("Got faculties {}", faculties);
             return CommandResult.<Set<Faculty>>builder()
                     .result(Optional.ofNullable(faculties))
@@ -44,6 +49,30 @@ public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
             return CommandResult.<Set<Faculty>>builder()
                     .result(Optional.of(Set.of()))
                     .exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * DO: To get all faculties of the school<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context.State#WORK
+     * @see FacultyPersistenceFacade#findAllFaculties()
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        try {
+            log.debug("Trying to get all faculties");
+
+            final Set<Faculty> faculties = persistence.findAllFaculties();
+
+            log.debug("Got faculties {}", faculties);
+            context.setResult(faculties);
+        } catch (Exception e) {
+            log.error("Cannot find any faculty", e);
+            context.failed(e);
         }
     }
 

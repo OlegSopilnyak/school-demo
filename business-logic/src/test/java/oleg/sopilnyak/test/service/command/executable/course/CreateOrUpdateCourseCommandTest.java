@@ -125,7 +125,6 @@ class CreateOrUpdateCourseCommandTest {
         when(course.getId()).thenReturn(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
         when(persistenceFacade.save(course)).thenThrow(cannotExecute).thenReturn(Optional.of(course));
-//        doThrow(cannotExecute).when(persistenceFacade).save(course);
 
         Context<Optional<Course>> context = command.createContext(course);
 
@@ -145,7 +144,7 @@ class CreateOrUpdateCourseCommandTest {
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
         when(persistenceFacade.toEntity(course)).thenReturn(course);
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
-        doThrow(cannotExecute).when(persistenceFacade).save(course);
+        when(persistenceFacade.save(course)).thenThrow(cannotExecute).thenReturn(Optional.of(course));
 
         Context<Optional<Course>> context = command.createContext(course);
 
@@ -157,6 +156,6 @@ class CreateOrUpdateCourseCommandTest {
         verify(command).executeDo(context);
         verify(persistenceFacade).findCourseById(id);
         verify(persistenceFacade).toEntity(any(Course.class));
-        verify(persistenceFacade).save(course);
+        verify(persistenceFacade, times(2)).save(course);
     }
 }

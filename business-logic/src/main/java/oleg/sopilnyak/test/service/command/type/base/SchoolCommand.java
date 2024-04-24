@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.service.command.type.base;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 
+import static java.util.Objects.isNull;
+
 /**
  * Type: Command to execute the business-logic action
  */
@@ -36,6 +38,17 @@ public interface SchoolCommand<T> {
     @SuppressWarnings("unchecked")
     default <P> P commandParameter(Object parameter) {
         return (P) parameter;
+    }
+
+    /**
+     * To check nullable of the input parameter
+     *
+     * @param parameter value to check
+     */
+    default void check(Object parameter){
+        if (isNull(parameter)) {
+            throw new NullPointerException("Wrong input parameter value null");
+        }
     }
 
     /**

@@ -23,7 +23,7 @@ public class CommandContext<T> implements Context<T> {
     private Exception exception;
 
     @Setter(AccessLevel.NONE)
-    private State state;
+    private volatile State state;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)

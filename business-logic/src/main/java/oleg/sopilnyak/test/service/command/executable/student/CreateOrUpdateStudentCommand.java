@@ -75,6 +75,7 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to change student using: {}", parameter.toString());
             final Long inputId = ((Student) parameter).getId();
             final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(inputId);

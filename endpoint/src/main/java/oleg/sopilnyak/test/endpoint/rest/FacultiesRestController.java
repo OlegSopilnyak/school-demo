@@ -8,8 +8,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -94,7 +93,7 @@ public class FacultiesRestController {
             facade.deleteFaculty(facultyDto);
 
             return ResponseEntity.ok().build();
-        } catch (FacultyNotExistsException e) {
+        } catch (NotExistFacultyException e) {
             log.error("Wrong faculty {}", facultyDto);
             throw new ResourceNotFoundException("Wrong faculty " + facultyDto);
         } catch (Exception e) {
@@ -116,7 +115,7 @@ public class FacultiesRestController {
             facade.deleteFacultyById(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | FacultyNotExistsException e) {
+        } catch (NumberFormatException | NotExistFacultyException e) {
             log.error("Wrong faculty-id: '{}'", facultyId);
             throw new ResourceNotFoundException(WRONG_FACULTY_ID + facultyId + "'");
         } catch (Exception e) {

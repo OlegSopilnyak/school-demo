@@ -57,15 +57,13 @@ public interface CoursesPersistence extends CoursesPersistenceFacade {
      * Delete course by id
      *
      * @param id system-id of the course
-     * @return true if the course deletion successfully
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default boolean deleteCourse(Long id) {
+    default void deleteCourse(Long id) {
         getLog().debug("Deleting Course with ID:{}", id);
         getCourseRepository().deleteById(id);
         getCourseRepository().flush();
-        return true;
     }
 
     /**

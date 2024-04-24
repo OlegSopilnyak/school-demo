@@ -4,18 +4,14 @@ import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-
-import static oleg.sopilnyak.test.school.common.business.PersonProfileFacade.isInvalidId;
+import java.util.function.*;
 
 /**
  * Command-Implementation: command to delete person profile instance by id
@@ -74,6 +70,7 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
     }
 
     /**
+     * DO: To delete person's profile by id<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
@@ -81,8 +78,8 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
      * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#persistRedoEntity(Context, Function)
      * @see this#rollbackCachedEntity(Context, Function)
+     * @see ProfilePersistenceFacade#deleteProfileById(Long)
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -91,7 +88,7 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
             getLog().debug("Trying to delete person profile using: {}", parameter);
             final Long id = commandParameter(parameter);
             final var notFoundException = new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
-            if (isInvalidId(id)) {
+            if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
             // cached profile is storing to context for further rollback (undo)
@@ -109,14 +106,14 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
     }
 
     /**
+     * UNDO: To delete person's profile by id<BR/>
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
-     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
-     * @see ProfilePersistenceFacade#deleteProfileById(Long)
+     * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
     public void executeUndo(Context<?> context) {
@@ -124,8 +121,7 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
         try {
             getLog().debug("Trying to undo person profile deletion using: {}", parameter);
 
-            rollbackCachedEntity(context, functionSave(), persistence::deleteProfileById,
-                    () -> new NotExistProfileException("Wrong undo parameter :" + parameter));
+            rollbackCachedEntity(context, functionSave());
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

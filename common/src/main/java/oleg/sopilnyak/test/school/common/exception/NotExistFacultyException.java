@@ -6,7 +6,7 @@ package oleg.sopilnyak.test.school.common.exception;
  * @see EntityNotExistException
  * @see oleg.sopilnyak.test.school.common.model.Faculty
  */
-public class FacultyNotExistsException extends EntityNotExistException {
+public class NotExistFacultyException extends EntityNotExistException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -15,7 +15,7 @@ public class FacultyNotExistsException extends EntityNotExistException {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public FacultyNotExistsException(String message) {
+    public NotExistFacultyException(String message) {
         super(message);
     }
 }

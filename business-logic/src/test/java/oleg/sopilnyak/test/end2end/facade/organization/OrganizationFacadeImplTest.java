@@ -2,23 +2,11 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.facade.impl.OrganizationFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +17,8 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
@@ -69,7 +53,8 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new OrganizationFacadeImpl(factory));
     }
-//
+
+    //
 //    @Test
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
 //    void shouldNotFindAllAuthorityPersons() {
@@ -260,7 +245,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 //
 //    @Test
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    void shouldDeleteFacultyById() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Faculty cleanFaculty = makeCleanFaculty(0);
 //        if (cleanFaculty instanceof FakeFaculty f) {
 //            f.setCourses(List.of());
@@ -279,10 +264,10 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 //
 //    @Test
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldNoDeleteFacultyById_FacultyNotExists() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Long id = 403L;
 //
-//        FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
+//        NotExistFacultyException thrown = assertThrows(NotExistFacultyException.class, () -> facade.deleteFacultyById(id));
 //
 //        assertEquals("Faculty with ID:403 is not exists.", thrown.getMessage());
 //        verify(factory).command(ORGANIZATION_FACULTY_DELETE);
@@ -293,7 +278,7 @@ class OrganizationFacadeImplTest extends MysqlTestModelFactory {
 //
 //    @Test
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Faculty cleanFaculty = makeCleanFaculty(0);
 //        Long id = getPersistent(cleanFaculty).getId();
 //        assertThat(database.findFacultyById(id)).isPresent();

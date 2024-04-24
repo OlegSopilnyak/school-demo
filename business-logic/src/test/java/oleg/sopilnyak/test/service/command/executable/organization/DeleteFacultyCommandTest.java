@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization;
 
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.FacultyNotExistsException;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -31,7 +31,7 @@ class DeleteFacultyCommandTest {
     Faculty instance;
 
     @Test
-    void shouldExecuteCommand() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldExecuteCommand() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 410L;
         when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(instance));
 
@@ -45,7 +45,7 @@ class DeleteFacultyCommandTest {
     }
 
     @Test
-    void shouldNotExecuteCommand() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+    void shouldNotExecuteCommand() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 411L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
         doThrow(cannotExecute).when(persistenceFacade).deleteFaculty(id);
@@ -69,7 +69,7 @@ class DeleteFacultyCommandTest {
         verify(persistenceFacade).findFacultyById(id);
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResult()).isEmpty();
-        assertThat(result.getException()).isInstanceOf(FacultyNotExistsException.class);
+        assertThat(result.getException()).isInstanceOf(NotExistFacultyException.class);
     }
 
     @Test

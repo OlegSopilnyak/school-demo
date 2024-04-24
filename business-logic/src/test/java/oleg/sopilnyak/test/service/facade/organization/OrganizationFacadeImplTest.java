@@ -1,21 +1,11 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.facade.impl.OrganizationFacadeImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,12 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class OrganizationFacadeImplTest {
@@ -57,7 +42,8 @@ class OrganizationFacadeImplTest {
     @Spy
     @InjectMocks
     OrganizationFacadeImpl facade;
-//
+
+    //
 //    @Test
 //    void shouldFindAllAuthorityPersons() {
 //
@@ -246,7 +232,7 @@ class OrganizationFacadeImplTest {
 //    }
 //
 //    @Test
-//    void shouldDeleteFacultyById() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Long id = 402L;
 //        when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 //
@@ -259,10 +245,10 @@ class OrganizationFacadeImplTest {
 //    }
 //
 //    @Test
-//    void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldNoDeleteFacultyById_FacultyNotExists() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Long id = 403L;
 //
-//        FacultyNotExistsException thrown = assertThrows(FacultyNotExistsException.class, () -> facade.deleteFacultyById(id));
+//        NotExistFacultyException thrown = assertThrows(NotExistFacultyException.class, () -> facade.deleteFacultyById(id));
 //
 //        assertEquals("Faculty with ID:403 is not exists.", thrown.getMessage());
 //        verify(factory).command(ORGANIZATION_FACULTY_DELETE);
@@ -272,7 +258,7 @@ class OrganizationFacadeImplTest {
 //    }
 //
 //    @Test
-//    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotExistsException, FacultyIsNotEmptyException {
+//    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws NotExistFacultyException, FacultyIsNotEmptyException {
 //        Long id = 404L;
 //        when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
 //        when(persistenceFacade.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));

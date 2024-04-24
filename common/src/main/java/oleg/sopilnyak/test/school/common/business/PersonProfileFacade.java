@@ -2,10 +2,9 @@ package oleg.sopilnyak.test.school.common.business;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 
 import java.util.Optional;
-
-import static java.util.Objects.isNull;
 
 /**
  * Service-BaseFacade: Service for manage person profiles in the school
@@ -50,17 +49,9 @@ public interface PersonProfileFacade {
      * @see PersonProfile
      */
     default void delete(PersonProfile profile) throws NotExistProfileException {
-        if (isInvalid(profile)) {
+        if (PersistenceFacadeUtilities.isInvalid(profile)) {
             throw new NotExistProfileException("Wrong " + profile + " to delete");
         }
         deleteById(profile.getId());
-    }
-
-    static boolean isInvalid(final PersonProfile instance) {
-        return isNull(instance) || isInvalidId(instance.getId());
-    }
-
-    static boolean isInvalidId(final Long instanceId) {
-        return isNull(instanceId) || instanceId <= 0L;
     }
 }

@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.school.common.exception;
 /**
  * Exception: throws when you want to delete authority person who is the dean of a faculty now
  */
-public class AuthorityPersonManageFacultyException  extends Exception {
+public class AuthorityPersonManageFacultyException  extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by

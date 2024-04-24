@@ -35,13 +35,13 @@ public interface AuthorityPersonPersistenceFacade {
     /**
      * Create or update authority person
      *
-     * @param authorityPerson authority person instance to store
+     * @param person authority person instance to store
      * @return authority person instance or empty(), if instance couldn't store
      * @see AuthorityPerson
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<AuthorityPerson> save(AuthorityPerson authorityPerson);
+    Optional<AuthorityPerson> save(AuthorityPerson person);
 
     /**
      * To delete authority person by id
@@ -49,9 +49,10 @@ public interface AuthorityPersonPersistenceFacade {
      * @param id system-id of the authority person
      * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
      * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
+     * @return true if success
      * @see AuthorityPerson
      */
-    void deleteAuthorityPerson(Long id) throws
+    boolean deleteAuthorityPerson(Long id) throws
             AuthorityPersonManageFacultyException,
             NotExistAuthorityPersonException;
 
