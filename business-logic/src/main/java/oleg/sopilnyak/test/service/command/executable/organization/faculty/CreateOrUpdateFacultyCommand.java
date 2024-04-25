@@ -71,9 +71,9 @@ public class CreateOrUpdateFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#persistRedoEntity(Context, Function)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#persistRedoEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see FacultyPersistenceFacade#toEntity(Faculty)
      * @see FacultyPersistenceFacade#save(Faculty)
@@ -114,7 +114,7 @@ public class CreateOrUpdateFacultyCommand
      * @see Context
      * @see Context.State#UNDONE
      * @see Context#getUndoParameter()
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#save(Faculty)
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
      * @see NotExistFacultyException

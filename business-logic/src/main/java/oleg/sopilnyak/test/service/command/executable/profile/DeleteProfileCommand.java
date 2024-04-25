@@ -15,6 +15,11 @@ import java.util.function.*;
 
 /**
  * Command-Implementation: command to delete person profile instance by id
+ *
+ * @see PersonProfile
+ * @see ProfileCommand
+ * @see ProfilePersistenceFacade
+ * @see SchoolCommandCache
  */
 @Getter
 public abstract class DeleteProfileCommand<T, C extends PersonProfile>
@@ -77,9 +82,13 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see ProfilePersistenceFacade#deleteProfileById(Long)
+     * @see this#functionFindById()
+     * @see this#functionCopyEntity()
+     * @see this#functionSave()
+     * @see NotExistProfileException
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -113,7 +122,8 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
      * @see Context
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see this#functionSave()
      */
     @Override
     public void executeUndo(Context<?> context) {

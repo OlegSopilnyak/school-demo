@@ -57,11 +57,11 @@ public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Option
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
      * @see Context.State#WORK
+     * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      */
     @Override
     public void executeDo(Context<?> context) {

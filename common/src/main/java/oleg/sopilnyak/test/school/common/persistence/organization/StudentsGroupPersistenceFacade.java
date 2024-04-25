@@ -47,11 +47,19 @@ public interface StudentsGroupPersistenceFacade {
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws NotExistStudentsGroupException   throws when you want to delete students group which is not created before
+     * @throws NotExistStudentsGroupException    throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     void deleteStudentsGroup(Long id) throws
             NotExistStudentsGroupException,
             StudentGroupWithStudentsException;
+
+    /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    StudentsGroup toEntity(StudentsGroup type);
 }

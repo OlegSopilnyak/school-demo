@@ -251,6 +251,17 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    @Override
+    public StudentsGroup toEntity(StudentsGroup type) {
+        return delegator.toEntity(type);
+    }
+
+    /**
      * To find enrolled students by course-id
      *
      * @param courseId system-id of the course

@@ -57,11 +57,11 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
      * @see Context.State#WORK
+     * @see FacultyPersistenceFacade#findFacultyById(Long)
      */
     @Override
     public void executeDo(Context<?> context) {

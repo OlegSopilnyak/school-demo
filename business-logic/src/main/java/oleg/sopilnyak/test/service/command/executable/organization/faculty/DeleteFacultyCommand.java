@@ -82,8 +82,8 @@ public class DeleteFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see FacultyPersistenceFacade#toEntity(Faculty)
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
@@ -120,7 +120,7 @@ public class DeleteFacultyCommand
      * @see Context
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#save(Faculty)
      */
     @Override

@@ -12,6 +12,10 @@ import java.util.function.LongFunction;
 
 /**
  * Command-Implementation: command to get profile by id
+ *
+ * @see PersonProfile
+ * @see ProfileCommand
+ * @see ProfilePersistenceFacade
  */
 @Getter
 public abstract class FindProfileCommand<T, C extends PersonProfile> implements ProfileCommand<T> {
@@ -41,7 +45,7 @@ public abstract class FindProfileCommand<T, C extends PersonProfile> implements 
             final Optional<C> profile = functionFindById().apply(id);
             getLog().debug("Got profile {} by ID:{}", profile, id);
             return CommandResult.<T>builder()
-                    .result(Optional.ofNullable((T)profile))
+                    .result(Optional.ofNullable((T) profile))
                     .success(true)
                     .build();
         } catch (Exception e) {

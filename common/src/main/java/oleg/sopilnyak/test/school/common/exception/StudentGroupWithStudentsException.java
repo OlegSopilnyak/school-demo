@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.school.common.exception;
 /**
  * Exception: throws when you want to delete students group with students
  */
-public class StudentGroupWithStudentsException extends Exception {
+public class StudentGroupWithStudentsException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by

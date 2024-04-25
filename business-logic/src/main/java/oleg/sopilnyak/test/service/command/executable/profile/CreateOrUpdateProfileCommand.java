@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -19,6 +18,11 @@ import java.util.function.UnaryOperator;
 
 /**
  * Command-Base-Implementation: command to update person profile instance
+ *
+ * @see PersonProfile
+ * @see ProfileCommand
+ * @see ProfilePersistenceFacade
+ * @see SchoolCommandCache
  */
 public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
         extends SchoolCommandCache<C>
@@ -43,7 +47,7 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
      * @param parameter system principal-profile instance
      * @return execution's result
      * @see Optional
-     * @see PrincipalProfile
+     * @see PersonProfile
      * @deprecated commands are going to work through redo/undo
      */
     @Deprecated(forRemoval = true)
@@ -74,16 +78,20 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#persistRedoEntity(Context, Function)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#persistRedoEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see this#functionFindById()
+     * @see this#functionCopyEntity()
+     * @see this#functionSave()
+     * @see NotExistProfileException
      */
     @Override
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
-            getLog().debug("Trying to change person profile using: {}", parameter);
+            getLog().debug("Trying to change profile using: {}", parameter);
             final Long inputId = ((C) parameter).getId();
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
@@ -112,8 +120,9 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
      * @see Context
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see ProfilePersistenceFacade#deleteProfileById(Long)
+     * @see this#functionSave()
      */
     @Override
     public void executeUndo(Context<?> context) {

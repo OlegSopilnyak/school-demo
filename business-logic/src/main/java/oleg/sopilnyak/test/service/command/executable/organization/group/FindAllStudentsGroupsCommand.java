@@ -2,11 +2,11 @@ package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -14,16 +14,20 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Command-Implementation: command to get all authority persons of the school
+ * Command-Implementation: command to get all students groups of the school
+ *
+ * @see StudentsGroup
+ * @see StudentsGroupCommand
+ * @see StudentsGroupPersistenceFacade
  */
 @Slf4j
 @AllArgsConstructor
 @Component
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
-    private final StudentsGroupPersistenceFacade persistenceFacade;
+    private final StudentsGroupPersistenceFacade persistence;
 
     /**
-     * To execute command's business-logic
+     * To get all students groups of the school
      *
      * @param parameter not used
      * @return execution's result
@@ -34,7 +38,7 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
     public CommandResult<Set<StudentsGroup>> execute(Object parameter) {
         try {
             log.debug("Trying to get all students groups");
-            final Set<StudentsGroup> groups = persistenceFacade.findAllStudentsGroups();
+            final Set<StudentsGroup> groups = persistence.findAllStudentsGroups();
             log.debug("Got students groups {}", groups);
             return CommandResult.<Set<StudentsGroup>>builder()
                     .result(Optional.ofNullable(groups))
@@ -44,6 +48,30 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
             log.error("Cannot find any students group", e);
             return CommandResult.<Set<StudentsGroup>>builder()
                     .result(Optional.of(Set.of())).exception(e).success(false).build();
+        }
+    }
+
+    /**
+     * DO: To get all students groups of the school<BR/>
+     * To execute command redo with correct context state
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context.State#WORK
+     * @see StudentsGroupPersistenceFacade#findAllStudentsGroups()
+     */
+    @Override
+    public void executeDo(Context<?> context) {
+        try {
+            log.debug("Trying to get all students groups");
+
+            final Set<StudentsGroup> groups = persistence.findAllStudentsGroups();
+
+            log.debug("Got students groups {}", groups);
+            context.setResult(groups);
+        } catch (Exception e) {
+            log.error("Cannot find any students groups", e);
+            context.failed(e);
         }
     }
 

@@ -159,7 +159,7 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
      * To delete faculty by id
      *
      * @param id system-id of the faculty
-     * @throws NotExistFacultyException  throws when you want to delete faculty which is not created before
+     * @throws NotExistFacultyException   throws when you want to delete faculty which is not created before
      * @throws FacultyIsNotEmptyException throws when you want to delete faculty which has courses
      * @see Faculty
      */
@@ -268,7 +268,18 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
      * @return entity instance
      */
     @Override
-    default Faculty toEntity(Faculty type){
+    default Faculty toEntity(Faculty type) {
+        return getMapper().toEntity(type);
+    }
+
+    /**
+     * To transform model type to the entity
+     *
+     * @param type source instance
+     * @return entity instance
+     */
+    @Override
+    default StudentsGroup toEntity(StudentsGroup type) {
         return getMapper().toEntity(type);
     }
 

@@ -13,9 +13,18 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to create or update the course
+ *
+ * @see Course
+ * @see CourseCommand
+ * @see CoursesPersistenceFacade
+ * @see SchoolCommandCache
  */
 @Slf4j
 @Component
@@ -59,6 +68,13 @@ public class CreateOrUpdateCourseCommand
      * @param context context of redo execution
      * @see Context
      * @see Context.State#WORK
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#persistRedoEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see CoursesPersistenceFacade#findCourseById(Long)
+     * @see CoursesPersistenceFacade#toEntity(Course)
+     * @see CoursesPersistenceFacade#save(Course)
+     * @see NotExistCourseException
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -93,6 +109,9 @@ public class CreateOrUpdateCourseCommand
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
+     * @see CoursesPersistenceFacade#save(Course)
+     * @see CoursesPersistenceFacade#deleteCourse(Long)
+     * @see NotExistCourseException
      */
     @Override
     public void executeUndo(Context<?> context) {
