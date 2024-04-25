@@ -51,6 +51,7 @@ class FindProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void allPartsShouldBeInitiated() {
         assertThat(command).isNotNull();
         assertThat(persistenceFacade).isNotNull();

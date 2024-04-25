@@ -102,8 +102,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
                 throw notFoundException;
             }
 
-            final Student dbStudent = retrieveEntity(inputId,
-                    persistence::findStudentById, persistence::toEntity,
+            final Student dbStudent = retrieveEntity(inputId, persistence::findStudentById, persistence::toEntity,
                     () -> notFoundException);
 
             if (!ObjectUtils.isEmpty(dbStudent.getCourses())) {
