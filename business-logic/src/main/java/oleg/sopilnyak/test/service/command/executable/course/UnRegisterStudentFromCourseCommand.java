@@ -108,13 +108,13 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
 
             log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
 
-            final Object[] forUndo = new Object[]{
-                    persistenceFacade.toEntity(existingStudent),
-                    persistenceFacade.toEntity(existingCourse)
-            };
+            final StudentToCourseLink undoLink = StudentToCourseLink.builder()
+                    .student(persistenceFacade.toEntity(existingStudent))
+                    .course(persistenceFacade.toEntity(existingCourse))
+                    .build();
             final boolean unLinked = persistenceFacade.unLink(existingStudent, existingCourse);
             if (unLinked) {
-                context.setUndoParameter(forUndo);
+                context.setUndoParameter(undoLink);
                 context.setResult(true);
             } else {
                 context.setResult(false);
@@ -146,8 +146,8 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
             try {
                 log.debug("Trying to undo student to course un-linking using: {}", parameter);
 
-                final Object[] forUndo = commandParameter(parameter);
-                final boolean success = persistenceFacade.link((Student) forUndo[0], (Course) forUndo[1]);
+                final StudentToCourseLink undoLink = commandParameter(parameter);
+                final boolean success = persistenceFacade.link(undoLink.getStudent(), undoLink.getCourse());
                 context.setState(Context.State.UNDONE);
 
                 log.debug("Undone student to course linking {}", success);

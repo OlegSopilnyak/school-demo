@@ -103,7 +103,7 @@ class UnRegisterStudentFromCourseCommandTest {
     }
 
     @Test
-    void shouldDoCommand() {
+    void shouldDoCommand_Linked() {
         Long id = 130L;
         when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistenceFacade.toEntity(student)).thenReturn(student);
@@ -123,7 +123,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistenceFacade).toEntity(student);
         verify(persistenceFacade).findCourseById(id);
         verify(persistenceFacade).toEntity(course);
-        assertThat(context.getUndoParameter()).isEqualTo(new Object[]{student, course});
+        assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
 
         verify(persistenceFacade).unLink(student, course);
     }
@@ -184,7 +184,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
     @Test
     void shouldUndoCommand_LinkedParameter() {
-        final Object[] forUndo = new Object[]{student, course};
+        final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(forUndo);
@@ -222,11 +222,12 @@ class UnRegisterStudentFromCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
+        final var forUndo = new StudentToCourseLink(student, course);
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
         doThrow(cannotExecute).when(persistenceFacade).link(student, course);
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
-        context.setUndoParameter(new Object[]{student, course});
+        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 

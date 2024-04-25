@@ -123,7 +123,7 @@ class DeleteCourseCommandTest {
     }
 
     @Test
-    void shouldDoCommand_CourseNotFound() {
+    void shouldNotDoCommand_CourseNotFound() {
         Long id = 102L;
         Context<Boolean> context = command.createContext(id);
 
@@ -159,7 +159,7 @@ class DeleteCourseCommandTest {
     }
 
     @Test
-    void shouldExecuteUndoCommand() {
+    void shouldUndoCommand_CourseFound() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter(course);
@@ -169,13 +169,12 @@ class DeleteCourseCommandTest {
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
-
         verify(command).executeUndo(context);
         verify(persistenceFacade).save(course);
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_WrongParameterType() {
+    void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter("course");
@@ -184,13 +183,12 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
-
         verify(command).executeUndo(context);
         verify(persistenceFacade, never()).save(course);
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_NullParameter() {
+    void shouldNotUndoCommand_NullParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
 
@@ -198,13 +196,12 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-
         verify(command).executeUndo(context);
         verify(persistenceFacade, never()).save(course);
     }
 
     @Test
-    void shouldNotExecuteUndoCommand_ExceptionThrown() {
+    void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
         RuntimeException cannotExecute = new RuntimeException("Cannot restore");
         doThrow(cannotExecute).when(persistenceFacade).save(course);

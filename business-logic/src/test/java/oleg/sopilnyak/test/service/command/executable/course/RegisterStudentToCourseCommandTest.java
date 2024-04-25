@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
-import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,7 +182,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(new Object[]{student, course});
+        assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
         assertThat(context.getResult()).isPresent();
         Boolean result = (Boolean) context.getResult().orElseThrow();
         assertThat(result).isTrue();
@@ -310,7 +310,7 @@ class RegisterStudentToCourseCommandTest {
 
     @Test
     void shouldUndoCommand_Linked() {
-        final Object[] forUndo = new Object[]{student, course};
+        final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(forUndo);
@@ -350,7 +350,7 @@ class RegisterStudentToCourseCommandTest {
     void shouldNotUndoCommand_ExceptionThrown() {
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
         doThrow(cannotExecute).when(persistenceFacade).unLink(student, course);
-        final Object[] forUndo = new Object[]{student, course};
+        final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(forUndo);

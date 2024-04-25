@@ -29,11 +29,6 @@ class CreateOrUpdateStudentCommandTest {
     @InjectMocks
     CreateOrUpdateStudentCommand command;
 
-//    @BeforeEach
-//    void setUp() {
-//        doCallRealMethod().when(persistenceFacade).isInvalidId(anyLong());
-//    }
-
     @Test
     @Disabled
     void shouldExecuteCommand() {

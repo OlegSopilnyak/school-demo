@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.configurations.CourseCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RegisterCourseCommandConfigurationTest<T> {
     final String REGISTER_COMMAND_ID = "course.register";
     @MockBean
-    PersistenceFacade persistenceFacade;
+    StudentCourseLinkPersistenceFacade persistenceFacade;
 
     @Autowired(required = false)
     CommandsFactory<T> factory;
@@ -38,9 +38,7 @@ class RegisterCourseCommandConfigurationTest<T> {
         SchoolCommand<?> command = factory.command(REGISTER_COMMAND_ID);
         assertThat(command).isNotNull();
         if (command instanceof RegisterStudentToCourseCommand registerCommand) {
-            assertThat(registerCommand.getMaximumRooms()).isNotZero();
             assertThat(registerCommand.getMaximumRooms()).isEqualTo(maximumRooms);
-            assertThat(registerCommand.getCoursesExceed()).isNotZero();
             assertThat(registerCommand.getCoursesExceed()).isEqualTo(coursesExceed);
         } else {
             Assertions.fail("Factory command has wrong type :" + command);

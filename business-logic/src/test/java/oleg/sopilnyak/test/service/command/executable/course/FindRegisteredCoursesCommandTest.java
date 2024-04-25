@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Disabled;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class FindRegisteredCoursesCommandTest {
     @Mock
-    PersistenceFacade persistenceFacade;
+    RegisterPersistenceFacade persistenceFacade;
     @Mock
     Course course;
     @Spy
@@ -125,7 +125,7 @@ class FindRegisteredCoursesCommandTest {
     }
 
     @Test
-    void shouldExecuteCommandUndoCommand() {
+    void shouldUndoCommand() {
         Context<Set<Course>> context = command.createContext();
         context.setState(DONE);
 
