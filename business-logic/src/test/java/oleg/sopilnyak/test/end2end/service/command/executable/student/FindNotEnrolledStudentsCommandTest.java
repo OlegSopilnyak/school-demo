@@ -102,7 +102,7 @@ class FindNotEnrolledStudentsCommandTest extends MysqlTestModelFactory {
         Student student = persistStudent();
         Course course = persistCourse();
         persistence.link(student, course);
-        assertThat(student.getCourses()).contains(course);
+        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).contains(course);
         reset(persistence, studentRepository);
         Context<Set<Student>> context = command.createContext(null);
 
@@ -150,22 +150,28 @@ class FindNotEnrolledStudentsCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Student persistStudent() {
-        Student student = makeStudent(0);
-        Student entity = persistence.save(student).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(studentRepository.findById(id)).isNotEmpty();
-        reset(persistence, studentRepository);
-        return entity;
+        try {
+            Student student = makeStudent(0);
+            Student entity = persistence.save(student).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(studentRepository.findById(id)).isNotEmpty();
+            return persistence.toEntity(entity);
+        } finally {
+            reset(persistence, studentRepository);
+        }
     }
 
     private Course persistCourse() {
-        Course course = makeCourse(0);
-        Course entity = persistence.save(course).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(courseRepository.findById(id)).isNotEmpty();
-        reset(persistence, courseRepository);
-        return entity;
+        try {
+            Course course = makeCourse(0);
+            Course entity = persistence.save(course).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(courseRepository.findById(id)).isNotEmpty();
+            return persistence.toEntity(entity);
+        } finally {
+            reset(persistence, studentRepository);
+        }
     }
 }

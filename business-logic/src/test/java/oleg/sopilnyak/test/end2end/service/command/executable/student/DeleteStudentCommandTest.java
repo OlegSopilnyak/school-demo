@@ -15,7 +15,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -40,21 +39,20 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     StudentCourseLinkPersistenceFacade persistence;
     @SpyBean
     @Autowired
-    StudentRepository repository;
+    StudentRepository studentRepository;
     @SpyBean
     @Autowired
     CourseRepository courseRepository;
     @SpyBean
     @Autowired
     DeleteStudentCommand command;
-    @Mock
-    Student instance;
 
     @AfterEach
     void tearDown() {
         reset(command);
         reset(persistence);
-        reset(repository);
+        reset(studentRepository);
+        reset(courseRepository);
     }
 
     @Test
@@ -62,13 +60,14 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
-        assertThat(repository).isNotNull();
+        assertThat(courseRepository).isNotNull();
+        assertThat(studentRepository).isNotNull();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentFound() {
-        Long id = persist().getId();
+        Long id = persistStudent().getId();
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -81,16 +80,16 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         verify(persistence).findStudentById(id);
         verify(persistence).toEntity(any(Student.class));
         verify(persistence).deleteStudent(id);
-        verify(repository).findById(id);
-        verify(repository).deleteById(id);
-        verify(repository).flush();
-        assertThat(repository.findById(id)).isEmpty();
+        verify(studentRepository).findById(id);
+        verify(studentRepository).deleteById(id);
+        verify(studentRepository).flush();
+        assertThat(studentRepository.findById(id)).isEmpty();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() {
-        Long id = persist().getId();
+        Long id = persistStudent().getId();
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).deleteStudent(id);
         Context<Boolean> context = command.createContext(id);
@@ -103,10 +102,10 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         verify(persistence).findStudentById(id);
         verify(persistence).toEntity(any(Student.class));
         verify(persistence).deleteStudent(id);
-        verify(repository).findById(id);
-        verify(repository, never()).deleteById(anyLong());
-        verify(repository, never()).flush();
-        assertThat(repository.findById(id)).isNotEmpty();
+        verify(studentRepository).findById(id);
+        verify(studentRepository, never()).deleteById(anyLong());
+        verify(studentRepository, never()).flush();
+        assertThat(studentRepository.findById(id)).isNotEmpty();
     }
 
     @Test
@@ -122,7 +121,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:112 is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(repository).findById(id);
+        verify(studentRepository).findById(id);
         verify(persistence, never()).toEntity(any(Student.class));
         verify(persistence, never()).deleteStudent(id);
     }
@@ -130,11 +129,11 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_StudentHasCourse() {
-        Student student = persist();
+        Student student = persistStudent();
         Course course = persistCourse();
         persistence.link(student, course);
-        assertThat(student.getCourses()).contains(course);
-        reset(persistence, repository);
+        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).contains(course);
+        reset(persistence, studentRepository);
         Long id = student.getId();
         Context<Boolean> context = command.createContext(id);
 
@@ -147,29 +146,29 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         verify(persistence).findStudentById(id);
         verify(persistence).toEntity(any(Student.class));
         verify(persistence, never()).deleteStudent(id);
-        verify(repository).findById(id);
-        assertThat(repository.findById(id)).isNotEmpty();
+        verify(studentRepository).findById(id);
+        assertThat(studentRepository.findById(id)).isNotEmpty();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_RestoreStudent() {
-        Student student = persist();
+        Student student = persistStudent();
         Long id = student.getId();
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter(persistence.toEntity(student));
-        repository.deleteById(id);
-        assertThat(repository.findAll()).isEmpty();
+        studentRepository.deleteById(id);
+        assertThat(studentRepository.findAll()).isEmpty();
 
         command.undoCommand(context);
 
-        assertThat(repository.findAll()).isNotEmpty();
+        assertThat(studentRepository.findAll()).isNotEmpty();
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
         verify(persistence).save(student);
-        verify(repository).saveAndFlush((StudentEntity) student);
+        verify(studentRepository).saveAndFlush((StudentEntity) student);
     }
 
     @Test
@@ -185,7 +184,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(instance);
+        verify(persistence, never()).save(any(Student.class));
     }
 
     @Test
@@ -200,27 +199,33 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Cannot invoke \"Object.toString()\" because \"parameter\" is null");
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(instance);
+        verify(persistence, never()).save(any(Student.class));
     }
 
     // private methods
-    private Student persist() {
-        Student student = makeStudent(0);
-        Student entity = persistence.save(student).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(repository.findById(id)).isNotEmpty();
-        reset(persistence, repository);
-        return entity;
+    private Student persistStudent() {
+        try {
+            Student student = makeStudent(0);
+            Student entity = persistence.save(student).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(studentRepository.findById(id)).isNotEmpty();
+            return persistence.toEntity(entity);
+        } finally {
+            reset(persistence, studentRepository);
+        }
     }
 
     private Course persistCourse() {
-        Course course = makeCourse(0);
-        Course entity = persistence.save(course).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(courseRepository.findById(id)).isNotEmpty();
-        reset(persistence, courseRepository);
-        return entity;
+        try {
+            Course course = makeCourse(0);
+            Course entity = persistence.save(course).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(courseRepository.findById(id)).isNotEmpty();
+            return persistence.toEntity(entity);
+        } finally {
+            reset(persistence, studentRepository);
+        }
     }
 }

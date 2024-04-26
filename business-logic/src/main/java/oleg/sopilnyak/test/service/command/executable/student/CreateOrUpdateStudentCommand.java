@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 
 /**
@@ -27,7 +28,8 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
+public class CreateOrUpdateStudentCommand
+        extends SchoolCommandCache<Student>
         implements StudentCommand<Optional<Student>> {
     private final StudentsPersistenceFacade persistence;
 
@@ -70,6 +72,13 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
      * @param context context of redo execution
      * @see Context
      * @see Context.State#WORK
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#persistRedoEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see StudentsPersistenceFacade#findStudentById(Long)
+     * @see StudentsPersistenceFacade#toEntity(Student)
+     * @see StudentsPersistenceFacade#save(Student)
+     * @see NotExistStudentException
      */
     @Override
     public void executeDo(Context<?> context) {
@@ -89,24 +98,11 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
             }
             final Optional<Student> student = persistRedoEntity(context, persistence::save);
             // checking execution context state
-            if (context.isFailed()) {
-                // there was a fail during save student
-                log.error("Cannot save student '{}'", parameter);
-                rollbackCachedEntity(context, persistence::save);
-            } else {
-                // store student operation is done successfully
-                log.debug("Got saved \nstudent {}\n for input {}", student, parameter);
-                context.setResult(student);
-
-                if (student.isPresent() && isCreateStudent) {
-                    // storing created student.id for undo operation
-                    context.setUndoParameter(student.get().getId());
-                }
-            }
+            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), student, isCreateStudent);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 
@@ -117,7 +113,10 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see StudentsPersistenceFacade#save(Student)
+     * @see StudentsPersistenceFacade#deleteStudent(Long)
+     * @see NotExistStudentException
      */
     @Override
     public void executeUndo(Context<?> context) {

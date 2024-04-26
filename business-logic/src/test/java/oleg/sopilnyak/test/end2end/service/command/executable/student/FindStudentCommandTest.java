@@ -125,12 +125,15 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Student persist() {
-        Student student = makeStudent(0);
-        Student entity = persistence.save(student).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(repository.findById(id)).isNotEmpty();
-        reset(persistence, repository);
-        return entity;
+        try {
+            Student student = makeStudent(0);
+            Student entity = persistence.save(student).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(repository.findById(id)).isNotEmpty();
+            return persistence.toEntity(entity);
+        } finally {
+            reset(persistence, repository);
+        }
     }
 }

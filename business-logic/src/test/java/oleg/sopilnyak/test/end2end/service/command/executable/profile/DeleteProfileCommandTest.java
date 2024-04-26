@@ -4,9 +4,9 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
@@ -198,12 +198,16 @@ class DeleteProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private StudentProfile persistStudentProfile() {
-        StudentProfile student = makeStudentProfile(null);
-        StudentProfile entity = persistenceFacade.save(student).orElse(null);
-        assertThat(entity).isNotNull();
-        long id = entity.getId();
-        assertThat(personProfileRepository.findById(id)).isNotEmpty();
-        reset(persistenceFacade, personProfileRepository);
-        return entity;
+        try {
+
+            StudentProfile student = makeStudentProfile(null);
+            StudentProfile entity = persistenceFacade.save(student).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            assertThat(personProfileRepository.findById(id)).isNotEmpty();
+            return (StudentProfile) persistenceFacade.toEntity(entity);
+        } finally {
+            reset(persistenceFacade, personProfileRepository);
+        }
     }
 }
