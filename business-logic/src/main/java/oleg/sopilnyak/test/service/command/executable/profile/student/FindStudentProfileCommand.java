@@ -35,10 +35,6 @@ public class FindStudentProfileCommand
         super(persistence);
     }
 
-    @Override
-    protected LongFunction<Optional<StudentProfile>> functionFindById() {
-        return persistence::findStudentProfileById;
-    }
 
     /**
      * To get unique command-id for the command
@@ -58,5 +54,15 @@ public class FindStudentProfileCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
     }
 }

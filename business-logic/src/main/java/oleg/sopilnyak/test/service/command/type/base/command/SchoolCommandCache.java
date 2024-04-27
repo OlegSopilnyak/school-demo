@@ -36,6 +36,9 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * To cache into context old value of the student instance for possible rollback
      *
      * @param inputId system-id of the student
+     * @param findById function for find entity by id
+     * @param copy function for deep copy of the found entity
+     * @param exceptionSupplier function-source of entity-not-found exception
      * @return copy of exists entity
      * @throws NotExistStudentException if student is not exist
      * @see StudentsPersistenceFacade
@@ -45,7 +48,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Context#setUndoParameter(Object)
      */
     protected T retrieveEntity(Long inputId,
-                               LongFunction<Optional<T>> findById, UnaryOperator<T> copyEntity,
+                               LongFunction<Optional<T>> findById, UnaryOperator<T> copy,
                                Supplier<? extends EntityNotExistException> exceptionSupplier) {
 
         getLog().info("Getting entity of {} for ID:{}", entityName, inputId);
@@ -54,7 +57,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
         // return copy of exists entity for undo operation
         getLog().info("Copying the value of '{}'", existsEntity);
-        return copyEntity.apply(existsEntity);
+        return copy.apply(existsEntity);
     }
 
     /**
@@ -79,7 +82,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param context           command execution context
      * @param facadeSave        function for saving the undo entity
      * @param facadeDeleteById  function for delete created entity
-     * @param exceptionSupplier the source of entity-not-found exception
+     * @param exceptionSupplier function-source of entity-not-found exception
      * @return restored in the database cached entity
      * @see Context#getUndoParameter()
      * @see Function#apply(Object)
@@ -112,6 +115,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * To persist entity
      *
      * @param context command's do context
+     * @param facadeSave function for saving the entity
      * @return saved instance or empty
      * @see Optional#empty()
      * @see NotExistStudentException

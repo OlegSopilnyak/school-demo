@@ -35,21 +35,6 @@ public class DeleteStudentProfileCommand
         super(StudentProfile.class, persistence);
     }
 
-    @Override
-    protected LongFunction<Optional<StudentProfile>> functionFindById() {
-        return persistence::findStudentProfileById;
-    }
-
-    @Override
-    protected UnaryOperator<StudentProfile> functionCopyEntity() {
-        return entity -> (StudentProfile) persistence.toEntity(entity);
-    }
-
-    @Override
-    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
-        return persistence::save;
-    }
-
     /**
      * To get reference to command's logger
      *
@@ -68,5 +53,35 @@ public class DeleteStudentProfileCommand
     @Override
     public String getId() {
         return DELETE_BY_ID_COMMAND_ID;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
+    }
+
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected UnaryOperator<StudentProfile> functionCopyEntity() {
+        return entity -> (StudentProfile) persistence.toEntity(entity);
+    }
+
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
+        return persistence::save;
     }
 }

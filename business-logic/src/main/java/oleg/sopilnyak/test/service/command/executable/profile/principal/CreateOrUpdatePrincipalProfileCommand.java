@@ -21,6 +21,7 @@ import java.util.function.UnaryOperator;
  * @see PrincipalProfile
  * @see ProfilePersistenceFacade
  * @see oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity
+ * @see CreateOrUpdateProfileCommand
  */
 @Slf4j
 @Component
@@ -31,25 +32,10 @@ public class CreateOrUpdatePrincipalProfileCommand
     /**
      * Constructor
      *
-     * @param persistenceFacade facade of persistence layer
+     * @param persistence facade of persistence layer
      */
-    public CreateOrUpdatePrincipalProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(PrincipalProfile.class, persistenceFacade);
-    }
-
-    @Override
-    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
-        return persistence::findPrincipalProfileById;
-    }
-
-    @Override
-    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
-        return entity -> (PrincipalProfile) persistence.toEntity(entity);
-    }
-
-    @Override
-    protected Function<PrincipalProfile, Optional<PrincipalProfile>> functionSave() {
-        return persistence::save;
+    public CreateOrUpdatePrincipalProfileCommand(ProfilePersistenceFacade persistence) {
+        super(PrincipalProfile.class, persistence);
     }
 
     /**
@@ -69,6 +55,36 @@ public class CreateOrUpdatePrincipalProfileCommand
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE_COMMAND_ID;
+        return CREATE_OR_UPDATE;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
+        return persistence::findPrincipalProfileById;
+    }
+
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
+        return entity -> (PrincipalProfile) persistence.toEntity(entity);
+    }
+
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected Function<PrincipalProfile, Optional<PrincipalProfile>> functionSave() {
+        return persistence::save;
     }
 }

@@ -19,16 +19,16 @@ public class PrincipalProfileFacadeImpl<T>
 
     @Override
     protected String findByIdCommandId() {
-        return PrincipalProfileCommand.FIND_BY_ID_COMMAND_ID;
+        return PrincipalProfileCommand.FIND_BY_ID;
     }
 
     @Override
     protected String createOrUpdateCommandId() {
-        return PrincipalProfileCommand.CREATE_OR_UPDATE_COMMAND_ID;
+        return PrincipalProfileCommand.CREATE_OR_UPDATE;
     }
 
     @Override
     protected String deleteByIdCommandId() {
-        return PrincipalProfileCommand.DELETE_BY_ID_COMMAND_ID;
+        return PrincipalProfileCommand.DELETE_BY_ID;
     }
 }

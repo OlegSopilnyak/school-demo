@@ -14,30 +14,47 @@ import java.util.Optional;
 import java.util.function.*;
 
 /**
- * Command-Implementation: command to delete person profile instance by id
+ * Command-Base-Implementation: command to delete person profile instance by id
  *
  * @see PersonProfile
  * @see ProfileCommand
  * @see ProfilePersistenceFacade
  * @see SchoolCommandCache
+ * @param <R> command's Result type
+ * @param <E> command's working Entity type
  */
 @Getter
-public abstract class DeleteProfileCommand<T, C extends PersonProfile>
-        extends SchoolCommandCache<C>
-        implements ProfileCommand<T> {
+public abstract class DeleteProfileCommand<R, E extends PersonProfile>
+        extends SchoolCommandCache<E>
+        implements ProfileCommand<R> {
 
     protected final ProfilePersistenceFacade persistence;
 
-    protected DeleteProfileCommand(Class<C> entityType, ProfilePersistenceFacade persistence) {
+    protected DeleteProfileCommand(Class<E> entityType, ProfilePersistenceFacade persistence) {
         super(entityType);
         this.persistence = persistence;
     }
 
-    protected abstract LongFunction<Optional<C>> functionFindById();
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    protected abstract LongFunction<Optional<E>> functionFindById();
 
-    protected abstract UnaryOperator<C> functionCopyEntity();
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    protected abstract UnaryOperator<E> functionCopyEntity();
 
-    protected abstract Function<C, Optional<C>> functionSave();
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    protected abstract Function<E, Optional<E>> functionSave();
 
     /**
      * To delete person's profile by id
@@ -49,27 +66,27 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<T> execute(Object parameter) {
+    public CommandResult<R> execute(Object parameter) {
         try {
             getLog().debug("Trying to delete person profile {}", parameter);
             final Long id = commandParameter(parameter);
-            final Optional<C> profile = functionFindById().apply(id);
+            final Optional<E> profile = functionFindById().apply(id);
             if (profile.isEmpty()) {
                 getLog().debug("Person profile with ID:{} is not exists.", id);
-                return CommandResult.<T>builder().result(Optional.of((T) Boolean.FALSE))
+                return CommandResult.<R>builder().result(Optional.of((R) Boolean.FALSE))
                         .exception(new NotExistProfileException("Profile with ID:" + id + " is not exists."))
                         .success(false).build();
             }
             persistence.deleteProfileById(id);
             getLog().debug("Person profile with ID:{} is deleted '{}'", id, true);
-            return CommandResult.<T>builder()
-                    .result(Optional.of((T) Boolean.TRUE))
+            return CommandResult.<R>builder()
+                    .result(Optional.of((R) Boolean.TRUE))
                     .success(true)
                     .build();
         } catch (Exception e) {
             getLog().error("Cannot delete the person profile {}", parameter, e);
-            return CommandResult.<T>builder()
-                    .result(Optional.of((T) Boolean.FALSE))
+            return CommandResult.<R>builder()
+                    .result(Optional.of((R) Boolean.FALSE))
                     .exception(e).success(false).build();
         }
     }
@@ -94,7 +111,8 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
     public void executeDo(Context<?> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            getLog().debug("Trying to delete person profile using: {}", parameter);
+            check(parameter);
+            getLog().debug("Trying to delete profile using: {}", parameter);
             final Long id = commandParameter(parameter);
             final var notFoundException = new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -108,9 +126,9 @@ public abstract class DeleteProfileCommand<T, C extends PersonProfile>
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);
         } catch (Exception e) {
-            rollbackCachedEntity(context, functionSave());
             getLog().error("Cannot delete profile with :{}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, functionSave());
         }
     }
 

@@ -96,9 +96,9 @@ public class CreateOrUpdateCourseCommand
             // checking execution context state
             afterPersistCheck(context, () -> rollbackCachedEntity(context, persistenceFacade::save), course, isCreateCourse);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistenceFacade::save);
             log.error("Cannot create or update course by ID:{}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistenceFacade::save);
         }
     }
 

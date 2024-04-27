@@ -15,7 +15,6 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-
 /**
  * Command-Base-Implementation: command to update person profile instance
  *
@@ -23,23 +22,40 @@ import java.util.function.UnaryOperator;
  * @see ProfileCommand
  * @see ProfilePersistenceFacade
  * @see SchoolCommandCache
+ * @param <R> command's Result type
+ * @param <E> command's working Entity type
  */
-public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
-        extends SchoolCommandCache<C>
-        implements ProfileCommand<T> {
+public abstract class CreateOrUpdateProfileCommand<R, E extends PersonProfile>
+        extends SchoolCommandCache<E>
+        implements ProfileCommand<R> {
 
     protected final ProfilePersistenceFacade persistence;
 
-    protected CreateOrUpdateProfileCommand(Class<C> entityType, ProfilePersistenceFacade persistence) {
+    protected CreateOrUpdateProfileCommand(Class<E> entityType, ProfilePersistenceFacade persistence) {
         super(entityType);
         this.persistence = persistence;
     }
 
-    protected abstract LongFunction<Optional<C>> functionFindById();
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    protected abstract LongFunction<Optional<E>> functionFindById();
 
-    protected abstract UnaryOperator<C> functionCopyEntity();
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    protected abstract UnaryOperator<E> functionCopyEntity();
 
-    protected abstract Function<C, Optional<C>> functionSave();
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    protected abstract Function<E, Optional<E>> functionSave();
 
     /**
      * To update person's profile
@@ -52,20 +68,20 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<T> execute(Object parameter) {
+    public CommandResult<R> execute(Object parameter) {
         try {
             getLog().debug("Trying to update person profile {}", parameter);
-            final C input = commandParameter(parameter);
-            final Optional<C> profile = functionSave().apply(input);
+            final E input = commandParameter(parameter);
+            final Optional<E> profile = functionSave().apply(input);
             getLog().debug("Got saved \nperson profile {}\n for input {}", profile, input);
-            return CommandResult.<T>builder()
-                    .result(Optional.of((T) profile))
+            return CommandResult.<R>builder()
+                    .result(Optional.of((R) profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
-            return CommandResult.<T>builder()
-                    .result((Optional<T>) Optional.of(Optional.empty()))
+            return CommandResult.<R>builder()
+                    .result((Optional<R>) Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
         }
     }
@@ -92,7 +108,7 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
         try {
             check(parameter);
             getLog().debug("Trying to change profile using: {}", parameter);
-            final Long inputId = ((C) parameter).getId();
+            final Long inputId = ((E) parameter).getId();
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
                 // cached profile is storing to context for further rollback (undo)
@@ -102,7 +118,7 @@ public abstract class CreateOrUpdateProfileCommand<T, C extends PersonProfile>
                         )
                 );
             }
-            final Optional<C> profile = persistRedoEntity(context, functionSave());
+            final Optional<E> profile = persistRedoEntity(context, functionSave());
             // checking execution context state
             afterPersistCheck(context, () -> rollbackCachedEntity(context, functionSave()), profile, isCreateProfile);
         } catch (Exception e) {

@@ -31,25 +31,10 @@ public class CreateOrUpdateStudentProfileCommand
     /**
      * Constructor
      *
-     * @param persistenceFacade facade of persistence layer
+     * @param persistence facade of persistence layer
      */
-    public CreateOrUpdateStudentProfileCommand(ProfilePersistenceFacade persistenceFacade) {
-        super(StudentProfile.class, persistenceFacade);
-    }
-
-    @Override
-    protected LongFunction<Optional<StudentProfile>> functionFindById() {
-        return persistence::findStudentProfileById;
-    }
-
-    @Override
-    protected UnaryOperator<StudentProfile> functionCopyEntity() {
-        return entity -> (StudentProfile) persistence.toEntity(entity);
-    }
-
-    @Override
-    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
-        return persistence::save;
+    public CreateOrUpdateStudentProfileCommand(ProfilePersistenceFacade persistence) {
+        super(StudentProfile.class, persistence);
     }
 
     /**
@@ -70,5 +55,35 @@ public class CreateOrUpdateStudentProfileCommand
     @Override
     public String getId() {
         return CREATE_OR_UPDATE_COMMAND_ID;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<StudentProfile>> functionFindById() {
+        return persistence::findStudentProfileById;
+    }
+
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected UnaryOperator<StudentProfile> functionCopyEntity() {
+        return entity -> (StudentProfile) persistence.toEntity(entity);
+    }
+
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected Function<StudentProfile, Optional<StudentProfile>> functionSave() {
+        return persistence::save;
     }
 }

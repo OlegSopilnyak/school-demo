@@ -9,15 +9,15 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
     /**
      * ID of findById principal profile command
      */
-    String FIND_BY_ID_COMMAND_ID = "profile.principal.findById";
+    String FIND_BY_ID = "profile.principal.findById";
     /**
      * ID of deleteById principal profile command
      */
-    String DELETE_BY_ID_COMMAND_ID = "profile.principal.deleteById";
+    String DELETE_BY_ID = "profile.principal.deleteById";
     /**
      * ID of createOrUpdate principal profile command
      */
-    String CREATE_OR_UPDATE_COMMAND_ID = "profile.principal.createOrUpdate";
+    String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
     /**
      * The name of commands-factory SpringBean
      */

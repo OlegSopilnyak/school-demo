@@ -35,11 +35,6 @@ public class FindPrincipalProfileCommand
         super(persistence);
     }
 
-    @Override
-    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
-        return persistence::findPrincipalProfileById;
-    }
-
     /**
      * To get unique command-id for the command
      *
@@ -47,7 +42,7 @@ public class FindPrincipalProfileCommand
      */
     @Override
     public String getId() {
-        return FIND_BY_ID_COMMAND_ID;
+        return FIND_BY_ID;
     }
 
     /**
@@ -58,5 +53,15 @@ public class FindPrincipalProfileCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
+        return persistence::findPrincipalProfileById;
     }
 }

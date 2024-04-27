@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -145,13 +146,12 @@ class CreateOrUpdateCourseCommandTest {
         when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
         when(persistenceFacade.toEntity(course)).thenReturn(course);
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
-        when(persistenceFacade.save(course)).thenThrow(cannotExecute).thenReturn(Optional.of(course));
+        doThrow(cannotExecute).when(persistenceFacade).save(course);
 
         Context<Optional<Course>> context = command.createContext(course);
 
-        command.doCommand(context);
+        assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);

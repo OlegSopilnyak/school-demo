@@ -35,21 +35,6 @@ public class DeletePrincipalProfileCommand
         super(PrincipalProfile.class, persistence);
     }
 
-    @Override
-    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
-        return persistence::findPrincipalProfileById;
-    }
-
-    @Override
-    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
-        return entity -> (PrincipalProfile) persistence.toEntity(entity);
-    }
-
-    @Override
-    protected Function<PrincipalProfile, Optional<PrincipalProfile>> functionSave() {
-        return persistence::save;
-    }
-
     /**
      * To get reference to command's logger
      *
@@ -67,6 +52,36 @@ public class DeletePrincipalProfileCommand
      */
     @Override
     public String getId() {
-        return DELETE_BY_ID_COMMAND_ID;
+        return DELETE_BY_ID;
+    }
+
+    /**
+     * to get function to find entity by id
+     *
+     * @return function implementation
+     */
+    @Override
+    protected LongFunction<Optional<PrincipalProfile>> functionFindById() {
+        return persistence::findPrincipalProfileById;
+    }
+
+    /**
+     * to get function to copy the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
+        return entity -> (PrincipalProfile) persistence.toEntity(entity);
+    }
+
+    /**
+     * to get function to persist the entity
+     *
+     * @return function implementation
+     */
+    @Override
+    protected Function<PrincipalProfile, Optional<PrincipalProfile>> functionSave() {
+        return persistence::save;
     }
 }
