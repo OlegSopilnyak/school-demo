@@ -105,6 +105,19 @@ class DeletePrincipalProfileCommandTest {
     }
 
     @Test
+    void shouldNotDoCommand_NullParameter() throws NotExistProfileException {
+        Context<Boolean> context = command.createContext(null);
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value");
+        verify(command).executeDo(context);
+        verify(persistence, never()).findProfileById(anyLong());
+    }
+
+    @Test
     void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
         long id = 416L;
         when(persistence.toEntity(profile)).thenReturn(profile);

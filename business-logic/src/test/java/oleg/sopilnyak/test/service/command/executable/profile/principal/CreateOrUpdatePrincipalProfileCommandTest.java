@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -147,8 +148,8 @@ class CreateOrUpdatePrincipalProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_FindExceptionThrown() {
-        Long id = 702L;
+    void shouldNotDoCommand_FindUpdatedExceptionThrown() {
+        Long id = 802L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
@@ -163,6 +164,46 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).saveProfile(any());
+    }
+
+    @Test
+    void shouldNotDoCommand_SaveCreatedExceptionThrown() {
+        doCallRealMethod().when(persistence).save(profile);
+        doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).executeDo(context);
+        verify(profile).getId();
+        verify(persistence).save(profile);
+        verify(persistence).saveProfile(profile);
+    }
+
+    @Test
+    void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
+        Long id = 803L;
+        when(profile.getId()).thenReturn(id);
+        doCallRealMethod().when(persistence).findPrincipalProfileById(id);
+        doCallRealMethod().when(persistence).save(profile);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+
+        assertThrows(RuntimeException.class, () -> command.doCommand(context));
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).executeDo(context);
+        verify(profile).getId();
+        verify(persistence).findPrincipalProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(persistence, times(2)).save(profile);
+        verify(persistence, times(2)).saveProfile(profile);
     }
 
     @Test
@@ -250,7 +291,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
         assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
         verify(command).executeUndo(context);
@@ -267,7 +308,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
+        assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
         verify(persistence).deleteProfileById(id);

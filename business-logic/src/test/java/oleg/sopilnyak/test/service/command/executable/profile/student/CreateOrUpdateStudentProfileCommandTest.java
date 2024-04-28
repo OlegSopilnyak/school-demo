@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -148,7 +149,7 @@ class CreateOrUpdateStudentProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_FindExceptionThrown() {
+    void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         Long id = 802L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
@@ -164,6 +165,46 @@ class CreateOrUpdateStudentProfileCommandTest {
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).saveProfile(any());
+    }
+
+    @Test
+    void shouldNotDoCommand_SaveCreatedExceptionThrown() {
+        doCallRealMethod().when(persistence).save(profile);
+        doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
+        Context<Optional<StudentProfile>> context = command.createContext(profile);
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).executeDo(context);
+        verify(profile).getId();
+        verify(persistence).save(profile);
+        verify(persistence).saveProfile(profile);
+    }
+
+    @Test
+    void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
+        Long id = 803L;
+        when(profile.getId()).thenReturn(id);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        doCallRealMethod().when(persistence).save(profile);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
+        Context<Optional<StudentProfile>> context = command.createContext(profile);
+
+        assertThrows(RuntimeException.class, () -> command.doCommand(context));
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        verify(command).executeDo(context);
+        verify(profile).getId();
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(persistence, times(2)).save(profile);
+        verify(persistence, times(2)).saveProfile(profile);
     }
 
     @Test
