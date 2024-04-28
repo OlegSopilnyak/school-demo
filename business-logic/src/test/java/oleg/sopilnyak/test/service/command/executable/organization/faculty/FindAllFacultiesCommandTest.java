@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.executable.organization.authority;
+package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,19 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FindAllAuthorityPersonsCommandTest {
+class FindAllFacultiesCommandTest {
     @Mock
-    AuthorityPersonPersistenceFacade persistence;
+    FacultyPersistenceFacade persistence;
     @Spy
     @InjectMocks
-    FindAllAuthorityPersonsCommand command;
+    FindAllFacultiesCommand command;
     @Mock
-    AuthorityPerson entity;
+    Faculty entity;
 
     @Test
     void shouldDoCommand_EntityExists() {
-        when(persistence.findAllAuthorityPersons()).thenReturn(Set.of(entity));
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        when(persistence.findAllFaculties()).thenReturn(Set.of(entity));
+        Context<Set<Faculty>> context = command.createContext(null);
 
         command.doCommand(context);
 
@@ -38,12 +38,12 @@ class FindAllAuthorityPersonsCommandTest {
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findAllFaculties();
     }
 
     @Test
     void shouldDoCommand_EntityNotExists() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        Context<Set<Faculty>> context = command.createContext(null);
 
         command.doCommand(context);
 
@@ -51,25 +51,25 @@ class FindAllAuthorityPersonsCommandTest {
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findAllFaculties();
     }
 
     @Test
     void shouldNotDoCommand_FindThrowsException() {
-        doThrow(RuntimeException.class).when(persistence).findAllAuthorityPersons();
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        doThrow(RuntimeException.class).when(persistence).findAllFaculties();
+        Context<Set<Faculty>> context = command.createContext(null);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findAllFaculties();
     }
 
     @Test
     void shouldUndoCommand_NothingToDo() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        Context<Set<Faculty>> context = command.createContext(null);
         context.setState(DONE);
         context.setUndoParameter(entity);
 

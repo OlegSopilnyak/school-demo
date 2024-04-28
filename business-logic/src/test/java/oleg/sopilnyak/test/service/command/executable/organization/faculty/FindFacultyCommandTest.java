@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.executable.organization.authority;
+package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Set;
+import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
@@ -18,58 +18,62 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FindAllAuthorityPersonsCommandTest {
+class FindFacultyCommandTest {
     @Mock
-    AuthorityPersonPersistenceFacade persistence;
+    FacultyPersistenceFacade persistence;
     @Spy
     @InjectMocks
-    FindAllAuthorityPersonsCommand command;
+    FindFacultyCommand command;
     @Mock
-    AuthorityPerson entity;
+    Faculty entity;
 
     @Test
     void shouldDoCommand_EntityExists() {
-        when(persistence.findAllAuthorityPersons()).thenReturn(Set.of(entity));
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 420L;
+        when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
+        Context<Optional<Faculty>> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findFacultyById(id);
     }
 
     @Test
     void shouldDoCommand_EntityNotExists() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 421L;
+        Context<Optional<Faculty>> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.empty());
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findFacultyById(id);
     }
 
     @Test
     void shouldNotDoCommand_FindThrowsException() {
-        doThrow(RuntimeException.class).when(persistence).findAllAuthorityPersons();
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 422L;
+        Context<Optional<Faculty>> context = command.createContext(id);
+        doThrow(RuntimeException.class).when(persistence).findFacultyById(id);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findFacultyById(id);
     }
 
     @Test
     void shouldUndoCommand_NothingToDo() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 423L;
+        Context<Optional<Faculty>> context = command.createContext(id);
         context.setState(DONE);
         context.setUndoParameter(entity);
 

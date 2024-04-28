@@ -1,9 +1,9 @@
-package oleg.sopilnyak.test.service.command.executable.organization.authority;
+package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,19 +18,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class DeleteAuthorityPersonCommandTest {
+class DeleteFacultyCommandTest {
     @Mock
-    AuthorityPersonPersistenceFacade persistence;
+    FacultyPersistenceFacade persistence;
     @Spy
     @InjectMocks
-    DeleteAuthorityPersonCommand command;
+    DeleteFacultyCommand command;
     @Mock
-    AuthorityPerson entity;
+    Faculty entity;
 
     @Test
     void shouldDoCommand_EntityExists() {
-        long id = 314L;
-        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
+        long id = 414L;
+        when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
         when(persistence.toEntity(entity)).thenReturn(entity);
         Context<Boolean> context = command.createContext(id);
 
@@ -40,25 +40,25 @@ class DeleteAuthorityPersonCommandTest {
         assertThat(context.getResult()).contains(true);
         assertThat(context.getUndoParameter()).isEqualTo(entity);
         verify(command).executeDo(context);
-        verify(persistence).findAuthorityPersonById(id);
+        verify(persistence).findFacultyById(id);
         verify(persistence).toEntity(entity);
-        verify(persistence).deleteAuthorityPerson(id);
+        verify(persistence).deleteFaculty(id);
     }
 
     @Test
     void shouldNotDoCommand_EntityNotExists() {
-        long id = 315L;
+        long id = 415L;
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
-        assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NotExistFacultyException.class);
+        assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
-        verify(persistence).findAuthorityPersonById(id);
+        verify(persistence).findFacultyById(id);
         verify(persistence, never()).toEntity(entity);
-        verify(persistence, never()).deleteAuthorityPerson(id);
+        verify(persistence, never()).deleteFaculty(id);
     }
 
     @Test
@@ -70,7 +70,7 @@ class DeleteAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
         verify(command).executeDo(context);
-        verify(persistence, never()).findAuthorityPersonById(anyLong());
+        verify(persistence, never()).findFacultyById(anyLong());
     }
 
     @Test
@@ -80,18 +80,18 @@ class DeleteAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
-        assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NotExistFacultyException.class);
+        assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
-        verify(persistence, never()).findAuthorityPersonById(anyLong());
+        verify(persistence, never()).findFacultyById(anyLong());
     }
 
     @Test
     void shouldNotDoCommand_DeleteExceptionThrown() throws NotExistProfileException {
         long id = 316L;
-        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
+        when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
         when(persistence.toEntity(entity)).thenReturn(entity);
-        doThrow(new UnsupportedOperationException()).when(persistence).deleteAuthorityPerson(id);
+        doThrow(new UnsupportedOperationException()).when(persistence).deleteFaculty(id);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -99,8 +99,8 @@ class DeleteAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeDo(context);
-        verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).deleteAuthorityPerson(id);
+        verify(persistence).findFacultyById(id);
+        verify(persistence).deleteFaculty(id);
     }
 
     @Test

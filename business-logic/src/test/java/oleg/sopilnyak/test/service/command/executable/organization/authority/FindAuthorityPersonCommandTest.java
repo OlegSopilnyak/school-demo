@@ -25,18 +25,18 @@ class FindAuthorityPersonCommandTest {
     @InjectMocks
     FindAuthorityPersonCommand command;
     @Mock
-    AuthorityPerson person;
+    AuthorityPerson entity;
 
     @Test
     void shouldDoCommand_EntityExists() {
         long id = 320L;
-        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(person));
+        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         Context<Optional<AuthorityPerson>> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(person));
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
@@ -75,7 +75,7 @@ class FindAuthorityPersonCommandTest {
         long id = 323L;
         Context<Optional<AuthorityPerson>> context = command.createContext(id);
         context.setState(DONE);
-        context.setUndoParameter(person);
+        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

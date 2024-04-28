@@ -74,7 +74,9 @@ public interface CommandExecutor {
      * @return result of command execution
      * @see CommandsFactory
      * @see SchoolCommand
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     static <T, P> T executeSimpleCommand(String commandId, Object option, CommandsFactory<P> factory) {
         final SchoolCommand<T> command = takeValidCommand(commandId, factory);
         return executeCommand(command, option);
@@ -94,7 +96,9 @@ public interface CommandExecutor {
      * @see CommandResult#getException()
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandExecutor#createThrowFor(String)
+     * @deprecated commands are going to work through redo/undo
      */
+    @Deprecated(forRemoval = true)
     private static <T> T executeCommand(SchoolCommand<T> command, Object option) {
         final CommandResult<T> cmdResult = command.execute(option);
         return cmdResult.isSuccess() ?

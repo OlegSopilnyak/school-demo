@@ -100,9 +100,9 @@ public class CreateOrUpdateStudentsGroupCommand
             // checking execution context state
             afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), persisted, isCreateEntity);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot create or students group faculty '{}'", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 

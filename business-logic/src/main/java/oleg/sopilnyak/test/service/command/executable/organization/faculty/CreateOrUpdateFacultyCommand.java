@@ -100,9 +100,9 @@ public class CreateOrUpdateFacultyCommand
             // checking execution context state
             afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), persisted, isCreateEntity);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot create or update faculty '{}'", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 

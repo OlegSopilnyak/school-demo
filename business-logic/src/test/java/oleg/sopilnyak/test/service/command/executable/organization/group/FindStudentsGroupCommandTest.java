@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.executable.organization.authority;
+package oleg.sopilnyak.test.service.command.executable.organization.group;
 
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Set;
+import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
@@ -18,58 +18,62 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FindAllAuthorityPersonsCommandTest {
+class FindStudentsGroupCommandTest {
     @Mock
-    AuthorityPersonPersistenceFacade persistence;
+    StudentsGroupPersistenceFacade persistence;
     @Spy
     @InjectMocks
-    FindAllAuthorityPersonsCommand command;
+    FindStudentsGroupCommand command;
     @Mock
-    AuthorityPerson entity;
+    StudentsGroup entity;
 
     @Test
     void shouldDoCommand_EntityExists() {
-        when(persistence.findAllAuthorityPersons()).thenReturn(Set.of(entity));
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 520L;
+        when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
+        Context<Optional<StudentsGroup>> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findStudentsGroupById(id);
     }
 
     @Test
     void shouldDoCommand_EntityNotExists() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 521L;
+        Context<Optional<StudentsGroup>> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.empty());
         assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findStudentsGroupById(id);
     }
 
     @Test
     void shouldNotDoCommand_FindThrowsException() {
-        doThrow(RuntimeException.class).when(persistence).findAllAuthorityPersons();
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 522L;
+        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        doThrow(RuntimeException.class).when(persistence).findStudentsGroupById(id);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(persistence).findAllAuthorityPersons();
+        verify(persistence).findStudentsGroupById(id);
     }
 
     @Test
     void shouldUndoCommand_NothingToDo() {
-        Context<Set<AuthorityPerson>> context = command.createContext(null);
+        long id = 523L;
+        Context<Optional<StudentsGroup>> context = command.createContext(id);
         context.setState(DONE);
         context.setUndoParameter(entity);
 
