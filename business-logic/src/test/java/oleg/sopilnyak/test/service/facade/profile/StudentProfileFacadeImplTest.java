@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
@@ -26,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StudentProfileFacadeImplTest {
+class StudentProfileFacadeImplTest<T extends StudentProfile> {
     private static final String PROFILE_FIND_BY_ID = "profile.student.findById";
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String PROFILE_DELETE = "profile.student.deleteById";
@@ -36,54 +37,96 @@ class StudentProfileFacadeImplTest {
 
     @Spy
     @InjectMocks
-    StudentProfileFacadeImpl facade;
+    StudentProfileFacadeImpl<T> facade;
     @Mock
     StudentProfile mock;
 
     @Test
     void shouldFindProfileById() {
         Long id = 700L;
-        when(persistence.findStudentProfileById(id)).thenReturn(Optional.of(mock));
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(mock));
 
         Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
 
         assertThat(faculty).isPresent();
+        verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById() {
         Long id = 710L;
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
 
         Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
 
         assertThat(faculty).isEmpty();
+        verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+    }
+
+    @Test
+    void shouldNotFindProfileById_WrongProfileType() {
+        Long id = 711L;
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(mock(PrincipalProfile.class)));
+
+        Optional<StudentProfile> profile = facade.findStudentProfileById(id);
+
+        assertThat(profile).isEmpty();
+        verify(facade).findById(id);
+        verify(factory).command(PROFILE_FIND_BY_ID);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldCreateOrUpdateProfile() {
-        when(persistence.save(mock)).thenReturn(Optional.of(mock));
+        doCallRealMethod().when(persistence).save(mock);
+        when(persistence.saveProfile(mock)).thenReturn(Optional.of(mock));
 
-        Optional<StudentProfile> faculty = facade.createOrUpdateProfile(mock);
+        Optional<StudentProfile> profile = facade.createOrUpdateProfile(mock);
 
-        assertThat(faculty).isPresent();
+        assertThat(profile).isPresent();
+        verify(facade).createOrUpdate(mock);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(mock);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(mock);
+        verify(persistence).saveProfile(mock);
+    }
+
+    @Test
+    void shouldNotCreateOrUpdateProfile() {
+        doCallRealMethod().when(persistence).save(mock);
+
+        Optional<StudentProfile> profile = facade.createOrUpdateProfile(mock);
+
+        assertThat(profile).isEmpty();
+        verify(facade).createOrUpdate(mock);
+        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(mock);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(persistence).save(mock);
+        verify(persistence).saveProfile(mock);
     }
 
     @Test
     void shouldDeleteProfileById() {
         Long id = 702L;
-        when(persistence.findStudentProfileById(id)).thenReturn(Optional.of(mock));
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(mock));
         when(persistence.toEntity(mock)).thenReturn(mock);
 
         facade.deleteById(id);
@@ -92,24 +135,105 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_DELETE)).createContext(id);
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(mock);
         verify(persistence).deleteProfileById(id);
+    }
+
+    @Test
+    void shouldNotDeleteProfile_ProfileNotExists() throws NotExistProfileException {
+        Long id = 715L;
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
+
+        assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
+        verify(factory).command(PROFILE_DELETE);
+        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence, never()).deleteProfileById(id);
     }
 
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
         Long id = 703L;
-        NotExistProfileException thrown =
-                assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+
+        NotExistProfileException thrown = assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
         verify(factory).command(PROFILE_DELETE);
         verify(factory.command(PROFILE_DELETE)).createContext(id);
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(id);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    @Test
+    void shouldDeleteProfileInstance() throws NotExistProfileException {
+        Long id = 714L;
+        when(mock.getId()).thenReturn(id);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(mock));
+        when(persistence.toEntity(mock)).thenReturn(mock);
+
+        facade.delete(mock);
+
+        verify(facade).deleteById(id);
+        verify(factory).command(PROFILE_DELETE);
+        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(mock);
+        verify(persistence).deleteProfileById(id);
+    }
+
+    @Test
+    void shouldNotDeleteProfileInstance_ProfileNotExists() throws NotExistProfileException {
+        Long id = 716L;
+        when(mock.getId()).thenReturn(id);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(mock));
+
+        assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
+        verify(facade).deleteById(id);
+        verify(factory).command(PROFILE_DELETE);
+        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence, never()).deleteProfileById(id);
+    }
+
+    @Test
+    void shouldNotDeleteProfileInstance_NegativeId() {
+        Long id = -716L;
+        when(mock.getId()).thenReturn(id);
+
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(mock));
+
+        assertThat(exception.getMessage()).startsWith("Wrong ");
+        verify(facade, never()).deleteById(anyLong());
+        verify(factory, never()).command(PROFILE_DELETE);
+    }
+
+    @Test
+    void shouldNotDeleteProfileInstance_NullId() {
+        when(mock.getId()).thenReturn(null);
+
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(mock));
+
+        assertThat(exception.getMessage()).startsWith("Wrong ");
+        verify(facade, never()).deleteById(anyLong());
+        verify(factory, never()).command(PROFILE_DELETE);
+    }
+
+    private CommandsFactory<T> buildFactory() {
         return new StudentProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentProfileCommand(persistence)),
