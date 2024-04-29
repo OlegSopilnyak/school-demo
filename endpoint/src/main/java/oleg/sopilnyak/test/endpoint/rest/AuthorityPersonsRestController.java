@@ -46,7 +46,7 @@ public class AuthorityPersonsRestController {
             Long id = Long.parseLong(personId);
             log.debug("Getting authority person for id: {}", id);
 
-            return ResponseEntity.ok(resultToDto(personId, facade.getAuthorityPersonById(id)));
+            return ResponseEntity.ok(resultToDto(personId, facade.findAuthorityPersonById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong authority-person-id: '{}'", personId);
             throw new ResourceNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");

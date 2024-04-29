@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.business.organization;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
 import java.util.Collection;
@@ -32,7 +32,7 @@ public interface AuthorityPersonFacade extends OrganizationFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<AuthorityPerson> getAuthorityPersonById(Long id);
+    Optional<AuthorityPerson> findAuthorityPersonById(Long id);
 
     /**
      * To create or update authorityPerson instance

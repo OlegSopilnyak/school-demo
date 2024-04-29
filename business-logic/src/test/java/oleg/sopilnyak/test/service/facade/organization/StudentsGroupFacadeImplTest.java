@@ -9,9 +9,10 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.CreateO
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.facade.impl.StudentsGroupFacadeImpl;
+import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,7 +53,8 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(groups).hasSize(1);
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).execute(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllStudentsGroups();
     }
 
@@ -63,32 +65,35 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(groups).isEmpty();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).execute(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllStudentsGroups();
     }
 
     @Test
-    void shouldGetStudentsGroupById() {
+    void shouldFindStudentsGroupById() {
         Long id = 500L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
 
-        Optional<StudentsGroup> faculty = facade.getStudentsGroupById(id);
+        Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).execute(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentsGroupById(id);
     }
 
     @Test
-    void shouldNotGetStudentsGroupById() {
+    void shouldNotFindStudentsGroupById() {
         Long id = 510L;
 
-        Optional<StudentsGroup> faculty = facade.getStudentsGroupById(id);
+        Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).execute(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentsGroupById(id);
     }
 
@@ -100,7 +105,8 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).execute(mockGroup);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(mockGroup);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockGroup);
     }
 
@@ -108,11 +114,13 @@ class StudentsGroupFacadeImplTest {
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 502L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
+        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
 
         facade.deleteStudentsGroupById(id);
 
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).execute(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade).deleteStudentsGroup(id);
     }
@@ -123,9 +131,10 @@ class StudentsGroupFacadeImplTest {
         NotExistStudentsGroupException thrown =
                 assertThrows(NotExistStudentsGroupException.class, () -> facade.deleteStudentsGroupById(id));
 
-        assertThat(thrown.getMessage()).isEqualTo("StudentsGroup with ID:503 is not exists." );
+        assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:503 is not exists.");
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).execute(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
@@ -134,26 +143,28 @@ class StudentsGroupFacadeImplTest {
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 504L;
         when(mockGroup.getStudents()).thenReturn(List.of(mock(Student.class)));
+        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
         StudentGroupWithStudentsException thrown =
                 assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
 
-        assertThat(thrown.getMessage()).isEqualTo("StudentsGroup with ID:504 has students.");
+        assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:504 has students.");
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).execute(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentsGroupById(id);
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
 
     private CommandsFactory<?> buildFactory() {
-        return mock(OrganizationCommandsFactory.class);
-//        return new OrganizationCommandsFactory(
-//                Set.of(
-//                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),
-//                        spy(new DeleteStudentsGroupCommand(persistenceFacade)),
-//                        spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
-//                        spy(new FindStudentsGroupCommand(persistenceFacade))
-//                )
-//        );
+        return new StudentsGroupCommandsFactory(
+                Set.of(
+                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),
+                        spy(new DeleteStudentsGroupCommand(persistenceFacade)),
+                        spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
+                        spy(new FindStudentsGroupCommand(persistenceFacade))
+                )
+
+        );
     }
 }

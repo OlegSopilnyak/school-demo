@@ -4,15 +4,12 @@ import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.factory.base.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.facade.impl.PersonProfileFacadeImpl;
+import oleg.sopilnyak.test.service.command.factory.profile.base.ProfileCommandsFactory;
+import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,10 +21,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

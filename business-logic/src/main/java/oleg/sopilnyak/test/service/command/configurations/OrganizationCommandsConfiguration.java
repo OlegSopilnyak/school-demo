@@ -17,14 +17,14 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.CreateO
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.factory.AuthorityPersonCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.FacultyCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.StudentsGroupCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.type.FacultyCommand;
-import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.type.base.command.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

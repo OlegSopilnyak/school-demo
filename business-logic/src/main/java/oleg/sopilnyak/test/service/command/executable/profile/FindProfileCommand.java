@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
+import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 
 import java.util.Optional;
 import java.util.function.LongFunction;

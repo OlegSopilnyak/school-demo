@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;

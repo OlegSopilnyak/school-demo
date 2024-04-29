@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.type.PrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 

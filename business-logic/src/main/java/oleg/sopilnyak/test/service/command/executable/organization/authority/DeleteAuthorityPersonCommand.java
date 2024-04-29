@@ -7,9 +7,9 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -104,10 +104,16 @@ public class DeleteAuthorityPersonCommand
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
+
+            final AuthorityPerson entity =
+                    retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity, () -> notFoundException);
+
+            if (!entity.getFaculties().isEmpty()) {
+                throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
+            }
             // cached authority person is storing to context for further rollback (undo)
-            context.setUndoParameter(
-                    retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity, () -> notFoundException)
-            );
+            context.setUndoParameter(entity);
+            // deleting entity
             persistence.deleteAuthorityPerson(id);
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);

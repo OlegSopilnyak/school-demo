@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.business.organization;
 
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 
 import java.util.Collection;
@@ -33,7 +33,7 @@ public interface FacultyFacade extends OrganizationFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<Faculty> getFacultyById(Long id);
+    Optional<Faculty> findFacultyById(Long id);
 
     /**
      * To create or update faculty instance

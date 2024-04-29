@@ -1,14 +1,12 @@
 package oleg.sopilnyak.test.service.command.factory;
 
-import oleg.sopilnyak.test.service.command.factory.base.OrganizationCommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.command.OrganizationCommand;
+import oleg.sopilnyak.test.service.command.factory.organization.base.OrganizationCommandsFactory;
+import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;

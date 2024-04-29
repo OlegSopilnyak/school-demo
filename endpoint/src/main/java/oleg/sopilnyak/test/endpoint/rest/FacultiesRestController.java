@@ -46,7 +46,7 @@ public class FacultiesRestController {
             Long id = Long.parseLong(facultyId);
             log.debug("Getting faculty for id: {}", id);
 
-            return ResponseEntity.ok(resultToDto(facultyId, facade.getFacultyById(id)));
+            return ResponseEntity.ok(resultToDto(facultyId, facade.findFacultyById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong faculty-id: '{}'", facultyId);
             throw new ResourceNotFoundException(WRONG_FACULTY_ID + facultyId + "'");

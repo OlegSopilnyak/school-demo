@@ -1,19 +1,7 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import lombok.AllArgsConstructor;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.factory.base.ProfileCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.command.ProfileCommand;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Configuration for profiles-subsystem commands

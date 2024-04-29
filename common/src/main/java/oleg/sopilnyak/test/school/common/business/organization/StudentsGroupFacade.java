@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.business.organization;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
 import java.util.Collection;
@@ -32,7 +32,7 @@ public interface StudentsGroupFacade extends OrganizationFacade {
      * @see Optional
      * @see Optional#empty()
      */
-    Optional<StudentsGroup> getStudentsGroupById(Long id);
+    Optional<StudentsGroup> findStudentsGroupById(Long id);
 
     /**
      * To create or update students group instance

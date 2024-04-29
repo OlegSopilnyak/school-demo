@@ -84,7 +84,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldFindAuthorityPersonById() throws Exception {
         Long id = 300L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
-        when(facade.getAuthorityPersonById(id)).thenReturn(Optional.of(person));
+        when(facade.findAuthorityPersonById(id)).thenReturn(Optional.of(person));
         String requestPath = RequestMappingRoot.AUTHORITIES + "/" + id;
 
         MvcResult result =
@@ -97,7 +97,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).getAuthorityPersonById(id);
+        verify(facade).findAuthorityPersonById(id);
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 

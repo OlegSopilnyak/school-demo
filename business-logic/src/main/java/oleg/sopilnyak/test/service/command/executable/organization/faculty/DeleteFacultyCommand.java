@@ -7,9 +7,9 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -98,17 +98,24 @@ public class DeleteFacultyCommand
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
+
+            final Faculty entity =
+                    retrieveEntity(id, persistence::findFacultyById, persistence::toEntity, () -> notFoundException);
+
+            if (!entity.getCourses().isEmpty()) {
+                throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");
+            }
+
             // cached faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(
-                    retrieveEntity(id, persistence::findFacultyById, persistence::toEntity, () -> notFoundException)
-            );
+            context.setUndoParameter(entity);
+            // deleting entity
             persistence.deleteFaculty(id);
             context.setResult(true);
             log.debug("Deleted faculty with ID: {} successfully.", id);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot delete faculty with :{}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 

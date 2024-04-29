@@ -7,9 +7,9 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -103,10 +103,16 @@ public class DeleteStudentsGroupCommand
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
+            final StudentsGroup entity =
+                    retrieveEntity(id, persistence::findStudentsGroupById, persistence::toEntity, () -> notFoundException);
+
+            if (!entity.getStudents().isEmpty()) {
+                throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
+            }
+
             // cached faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(
-                    retrieveEntity(id, persistence::findStudentsGroupById, persistence::toEntity, () -> notFoundException)
-            );
+            context.setUndoParameter(entity);
+            // deleting entity
             persistence.deleteStudentsGroup(id);
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);

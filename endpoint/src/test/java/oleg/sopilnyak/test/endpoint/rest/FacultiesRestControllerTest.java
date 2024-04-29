@@ -85,7 +85,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldFindFacultyById() throws Exception {
         Long id = 400L;
         Faculty faculty = makeTestFaculty(id);
-        when(facade.getFacultyById(id)).thenReturn(Optional.of(faculty));
+        when(facade.findFacultyById(id)).thenReturn(Optional.of(faculty));
         String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -97,7 +97,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).getFacultyById(id);
+        verify(facade).findFacultyById(id);
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
@@ -106,7 +106,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotFindFacultyById() throws Exception {
         Long id = 400L;
-        when(facade.getFacultyById(id)).thenReturn(Optional.empty());
+        when(facade.findFacultyById(id)).thenReturn(Optional.empty());
         String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -118,7 +118,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).getFacultyById(id);
+        verify(facade).findFacultyById(id);
 
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
                 result.getResponse().getContentAsString(),

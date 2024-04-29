@@ -1,22 +1,15 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.factory.base.ProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.facade.impl.PersonProfileFacadeImpl;
+import oleg.sopilnyak.test.service.command.factory.profile.base.ProfileCommandsFactory;
+import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class PersonProfileFacadeImplTest {

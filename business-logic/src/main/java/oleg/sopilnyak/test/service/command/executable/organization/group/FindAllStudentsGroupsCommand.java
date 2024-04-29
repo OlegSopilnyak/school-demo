@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
-import oleg.sopilnyak.test.service.command.type.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;

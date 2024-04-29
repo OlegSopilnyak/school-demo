@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.profile;
 
-import oleg.sopilnyak.test.school.common.business.PersonProfileFacade;
+import oleg.sopilnyak.test.school.common.business.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 import java.util.Optional;

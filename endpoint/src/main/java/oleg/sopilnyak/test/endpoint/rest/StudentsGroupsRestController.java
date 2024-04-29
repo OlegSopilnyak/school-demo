@@ -45,7 +45,7 @@ public class StudentsGroupsRestController {
             Long id = Long.parseLong(groupId);
             log.debug("Getting students group for id: {}", id);
 
-            return ResponseEntity.ok(resultToDto(groupId, facade.getStudentsGroupById(id)));
+            return ResponseEntity.ok(resultToDto(groupId, facade.findStudentsGroupById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong students-group-id: '{}'", groupId);
             throw new ResourceNotFoundException("Wrong students-group-id: '" + groupId + "'");

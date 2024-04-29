@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.business.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -82,7 +81,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     void shouldFindStudentsGroupById() throws Exception {
         Long id = 500L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
-        when(facade.getStudentsGroupById(id)).thenReturn(Optional.of(studentsGroup));
+        when(facade.findStudentsGroupById(id)).thenReturn(Optional.of(studentsGroup));
         String requestPath = RequestMappingRoot.STUDENT_GROUPS + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -94,7 +93,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).getStudentsGroupById(id);
+        verify(facade).findStudentsGroupById(id);
         String responseString = result.getResponse().getContentAsString();
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
