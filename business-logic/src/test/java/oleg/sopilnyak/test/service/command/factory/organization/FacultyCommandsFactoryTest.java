@@ -1,32 +1,34 @@
-package oleg.sopilnyak.test.service.command.factory;
+package oleg.sopilnyak.test.service.command.factory.organization;
 
-import oleg.sopilnyak.test.service.command.factory.profile.base.ProfileCommandsFactory;
-import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProfileCommandsFactoryTest<T> {
+class FacultyCommandsFactoryTest<T> {
     @Mock
-    ProfileCommand<T> command1;
+    FacultyCommand<T> command1;
     @Mock
-    ProfileCommand<T> command2;
+    FacultyCommand<T> command2;
     @Mock
-    ProfileCommand<T> command3;
-    ProfileCommandsFactory<T> factory;
+    FacultyCommand<T> command3;
+
+    FacultyCommandsFactory<T> factory;
 
     @BeforeEach
     void setUp() {
         when(command1.getId()).thenReturn("cmd1");
         when(command2.getId()).thenReturn("cmd2");
         when(command3.getId()).thenReturn("cmd3");
-//        factory = new ProfileCommandsFactory<>(List.of(command1, command2, command3));
+        factory = new FacultyCommandsFactory<>(Set.of(command1, command2, command3));
     }
 
     @Test
@@ -37,9 +39,8 @@ class ProfileCommandsFactoryTest<T> {
     }
 
     @Test
-    void shouldNotGetTheCommandByCommandId() {
+    void shouldDontGetTheCommandByCommandId() {
         assertThat(factory.command(null)).isNull();
         assertThat(factory.command("cmd4")).isNull();
     }
-
 }

@@ -1,15 +1,14 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
-import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -28,7 +27,6 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * Command-Implementation: command to link the student to the course
  */
 @Slf4j
-@AllArgsConstructor
 @Component
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
@@ -36,11 +34,17 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
     @Getter
-    @Value("${school.courses.maximum.rooms:50}")
     private final int maximumRooms;
     @Getter
-    @Value("${school.students.maximum.courses:5}")
     private final int coursesExceed;
+
+    public RegisterStudentToCourseCommand(StudentCourseLinkPersistenceFacade persistenceFacade,
+                                          @Value("${school.courses.maximum.rooms:50}") int maximumRooms,
+                                          @Value("${school.students.maximum.courses:5}") int coursesExceed) {
+        this.persistenceFacade = persistenceFacade;
+        this.maximumRooms = maximumRooms;
+        this.coursesExceed = coursesExceed;
+    }
 
     /**
      * To link the student to the course

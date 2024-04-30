@@ -2,9 +2,7 @@ package oleg.sopilnyak.test.service.command.factory.base;
 
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,7 +18,18 @@ public abstract class AbstractCommandFactory<T> implements CommandsFactory<T> {
      * @param commands commands collection
      */
     protected void applyFactoryCommands(Collection<? extends SchoolCommand<T>> commands) {
+        this.commandMap.clear();
         this.commandMap.putAll(commands.stream().collect(Collectors.toMap(SchoolCommand::getId, Function.identity())));
+    }
+
+    /**
+     * To get the commandIds of registered commands
+     *
+     * @return commandIds of registered commands
+     */
+    @Override
+    public Collection<String> commandIds() {
+        return List.of(commandMap.keySet().stream().sorted().toArray(String[]::new));
     }
 
     /**
@@ -34,5 +43,15 @@ public abstract class AbstractCommandFactory<T> implements CommandsFactory<T> {
     @Override
     public SchoolCommand<T> command(String commandId) {
         return commandMap.get(commandId);
+    }
+
+    /**
+     * To get the quantity of commands in the factory
+     *
+     * @return quantity of commands in the factory
+     */
+    @Override
+    public int getSize() {
+        return commandMap.size();
     }
 }
