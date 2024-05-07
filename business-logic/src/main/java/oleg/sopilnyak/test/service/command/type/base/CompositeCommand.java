@@ -47,8 +47,8 @@ public interface CompositeCommand extends SchoolCommand {
      * @see SchoolCommand#createContext()
      */
     @Override
-    default Context<?> createContext(Object input) {
-        final Context<?> context = createContext();
+    default <T> Context<T> createContext(Object input) {
+        final Context<T> context = createContext();
         final Deque<Context<?>> nested = commands().stream()
                 .map(command -> this.prepareContext(command, input))
                 .collect(Collectors.toCollection(LinkedList::new));
@@ -67,7 +67,7 @@ public interface CompositeCommand extends SchoolCommand {
      * @see SchoolCommand#createContext(Object)
      * @see Context
      */
-    default Context<?> prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
+    default <T> Context<T> prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
         return nestedCommand.createContext(macroCommandInput);
     }
 

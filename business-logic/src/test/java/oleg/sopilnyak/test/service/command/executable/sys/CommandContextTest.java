@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CommandContextTest {
+class CommandContextTest<T> {
 
-    CommandContext<Object> context = CommandContext.builder().build();
+    CommandContext<T> context = CommandContext.<T>builder().build();
 
     @Test
     void shouldAddStatesInCorrectOrder() {

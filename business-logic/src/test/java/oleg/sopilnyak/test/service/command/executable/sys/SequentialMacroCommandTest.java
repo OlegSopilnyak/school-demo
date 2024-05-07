@@ -52,7 +52,7 @@ class SequentialMacroCommandTest {
         int parameter = 100;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -96,7 +96,7 @@ class SequentialMacroCommandTest {
         int parameter = 101;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -136,7 +136,7 @@ class SequentialMacroCommandTest {
         int parameter = 102;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -150,7 +150,7 @@ class SequentialMacroCommandTest {
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isZero();
-        Context nestedContext;
+        Context<?> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
@@ -168,7 +168,7 @@ class SequentialMacroCommandTest {
     void shouldRollbackAllNestedDoneContexts() {
         int parameter = 103;
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -204,7 +204,7 @@ class SequentialMacroCommandTest {
     void shouldNotRollbackSomeNestedDoneContexts_NestedUndoThrown() {
         int parameter = 104;
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -291,7 +291,7 @@ class SequentialMacroCommandTest {
 
     private <T> void configureNestedUndoStatus(SchoolCommand nextedCommand) {
         doAnswer(invocationOnMock -> {
-            Context<?> context = invocationOnMock.getArgument(0, Context.class);
+            Context<T> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
             context.setState(UNDONE);
             return null;
