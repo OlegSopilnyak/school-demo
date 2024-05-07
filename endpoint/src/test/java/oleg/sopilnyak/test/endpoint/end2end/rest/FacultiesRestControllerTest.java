@@ -282,7 +282,11 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteFaculty_NotEmptyFaculty() throws Exception {
-        Faculty faculty = getPersistent(makeCleanFaculty(2));
+        Faculty source = makeCleanFaculty(2);
+        if (source instanceof FakeFaculty fake) {
+            fake.setCourses(makeClearCourses(3));
+        }
+        Faculty faculty = getPersistent(source);
         Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
 

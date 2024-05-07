@@ -303,7 +303,11 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(203));
+        AuthorityPerson source = makeCleanAuthorityPerson(203);
+        if (source instanceof FakeAuthorityPerson fake) {
+            fake.setFaculties(List.of(makeCleanFacultyNoDean(1)));
+        }
+        AuthorityPerson person = getPersistent(source);
         Long id = person.getId();
         assertThat(database.findAuthorityPersonById(id)).isPresent();
         String requestPath = ROOT + "/" + id;
