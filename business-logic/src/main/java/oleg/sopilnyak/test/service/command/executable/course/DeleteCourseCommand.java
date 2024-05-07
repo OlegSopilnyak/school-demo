@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
+public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
 
     public DeleteCourseCommand(CoursesPersistenceFacade persistenceFacade) {
@@ -106,11 +106,11 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             // cached course is storing to context for further rollback (undo)
             context.setUndoParameter(dbCourse);
             persistenceFacade.deleteCourse(inputId);
-            context.setResult(true);
+            context.setResult(Boolean.TRUE);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistenceFacade::save);
-            log.error("Cannot save the course '{}'", parameter, e);
+            log.error("Cannot delete the course by Id: {}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistenceFacade::save);
         }
     }
 

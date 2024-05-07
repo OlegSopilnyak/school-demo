@@ -8,7 +8,7 @@ import static java.util.Objects.isNull;
 /**
  * Type: Command to execute the business-logic action
  */
-public interface SchoolCommand<T> {
+public interface SchoolCommand {
     /**
      * To execute command's business-logic
      *
@@ -19,7 +19,7 @@ public interface SchoolCommand<T> {
      * @deprecated commands are going to work through redo/undo
      */
     @Deprecated(forRemoval = true)
-    CommandResult<T> execute(Object parameter);
+    CommandResult<?> execute(Object parameter);
 
     /**
      * To get unique command-id for the command
@@ -59,8 +59,8 @@ public interface SchoolCommand<T> {
      * @see CommandContext
      * @see Context.State#INIT
      */
-    default Context<T> createContext() {
-        final CommandContext<T> context = CommandContext.<T>builder().command(this).build();
+    default <R> Context<R> createContext() {
+        final CommandContext<R> context = CommandContext.<R>builder().command(this).build();
         context.setState(Context.State.INIT);
         return context;
     }
@@ -75,8 +75,11 @@ public interface SchoolCommand<T> {
      * @see CommandContext
      * @see Context.State#READY
      */
-    default Context<T> createContext(Object input) {
-        final CommandContext<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
+    default <R> Context<R> createContext(Object input) {
+        final CommandContext<R> context = CommandContext.<R>builder()
+                .command(this)
+                .redoParameter(input)
+                .build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;

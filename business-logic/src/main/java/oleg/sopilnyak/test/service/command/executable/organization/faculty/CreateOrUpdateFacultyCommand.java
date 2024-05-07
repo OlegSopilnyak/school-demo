@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateFacultyCommand
         extends SchoolCommandCache<Faculty>
-        implements FacultyCommand<Optional<Faculty>> {
+        implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
 
     public CreateOrUpdateFacultyCommand(FacultyPersistenceFacade persistence) {
@@ -88,12 +88,11 @@ public class CreateOrUpdateFacultyCommand
             final Long id = ((Faculty) parameter).getId();
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
-                // cached faculty is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(id, persistence::findFacultyById, persistence::toEntity,
-                                () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
-                        )
+                // previous version of faculty is storing to context for further rollback (undo)
+                final Faculty previous = retrieveEntity(id, persistence::findFacultyById, persistence::toEntity,
+                        () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                context.setUndoParameter(previous);
             }
 
             final Optional<Faculty> persisted = persistRedoEntity(context, persistence::save);

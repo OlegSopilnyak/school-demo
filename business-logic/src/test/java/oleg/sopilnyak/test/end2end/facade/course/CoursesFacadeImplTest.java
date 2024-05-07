@@ -2,22 +2,18 @@ package oleg.sopilnyak.test.end2end.facade.course;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.persistence.sql.repository.CourseRepository;
-import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
-import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,17 +47,11 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     public static final String COURSE_REGISTER = "course.register";
     public static final String COURSE_UN_REGISTER = "course.unRegister";
 
-    @SpyBean
-    @Autowired
-    StudentRepository studentRepository;
-    @SpyBean
-    @Autowired
-    CourseRepository courseRepository;
     @Autowired
     @SpyBean
     PersistenceFacade database;
     PersistenceFacade persistenceFacade;
-    CommandsFactory<?> factory;
+    CommandsFactory<CourseCommand> factory;
 
     CoursesFacade facade;
 
@@ -69,12 +59,13 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
-        facade = spy(new CoursesFacadeImpl<>(factory));
+        facade = spy(new CoursesFacadeImpl(factory));
     }
 
-    @AfterEach
-    void tearDown() {
-        reset(studentRepository, courseRepository);
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldBeEverythingIsValid() {
+        assertThat(database).isNotNull();
     }
 
     @Test
@@ -89,7 +80,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
     }
 
     @Test
@@ -107,7 +97,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
     }
 
     @Test
@@ -122,7 +111,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
-        verify(courseRepository).findCourseEntitiesByStudentSetId(studentId);
     }
 
     @Test
@@ -141,7 +129,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
-        verify(courseRepository).findCourseEntitiesByStudentSetId(studentId);
     }
 
     @Test
@@ -155,7 +142,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
-        verify(courseRepository).findCourseEntitiesByStudentSetEmpty();
     }
 
     @Test
@@ -173,7 +159,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
-        verify(courseRepository).findCourseEntitiesByStudentSetEmpty();
     }
 
     @Test
@@ -189,7 +174,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(courseToUpdate);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(courseToUpdate);
-        verify(courseRepository).saveAndFlush(any(CourseEntity.class));
     }
 
     @Test
@@ -198,7 +182,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Course newCourse = makeClearCourse(0);
         Long courseId = getPersistent(newCourse).getId();
         assertThat(database.findCourseById(courseId)).isPresent();
-        reset(courseRepository);
 
         facade.delete(courseId);
 
@@ -206,10 +189,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade).deleteCourse(courseId);
-        verify(courseRepository).deleteById(courseId);
-        verify(courseRepository).flush();
         assertThat(database.findCourseById(courseId)).isEmpty();
     }
 
@@ -225,9 +205,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).deleteCourse(anyLong());
-        verify(courseRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -236,7 +214,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Course newCourse = makeClearTestCourse();
         Long courseId = getPersistent(newCourse).getId();
         assertThat(database.findCourseById(courseId)).isPresent();
-        reset(courseRepository);
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 
@@ -245,9 +222,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).deleteCourse(anyLong());
-        verify(courseRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -257,7 +232,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Long studentId = getPersistent(student).getId();
         Course course = makeClearCourse(0);
         Long courseId = getPersistent(course).getId();
-        reset(studentRepository);
 
         facade.register(studentId, courseId);
 
@@ -274,11 +248,8 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository, times(3)).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository, times(3)).findById(courseId);
         verify(persistenceFacade).link(studentEntity.orElseThrow(), courseEntity.orElseThrow());
-        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -297,7 +268,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity).isNotEmpty();
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
-        reset(studentRepository, courseRepository);
 
         facade.register(studentId, courseId);
 
@@ -306,9 +276,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
     }
 
@@ -325,9 +293,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade, never()).findCourseById(anyLong());
-        verify(courseRepository, never()).findById(anyLong());
         verify(persistenceFacade, never()).link(any(), any());
     }
 
@@ -346,9 +312,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
     }
 
@@ -368,9 +332,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
     }
 
@@ -388,9 +350,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
     }
 
@@ -399,7 +359,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldUnRegister_NotLinked() throws NotExistCourseException, NotExistStudentException {
         Long studentId = getPersistent(makeClearStudent(0)).getId();
         Long courseId = getPersistent(makeClearCourse(0)).getId();
-        reset(studentRepository, courseRepository);
 
         facade.unRegister(studentId, courseId);
 
@@ -415,11 +374,8 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository, times(3)).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository, times(3)).findById(courseId);
         verify(persistenceFacade).unLink(studentEntity.get(), courseEntity.get());
-        verify(studentRepository, never()).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -438,7 +394,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity).isNotEmpty();
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
-        reset(studentRepository, courseRepository);
 
         facade.unRegister(studentId, courseId);
 
@@ -454,11 +409,8 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository, times(3)).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository, times(3)).findById(courseId);
         verify(persistenceFacade).unLink(studentEntity.get(), courseEntity.get());
-        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -474,7 +426,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade, never()).findCourseById(any());
         verify(persistenceFacade, never()).unLink(any(), any());
     }
@@ -492,9 +443,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(studentRepository).findById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
-        verify(courseRepository).findById(courseId);
         verify(persistenceFacade, never()).unLink(any(), any());
     }
 
@@ -510,7 +459,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
-    private CommandsFactory<?> buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<CourseCommand> buildFactory(PersistenceFacade persistenceFacade) {
         return new CourseCommandsFactory(List.of(
                 spy(new FindCourseCommand(persistenceFacade)),
                 spy(new FindRegisteredCoursesCommand(persistenceFacade)),
@@ -521,5 +470,4 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
                 spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
         ));
     }
-
 }

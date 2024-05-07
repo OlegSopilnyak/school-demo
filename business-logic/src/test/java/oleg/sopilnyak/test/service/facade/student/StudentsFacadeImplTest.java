@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import org.junit.jupiter.api.Test;
@@ -35,11 +36,11 @@ class StudentsFacadeImplTest {
 
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
-    CommandsFactory<?> factory = buildFactory();
+    CommandsFactory<StudentCommand> factory = buildFactory();
 
     @Spy
     @InjectMocks
-    StudentsFacadeImpl<?> facade;
+    StudentsFacadeImpl facade;
 
     @Mock
     Student mockedStudent;
@@ -192,7 +193,7 @@ class StudentsFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    private CommandsFactory<StudentCommand> buildFactory() {
         return new StudentCommandsFactory(
                 Set.of(
                         spy(new FindStudentCommand(persistenceFacade)),

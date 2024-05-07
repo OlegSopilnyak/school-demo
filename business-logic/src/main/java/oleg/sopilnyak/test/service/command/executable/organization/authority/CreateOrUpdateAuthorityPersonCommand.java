@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateAuthorityPersonCommand
         extends SchoolCommandCache<AuthorityPerson>
-        implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+        implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
 
     public CreateOrUpdateAuthorityPersonCommand(AuthorityPersonPersistenceFacade persistence) {
@@ -90,12 +90,11 @@ public class CreateOrUpdateAuthorityPersonCommand
             final Long id = ((AuthorityPerson) parameter).getId();
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
-                // cached authority person is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity,
-                                () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
-                        )
+                // previous version of authority person is storing to context for further rollback (undo)
+                final AuthorityPerson previous = retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity,
+                        () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                context.setUndoParameter(previous);
             }
 
             final Optional<AuthorityPerson> persisted = persistRedoEntity(context, persistence::save);

@@ -28,7 +28,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  */
 @Slf4j
 @Component
-public class RegisterStudentToCourseCommand implements CourseCommand<Boolean> {
+public class RegisterStudentToCourseCommand implements CourseCommand {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";

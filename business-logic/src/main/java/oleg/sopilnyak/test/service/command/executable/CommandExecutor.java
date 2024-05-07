@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable;
 
 
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
@@ -24,13 +23,12 @@ public interface CommandExecutor {
      * @param input     command input parameter
      * @param factory   factory of the commands
      * @param <T>       type of command result
-     * @param <P>       type of commands factory
      * @return result of command execution
      * @see CommandsFactory
      * @see SchoolCommand
      */
-    static <T, P> T doSimpleCommand(String commandId, Object input, CommandsFactory<P> factory) {
-        final SchoolCommand<T> command = takeValidCommand(commandId, factory);
+    static <T> T doSimpleCommand(String commandId, Object input, CommandsFactory<? extends SchoolCommand> factory) {
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         return doCommand(command, input);
     }
 
@@ -50,7 +48,7 @@ public interface CommandExecutor {
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandExecutor#createThrowFor(String)
      */
-    private static <T> T doCommand(SchoolCommand<T> command, Object input) {
+    private static <T> T doCommand(SchoolCommand command, Object input) {
         final String commandId = command.getId();
         final Context<T> context = command.createContext(input);
         // doing command's do
@@ -63,63 +61,20 @@ public interface CommandExecutor {
                 throwFor(commandId, context.getException());
     }
 
-    /**
-     * To execute simple school-command
-     *
-     * @param commandId command-id
-     * @param option    command option
-     * @param factory   factory of the commands
-     * @param <T>       type of command result
-     * @param <P>       type of commands factory
-     * @return result of command execution
-     * @see CommandsFactory
-     * @see SchoolCommand
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    static <T, P> T executeSimpleCommand(String commandId, Object option, CommandsFactory<P> factory) {
-        final SchoolCommand<T> command = takeValidCommand(commandId, factory);
-        return executeCommand(command, option);
-    }
-
-    /**
-     * To execute simple command with parameter(s)
-     *
-     * @param command command to execute
-     * @param option  command's parameter(s)
-     * @param <T>     type of command result
-     * @return result of command execution
-     * @see SchoolCommand#execute(Object)
-     * @see CommandResult
-     * @see CommandResult#isSuccess()
-     * @see CommandResult#getResult()
-     * @see CommandResult#getException()
-     * @see CommandExecutor#throwFor(String, Exception)
-     * @see CommandExecutor#createThrowFor(String)
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    private static <T> T executeCommand(SchoolCommand<T> command, Object option) {
-        final CommandResult<T> cmdResult = command.execute(option);
-        return cmdResult.isSuccess() ?
-                cmdResult.getResult().orElseThrow(createThrowFor(command.getId())) :
-                throwFor(command.getId(), cmdResult.getException());
-    }
 
     /**
      * To take valid command from factory or throw UnableExecuteCommandException
      *
      * @param commandId id of the command to take
      * @param factory   commands factory
-     * @param <T>       type of command result
      * @return valid taken command or throws
      * @see CommandsFactory
      * @see CommandsFactory#command(String)
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandNotRegisteredInFactoryException
      */
-    static <T> SchoolCommand<T> takeValidCommand(final String commandId, final CommandsFactory factory) {
-        final SchoolCommand<T> concreteCommand = factory.command(commandId);
+    static <T extends SchoolCommand> SchoolCommand takeValidCommand(final String commandId, final CommandsFactory<T> factory) {
+        final SchoolCommand concreteCommand = factory.command(commandId);
         return nonNull(concreteCommand) ? concreteCommand :
                 throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
     }
@@ -129,7 +84,7 @@ public interface CommandExecutor {
      *
      * @param commandId command-id where something went wrong
      * @return Runtime-exception instance
-     * @see CommandExecutor#executeSimpleCommand(String, Object, CommandsFactory)
+     * @see CommandExecutor#doCommand(SchoolCommand, java.lang.Object)
      */
     static Supplier<RuntimeException> createThrowFor(final String commandId) {
         return () -> new UnableExecuteCommandException(commandId);

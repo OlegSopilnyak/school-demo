@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
 import org.junit.jupiter.api.Test;
@@ -36,11 +37,11 @@ class CoursesFacadeImplTest {
     private static final String COURSE_UN_REGISTER = "course.unRegister";
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
-    CommandsFactory<?> factory = buildFactory();
+    CommandsFactory<CourseCommand> factory = buildFactory();
 
     @Spy
     @InjectMocks
-    CoursesFacadeImpl<?> facade;
+    CoursesFacadeImpl facade;
 
     @Mock
     Course mockedCourse;
@@ -326,7 +327,7 @@ class CoursesFacadeImplTest {
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    private CommandsFactory<CourseCommand> buildFactory() {
         return new CourseCommandsFactory(
                 List.of(
                         spy(new FindCourseCommand(persistenceFacade)),

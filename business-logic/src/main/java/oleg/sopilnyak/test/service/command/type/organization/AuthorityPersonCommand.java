@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCo
  * @see OrganizationCommand
  * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
-public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
+public interface AuthorityPersonCommand extends OrganizationCommand {
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
     /**
      * The name of commands-factory SpringBean

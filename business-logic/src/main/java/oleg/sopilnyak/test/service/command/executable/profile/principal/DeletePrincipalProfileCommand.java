@@ -24,8 +24,7 @@ import java.util.function.UnaryOperator;
 @Slf4j
 @Component
 public class DeletePrincipalProfileCommand
-        extends DeleteProfileCommand<Boolean, PrincipalProfile>
-        implements PrincipalProfileCommand<Boolean> {
+        extends DeleteProfileCommand<PrincipalProfile> implements PrincipalProfileCommand {
     /**
      * Constructor
      *
@@ -72,7 +71,7 @@ public class DeletePrincipalProfileCommand
      */
     @Override
     protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
-        return entity -> (PrincipalProfile) persistence.toEntity(entity);
+        return persistence::toEntity;
     }
 
     /**

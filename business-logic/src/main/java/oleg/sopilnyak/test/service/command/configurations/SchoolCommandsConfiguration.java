@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileComma
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -38,8 +39,8 @@ public class SchoolCommandsConfiguration {
      * @see StudentCommand
      */
     @Bean(name = StudentCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> studentsCommandsFactory(final Collection<StudentCommand<T>> commands) {
-        return new StudentCommandsFactory<>(commands);
+    public CommandsFactory<StudentCommand> studentsCommandsFactory(final Collection<StudentCommand> commands) {
+        return new StudentCommandsFactory(commands);
     }
 
     /**
@@ -50,8 +51,8 @@ public class SchoolCommandsConfiguration {
      * @see CourseCommand
      */
     @Bean(name = CourseCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> courseCommandsFactory(final Collection<CourseCommand<T>> commands) {
-        return new CourseCommandsFactory<>(commands);
+    public CommandsFactory<CourseCommand> courseCommandsFactory(final Collection<CourseCommand> commands) {
+        return new CourseCommandsFactory(commands);
     }
 
     /**
@@ -62,8 +63,8 @@ public class SchoolCommandsConfiguration {
      * @see AuthorityPersonCommand
      */
     @Bean(name = AuthorityPersonCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> authorityPersonCommandFactory(final Collection<AuthorityPersonCommand<T>> commands) {
-        return new AuthorityPersonCommandsFactory<>(commands);
+    public CommandsFactory<AuthorityPersonCommand> authorityPersonCommandFactory(final Collection<AuthorityPersonCommand> commands) {
+        return new AuthorityPersonCommandsFactory(commands);
     }
 
     /**
@@ -74,8 +75,8 @@ public class SchoolCommandsConfiguration {
      * @see FacultyCommand
      */
     @Bean(name = FacultyCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> facultyCommandFactory(final Collection<FacultyCommand<T>> commands) {
-        return new FacultyCommandsFactory<>(commands);
+    public CommandsFactory<FacultyCommand> facultyCommandFactory(final Collection<FacultyCommand> commands) {
+        return new FacultyCommandsFactory(commands);
     }
 
     /**
@@ -86,8 +87,8 @@ public class SchoolCommandsConfiguration {
      * @see StudentsGroupCommand
      */
     @Bean(name = StudentsGroupCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> studentsGroupCommandFactory(final Collection<StudentsGroupCommand<T>> commands) {
-        return new StudentsGroupCommandsFactory<>(commands);
+    public CommandsFactory<StudentsGroupCommand> studentsGroupCommandFactory(final Collection<StudentsGroupCommand> commands) {
+        return new StudentsGroupCommandsFactory(commands);
     }
 
     /**
@@ -98,8 +99,8 @@ public class SchoolCommandsConfiguration {
      * @see StudentProfileCommand
      */
     @Bean(name = StudentProfileCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> studentProfileCommandsFactory(final Collection<StudentProfileCommand<T>> commands) {
-        return new StudentProfileCommandsFactory<>(commands);
+    public CommandsFactory<StudentProfileCommand> studentProfileCommandsFactory(final Collection<StudentProfileCommand> commands) {
+        return new StudentProfileCommandsFactory(commands);
     }
 
     /**
@@ -110,11 +111,12 @@ public class SchoolCommandsConfiguration {
      * @see PrincipalProfileCommand
      */
     @Bean(name = PrincipalProfileCommand.FACTORY_BEAN_NAME)
-    public <T> CommandsFactory<T> principalProfileCommandsFactory(final Collection<PrincipalProfileCommand<T>> commands) {
-        return new PrincipalProfileCommandsFactory<>(commands);
+    public CommandsFactory<PrincipalProfileCommand> principalProfileCommandsFactory(final Collection<PrincipalProfileCommand> commands) {
+        return new PrincipalProfileCommandsFactory(commands);
     }
 
 // ----------------- Commands Factories Farm ----------------
+
     /**
      * Builder for commands factories farm instance
      *
@@ -123,7 +125,7 @@ public class SchoolCommandsConfiguration {
      * @see CommandsFactory
      */
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
-    public <T> CommandsFactoriesFarm<T> createCommandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
+    public <T extends SchoolCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
     }
 }

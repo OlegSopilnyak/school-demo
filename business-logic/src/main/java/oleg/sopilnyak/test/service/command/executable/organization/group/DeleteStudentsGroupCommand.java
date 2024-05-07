@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class DeleteStudentsGroupCommand
         extends SchoolCommandCache<StudentsGroup>
-        implements StudentsGroupCommand<Boolean> {
+        implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
 
     public DeleteStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {

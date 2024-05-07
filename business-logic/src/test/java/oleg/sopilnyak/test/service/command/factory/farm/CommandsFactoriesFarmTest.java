@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CommandsFactoriesFarmTest<T> {
+class CommandsFactoriesFarmTest<T extends SchoolCommand> {
     @Mock
     CommandsFactory<T> factory1;
     @Mock
@@ -52,8 +52,8 @@ class CommandsFactoriesFarmTest<T> {
 
     @Test
     void shouldGetCommandFromFarm() {
-        SchoolCommand<T> cmd1 = mock(SchoolCommand.class);
-        SchoolCommand<T> cmd2 = mock(SchoolCommand.class);
+        T cmd1 = (T) mock(SchoolCommand.class);
+        T cmd2 = (T) mock(SchoolCommand.class);
         when(factory1.command("cmd1")).thenReturn(cmd1);
         when(factory1.command("cmd2")).thenReturn(cmd2);
         assertThat(farm.command("cmd1")).isEqualTo(cmd1);

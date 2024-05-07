@@ -23,7 +23,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
+public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
 
     /**

@@ -76,4 +76,14 @@ public interface CoursesPersistence extends CoursesPersistenceFacade {
     default Course toEntity(Course course) {
         return getMapper().toEntity(course);
     }
+
+    /**
+     * To check is there is any course in the database<BR/>For tests purposes only
+     *
+     * @return true if there is no course in database
+     */
+    @Override
+    default boolean isNoCourses() {
+        return getCourseRepository().count() == 0;
+    }
 }

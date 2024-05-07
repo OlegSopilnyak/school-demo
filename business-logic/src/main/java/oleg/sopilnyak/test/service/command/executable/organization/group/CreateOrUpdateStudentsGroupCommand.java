@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateStudentsGroupCommand
         extends SchoolCommandCache<StudentsGroup>
-        implements StudentsGroupCommand<Optional<StudentsGroup>> {
+        implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
 
     public CreateOrUpdateStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {

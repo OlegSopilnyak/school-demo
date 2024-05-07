@@ -86,7 +86,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     @Transactional(propagation = Propagation.REQUIRED)
     default void deleteProfileById(Long id) {
         getLog().debug("Deleting PersonProfile with ID:{}", id);
-        if (this.findProfileById(id).isPresent()) {
+        if (getPersonProfileRepository().findById(id).isPresent()) {
             getPersonProfileRepository().deleteById(id);
             getPersonProfileRepository().flush();
             getLog().debug("Deleted PersonProfile with ID:{}", id);

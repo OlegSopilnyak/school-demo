@@ -6,30 +6,32 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 
+import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.*;
+
 /**
  * Service: To process commands for school's student profiles facade
  */
 @Slf4j
-public class StudentProfileFacadeImpl<T>
-        extends PersonProfileFacadeImpl<T>
+public class StudentProfileFacadeImpl
+        extends PersonProfileFacadeImpl<StudentProfileCommand>
         implements StudentProfileFacade {
 
-    public StudentProfileFacadeImpl(CommandsFactory<T> factory) {
+    public StudentProfileFacadeImpl(CommandsFactory<StudentProfileCommand> factory) {
         super(factory);
     }
 
     @Override
-    protected String findByIdCommandId() {
-        return StudentProfileCommand.FIND_BY_ID_COMMAND_ID;
+    protected final String findByIdCommandId() {
+        return FIND_BY_ID_COMMAND_ID;
     }
 
     @Override
-    protected String createOrUpdateCommandId() {
-        return StudentProfileCommand.CREATE_OR_UPDATE_COMMAND_ID;
+    protected final String createOrUpdateCommandId() {
+        return CREATE_OR_UPDATE_COMMAND_ID;
     }
 
     @Override
-    protected String deleteByIdCommandId() {
-        return StudentProfileCommand.DELETE_BY_ID_COMMAND_ID;
+    protected final String deleteByIdCommandId() {
+        return DELETE_BY_ID_COMMAND_ID;
     }
 }

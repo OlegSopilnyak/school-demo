@@ -13,10 +13,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 
 /**
@@ -30,7 +27,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateStudentCommand
         extends SchoolCommandCache<Student>
-        implements StudentCommand<Optional<Student>> {
+        implements StudentCommand {
     private final StudentsPersistenceFacade persistence;
 
     public CreateOrUpdateStudentCommand(StudentsPersistenceFacade persistence) {
@@ -86,15 +83,15 @@ public class CreateOrUpdateStudentCommand
         try {
             check(parameter);
             log.debug("Trying to change student using: {}", parameter.toString());
-            final Long inputId = ((Student) parameter).getId();
-            final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(inputId);
+            final Long id = ((Student) parameter).getId();
+            final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateStudent) {
-                // cached student is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(inputId, persistence::findStudentById, persistence::toEntity,
-                                () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.")
-                        )
+                // previous version of student is storing to context for further rollback (undo)
+                final Student previous = retrieveEntity(id,
+                        persistence::findStudentById, persistence::toEntity,
+                        () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                context.setUndoParameter(previous);
             }
             final Optional<Student> student = persistRedoEntity(context, persistence::save);
             // checking execution context state
@@ -113,7 +110,7 @@ public class CreateOrUpdateStudentCommand
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
      * @see StudentsPersistenceFacade#save(Student)
      * @see StudentsPersistenceFacade#deleteStudent(Long)
      * @see NotExistStudentException

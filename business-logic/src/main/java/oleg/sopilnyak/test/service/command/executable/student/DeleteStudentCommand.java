@@ -16,10 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 /**
  * Command-Implementation: command to delete the student
@@ -30,7 +27,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand<Boolean> {
+public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand {
     private final StudentsPersistenceFacade persistence;
 
     public DeleteStudentCommand(StudentsPersistenceFacade persistence) {
@@ -116,7 +113,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             context.setResult(true);
         } catch (Exception e) {
             rollbackCachedEntity(context, persistence::save);
-            log.error("Cannot delete the student {}", parameter, e);
+            log.error("Cannot delete the student by Id: {}", parameter, e);
             context.failed(e);
         }
     }
@@ -128,7 +125,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see this#rollbackCachedEntity(Context, Function, LongFunction, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
      */
     @Override
     public void executeUndo(Context<?> context) {

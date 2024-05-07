@@ -2,10 +2,11 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
+import oleg.sopilnyak.test.school.common.exception.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
@@ -21,17 +22,18 @@ import static oleg.sopilnyak.test.service.command.type.CourseCommand.*;
  */
 @Slf4j
 @AllArgsConstructor
-public class CoursesFacadeImpl<T> implements CoursesFacade {
+public class CoursesFacadeImpl implements CoursesFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
-    private final CommandsFactory<T> factory;
+    private final CommandsFactory<CourseCommand> factory;
 
     /**
      * To get the course by ID
      *
      * @param courseId system-id of the course
-     * @return student instance or empty() if not exists
+     * @return course instance or empty() if not exists
+     * @see Course
      * @see Optional
      * @see Optional#empty()
      */
@@ -78,13 +80,13 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      * To delete course from the school
      *
      * @param courseId system-id of the course to delete
-     * @throws NotExistCourseException    throws when course it not exists
+     * @throws NotExistCourseException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
     @Override
     public void delete(Long courseId) throws NotExistCourseException, CourseWithStudentsException {
         final String commandId = DELETE_COMMAND_ID;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(courseId);
 
         command.doCommand(context);
@@ -113,8 +115,8 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws NotExistStudentException     throws when student is not exists
-     * @throws NotExistCourseException      throws if course is not exists
+     * @throws NotExistStudentException      throws when student is not exists
+     * @throws NotExistCourseException       throws if course is not exists
      * @throws NoRoomInTheCourseException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
@@ -123,7 +125,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
             throws NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
         final String commandId = REGISTER_COMMAND_ID;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
@@ -162,7 +164,7 @@ public class CoursesFacadeImpl<T> implements CoursesFacade {
     @Override
     public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
         final String commandId = UN_REGISTER_COMMAND_ID;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);

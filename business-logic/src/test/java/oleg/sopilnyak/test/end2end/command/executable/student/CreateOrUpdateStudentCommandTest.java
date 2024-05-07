@@ -1,8 +1,7 @@
-package oleg.sopilnyak.test.end2end.service.command.executable.student;
+package oleg.sopilnyak.test.end2end.command.executable.student;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
@@ -29,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentCommand.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
@@ -38,18 +37,11 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     StudentsPersistenceFacade persistence;
     @SpyBean
     @Autowired
-    StudentRepository studentRepository;
-    @SpyBean
-    @Autowired
     CreateOrUpdateStudentCommand command;
-//    @Mock
-//    Student instance;
 
     @AfterEach
     void tearDown() {
-        reset(command);
-        reset(persistence);
-        reset(studentRepository);
+        reset(command, persistence);
     }
 
     @Test
@@ -57,7 +49,6 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
-        assertThat(studentRepository).isNotNull();
     }
 
     @Test
@@ -70,13 +61,12 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
+        Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent();
         assertStudentEquals(student, result.get(), false);
         assertThat(context.getUndoParameter()).isEqualTo(result.get().getId());
         verify(command).executeDo(context);
         verify(persistence).save(student);
-        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -87,7 +77,6 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         if (studentUpdated instanceof StudentEntity updated) {
             updated.setFirstName(student.getFirstName() + "-updated");
         }
-        assertThat(studentRepository.findAll()).hasSize(1);
         Context<Optional<Student>> context = command.createContext(studentUpdated);
 
         command.doCommand(context);
@@ -95,13 +84,12 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter()).isEqualTo(student);
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
-        assertStudentEquals(studentUpdated, result.get(), false);
+        Optional<Student> result = context.getResult().get();
+        assertStudentEquals(studentUpdated, result.orElseThrow(), false);
         verify(command).executeDo(context);
-        assertThat(studentRepository.findAll()).hasSize(1);
+        verify(persistence).findStudentById(student.getId());
         verify(persistence).toEntity(studentUpdated);
         verify(persistence).save(studentUpdated);
-        verify(studentRepository).saveAndFlush((StudentEntity) studentUpdated);
     }
 
     @Test
@@ -142,12 +130,10 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).save(student);
-        verify(studentRepository, never()).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -172,6 +158,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_DeleteStudent() {
         Long id = persistStudent().getId();
+        assertThat(persistence.isNoStudents()).isFalse();
         Context<Optional<Student>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(id);
@@ -179,16 +166,15 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
+        assertThat(persistence.isNoStudents()).isTrue();
         verify(command).executeUndo(context);
         verify(persistence).deleteStudent(id);
-        verify(studentRepository).deleteById(id);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_RestoreStudent() {
         Student student = persistStudent();
-        assertThat(studentRepository.findAll()).hasSize(1);
         Context<Optional<Student>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(student);
@@ -196,10 +182,8 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
-        assertThat(studentRepository.findAll()).hasSize(1);
         verify(command).executeUndo(context);
         verify(persistence).save(student);
-        verify(studentRepository).saveAndFlush(any(StudentEntity.class));
     }
 
     @Test
@@ -247,7 +231,6 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
         verify(persistence).deleteStudent(id);
-        verify(studentRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -274,10 +257,12 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
             Student entity = persistence.save(student).orElse(null);
             assertThat(entity).isNotNull();
             long id = entity.getId();
-            assertThat(studentRepository.findById(id)).isNotEmpty();
+            Optional<Student> dbStudent = persistence.findStudentById(id);
+            assertStudentEquals(dbStudent.orElseThrow(), student, false);
+            assertThat(dbStudent).contains(entity);
             return persistence.toEntity(entity);
         } finally {
-            reset(persistence, studentRepository);
+            reset(persistence);
         }
     }
 }

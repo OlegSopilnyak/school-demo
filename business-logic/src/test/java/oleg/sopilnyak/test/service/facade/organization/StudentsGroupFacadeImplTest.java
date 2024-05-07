@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.FindStu
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ class StudentsGroupFacadeImplTest {
     private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "organization.students.group.delete";
     StudentsGroupPersistenceFacade persistenceFacade = mock(StudentsGroupPersistenceFacade.class);
     @Spy
-    CommandsFactory<?> factory = buildFactory();
+    CommandsFactory<StudentsGroupCommand> factory = buildFactory();
     @Mock
     StudentsGroup mockGroup;
 
@@ -156,7 +157,7 @@ class StudentsGroupFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    private CommandsFactory<StudentsGroupCommand> buildFactory() {
         return new StudentsGroupCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),

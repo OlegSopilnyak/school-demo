@@ -34,51 +34,51 @@ public class BusinessLogicConfiguration {
     // --------- Business' facades ---------------
     @Bean
     public StudentsFacade studentsFacade(
-            @Qualifier(StudentCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(StudentCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentCommand> factory
     ) {
-        return new StudentsFacadeImpl<>(factory);
+        return new StudentsFacadeImpl(factory);
     }
 
     @Bean
     public CoursesFacade coursesFacade(
-            @Qualifier(CourseCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(CourseCommand.FACTORY_BEAN_NAME) CommandsFactory<CourseCommand> factory
     ) {
-        return new CoursesFacadeImpl<>(factory);
+        return new CoursesFacadeImpl(factory);
     }
 
     @Bean
     public AuthorityPersonFacade authorityPersonFacade(
-            @Qualifier(AuthorityPersonCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(AuthorityPersonCommand.FACTORY_BEAN_NAME) CommandsFactory<AuthorityPersonCommand> factory
     ) {
         return new AuthorityPersonFacadeImpl(factory);
     }
 
     @Bean
     public FacultyFacade facultyFacade(
-            @Qualifier(FacultyCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(FacultyCommand.FACTORY_BEAN_NAME) CommandsFactory<FacultyCommand> factory
     ) {
         return new FacultyFacadeImpl(factory);
     }
 
     @Bean
     public StudentsGroupFacade studentsGroupFacade(
-            @Qualifier(StudentsGroupCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(StudentsGroupCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentsGroupCommand> factory
     ) {
         return new StudentsGroupFacadeImpl(factory);
     }
 
     @Bean
     public StudentProfileFacade studentProfileFacade(
-            @Qualifier(StudentProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(StudentProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentProfileCommand> factory
     ) {
-        return new StudentProfileFacadeImpl<>(factory);
+        return new StudentProfileFacadeImpl(factory);
     }
 
     @Bean
     public PrincipalProfileFacade principalProfileFacade(
-            @Qualifier(PrincipalProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<?> factory
+            @Qualifier(PrincipalProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<PrincipalProfileCommand> factory
     ) {
-        return new PrincipalProfileFacadeImpl<>(factory);
+        return new PrincipalProfileFacadeImpl(factory);
     }
 
 }

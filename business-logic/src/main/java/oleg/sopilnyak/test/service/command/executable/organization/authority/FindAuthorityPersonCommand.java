@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistenceFacade;
 
     /**

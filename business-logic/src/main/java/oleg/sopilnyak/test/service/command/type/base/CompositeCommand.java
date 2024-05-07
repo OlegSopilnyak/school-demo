@@ -2,20 +2,17 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandParameterWrapper;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of commands
- *
- * @param <T> type of macro-command result
  */
-public interface CompositeCommand<T> extends SchoolCommand<T> {
+public interface CompositeCommand extends SchoolCommand {
 
     /**
      * To get reference to command's logger
@@ -29,14 +26,14 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      *
      * @return collection of included commands
      */
-    Collection<SchoolCommand<?>> commands();
+    Collection<SchoolCommand> commands();
 
     /**
      * To add the command
      *
      * @param command the instance to add
      */
-    void add(SchoolCommand<?> command);
+    void add(SchoolCommand command);
 
     /**
      * To create command's context with doParameter
@@ -50,15 +47,13 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see SchoolCommand#createContext()
      */
     @Override
-    default Context<T> createContext(Object input) {
-        final Context<T> context = createContext();
+    default Context<?> createContext(Object input) {
+        final Context<?> context = createContext();
+        final Deque<Context<?>> nested = commands().stream()
+                .map(command -> this.prepareContext(command, input))
+                .collect(Collectors.toCollection(LinkedList::new));
         // assemble input parameter contexts for redo
-        context.setRedoParameter(CommandParameterWrapper.builder()
-                .input(input)
-                .nestedContexts(commands().stream()
-                        .map(cmd -> prepareContext(cmd, input))
-                        .collect(Collectors.toCollection(LinkedList::new)))
-                .build());
+        context.setRedoParameter(CommandParameterWrapper.builder().input(input).nestedContexts(nested).build());
         return context;
     }
 
@@ -72,23 +67,8 @@ public interface CompositeCommand<T> extends SchoolCommand<T> {
      * @see SchoolCommand#createContext(Object)
      * @see Context
      */
-    default Context<?> prepareContext(SchoolCommand<?> nestedCommand, Object macroCommandInput) {
+    default Context<?> prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
         return nestedCommand.createContext(macroCommandInput);
-    }
-
-    /**
-     * To execute command's business-logic
-     *
-     * @param parameter command's parameter
-     * @return execution's result
-     * @see this#doCommand(Context)
-     * @see this#undoCommand(Context)
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    default CommandResult<T> execute(Object parameter) {
-        return CommandResult.<T>builder().success(false).result(Optional.empty()).build();
     }
 
     /**

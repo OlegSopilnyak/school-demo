@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import org.junit.jupiter.api.AfterEach;
@@ -55,15 +56,15 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     PersistenceFacade persistenceFacade;
-    CommandsFactory<?> factory;
+    CommandsFactory<StudentCommand> factory;
 
-    StudentsFacadeImpl<?> facade;
+    StudentsFacadeImpl facade;
 
     @BeforeEach
     void setUp() {
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
-        facade = spy(new StudentsFacadeImpl<>(factory));
+        facade = spy(new StudentsFacadeImpl(factory));
     }
 
     @AfterEach
@@ -318,7 +319,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
-    private CommandsFactory<?> buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<StudentCommand> buildFactory(PersistenceFacade persistenceFacade) {
         return new StudentCommandsFactory(
                 Set.of(
                         spy(new FindStudentCommand(persistenceFacade)),

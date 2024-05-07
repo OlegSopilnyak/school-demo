@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 /**
  * Type for school-course command
  */
-public interface CourseCommand<T> extends SchoolCommand<T> {
+public interface CourseCommand extends SchoolCommand {
     String COURSE_WITH_ID_PREFIX = "Course with ID:";
     /**
      * The name of commands-factory SpringBean

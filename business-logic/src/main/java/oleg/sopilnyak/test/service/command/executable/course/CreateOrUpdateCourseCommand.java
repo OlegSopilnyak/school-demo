@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateCourseCommand
         extends SchoolCommandCache<Course>
-        implements CourseCommand<Optional<Course>> {
+        implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
 
     public CreateOrUpdateCourseCommand(CoursesPersistenceFacade persistenceFacade) {
@@ -82,15 +82,15 @@ public class CreateOrUpdateCourseCommand
         try {
             check(parameter);
             log.debug("Trying to create or update course {}", parameter);
-            final Long inputId = ((Course) parameter).getId();
-            final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(inputId);
+            final Long id = ((Course) parameter).getId();
+            final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateCourse) {
-                // cached course is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(inputId, persistenceFacade::findCourseById, persistenceFacade::toEntity,
-                                () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.")
-                        )
+                // previous version of course is storing to context for further rollback (undo)
+                final Course previous = retrieveEntity(id,
+                        persistenceFacade::findCourseById, persistenceFacade::toEntity,
+                        () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                context.setUndoParameter(previous);
             }
             final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);
             // checking execution context state

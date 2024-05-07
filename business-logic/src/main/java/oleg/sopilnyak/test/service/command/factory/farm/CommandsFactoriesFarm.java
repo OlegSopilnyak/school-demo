@@ -13,7 +13,7 @@ import static java.util.Objects.isNull;
  * @see CommandsFactory
  * @see SchoolCommand
  */
-public class CommandsFactoriesFarm<T> implements CommandsFactory<T>{
+public class CommandsFactoriesFarm<T extends SchoolCommand> implements CommandsFactory<T> {
     public static final String FARM_BEAN_NAME = "commandFactoriesFarm";
     public static final String NAME = "CommandFactories-Farm";
     // The list of registered factories
@@ -58,7 +58,7 @@ public class CommandsFactoriesFarm<T> implements CommandsFactory<T>{
      * @see SchoolCommand
      * @see Optional
      */
-    public SchoolCommand<T> command(String commandId) {
+    public T command(String commandId) {
         return commandsFactories.stream()
                 .map(factory -> factory.command(commandId)).filter(Objects::nonNull)
                 .findFirst().orElse(null);

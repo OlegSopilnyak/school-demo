@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -18,16 +18,15 @@ import java.util.function.UnaryOperator;
 /**
  * Command-Base-Implementation: command to update person profile instance
  *
+ * @param <E> command's working Entity type
  * @see PersonProfile
  * @see ProfileCommand
  * @see ProfilePersistenceFacade
  * @see SchoolCommandCache
- * @param <R> command's Result type
- * @param <E> command's working Entity type
  */
-public abstract class CreateOrUpdateProfileCommand<R, E extends PersonProfile>
+public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
         extends SchoolCommandCache<E>
-        implements ProfileCommand<R> {
+        implements ProfileCommand {
 
     protected final ProfilePersistenceFacade persistence;
 
@@ -68,20 +67,20 @@ public abstract class CreateOrUpdateProfileCommand<R, E extends PersonProfile>
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<R> execute(Object parameter) {
+    public CommandResult<Optional<E>> execute(Object parameter) {
         try {
             getLog().debug("Trying to update person profile {}", parameter);
             final E input = commandParameter(parameter);
             final Optional<E> profile = functionSave().apply(input);
             getLog().debug("Got saved \nperson profile {}\n for input {}", profile, input);
-            return CommandResult.<R>builder()
-                    .result(Optional.of((R) profile))
+            return CommandResult.<Optional<E>>builder()
+                    .result(Optional.of(profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
-            return CommandResult.<R>builder()
-                    .result((Optional<R>) Optional.of(Optional.empty()))
+            return CommandResult.<Optional<E>>builder()
+                    .result(Optional.of(Optional.empty()))
                     .exception(e).success(false).build();
         }
     }
@@ -111,12 +110,12 @@ public abstract class CreateOrUpdateProfileCommand<R, E extends PersonProfile>
             final Long inputId = ((E) parameter).getId();
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
-                // cached profile is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(inputId, functionFindById(), functionCopyEntity(),
-                                () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + inputId + " is not exists.")
-                        )
+                // previous version of profile is storing to context for further rollback (undo)
+                final E previous = retrieveEntity(inputId,
+                        functionFindById(), functionCopyEntity(),
+                        () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + inputId + " is not exists.")
                 );
+                context.setUndoParameter(previous);
             }
             final Optional<E> profile = persistRedoEntity(context, functionSave());
             // checking execution context state

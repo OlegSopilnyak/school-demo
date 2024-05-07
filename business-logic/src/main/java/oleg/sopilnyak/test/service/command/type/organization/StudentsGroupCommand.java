@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCo
  * @see OrganizationCommand
  * @see oleg.sopilnyak.test.school.common.model.StudentsGroup
  */
-public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
+public interface StudentsGroupCommand extends OrganizationCommand {
     String GROUP_WITH_ID_PREFIX = "Students Group with ID:";
     /**
      * The name of commands-factory SpringBean

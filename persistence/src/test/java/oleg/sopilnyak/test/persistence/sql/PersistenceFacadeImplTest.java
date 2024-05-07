@@ -135,9 +135,8 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         facade.save(course);
         assertThat(course).isEqualTo(facade.findCourseById(course.getId()).orElse(null));
 
-        boolean success = facade.deleteCourse(course.getId());
+        facade.deleteCourse(course.getId());
 
-        assertThat(success).isTrue();
         assertThat(facade.findCourseById(course.getId())).isEmpty();
     }
 

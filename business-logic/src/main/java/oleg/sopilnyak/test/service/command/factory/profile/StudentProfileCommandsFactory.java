@@ -14,10 +14,10 @@ import java.util.Collection;
  * @see AbstractCommandFactory
  * @see StudentProfileCommand
  */
-public class StudentProfileCommandsFactory<T> extends ProfileCommandsFactory<T> implements CommandsFactory<T> {
+public class StudentProfileCommandsFactory extends ProfileCommandsFactory<StudentProfileCommand> {
     public static final String NAME = "Student-Profiles";
 
-    public StudentProfileCommandsFactory(Collection<StudentProfileCommand<T>> commands) {
+    public StudentProfileCommandsFactory(Collection<StudentProfileCommand> commands) {
         super(commands);
     }
 

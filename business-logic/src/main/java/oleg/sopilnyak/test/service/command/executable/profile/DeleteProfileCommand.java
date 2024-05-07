@@ -20,13 +20,11 @@ import java.util.function.*;
  * @see ProfileCommand
  * @see ProfilePersistenceFacade
  * @see SchoolCommandCache
- * @param <R> command's Result type
- * @param <E> command's working Entity type
  */
 @Getter
-public abstract class DeleteProfileCommand<R, E extends PersonProfile>
+public abstract class DeleteProfileCommand<E extends PersonProfile>
         extends SchoolCommandCache<E>
-        implements ProfileCommand<R> {
+        implements ProfileCommand {
 
     protected final ProfilePersistenceFacade persistence;
 
@@ -66,27 +64,27 @@ public abstract class DeleteProfileCommand<R, E extends PersonProfile>
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<R> execute(Object parameter) {
+    public CommandResult<Boolean> execute(Object parameter) {
         try {
             getLog().debug("Trying to delete person profile {}", parameter);
             final Long id = commandParameter(parameter);
             final Optional<E> profile = functionFindById().apply(id);
             if (profile.isEmpty()) {
                 getLog().debug("Person profile with ID:{} is not exists.", id);
-                return CommandResult.<R>builder().result(Optional.of((R) Boolean.FALSE))
+                return CommandResult.<Boolean>builder().result(Optional.of(Boolean.FALSE))
                         .exception(new NotExistProfileException("Profile with ID:" + id + " is not exists."))
                         .success(false).build();
             }
             persistence.deleteProfileById(id);
             getLog().debug("Person profile with ID:{} is deleted '{}'", id, true);
-            return CommandResult.<R>builder()
-                    .result(Optional.of((R) Boolean.TRUE))
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(Boolean.TRUE))
                     .success(true)
                     .build();
         } catch (Exception e) {
             getLog().error("Cannot delete the person profile {}", parameter, e);
-            return CommandResult.<R>builder()
-                    .result(Optional.of((R) Boolean.FALSE))
+            return CommandResult.<Boolean>builder()
+                    .result(Optional.of(Boolean.FALSE))
                     .exception(e).success(false).build();
         }
     }
@@ -118,10 +116,9 @@ public abstract class DeleteProfileCommand<R, E extends PersonProfile>
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-            // cached profile is storing to context for further rollback (undo)
-            context.setUndoParameter(
-                    retrieveEntity(id, functionFindById(), functionCopyEntity(), () -> notFoundException)
-            );
+            // previous profile is storing to context for further rollback (undo)
+            final E previous = retrieveEntity(id, functionFindById(), functionCopyEntity(), () -> notFoundException);
+            context.setUndoParameter(previous);
             persistence.deleteProfileById(id);
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);

@@ -18,7 +18,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindCourseCommand implements CourseCommand<Optional<Course>> {
+public class FindCourseCommand implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**

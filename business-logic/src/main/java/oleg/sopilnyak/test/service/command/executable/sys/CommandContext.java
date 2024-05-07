@@ -16,10 +16,10 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 @Builder
 public class CommandContext<T> implements Context<T> {
-    private SchoolCommand<T> command;
+    private SchoolCommand command;
     private Object redoParameter;
     private Object undoParameter;
-    private Object resultData;
+    private T resultData;
     private Exception exception;
 
     @Setter(AccessLevel.NONE)
@@ -80,7 +80,7 @@ public class CommandContext<T> implements Context<T> {
      * @see State#DONE
      */
     @Override
-    public Optional getResult() {
+    public Optional<T> getResult() {
         return Optional.ofNullable(resultData);
     }
 
@@ -93,7 +93,7 @@ public class CommandContext<T> implements Context<T> {
     @Override
     public void setResult(Object result) {
         if (state == State.WORK) {
-            this.resultData = result;
+            this.resultData = (T) result;
             setState(State.DONE);
         }
     }

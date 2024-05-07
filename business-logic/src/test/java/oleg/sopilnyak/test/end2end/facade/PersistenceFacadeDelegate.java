@@ -73,6 +73,16 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * To check is there is any course in the database<BR/>For tests purposes only
+     *
+     * @return true if there is no course in database
+     */
+    @Override
+    public boolean isNoCourses() {
+        return delegator.isNoCourses();
+    }
+
+    /**
      * To get all authority persons of the school
      *
      * @return the set of authority persons
@@ -375,6 +385,16 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     @Override
     public Student toEntity(Student student) {
         return delegator.toEntity(student);
+    }
+
+    /**
+     * To check is there are any student in the database<BR/>For tests purposes only
+     *
+     * @return true if there is no student in database
+     */
+    @Override
+    public boolean isNoStudents() {
+        return delegator.isNoStudents();
     }
 
     /**

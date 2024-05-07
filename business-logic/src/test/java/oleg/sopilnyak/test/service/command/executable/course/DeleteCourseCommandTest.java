@@ -1,13 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
@@ -26,7 +21,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeleteCourseCommandTest {
     @Mock
-    CoursesPersistenceFacade persistenceFacade;
+    CoursesPersistenceFacade persistence;
     @Mock
     Course course;
     @Spy
@@ -34,79 +29,10 @@ class DeleteCourseCommandTest {
     DeleteCourseCommand command;
 
     @Test
-    @Disabled
-    void shouldExecuteCommand() {
-        Long id = 100L;
-
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-
-        CommandResult<Boolean> result = command.execute(id);
-
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).deleteCourse(id);
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isNull();
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_ExceptionThrown() {
-        Long id = 101L;
-        RuntimeException cannotExecute = new RuntimeException("Cannot delete");
-        doThrow(cannotExecute).when(persistenceFacade).deleteCourse(id);
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-
-        CommandResult<Boolean> result = command.execute(id);
-
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).deleteCourse(id);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
-        assertThat(result.getException()).isEqualTo(cannotExecute);
-
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_NoCourse() {
-        Long id = 102L;
-
-        CommandResult<Boolean> result = command.execute(id);
-
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade, never()).deleteCourse(id);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
-        assertThat(result.getException()).isInstanceOf(NotExistCourseException.class);
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_CourseNotEmpty() {
-        Long id = 103L;
-        Student student = mock(Student.class);
-        when(course.getStudents()).thenReturn(List.of(student));
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-
-        CommandResult<Boolean> result = command.execute(id);
-
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade, never()).deleteCourse(id);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult()).isEmpty();
-        assertThat(result.getException()).isInstanceOf(CourseWithStudentsException.class);
-    }
-
-    @Test
     void shouldDoCommand_CourseFound() {
         Long id = 100L;
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistenceFacade.toEntity(course)).thenReturn(course);
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
+        when(persistence.toEntity(course)).thenReturn(course);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -114,12 +40,12 @@ class DeleteCourseCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter()).isEqualTo(course);
         assertThat(context.getResult()).isPresent();
-        Boolean result = (Boolean) context.getResult().orElseThrow();
+        Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
         verify(command).executeDo(context);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).toEntity(any(Course.class));
-        verify(persistenceFacade).deleteCourse(id);
+        verify(persistence).findCourseById(id);
+        verify(persistence).toEntity(any(Course.class));
+        verify(persistence).deleteCourse(id);
     }
 
     @Test
@@ -134,17 +60,17 @@ class DeleteCourseCommandTest {
         assertThat(context.getUndoParameter()).isNull();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade, never()).deleteCourse(id);
+        verify(persistence).findCourseById(id);
+        verify(persistence, never()).deleteCourse(id);
     }
 
     @Test
     void shouldNotDoCommand_ExceptionThrown() {
         Long id = 101L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
-        doThrow(cannotExecute).when(persistenceFacade).deleteCourse(id);
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistenceFacade.toEntity(course)).thenReturn(course);
+        doThrow(cannotExecute).when(persistence).deleteCourse(id);
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
+        when(persistence.toEntity(course)).thenReturn(course);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -153,9 +79,9 @@ class DeleteCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).toEntity(any(Course.class));
-        verify(persistenceFacade).deleteCourse(id);
+        verify(persistence).findCourseById(id);
+        verify(persistence).toEntity(any(Course.class));
+        verify(persistence).deleteCourse(id);
     }
 
     @Test
@@ -163,14 +89,14 @@ class DeleteCourseCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
         context.setUndoParameter(course);
-        when(persistenceFacade.save(course)).thenReturn(Optional.of(course));
+        when(persistence.save(course)).thenReturn(Optional.of(course));
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
-        verify(persistenceFacade).save(course);
+        verify(persistence).save(course);
     }
 
     @Test
@@ -184,7 +110,7 @@ class DeleteCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade, never()).save(course);
+        verify(persistence, never()).save(course);
     }
 
     @Test
@@ -197,14 +123,14 @@ class DeleteCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade, never()).save(course);
+        verify(persistence, never()).save(course);
     }
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
         RuntimeException cannotExecute = new RuntimeException("Cannot restore");
-        doThrow(cannotExecute).when(persistenceFacade).save(course);
+        doThrow(cannotExecute).when(persistence).save(course);
         context.setState(DONE);
         context.setUndoParameter(course);
 
@@ -214,6 +140,6 @@ class DeleteCourseCommandTest {
         assertThat(context.getException()).isEqualTo(cannotExecute);
 
         verify(command).executeUndo(context);
-        verify(persistenceFacade).save(course);
+        verify(persistence).save(course);
     }
 }

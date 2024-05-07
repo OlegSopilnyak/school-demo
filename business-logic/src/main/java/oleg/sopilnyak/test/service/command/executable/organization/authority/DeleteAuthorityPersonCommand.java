@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class DeleteAuthorityPersonCommand
         extends SchoolCommandCache<AuthorityPerson>
-        implements AuthorityPersonCommand<Boolean> {
+        implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
 
     public DeleteAuthorityPersonCommand(AuthorityPersonPersistenceFacade persistence) {

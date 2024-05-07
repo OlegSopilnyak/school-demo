@@ -13,10 +13,9 @@ import java.util.stream.Collectors;
 /**
  * Command-Base: macro-command the command with nested commands inside
  *
- * @param <T> type of macro-command
  */
-public abstract class MacroCommand<T> implements CompositeCommand<T> {
-    private final List<SchoolCommand<?>> commands = new LinkedList<>();
+public abstract class MacroCommand implements CompositeCommand {
+    private final List<SchoolCommand> commands = new LinkedList<>();
 
     /**
      * To get the collection of commands used it composite
@@ -24,7 +23,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @return collection of included commands
      */
     @Override
-    public Collection<SchoolCommand<?>> commands() {
+    public Collection<SchoolCommand> commands() {
         synchronized (commands) {
             return Collections.unmodifiableList(commands);
         }
@@ -37,7 +36,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see SchoolCommand
      */
     @Override
-    public void add(final SchoolCommand<?> command) {
+    public void add(final SchoolCommand command) {
         synchronized (commands) {
             commands.add(command);
         }
@@ -120,7 +119,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     protected <P> Context<P> redoNestedCommand(final Context<P> nestedContext, final Context.StateChangedListener listener) {
         nestedContext.addStateListener(listener);
-        final SchoolCommand<P> command = nestedContext.getCommand();
+        final SchoolCommand command = nestedContext.getCommand();
         try {
             command.doCommand(nestedContext);
         } catch (Exception e) {
@@ -178,7 +177,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    protected Context<?> rollbackDoneContext(SchoolCommand<?> nestedCommand, final Context<?> nestedContext) {
+    protected Context<?> rollbackDoneContext(SchoolCommand nestedCommand, final Context<?> nestedContext) {
         try {
             nestedCommand.undoCommand(nestedContext);
         } catch (Exception e) {

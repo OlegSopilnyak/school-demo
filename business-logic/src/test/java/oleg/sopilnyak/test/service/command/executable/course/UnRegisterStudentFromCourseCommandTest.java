@@ -2,12 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
+import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UnRegisterStudentFromCourseCommandTest {
     @Mock
-    PersistenceFacade persistenceFacade;
+    StudentCourseLinkPersistenceFacade persistence;
     @Mock
     Course course;
     @Mock
@@ -34,98 +32,29 @@ class UnRegisterStudentFromCourseCommandTest {
     UnRegisterStudentFromCourseCommand command;
 
     @Test
-    @Disabled
-    void shouldExecuteCommand() {
-        Long id = 130L;
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistenceFacade.unLink(student, course)).thenReturn(true);
-
-        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
-
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).unLink(student, course);
-
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().orElse(false)).isTrue();
-        assertThat(result.getException()).isNull();
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_ExceptionThrown() {
-        Long id = 131L;
-        RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
-        doThrow(cannotExecute).when(persistenceFacade).unLink(student, course);
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-
-        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
-
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).unLink(student, course);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isEqualTo(cannotExecute);
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_NoStudent() {
-        Long id = 132L;
-
-        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
-
-        verify(persistenceFacade).findStudentById(id);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(NotExistStudentException.class);
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand_NoCourse() {
-        Long id = 133L;
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
-
-        CommandResult<Boolean> result = command.execute(new Long[]{id, id});
-
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).findCourseById(id);
-
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().orElse(true)).isFalse();
-        assertThat(result.getException()).isInstanceOf(NotExistCourseException.class);
-    }
-
-    @Test
     void shouldDoCommand_Linked() {
         Long id = 130L;
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistenceFacade.toEntity(student)).thenReturn(student);
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistenceFacade.toEntity(course)).thenReturn(course);
-        when(persistenceFacade.unLink(student, course)).thenReturn(true);
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.toEntity(student)).thenReturn(student);
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
+        when(persistence.toEntity(course)).thenReturn(course);
+        when(persistence.unLink(student, course)).thenReturn(true);
         Context<Boolean> context = command.createContext(new Long[]{id, id});
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
-        Boolean result = (Boolean) context.getResult().orElseThrow();
+        Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).toEntity(student);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).toEntity(course);
+        verify(persistence).findStudentById(id);
+        verify(persistence).toEntity(student);
+        verify(persistence).findCourseById(id);
+        verify(persistence).toEntity(course);
         assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
 
-        verify(persistenceFacade).unLink(student, course);
+        verify(persistence).unLink(student, course);
     }
 
     @Test
@@ -139,15 +68,15 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade, never()).findCourseById(id);
-        verify(persistenceFacade, never()).unLink(student, course);
+        verify(persistence).findStudentById(id);
+        verify(persistence, never()).findCourseById(id);
+        verify(persistence, never()).unLink(student, course);
     }
 
     @Test
     void shouldNotDoCommand_NoCourse() {
         Long id = 133L;
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         Context<Boolean> context = command.createContext(new Long[]{id, id});
 
         command.doCommand(context);
@@ -156,18 +85,18 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade, never()).unLink(student, course);
+        verify(persistence).findStudentById(id);
+        verify(persistence).findCourseById(id);
+        verify(persistence, never()).unLink(student, course);
     }
 
     @Test
     void shouldNotDoCommand_ExceptionThrown() {
         Long id = 131L;
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
-        doThrow(cannotExecute).when(persistenceFacade).unLink(student, course);
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistenceFacade.findCourseById(id)).thenReturn(Optional.of(course));
+        doThrow(cannotExecute).when(persistence).unLink(student, course);
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
         Context<Boolean> context = command.createContext(new Long[]{id, id});
 
         command.doCommand(context);
@@ -176,9 +105,9 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).findCourseById(id);
-        verify(persistenceFacade).unLink(student, course);
+        verify(persistence).findStudentById(id);
+        verify(persistence).findCourseById(id);
+        verify(persistence).unLink(student, course);
         assertThat(context.getUndoParameter()).isNull();
     }
 
@@ -192,7 +121,7 @@ class UnRegisterStudentFromCourseCommandTest {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
-        verify(persistenceFacade).link(student, course);
+        verify(persistence).link(student, course);
     }
 
     @Test
@@ -204,7 +133,7 @@ class UnRegisterStudentFromCourseCommandTest {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
-        verify(persistenceFacade, never()).link(student, course);
+        verify(persistence, never()).link(student, course);
     }
 
     @Test
@@ -217,14 +146,14 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
-        verify(persistenceFacade, never()).link(student, course);
+        verify(persistence, never()).link(student, course);
     }
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         final var forUndo = new StudentToCourseLink(student, course);
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
-        doThrow(cannotExecute).when(persistenceFacade).link(student, course);
+        doThrow(cannotExecute).when(persistence).link(student, course);
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(forUndo);
@@ -233,6 +162,6 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
-        verify(persistenceFacade).link(student, course);
+        verify(persistence).link(student, course);
     }
 }

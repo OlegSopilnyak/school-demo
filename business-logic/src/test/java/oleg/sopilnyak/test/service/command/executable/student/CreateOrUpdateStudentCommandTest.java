@@ -3,9 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +20,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CreateOrUpdateStudentCommandTest {
     @Mock
-    StudentsPersistenceFacade persistenceFacade;
+    StudentsPersistenceFacade persistence;
     @Mock
     Student instance;
     @Spy
@@ -30,36 +28,10 @@ class CreateOrUpdateStudentCommandTest {
     CreateOrUpdateStudentCommand command;
 
     @Test
-    @Disabled
-    void shouldExecuteCommand() {
-
-        CommandResult<Optional<Student>> result = command.execute(instance);
-
-        verify(persistenceFacade).save(instance);
-        assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getResult().orElse(Optional.of(mock(Student.class)))).isEmpty();
-        assertThat(result.getException()).isNull();
-    }
-
-    @Test
-    @Disabled
-    void shouldNotExecuteCommand() {
-        RuntimeException cannotExecute = new RuntimeException("Cannot save");
-        doThrow(cannotExecute).when(persistenceFacade).save(instance);
-
-        CommandResult<Optional<Student>> result = command.execute(instance);
-
-        verify(persistenceFacade).save(instance);
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getResult().orElse(Optional.of(mock(Student.class)))).isEmpty();
-        assertThat(result.getException()).isEqualTo(cannotExecute);
-    }
-
-    @Test
     void shouldDoCommand_CreateStudent() {
         Long id = -1L;
         when(instance.getId()).thenReturn(id);
-        when(persistenceFacade.save(instance)).thenReturn(Optional.of(instance));
+        when(persistence.save(instance)).thenReturn(Optional.of(instance));
         Context<Optional<Student>> context = command.createContext(instance);
 
         command.doCommand(context);
@@ -67,19 +39,19 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
+        Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent().contains(instance);
         verify(command).executeDo(context);
-        verify(persistenceFacade).save(instance);
+        verify(persistence).save(instance);
     }
 
     @Test
     void shouldDoCommand_UpdateStudent() {
         Long id = 110L;
         when(instance.getId()).thenReturn(id);
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistenceFacade.toEntity(instance)).thenReturn(instance);
-        when(persistenceFacade.save(instance)).thenReturn(Optional.of(instance));
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
+        when(persistence.toEntity(instance)).thenReturn(instance);
+        when(persistence.save(instance)).thenReturn(Optional.of(instance));
         Context<Optional<Student>> context = command.createContext(instance);
 
         command.doCommand(context);
@@ -87,12 +59,12 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter()).isEqualTo(instance);
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
+        Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent().contains(instance);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).toEntity(instance);
-        verify(persistenceFacade).save(instance);
+        verify(persistence).findStudentById(id);
+        verify(persistence).toEntity(instance);
+        verify(persistence).save(instance);
     }
 
     @Test
@@ -105,7 +77,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isNotNull().isInstanceOf(ClassCastException.class);
         verify(command).executeDo(context);
-        verify(persistenceFacade, never()).save(instance);
+        verify(persistence, never()).save(instance);
     }
 
     @Test
@@ -118,7 +90,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isNotNull().isInstanceOf(NullPointerException.class);
         verify(command).executeDo(context);
-        verify(persistenceFacade, never()).save(instance);
+        verify(persistence, never()).save(instance);
     }
 
     @Test
@@ -126,7 +98,7 @@ class CreateOrUpdateStudentCommandTest {
         Long id = -111L;
         when(instance.getId()).thenReturn(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
-        doThrow(cannotExecute).when(persistenceFacade).save(instance);
+        doThrow(cannotExecute).when(persistence).save(instance);
         Context<Optional<Student>> context = command.createContext(instance);
 
         command.doCommand(context);
@@ -135,17 +107,17 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistenceFacade).save(instance);
+        verify(persistence).save(instance);
     }
 
     @Test
     void shouldNotDoCommand_UpdateExceptionThrown() {
         Long id = 111L;
         when(instance.getId()).thenReturn(id);
-        when(persistenceFacade.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistenceFacade.toEntity(instance)).thenReturn(instance);
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
+        when(persistence.toEntity(instance)).thenReturn(instance);
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
-        when(persistenceFacade.save(instance)).thenThrow(cannotExecute).thenReturn(Optional.of(instance));
+        when(persistence.save(instance)).thenThrow(cannotExecute).thenReturn(Optional.of(instance));
         Context<Optional<Student>> context = command.createContext(instance);
 
         command.doCommand(context);
@@ -155,9 +127,9 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.getUndoParameter()).isEqualTo(instance);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistenceFacade).findStudentById(id);
-        verify(persistenceFacade).toEntity(instance);
-        verify(persistenceFacade, times(2)).save(instance);
+        verify(persistence).findStudentById(id);
+        verify(persistence).toEntity(instance);
+        verify(persistence, times(2)).save(instance);
     }
 
     @Test
@@ -171,7 +143,7 @@ class CreateOrUpdateStudentCommandTest {
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         verify(command).executeUndo(context);
-        verify(persistenceFacade).deleteStudent(id);
+        verify(persistence).deleteStudent(id);
     }
 
     @Test
@@ -184,7 +156,7 @@ class CreateOrUpdateStudentCommandTest {
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         verify(command).executeUndo(context);
-        verify(persistenceFacade).save(instance);
+        verify(persistence).save(instance);
     }
 
     @Test
@@ -198,7 +170,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade, never()).save(instance);
+        verify(persistence, never()).save(instance);
     }
 
     @Test
@@ -212,13 +184,13 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade, never()).save(instance);
+        verify(persistence, never()).save(instance);
     }
 
     @Test
     void shouldNotUndoCommand_DeleteThrown() {
         Long id = 111L;
-        doThrow(RuntimeException.class).when(persistenceFacade).deleteStudent(id);
+        doThrow(RuntimeException.class).when(persistence).deleteStudent(id);
         Context<Optional<Student>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(id);
@@ -228,12 +200,12 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade).deleteStudent(id);
+        verify(persistence).deleteStudent(id);
     }
 
     @Test
     void shouldNotUndoCommand_RestoreThrown() {
-        doThrow(RuntimeException.class).when(persistenceFacade).save(instance);
+        doThrow(RuntimeException.class).when(persistence).save(instance);
         Context<Optional<Student>> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(instance);
@@ -243,6 +215,6 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
-        verify(persistenceFacade).save(instance);
+        verify(persistence).save(instance);
     }
 }

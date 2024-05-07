@@ -1,13 +1,15 @@
 package oleg.sopilnyak.test.service.exception;
 
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
 /**
  * Exception throws when command is not registered in the command registry factory
  * @see CommandsFactory#getName()
  */
 public class CommandNotRegisteredInFactoryException extends Exception {
-    public CommandNotRegisteredInFactoryException(String commandId, CommandsFactory<?> factory) {
+    public <T extends SchoolCommand> CommandNotRegisteredInFactoryException(String commandId,
+                                                                                 CommandsFactory<T> factory) {
         super("Command '" + commandId + "' is not registered in factory :" + factory.getName());
     }
 }

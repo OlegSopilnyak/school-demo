@@ -21,8 +21,8 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 @AllArgsConstructor
-public abstract class PersonProfileFacadeImpl<T> implements PersonProfileFacade {
-    private final CommandsFactory<T> factory;
+public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
+    private final CommandsFactory<P> factory;
 
     protected abstract String findByIdCommandId();
     protected abstract String createOrUpdateCommandId();
@@ -74,7 +74,7 @@ public abstract class PersonProfileFacadeImpl<T> implements PersonProfileFacade 
      */
     @Override
     public void deleteById(Long id) throws NotExistProfileException {
-        final SchoolCommand<Boolean> command = takeValidCommand(deleteByIdCommandId(), factory);
+        final SchoolCommand command = takeValidCommand(deleteByIdCommandId(), factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
+public class FindFacultyCommand implements FacultyCommand {
     private final FacultyPersistenceFacade persistenceFacade;
 
     /**

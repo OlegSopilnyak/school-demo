@@ -22,14 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PrincipalProfileCommandsFactorySpringTest.FactoryConfiguration.class)
-class PrincipalProfileCommandsFactorySpringTest<T> {
+class PrincipalProfileCommandsFactorySpringTest {
     private static final String FACTORY_NAME = "Principal-Profiles";
     private static final String SPRING_NAME = "principalProfileCommandsFactory";
     private Collection<String> commandsId;
     @MockBean
     PersistenceFacade persistenceFacade;
     @Autowired
-    CommandsFactory<T> factory;
+    CommandsFactory<PrincipalProfileCommand> factory;
     @Autowired
     ApplicationContext context;
 
@@ -64,8 +64,8 @@ class PrincipalProfileCommandsFactorySpringTest<T> {
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean(name = SPRING_NAME)
-        public <T> CommandsFactory<T> commandsFactory(final Collection<PrincipalProfileCommand<T>> commands) {
-            return new PrincipalProfileCommandsFactory<>(commands);
+        public CommandsFactory<PrincipalProfileCommand> commandsFactory(final Collection<PrincipalProfileCommand> commands) {
+            return new PrincipalProfileCommandsFactory(commands);
         }
     }
 }

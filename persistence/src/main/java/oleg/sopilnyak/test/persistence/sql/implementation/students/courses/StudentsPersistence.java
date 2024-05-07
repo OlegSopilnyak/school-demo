@@ -78,4 +78,14 @@ public interface StudentsPersistence extends StudentsPersistenceFacade {
     default Student toEntity(Student student) {
         return getMapper().toEntity(student);
     }
+
+    /**
+     * To check is there are any student in the database<BR/>For tests purposes only
+     *
+     * @return true if there is no student in database
+     */
+    @Override
+    default boolean isNoStudents() {
+        return getStudentRepository().count() == 0L;
+    }
 }

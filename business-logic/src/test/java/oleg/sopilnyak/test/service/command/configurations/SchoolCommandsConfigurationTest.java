@@ -3,7 +3,14 @@ package oleg.sopilnyak.test.service.command.configurations;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,33 +26,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
-class SchoolCommandsConfigurationTest<T> {
+class SchoolCommandsConfigurationTest {
     @MockBean
     PersistenceFacade persistenceFacade;
     @Autowired
     @Qualifier("studentCommandsFactory")
-    CommandsFactory<T> studentsCommandsFactory;
+    CommandsFactory<StudentCommand> studentsCommandsFactory;
     @Autowired
     @Qualifier("courseCommandsFactory")
-    CommandsFactory<T> courseCommandsFactory;
+    CommandsFactory<CourseCommand> courseCommandsFactory;
     @Autowired
     @Qualifier("authorityCommandsFactory")
-    CommandsFactory<T> authorityPersonCommandFactory;
+    CommandsFactory<AuthorityPersonCommand> authorityPersonCommandFactory;
     @Autowired
     @Qualifier("facultyCommandsFactory")
-    CommandsFactory<T> facultyCommandFactory;
+    CommandsFactory<FacultyCommand> facultyCommandFactory;
     @Autowired
     @Qualifier("groupCommandsFactory")
-    CommandsFactory<T> studentsGroupCommandFactory;
+    CommandsFactory<StudentsGroupCommand> studentsGroupCommandFactory;
     @Autowired
     @Qualifier("studentProfileCommandsFactory")
-    CommandsFactory<T> studentProfileCommandsFactory;
+    CommandsFactory<StudentProfileCommand> studentProfileCommandsFactory;
     @Autowired
     @Qualifier("principalProfileCommandsFactory")
-    CommandsFactory<T> principalProfileCommandsFactory;
+    CommandsFactory<PrincipalProfileCommand> principalProfileCommandsFactory;
     @Autowired
     @Qualifier("commandFactoriesFarm")
-    CommandsFactory<T> farm;
+    CommandsFactory<SchoolCommand> farm;
     @Autowired
     ApplicationContext context;
 
@@ -67,7 +74,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(studentsCommandsFactory.getSize()).isGreaterThan(1);
         var factory = studentsCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            StudentCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -77,7 +84,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(courseCommandsFactory.getSize()).isGreaterThan(1);
         var factory = courseCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            CourseCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -87,7 +94,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(authorityPersonCommandFactory.getSize()).isGreaterThan(1);
         var factory = authorityPersonCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            AuthorityPersonCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -97,7 +104,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(facultyCommandFactory.getSize()).isGreaterThan(1);
         var factory = facultyCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            FacultyCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -107,7 +114,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(studentsGroupCommandFactory.getSize()).isGreaterThan(1);
         var factory = studentsGroupCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            StudentsGroupCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -117,7 +124,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(studentProfileCommandsFactory.getSize()).isGreaterThan(1);
         var factory = studentProfileCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            StudentProfileCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -127,14 +134,14 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(principalProfileCommandsFactory.getSize()).isGreaterThan(1);
         var factory = principalProfileCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            SchoolCommand<T> command = factory.command(cmdId);
+            PrincipalProfileCommand command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
 
     @Test
     void shouldHaveFactoriesCommandsInTheFarm() {
-        CommandsFactoriesFarm<T> factoriesFarm = (CommandsFactoriesFarm<T>) farm;
+        CommandsFactoriesFarm<SchoolCommand> factoriesFarm = (CommandsFactoriesFarm<SchoolCommand>) farm;
         assertThat(factoriesFarm.findCommandFactory(studentsCommandsFactory.getName()).orElseThrow()).isEqualTo(studentsCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(courseCommandsFactory.getName()).orElseThrow()).isEqualTo(courseCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(authorityPersonCommandFactory.getName()).orElseThrow()).isEqualTo(authorityPersonCommandFactory);
@@ -146,7 +153,7 @@ class SchoolCommandsConfigurationTest<T> {
 
     @Test
     void shouldHaveCommandsInTheFarm() {
-        List<CommandsFactory<T>> factories = List.of(
+        List<CommandsFactory<? extends SchoolCommand>> factories = List.of(
                 studentsCommandsFactory,
                 courseCommandsFactory,
                 authorityPersonCommandFactory,
@@ -160,7 +167,7 @@ class SchoolCommandsConfigurationTest<T> {
         assertThat(commandsCount).isEqualTo(farm.getSize());
 
         factories.forEach(factory -> factory.commandIds().forEach(cmdId -> {
-                    SchoolCommand<T> command = factory.command(cmdId);
+                    SchoolCommand command = factory.command(cmdId);
                     assertThat(command).isEqualTo(farm.command(cmdId));
                 })
         );

@@ -13,14 +13,13 @@ import java.util.function.LongFunction;
 /**
  * Command-Base-Implementation: command to get profile by id
  *
- * @param <R> command's Result type
  * @param <E> command's working Entity type
  * @see PersonProfile
  * @see ProfileCommand
  * @see ProfilePersistenceFacade
  */
 @Getter
-public abstract class FindProfileCommand<R, E extends PersonProfile> implements ProfileCommand<R> {
+public abstract class FindProfileCommand<E extends PersonProfile> implements ProfileCommand {
     protected final ProfilePersistenceFacade persistence;
 
     protected FindProfileCommand(ProfilePersistenceFacade persistence) {
@@ -45,20 +44,20 @@ public abstract class FindProfileCommand<R, E extends PersonProfile> implements 
      */
     @Deprecated(forRemoval = true)
     @Override
-    public CommandResult<R> execute(Object parameter) {
+    public CommandResult<Optional<E>> execute(Object parameter) {
         try {
             getLog().debug("Trying to find profile by ID:{}", parameter);
             final Long id = commandParameter(parameter);
             final Optional<E> profile = functionFindById().apply(id);
             getLog().debug("Got profile {} by ID:{}", profile, id);
-            return CommandResult.<R>builder()
-                    .result(Optional.ofNullable((R) profile))
+            return CommandResult.<Optional<E>>builder()
+                    .result(Optional.ofNullable(profile))
                     .success(true)
                     .build();
         } catch (Exception e) {
             getLog().error("Cannot find the profile by ID:{}", parameter, e);
-            return CommandResult.<R>builder()
-                    .result((Optional<R>) Optional.of(Optional.empty()))
+            return CommandResult.<Optional<E>>builder()
+                    .result(Optional.empty())
                     .exception(e).success(false).build();
         }
     }

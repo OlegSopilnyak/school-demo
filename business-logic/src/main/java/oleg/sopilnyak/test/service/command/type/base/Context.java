@@ -6,6 +6,7 @@ import java.util.Optional;
  * Type: The context of the command execution
  *
  * @see SchoolCommand
+ * @param <T> type of result
  */
 public interface Context<T> {
     /**
@@ -14,7 +15,7 @@ public interface Context<T> {
      * @return command instance
      * @see SchoolCommand
      */
-    SchoolCommand<T> getCommand();
+    SchoolCommand getCommand();
 
     /**
      * To get the state of the context
@@ -64,7 +65,7 @@ public interface Context<T> {
      * @return the value of result
      * @see State#DONE
      */
-    Optional getResult();
+    Optional<T> getResult();
 
     /**
      * To set up the result of command execution

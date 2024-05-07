@@ -30,7 +30,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 @Slf4j
 public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements AuthorityPersonFacade {
 
-    public AuthorityPersonFacadeImpl(CommandsFactory<?> factory) {
+    public AuthorityPersonFacadeImpl(CommandsFactory<AuthorityPersonCommand> factory) {
         super(factory);
     }
 
@@ -83,7 +83,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
     @Override
     public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
         String commandId = AuthorityPersonCommand.DELETE;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

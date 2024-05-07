@@ -45,4 +45,11 @@ public interface StudentsPersistenceFacade {
      * @return instance ready to use in the repository
      */
     Student toEntity(Student student);
+
+    /**
+     * To check is there is any student in the database<BR/>For tests purposes only
+     *
+     * @return true if there is no student in database
+     */
+    boolean isNoStudents();
 }

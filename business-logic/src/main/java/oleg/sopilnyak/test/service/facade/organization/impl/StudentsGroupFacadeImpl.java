@@ -26,7 +26,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements StudentsGroupFacade {
-    public StudentsGroupFacadeImpl(CommandsFactory<?> factory) {
+    public StudentsGroupFacadeImpl(CommandsFactory<StudentsGroupCommand> factory) {
         super(factory);
     }
 
@@ -79,7 +79,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     @Override
     public void deleteStudentsGroupById(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         String commandId = StudentsGroupCommand.DELETE;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

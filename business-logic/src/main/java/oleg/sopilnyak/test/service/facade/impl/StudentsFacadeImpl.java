@@ -2,11 +2,12 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
-import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
@@ -22,8 +23,8 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
  */
 @Slf4j
 @AllArgsConstructor
-public class StudentsFacadeImpl<T> implements StudentsFacade {
-    private final CommandsFactory<T> factory;
+public class StudentsFacadeImpl implements StudentsFacade {
+    private final CommandsFactory<StudentCommand> factory;
 
     /**
      * To get the student by ID
@@ -77,13 +78,13 @@ public class StudentsFacadeImpl<T> implements StudentsFacade {
      *
      * @param studentId system-id of the student
      * @return true if success
-     * @throws NotExistStudentException   throws when student it not exists
+     * @throws NotExistStudentException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     @Override
     public boolean delete(Long studentId) throws NotExistStudentException, StudentWithCoursesException {
         String commandId = DELETE_COMMAND_ID;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(studentId);
 
         command.doCommand(context);

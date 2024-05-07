@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Fin
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +37,10 @@ class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE = "organization.authority.person.delete";
+
     AuthorityPersonPersistenceFacade persistenceFacade = mock(AuthorityPersonPersistenceFacade.class);
     @Spy
-    CommandsFactory<?> factory = buildFactory();
+    CommandsFactory<AuthorityPersonCommand> factory = buildFactory();
     @Mock
     AuthorityPerson mockPerson;
     @Mock
@@ -174,7 +176,7 @@ class AuthorityPersonFacadeImplTest {
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    private CommandsFactory<AuthorityPersonCommand> buildFactory() {
         return new AuthorityPersonCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),

@@ -1,7 +1,6 @@
-package oleg.sopilnyak.test.end2end.service.command.executable.student;
+package oleg.sopilnyak.test.end2end.command.executable.student;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -27,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentCommand.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class FindStudentCommandTest extends MysqlTestModelFactory {
@@ -36,16 +35,12 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     StudentsPersistenceFacade persistence;
     @SpyBean
     @Autowired
-    StudentRepository repository;
-    @SpyBean
-    @Autowired
     FindStudentCommand command;
 
     @AfterEach
     void tearDown() {
         reset(command);
         reset(persistence);
-        reset(repository);
     }
 
     @Test
@@ -53,7 +48,6 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
-        assertThat(repository).isNotNull();
     }
 
     @Test
@@ -66,11 +60,10 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
+        Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isEmpty();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(repository).findById(id);
     }
 
     @Test
@@ -84,11 +77,10 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
-        Optional<Student> result = (Optional<Student>) context.getResult().orElseThrow();
+        Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).contains(student);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(repository).findById(id);
     }
 
     @Test
@@ -105,7 +97,6 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(repository, never()).findById(anyLong());
     }
 
     @Test
@@ -130,10 +121,10 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
             Student entity = persistence.save(student).orElse(null);
             assertThat(entity).isNotNull();
             long id = entity.getId();
-            assertThat(repository.findById(id)).isNotEmpty();
+            assertThat(persistence.findStudentById(id)).isPresent();
             return persistence.toEntity(entity);
         } finally {
-            reset(persistence, repository);
+            reset(persistence);
         }
     }
 }

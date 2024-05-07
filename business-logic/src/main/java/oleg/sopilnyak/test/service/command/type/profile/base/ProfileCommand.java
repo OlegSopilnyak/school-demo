@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 /**
  * Type for school-profile command
  */
-public interface ProfileCommand<T> extends SchoolCommand<T> {
+public interface ProfileCommand extends SchoolCommand {
     String PROFILE_WITH_ID_PREFIX = "Profile with ID:";
 
     /**

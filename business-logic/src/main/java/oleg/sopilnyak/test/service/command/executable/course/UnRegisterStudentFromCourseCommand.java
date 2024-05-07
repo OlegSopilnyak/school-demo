@@ -23,7 +23,7 @@ import static java.util.Objects.isNull;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean> {
+public class UnRegisterStudentFromCourseCommand implements CourseCommand {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
 

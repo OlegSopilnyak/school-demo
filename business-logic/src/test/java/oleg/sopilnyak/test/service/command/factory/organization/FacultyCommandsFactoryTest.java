@@ -13,22 +13,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FacultyCommandsFactoryTest<T> {
+class FacultyCommandsFactoryTest {
     @Mock
-    FacultyCommand<T> command1;
+    FacultyCommand command1;
     @Mock
-    FacultyCommand<T> command2;
+    FacultyCommand command2;
     @Mock
-    FacultyCommand<T> command3;
+    FacultyCommand command3;
 
-    FacultyCommandsFactory<T> factory;
+    FacultyCommandsFactory factory;
 
     @BeforeEach
     void setUp() {
         when(command1.getId()).thenReturn("cmd1");
         when(command2.getId()).thenReturn("cmd2");
         when(command3.getId()).thenReturn("cmd3");
-        factory = new FacultyCommandsFactory<>(Set.of(command1, command2, command3));
+        factory = new FacultyCommandsFactory(Set.of(command1, command2, command3));
     }
 
     @Test

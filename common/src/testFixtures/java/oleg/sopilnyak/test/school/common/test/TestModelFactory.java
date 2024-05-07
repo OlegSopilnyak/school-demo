@@ -24,7 +24,7 @@ public class TestModelFactory {
 
     protected void assertStudentLists(List<Student> expected, List<Student> result, boolean checkId) {
         if (isEmptyInputParameters(expected, result)) return;
-        assertThat(expected.size()).isEqualTo(result.size());
+        assertThat(expected).hasSameSizeAs(result);
         IntStream.range(0, expected.size()).forEach(i -> assertStudentEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -46,7 +46,7 @@ public class TestModelFactory {
 
     protected void assertCourseLists(List<Course> expected, List<Course> result, boolean checkId) {
         if (isEmptyInputParameters(expected, result)) return;
-        assertThat(expected.size()).isEqualTo(result.size());
+        assertThat(expected).hasSameSizeAs(result);
         IntStream.range(0, expected.size()).forEach(i -> assertCourseEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -212,11 +212,9 @@ public class TestModelFactory {
     }
 
     protected AuthorityPerson makeCleanAuthorityPerson(int i) {
-        Faculty faculty = makeCleanFacultyNoDean(0);
         return FakeAuthorityPerson.builder()
                 .id(null).title("assistant-" + i)
                 .firstName("firstName-" + i).lastName("lastName-" + i).gender("gender-" + i)
-                .faculties(List.of(faculty))
                 .build();
     }
 
@@ -267,7 +265,7 @@ public class TestModelFactory {
 
     protected void assertAuthorityPersonLists(List<AuthorityPerson> expected, List<AuthorityPerson> result, boolean checkId) {
         if (isEmptyInputParameters(expected, result)) return;
-        assertThat(expected.size()).isEqualTo(result.size());
+        assertThat(expected).hasSameSizeAs(result);
         IntStream.range(0, expected.size()).forEach(i -> assertAuthorityPersonEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -347,23 +345,21 @@ public class TestModelFactory {
         return FakeFaculty.builder()
                 .id(null).name("faculty-" + i)
                 .dean(makeCleanAuthorityPerson(i))
-                .courses(makeClearCourses(5))
                 .build();
     }
 
-    private Faculty makeFacultyNoDean(int i) {
+    protected Faculty makeFacultyNoDean(int i) {
         return FakeFaculty.builder()
                 .id(i + 400L).name("faculty-" + i)
                 .dean(null)
-                .courses(makeCourses(6))
+                .courses(makeClearCourses(6))
                 .build();
     }
 
-    private Faculty makeCleanFacultyNoDean(int i) {
+    protected Faculty makeCleanFacultyNoDean(int i) {
         return FakeFaculty.builder()
                 .id(null).name("faculty-" + i)
                 .dean(null)
-                .courses(makeClearCourses(6))
                 .build();
     }
 
@@ -400,7 +396,7 @@ public class TestModelFactory {
 
     protected void assertFacultyLists(List<Faculty> expected, List<Faculty> result, boolean checkId) {
         if (isEmptyInputParameters(expected, result)) return;
-        assertThat(expected.size()).isEqualTo(result.size());
+        assertThat(expected).hasSameSizeAs(result);
         IntStream.range(0, expected.size()).forEach(i -> assertFacultyEquals(expected.get(i), result.get(i), checkId));
     }
 
@@ -453,7 +449,7 @@ public class TestModelFactory {
 
     protected void assertStudentsGroupLists(List<StudentsGroup> expected, List<StudentsGroup> result, boolean checkId) {
         if (isEmptyInputParameters(expected, result)) return;
-        assertThat(expected.size()).isEqualTo(result.size());
+        assertThat(expected).hasSameSizeAs(result);
         IntStream.range(0, expected.size()).forEach(i -> assertStudentsGroupEquals(expected.get(i), result.get(i), checkId));
     }
 

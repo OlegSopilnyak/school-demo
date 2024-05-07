@@ -10,7 +10,7 @@ import org.slf4j.Logger;
  * @see SchoolCommand
  * @see oleg.sopilnyak.test.school.common.model.Student
  */
-public interface StudentCommand<T> extends SchoolCommand<T> {
+public interface StudentCommand extends SchoolCommand {
     String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     /**
      * The name of commands-factory SpringBean

@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 /**
  * Type for school-student-profile commands
  */
-public interface StudentProfileCommand<T> extends ProfileCommand<T> {
+public interface StudentProfileCommand extends ProfileCommand {
     /**
      * ID of findById student profile command
      */

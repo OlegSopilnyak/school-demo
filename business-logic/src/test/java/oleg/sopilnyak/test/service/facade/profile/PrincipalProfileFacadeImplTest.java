@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.FindPrin
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,21 +24,20 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PrincipalProfileFacadeImplTest<T> {
+class PrincipalProfileFacadeImplTest {
     private static final String PROFILE_FIND_BY_ID = "profile.principal.findById";
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
     private static final String PROFILE_DELETE = "profile.principal.deleteById";
     ProfilePersistenceFacade persistence = mock(ProfilePersistenceFacade.class);
     @Spy
-    CommandsFactory<T> factory = buildFactory();
+    CommandsFactory<PrincipalProfileCommand> factory = buildFactory();
 
     @Spy
     @InjectMocks
-    PrincipalProfileFacadeImpl<T> facade;
+    PrincipalProfileFacadeImpl facade;
     @Mock
     PrincipalProfile mock;
 
@@ -215,7 +215,7 @@ class PrincipalProfileFacadeImplTest<T> {
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
-    private CommandsFactory<T> buildFactory() {
+    private CommandsFactory<PrincipalProfileCommand> buildFactory() {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdatePrincipalProfileCommand(persistence)),

@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindF
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +38,7 @@ class FacultyFacadeImplTest {
     private static final String ORGANIZATION_FACULTY_DELETE = "organization.faculty.delete";
     FacultyPersistenceFacade persistence = mock(FacultyPersistenceFacade.class);
     @Spy
-    CommandsFactory<?> factory = buildFactory();
+    CommandsFactory<FacultyCommand> factory = buildFactory();
     @Mock
     Faculty mockFaculty;
 
@@ -168,7 +169,7 @@ class FacultyFacadeImplTest {
         verify(persistence, never()).deleteFaculty(id);
     }
 
-    private CommandsFactory<?> buildFactory() {
+    private CommandsFactory<FacultyCommand> buildFactory() {
         return new FacultyCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateFacultyCommand(persistence)),

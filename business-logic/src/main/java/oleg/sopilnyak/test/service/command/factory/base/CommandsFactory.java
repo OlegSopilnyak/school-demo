@@ -5,9 +5,11 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import java.util.Collection;
 
 /**
- * Factory: the factory of commands
+ * Type Container: the factory of commands
+ *
+ * @param <T> type of factory's commands
  */
-public interface CommandsFactory<T> {
+public interface CommandsFactory<T extends SchoolCommand> {
 
     /**
      * To get the commandIds of registered commands
@@ -22,10 +24,11 @@ public interface CommandsFactory<T> {
      * @param commandId command-id
      * @return command instance or null if not registered
      */
-    SchoolCommand<T> command(String commandId);
+    T command(String commandId);
 
     /**
      * To get the name of the commands factory
+     *
      * @return value
      */
     String getName();

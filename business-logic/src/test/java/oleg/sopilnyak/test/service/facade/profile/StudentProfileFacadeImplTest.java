@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.FindStuden
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +24,10 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StudentProfileFacadeImplTest<T extends StudentProfile> {
+class StudentProfileFacadeImplTest {
     private static final String PROFILE_FIND_BY_ID = "profile.student.findById";
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String PROFILE_DELETE = "profile.student.deleteById";
@@ -37,7 +37,7 @@ class StudentProfileFacadeImplTest<T extends StudentProfile> {
 
     @Spy
     @InjectMocks
-    StudentProfileFacadeImpl<T> facade;
+    StudentProfileFacadeImpl facade;
     @Mock
     StudentProfile mock;
 
@@ -233,7 +233,7 @@ class StudentProfileFacadeImplTest<T extends StudentProfile> {
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
-    private CommandsFactory<T> buildFactory() {
+    private CommandsFactory<StudentProfileCommand> buildFactory() {
         return new StudentProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentProfileCommand(persistence)),

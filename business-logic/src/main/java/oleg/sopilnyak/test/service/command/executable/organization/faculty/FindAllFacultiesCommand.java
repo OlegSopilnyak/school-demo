@@ -23,7 +23,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
+public class FindAllFacultiesCommand implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
 
     /**

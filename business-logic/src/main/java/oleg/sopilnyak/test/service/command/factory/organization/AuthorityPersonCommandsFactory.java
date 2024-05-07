@@ -14,10 +14,10 @@ import java.util.Collection;
  * @see AbstractCommandFactory
  * @see AuthorityPersonCommand
  */
-public class AuthorityPersonCommandsFactory<T> extends OrganizationCommandsFactory<T> implements CommandsFactory<T> {
+public class AuthorityPersonCommandsFactory extends OrganizationCommandsFactory<AuthorityPersonCommand> {
     public static final String NAME = "Organization.AuthorityPersons";
 
-    public AuthorityPersonCommandsFactory(Collection<AuthorityPersonCommand<T>> commands) {
+    public AuthorityPersonCommandsFactory(Collection<AuthorityPersonCommand> commands) {
         super(commands);
     }
 

@@ -19,7 +19,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Course>> {
+public class FindCoursesWithoutStudentsCommand implements CourseCommand {
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**

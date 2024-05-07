@@ -1,9 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -16,6 +13,7 @@ import static java.util.Objects.isNull;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Data
+@EqualsAndHashCode(exclude = "studentEntitySet")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

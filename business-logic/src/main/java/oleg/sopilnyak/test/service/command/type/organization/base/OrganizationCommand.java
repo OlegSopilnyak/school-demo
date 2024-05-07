@@ -14,7 +14,7 @@ import org.slf4j.Logger;
  * @see FacultyCommand
  * @see StudentsGroupCommand
  */
-public interface OrganizationCommand<T> extends SchoolCommand<T> {
+public interface OrganizationCommand extends SchoolCommand {
     /**
      * To get reference to command's logger
      *

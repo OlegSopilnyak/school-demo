@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindStudentsGroupCommand implements StudentsGroupCommand<Optional<StudentsGroup>> {
+public class FindStudentsGroupCommand implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
 
     /**

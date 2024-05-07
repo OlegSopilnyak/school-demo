@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class DeleteFacultyCommand
         extends SchoolCommandCache<Faculty>
-        implements FacultyCommand<Boolean> {
+        implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
 
     public DeleteFacultyCommand(FacultyPersistenceFacade persistence) {
@@ -99,15 +99,16 @@ public class DeleteFacultyCommand
                 throw notFoundException;
             }
 
-            final Faculty entity =
+            // getting from the database current version of the faculty
+            final Faculty previous =
                     retrieveEntity(id, persistence::findFacultyById, persistence::toEntity, () -> notFoundException);
 
-            if (!entity.getCourses().isEmpty()) {
+            if (!previous.getCourses().isEmpty()) {
                 throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");
             }
 
-            // cached faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // previous version of faculty is storing to context for further rollback (undo)
+            context.setUndoParameter(previous);
             // deleting entity
             persistence.deleteFaculty(id);
             context.setResult(true);

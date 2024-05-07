@@ -13,9 +13,8 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  *
- * @param <T> type of macro-command
  */
-public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
+public abstract class SequentialMacroCommand extends MacroCommand {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
@@ -66,7 +65,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @see SchoolCommand#
      * @see Optional
      */
-    protected void transferPreviousRedoResult(SchoolCommand<?> previousCommand, Optional previousResult, Context<?> targetContext) {
+    protected void transferPreviousRedoResult(SchoolCommand previousCommand, Optional<?> previousResult, Context<?> targetContext) {
     }
 
     /**
@@ -88,7 +87,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
     // private methods
     private void configureCurrentRedoParameter(Context<?> source, Context<?> target) {
         if (isNull(source) || !source.isDone()) return;
-        final SchoolCommand<?> sourceCommand = source.getCommand();
+        final SchoolCommand sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
         final Optional<?> sourceCommandResult = source.getResult();
         if (isNull(sourceCommandResult) || sourceCommandResult.isEmpty()) return;

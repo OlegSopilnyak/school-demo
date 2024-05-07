@@ -22,14 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = AuthorityPersonCommandsFactorySpringTest.FactoryConfiguration.class)
-class AuthorityPersonCommandsFactorySpringTest<T> {
+class AuthorityPersonCommandsFactorySpringTest {
     private static final String FACTORY_NAME = "Organization.AuthorityPersons";
     private static final String SPRING_NAME = "authorityCommandsFactory";
     private Collection<String> commandsId;
     @MockBean
     PersistenceFacade persistenceFacade;
     @Autowired
-    CommandsFactory<T> factory;
+    CommandsFactory<AuthorityPersonCommand> factory;
     @Autowired
     ApplicationContext context;
 
@@ -58,15 +58,15 @@ class AuthorityPersonCommandsFactorySpringTest<T> {
     @Test
     void shouldGetTheCommandsByCommandId() {
         assertThat(factory.getSize()).isEqualTo(commandsId.size());
-        commandsId.forEach(cmdId->assertThat(factory.command(cmdId)).isNotNull());
+        commandsId.forEach(cmdId -> assertThat(factory.command(cmdId)).isNotNull());
     }
 
     @Configuration
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean(name = SPRING_NAME)
-        public <T> CommandsFactory<T> commandsFactory(final Collection<AuthorityPersonCommand<T>> commands) {
-            return new AuthorityPersonCommandsFactory<>(commands);
+        public CommandsFactory<AuthorityPersonCommand> commandsFactory(final Collection<AuthorityPersonCommand> commands) {
+            return new AuthorityPersonCommandsFactory(commands);
         }
     }
 }

@@ -22,9 +22,7 @@ import java.util.function.LongFunction;
  */
 @Slf4j
 @Component
-public class FindStudentProfileCommand
-        extends FindProfileCommand<Optional<StudentProfile>, StudentProfile>
-        implements StudentProfileCommand<Optional<StudentProfile>> {
+public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile> implements StudentProfileCommand {
 
     /**
      * Constructor

@@ -29,7 +29,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 @Slf4j
 public class FacultyFacadeImpl extends OrganizationFacadeImpl implements FacultyFacade {
 
-    public FacultyFacadeImpl(CommandsFactory<?> factory) {
+    public FacultyFacadeImpl(CommandsFactory<FacultyCommand> factory) {
         super(factory);
     }
 
@@ -82,7 +82,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
     @Override
     public void deleteFacultyById(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
         String commandId = FacultyCommand.DELETE;
-        final SchoolCommand<Boolean> command = takeValidCommand(commandId, factory);
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

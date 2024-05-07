@@ -29,11 +29,11 @@ class SequentialMacroCommandTest {
     @InjectMocks
     FakeMacroCommand command;
     @Mock
-    SchoolCommand<Double> doubleCommand;
+    SchoolCommand doubleCommand;
     @Mock
-    SchoolCommand<Boolean> booleanCommand;
+    SchoolCommand booleanCommand;
     @Mock
-    SchoolCommand<Integer> intCommand;
+    SchoolCommand intCommand;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +52,7 @@ class SequentialMacroCommandTest {
         int parameter = 100;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = command.createContext(parameter);
+        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -96,7 +96,7 @@ class SequentialMacroCommandTest {
         int parameter = 101;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = command.createContext(parameter);
+        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -136,7 +136,7 @@ class SequentialMacroCommandTest {
         int parameter = 102;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = command.createContext(parameter);
+        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -168,7 +168,7 @@ class SequentialMacroCommandTest {
     void shouldRollbackAllNestedDoneContexts() {
         int parameter = 103;
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = command.createContext(parameter);
+        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -204,7 +204,7 @@ class SequentialMacroCommandTest {
     void shouldNotRollbackSomeNestedDoneContexts_NestedUndoThrown() {
         int parameter = 104;
         allowCreateRealContexts(parameter);
-        Context<Integer> macroContext = command.createContext(parameter);
+        Context<Integer> macroContext = (Context<Integer>) command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
@@ -243,12 +243,26 @@ class SequentialMacroCommandTest {
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
     }
 
-    static class FakeMacroCommand extends SequentialMacroCommand<Integer> {
+    static class FakeMacroCommand extends SequentialMacroCommand {
         private final Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
         @Override
         public Logger getLog() {
             return logger;
+        }
+
+        /**
+         * To execute command's business-logic
+         *
+         * @param parameter command's parameter
+         * @return execution's result
+         * @see this#doCommand(Context)
+         * @see this#undoCommand(Context)
+         * @deprecated commands are going to work through redo/undo
+         */
+        @Override
+        public CommandResult<?> execute(Object parameter) {
+            return null;
         }
 
         @Override
@@ -280,7 +294,7 @@ class SequentialMacroCommandTest {
         doCallRealMethod().when(intCommand).createContext(parameter);
     }
 
-    private <T> void configureNestedRedoResult(SchoolCommand<T> nextedCommand, T result) {
+    private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {
         doAnswer(invocationOnMock -> {
             Context<?> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
@@ -289,7 +303,7 @@ class SequentialMacroCommandTest {
         }).when(nextedCommand).doCommand(any(Context.class));
     }
 
-    private <T> void configureNestedUndoStatus(SchoolCommand<T> nextedCommand) {
+    private <T> void configureNestedUndoStatus(SchoolCommand nextedCommand) {
         doAnswer(invocationOnMock -> {
             Context<?> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
