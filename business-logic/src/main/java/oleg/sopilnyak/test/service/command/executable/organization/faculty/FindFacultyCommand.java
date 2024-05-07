@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -24,33 +23,6 @@ import java.util.Optional;
 @Component
 public class FindFacultyCommand implements FacultyCommand {
     private final FacultyPersistenceFacade persistenceFacade;
-
-    /**
-     * To find faculty by id
-     *
-     * @param parameter system faculty-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<Faculty>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find faculty by ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Faculty> faculty = persistenceFacade.findFacultyById(id);
-            log.debug("Got faculty {} by ID:{}", faculty, id);
-            return CommandResult.<Optional<Faculty>>builder()
-                    .result(Optional.ofNullable(faculty))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot find the faculty by ID:{}", parameter, e);
-            return CommandResult.<Optional<Faculty>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
-        }
-    }
 
     /**
      * DO: To find faculty by id<BR/>

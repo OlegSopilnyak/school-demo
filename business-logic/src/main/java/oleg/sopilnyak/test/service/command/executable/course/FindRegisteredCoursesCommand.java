@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,28 +19,6 @@ import java.util.Set;
 @Component
 public class FindRegisteredCoursesCommand implements CourseCommand {
     private final RegisterPersistenceFacade persistenceFacade;
-
-    /**
-     * To find courses registered to student by id
-     *
-     * @param parameter system student-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Set<Course>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find courses registered to student ID: {}", parameter);
-            final Long id = commandParameter(parameter);
-            final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
-            log.debug("Got courses {} for student ID:{}", courses, id);
-            return CommandResult.<Set<Course>>builder().success(true).result(Optional.of(courses)).build();
-        } catch (Exception e) {
-            log.error("Cannot find courses registered to student ID:{}", parameter, e);
-            return CommandResult.<Set<Course>>builder().success(false).exception(e).result(Optional.of(Set.of())).build();
-        }
-    }
 
     /**
      * To find courses registered to student by id <BR/>

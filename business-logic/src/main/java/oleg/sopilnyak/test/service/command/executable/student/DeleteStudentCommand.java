@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Optional;
 import java.util.function.*;
 
 /**
@@ -33,46 +31,6 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     public DeleteStudentCommand(StudentsPersistenceFacade persistence) {
         super(Student.class);
         this.persistence = persistence;
-    }
-
-    /**
-     * To delete the student by student-id
-     *
-     * @param parameter system course-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            log.debug("Trying to delete the student ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Student> student = persistence.findStudentById(id);
-            if (student.isEmpty()) {
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
-                        .exception(new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists."))
-                        .success(false).build();
-            }
-            if (!ObjectUtils.isEmpty(student.get().getCourses())) {
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
-                        .exception(new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses."))
-                        .success(false).build();
-            }
-            boolean result = persistence.deleteStudent(id);
-            log.debug("Deleted student: {} success is '{}'", id, result);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(result))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot delete the student by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(false))
-                    .exception(e).success(false).build();
-        }
     }
 
     /**

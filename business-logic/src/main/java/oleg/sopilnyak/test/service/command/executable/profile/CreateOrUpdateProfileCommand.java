@@ -4,7 +4,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
@@ -55,35 +54,6 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @return function implementation
      */
     protected abstract Function<E, Optional<E>> functionSave();
-
-    /**
-     * To update person's profile
-     *
-     * @param parameter system principal-profile instance
-     * @return execution's result
-     * @see Optional
-     * @see PersonProfile
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<E>> execute(Object parameter) {
-        try {
-            getLog().debug("Trying to update person profile {}", parameter);
-            final E input = commandParameter(parameter);
-            final Optional<E> profile = functionSave().apply(input);
-            getLog().debug("Got saved \nperson profile {}\n for input {}", profile, input);
-            return CommandResult.<Optional<E>>builder()
-                    .result(Optional.of(profile))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            getLog().error("Cannot save the profile {}", parameter, e);
-            return CommandResult.<Optional<E>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
-        }
-    }
 
     /**
      * To update person's profile<BR/>

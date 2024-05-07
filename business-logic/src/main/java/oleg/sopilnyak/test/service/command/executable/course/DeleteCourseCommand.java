@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -15,7 +14,6 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -37,40 +35,6 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
         super(Course.class);
         this.persistenceFacade = persistenceFacade;
     }
-
-    /**
-     * To delete course by id
-     *
-     * @param parameter system course-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            log.debug("Trying to delete course: {}", parameter);
-            final Long id = commandParameter(parameter);
-            final Optional<Course> course = persistenceFacade.findCourseById(id);
-            if (course.isEmpty()) {
-                return CommandResult.<Boolean>builder().success(false).result(Optional.empty())
-                        .exception(new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists."))
-                        .build();
-            }
-            if (!ObjectUtils.isEmpty(course.get().getStudents())) {
-                return CommandResult.<Boolean>builder().success(false).result(Optional.empty())
-                        .exception(new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + id + " has enrolled students."))
-                        .build();
-            }
-            persistenceFacade.deleteCourse(id);
-            log.debug("Deleted course {} successfully.", course.get());
-            return CommandResult.<Boolean>builder().success(true).result(Optional.of(true)).build();
-        } catch (Exception e) {
-            log.error("Cannot delete the course by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().success(false).result(Optional.empty()).exception(e).build();
-        }
-    }
-
 
     /**
      * DO: To delete the course by id<BR/>

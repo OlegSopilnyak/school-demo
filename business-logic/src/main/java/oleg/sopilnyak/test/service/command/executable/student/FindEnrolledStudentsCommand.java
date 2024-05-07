@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,33 +19,6 @@ import java.util.Set;
 @Component
 public class FindEnrolledStudentsCommand implements StudentCommand {
     private final RegisterPersistenceFacade persistenceFacade;
-
-    /**
-     * To find enrolled students by course-id
-     *
-     * @param parameter system course-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Set<Student>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find enrolled students by the course ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Set<Student> students = persistenceFacade.findEnrolledStudentsByCourseId(id);
-            log.debug("Got students {} by ID:{}", students, id);
-            return CommandResult.<Set<Student>>builder()
-                    .result(Optional.ofNullable(students))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Set<Student>>builder()
-                    .result(Optional.of(Set.of()))
-                    .exception(e).success(false).build();
-        }
-    }
 
     /**
      * To find enrolled students by course-id<BR/>

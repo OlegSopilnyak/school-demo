@@ -6,14 +6,12 @@ import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsExcep
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -37,44 +35,6 @@ public class DeleteStudentsGroupCommand
     public DeleteStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {
         super(StudentsGroup.class);
         this.persistence = persistence;
-    }
-
-    /**
-     * To delete students group by id
-     *
-     * @param parameter system students-group-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            log.debug("Trying to delete students group with ID: {}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<StudentsGroup> group = persistence.findStudentsGroupById(id);
-            if (group.isEmpty()) {
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
-                        .exception(new NotExistStudentsGroupException("StudentsGroup with ID:" + id + " is not exists."))
-                        .success(false).build();
-            } else if (!group.get().getStudents().isEmpty()) {
-                return CommandResult.<Boolean>builder()
-                        .result(Optional.of(false))
-                        .exception(new StudentGroupWithStudentsException("StudentsGroup with ID:" + id + " has students."))
-                        .success(false).build();
-            }
-
-            persistence.deleteStudentsGroup(id);
-
-            log.debug("Deleted students group {} {}", group.get(), true);
-            return CommandResult.<Boolean>builder().result(Optional.of(true)).success(true).build();
-        } catch (Exception e) {
-            log.error("Cannot delete the students group by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(false))
-                    .exception(e).success(false).build();
-        }
     }
 
     /**

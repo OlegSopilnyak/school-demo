@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -25,31 +23,6 @@ import java.util.Set;
 @Component
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
-
-    /**
-     * To get all students groups of the school
-     *
-     * @param parameter not used
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Set<StudentsGroup>> execute(Object parameter) {
-        try {
-            log.debug("Trying to get all students groups");
-            final Set<StudentsGroup> groups = persistence.findAllStudentsGroups();
-            log.debug("Got students groups {}", groups);
-            return CommandResult.<Set<StudentsGroup>>builder()
-                    .result(Optional.ofNullable(groups))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot find any students group", e);
-            return CommandResult.<Set<StudentsGroup>>builder()
-                    .result(Optional.of(Set.of())).exception(e).success(false).build();
-        }
-    }
 
     /**
      * DO: To get all students groups of the school<BR/>

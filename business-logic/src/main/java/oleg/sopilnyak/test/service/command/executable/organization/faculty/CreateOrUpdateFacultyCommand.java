@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -36,31 +35,6 @@ public class CreateOrUpdateFacultyCommand
     public CreateOrUpdateFacultyCommand(FacultyPersistenceFacade persistence) {
         super(Faculty.class);
         this.persistence = persistence;
-    }
-
-    /**
-     * To create or update the faculty of the school
-     *
-     * @param parameter faculty instance to save
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<Faculty>> execute(Object parameter) {
-        try {
-            log.debug("Trying to create or update faculty {}", parameter);
-            Faculty instance = commandParameter(parameter);
-            Optional<Faculty> faculty = persistence.save(instance);
-            log.debug("Got stored faculty {} from parameter {}", faculty, instance);
-            return CommandResult.<Optional<Faculty>>builder()
-                    .result(Optional.ofNullable(faculty)).success(true).build();
-        } catch (Exception e) {
-            log.error("Cannot create or update faculty {}", parameter, e);
-            return CommandResult.<Optional<Faculty>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
-        }
     }
 
     /**

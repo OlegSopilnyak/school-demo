@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -20,32 +19,6 @@ import java.util.Optional;
 @Component
 public class FindStudentCommand implements StudentCommand {
     private final StudentsPersistenceFacade persistenceFacade;
-
-    /**
-     * To find student by id
-     *
-     * @param parameter system student-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<Student>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find student by ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Student> student = persistenceFacade.findStudentById(id);
-            log.debug("Got student {} by ID:{}", student, id);
-            return CommandResult.<Optional<Student>>builder()
-                    .result(Optional.ofNullable(student))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot find the student by ID:{}", parameter, e);
-            return CommandResult.<Optional<Student>>builder()
-                    .result(Optional.of(Optional.empty())).exception(e).success(false).build();
-        }
-    }
 
     /**
      * To find student by id<BR/>

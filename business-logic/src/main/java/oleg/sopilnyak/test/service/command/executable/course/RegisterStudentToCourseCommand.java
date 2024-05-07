@@ -9,7 +9,6 @@ import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -44,63 +43,6 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
         this.persistenceFacade = persistenceFacade;
         this.maximumRooms = maximumRooms;
         this.coursesExceed = coursesExceed;
-    }
-
-    /**
-     * To link the student to the course
-     *
-     * @param parameter the array of [student-id, course-id]
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            log.debug("Trying to register student to course: {}", parameter);
-            final Long[] ids = commandParameter(parameter);
-            final Long studentId = ids[0];
-            final Long courseId = ids[1];
-            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
-            if (student.isEmpty()) {
-                log.debug("No such student with id:{}", studentId);
-                return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX))
-                        .build();
-            }
-            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
-            if (course.isEmpty()) {
-                log.debug("No such course with id:{}", courseId);
-                return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new NotExistCourseException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX))
-                        .build();
-            }
-            if (isLinked(student.get(), course.get())) {
-                log.debug("student: {} with course {} are already linked", studentId, courseId);
-                return CommandResult.<Boolean>builder().success(true).result(Optional.of(true)).build();
-            }
-            if (course.get().getStudents().size() >= maximumRooms) {
-                log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
-                return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new NoRoomInTheCourseException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms."))
-                        .build();
-            }
-            if (student.get().getCourses().size() >= coursesExceed) {
-                log.debug("Student with id:{} has more than {} courses", studentId, coursesExceed);
-                return CommandResult.<Boolean>builder().success(false).result(Optional.of(false))
-                        .exception(new StudentCoursesExceedException(STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses."))
-                        .build();
-            }
-
-            log.debug("Linking student:{} to course {}", studentId, courseId);
-            final boolean linked = persistenceFacade.link(student.get(), course.get());
-            log.debug("Linked student:{} to course {} {}", studentId, courseId, linked);
-
-            return CommandResult.<Boolean>builder().success(true).result(Optional.of(linked)).build();
-        } catch (Exception e) {
-            log.error("Cannot link student to course {}", parameter, e);
-            return CommandResult.<Boolean>builder().success(false).exception(e).result(Optional.of(false)).build();
-        }
     }
 
     /**

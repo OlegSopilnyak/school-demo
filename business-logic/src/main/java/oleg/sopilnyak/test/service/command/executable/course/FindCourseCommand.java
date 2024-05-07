@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -20,29 +19,6 @@ import java.util.Optional;
 @Component
 public class FindCourseCommand implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
-
-    /**
-     * To find course by id
-     *
-     * @param parameter system course-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<Course>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find course by ID:{}", parameter);
-            final Long id = commandParameter(parameter);
-            final Optional<Course> course = persistenceFacade.findCourseById(id);
-            log.debug("Got course {} by ID:{}", course, id);
-            return CommandResult.<Optional<Course>>builder().success(true).result(Optional.of(course)).build();
-        } catch (Exception e) {
-            log.error("Cannot find the course by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder().success(false).exception(e)
-                    .result(Optional.of(Optional.empty())).build();
-        }
-    }
 
     /**
      * To find course by id<BR/>

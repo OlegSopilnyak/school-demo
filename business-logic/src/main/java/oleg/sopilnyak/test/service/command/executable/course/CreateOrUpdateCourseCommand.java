@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -36,29 +35,6 @@ public class CreateOrUpdateCourseCommand
     public CreateOrUpdateCourseCommand(CoursesPersistenceFacade persistenceFacade) {
         super(Course.class);
         this.persistenceFacade = persistenceFacade;
-    }
-
-    /**
-     * To create or update the course
-     *
-     * @param parameter student instance
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<Course>> execute(Object parameter) {
-        try {
-            log.debug("Trying to create or update course {}", parameter);
-            final Course updated = commandParameter(parameter);
-            final Optional<Course> course = persistenceFacade.save(updated);
-            log.debug("Got stored course {} from parameter {}", course, updated);
-            return CommandResult.<Optional<Course>>builder().success(true).result(Optional.of(course)).build();
-        } catch (Exception e) {
-            log.error("Cannot create or update course by ID:{}", parameter, e);
-            return CommandResult.<Optional<Course>>builder().success(false).exception(e)
-                    .result(Optional.of(Optional.empty())).build();
-        }
     }
 
     /**

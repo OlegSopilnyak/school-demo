@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -24,33 +23,6 @@ import java.util.Optional;
 @Component
 public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistenceFacade;
-
-    /**
-     * To find authority person by id
-     *
-     * @param parameter system authority-person-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<AuthorityPerson>> execute(Object parameter) {
-        try {
-            log.debug("Trying to find authority person by ID:{}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
-            log.debug("Got authority person {} by ID:{}", person, id);
-            return CommandResult.<Optional<AuthorityPerson>>builder()
-                    .result(Optional.ofNullable(person))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            log.error("Cannot find the authority person by ID:{}", parameter, e);
-            return CommandResult.<Optional<AuthorityPerson>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
-        }
-    }
 
     /**
      * DO: To find authority person by id<BR/>

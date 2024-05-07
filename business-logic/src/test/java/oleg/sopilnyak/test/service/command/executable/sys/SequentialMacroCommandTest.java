@@ -251,20 +251,6 @@ class SequentialMacroCommandTest {
             return logger;
         }
 
-        /**
-         * To execute command's business-logic
-         *
-         * @param parameter command's parameter
-         * @return execution's result
-         * @see this#doCommand(Context)
-         * @see this#undoCommand(Context)
-         * @deprecated commands are going to work through redo/undo
-         */
-        @Override
-        public CommandResult<?> execute(Object parameter) {
-            return null;
-        }
-
         @Override
         public String getId() {
             return "sequential-fake-command";

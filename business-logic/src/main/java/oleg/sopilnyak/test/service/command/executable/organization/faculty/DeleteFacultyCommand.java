@@ -6,14 +6,12 @@ import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -37,41 +35,6 @@ public class DeleteFacultyCommand
     public DeleteFacultyCommand(FacultyPersistenceFacade persistence) {
         super(Faculty.class);
         this.persistence = persistence;
-    }
-
-    /**
-     * To delete faculty by id
-     *
-     * @param parameter system faculty-id
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            log.debug("Trying to delete faculty with ID: {}", parameter);
-            Long id = commandParameter(parameter);
-            Optional<Faculty> person = persistence.findFacultyById(id);
-            if (person.isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
-                        .exception(new NotExistFacultyException("Faculty with ID:" + id + " is not exists."))
-                        .success(false).build();
-            } else if (!person.get().getCourses().isEmpty()) {
-                return CommandResult.<Boolean>builder().result(Optional.empty())
-                        .exception(new FacultyIsNotEmptyException("Faculty with ID:" + id + " has courses."))
-                        .success(false).build();
-            }
-
-            persistence.deleteFaculty(id);
-
-            log.debug("Deleted faculty {} {}", person.get(), true);
-            return CommandResult.<Boolean>builder().result(Optional.of(true)).success(true).build();
-        } catch (Exception e) {
-            log.error("Cannot delete the authority person by ID:{}", parameter, e);
-            return CommandResult.<Boolean>builder().result(Optional.empty())
-                    .exception(e).success(false).build();
-        }
     }
 
     /**

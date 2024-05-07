@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -53,41 +52,6 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @return function implementation
      */
     protected abstract Function<E, Optional<E>> functionSave();
-
-    /**
-     * To delete person's profile by id
-     *
-     * @param parameter system-id of person-profile to delete
-     * @return execution's result
-     * @see PersonProfile
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Boolean> execute(Object parameter) {
-        try {
-            getLog().debug("Trying to delete person profile {}", parameter);
-            final Long id = commandParameter(parameter);
-            final Optional<E> profile = functionFindById().apply(id);
-            if (profile.isEmpty()) {
-                getLog().debug("Person profile with ID:{} is not exists.", id);
-                return CommandResult.<Boolean>builder().result(Optional.of(Boolean.FALSE))
-                        .exception(new NotExistProfileException("Profile with ID:" + id + " is not exists."))
-                        .success(false).build();
-            }
-            persistence.deleteProfileById(id);
-            getLog().debug("Person profile with ID:{} is deleted '{}'", id, true);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(Boolean.TRUE))
-                    .success(true)
-                    .build();
-        } catch (Exception e) {
-            getLog().error("Cannot delete the person profile {}", parameter, e);
-            return CommandResult.<Boolean>builder()
-                    .result(Optional.of(Boolean.FALSE))
-                    .exception(e).success(false).build();
-        }
-    }
 
     /**
      * DO: To delete person's profile by id<BR/>

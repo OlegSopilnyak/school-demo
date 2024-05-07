@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 
 import static java.util.Objects.isNull;
 
@@ -9,17 +8,6 @@ import static java.util.Objects.isNull;
  * Type: Command to execute the business-logic action
  */
 public interface SchoolCommand {
-    /**
-     * To execute command's business-logic
-     *
-     * @param parameter command's parameter
-     * @return execution's result
-     * @see this#doCommand(Context)
-     * @see this#undoCommand(Context)
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    CommandResult<?> execute(Object parameter);
 
     /**
      * To get unique command-id for the command

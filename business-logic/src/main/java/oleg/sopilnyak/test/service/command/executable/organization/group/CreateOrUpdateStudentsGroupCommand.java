@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupExceptio
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandResult;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
@@ -36,31 +35,6 @@ public class CreateOrUpdateStudentsGroupCommand
     public CreateOrUpdateStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {
         super(StudentsGroup.class);
         this.persistence = persistence;
-    }
-
-    /**
-     * To create or update students group instance
-     *
-     * @param parameter students group instance to save
-     * @return execution's result
-     * @deprecated commands are going to work through redo/undo
-     */
-    @Deprecated(forRemoval = true)
-    @Override
-    public CommandResult<Optional<StudentsGroup>> execute(Object parameter) {
-        try {
-            log.debug("Trying to create or update students group {}", parameter);
-            StudentsGroup instance = commandParameter(parameter);
-            Optional<StudentsGroup> studentsGroup = persistence.save(instance);
-            log.debug("Got stored students group {} from parameter {}", studentsGroup, instance);
-            return CommandResult.<Optional<StudentsGroup>>builder()
-                    .result(Optional.ofNullable(studentsGroup)).success(true).build();
-        } catch (Exception e) {
-            log.error("Cannot create or update students group {}", parameter, e);
-            return CommandResult.<Optional<StudentsGroup>>builder()
-                    .result(Optional.of(Optional.empty()))
-                    .exception(e).success(false).build();
-        }
     }
 
     /**
