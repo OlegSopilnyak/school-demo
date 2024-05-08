@@ -73,11 +73,12 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      */
     @Override
     public <T> void executeDo(Context<T> context) {
-        final E parameter = context.getRedoParameter();
+        final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
-            getLog().debug("Trying to change profile using: {}", parameter);
-            final Long inputId = parameter.getId();
+            final E profile = commandParameter(parameter);
+            getLog().debug("Trying to change profile using: {}", profile);
+            final Long inputId = profile.getId();
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
                 // previous version of profile is storing to context for further rollback (undo)
@@ -87,9 +88,9 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
                 );
                 context.setUndoParameter(previous);
             }
-            final Optional<E> profile = persistRedoEntity(context, functionSave());
+            final Optional<E> savedProfile = persistRedoEntity(context, functionSave());
             // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, functionSave()), profile, isCreateProfile);
+            afterPersistCheck(context, () -> rollbackCachedEntity(context, functionSave()), savedProfile, isCreateProfile);
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
             context.failed(e);
