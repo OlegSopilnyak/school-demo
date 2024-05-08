@@ -86,6 +86,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
             // previous profile is storing to context for further rollback (undo)
             final E previous = retrieveEntity(id, functionFindById(), functionCopyEntity(), () -> notFoundException);
             context.setUndoParameter(previous);
+            // deleting profile by id
             persistence.deleteProfileById(id);
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);

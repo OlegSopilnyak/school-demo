@@ -78,13 +78,12 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
             check(parameter);
             final E profile = commandParameter(parameter);
             getLog().debug("Trying to change profile using: {}", profile);
-            final Long inputId = profile.getId();
-            final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
+            final Long id = profile.getId();
+            final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateProfile) {
                 // previous version of profile is storing to context for further rollback (undo)
-                final E previous = retrieveEntity(inputId,
-                        functionFindById(), functionCopyEntity(),
-                        () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + inputId + " is not exists.")
+                final E previous = retrieveEntity(id, functionFindById(), functionCopyEntity(),
+                        () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(previous);
             }
