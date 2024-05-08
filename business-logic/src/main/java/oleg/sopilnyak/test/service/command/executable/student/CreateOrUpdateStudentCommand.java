@@ -50,7 +50,7 @@ public class CreateOrUpdateStudentCommand
      * @see NotExistStudentException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -88,7 +88,7 @@ public class CreateOrUpdateStudentCommand
      * @see NotExistStudentException
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student changes using: {}", parameter.toString());

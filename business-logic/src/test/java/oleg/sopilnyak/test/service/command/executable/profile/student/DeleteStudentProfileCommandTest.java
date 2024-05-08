@@ -68,7 +68,7 @@ class DeleteStudentProfileCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getException()).isNull();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.getUndoParameter()).isEqualTo(profile);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);

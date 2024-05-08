@@ -37,7 +37,7 @@ public interface CourseCommand extends SchoolCommand {
      * @see Context
      */
     @Override
-    default void doCommand(Context<?> context) {
+    default <T> void doCommand(Context<T> context) {
         if (isWrongRedoStateOf(context)) {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -56,7 +56,7 @@ public interface CourseCommand extends SchoolCommand {
      * @see Context#getUndoParameter()
      */
     @Override
-    default void undoCommand(Context<?> context) {
+    default <T> void undoCommand(Context<T> context) {
         if (isWrongUndoStateOf(context)) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);

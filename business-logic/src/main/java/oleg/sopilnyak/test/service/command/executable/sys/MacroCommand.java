@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 /**
  * Command-Base: macro-command the command with nested commands inside
- *
  */
 public abstract class MacroCommand implements CompositeCommand {
     private final List<SchoolCommand> commands = new LinkedList<>();
@@ -51,19 +50,19 @@ public abstract class MacroCommand implements CompositeCommand {
      * @see Context.State#WORK
      */
     @Override
-    public void executeDo(final Context<?> context) {
+    public <T> void executeDo(final Context<T> context) {
         final Object input = context.getRedoParameter();
         getLog().debug("Do redo for {}", input);
         try {
-            final CommandParameterWrapper wrapper = commandParameter(input);
+            final CommandParameterWrapper<T> wrapper = commandParameter(input);
 
-            final ContextDeque<Context<?>> doneContexts = new ContextDeque<>(new LinkedList<>());
-            final ContextDeque<Context<?>> failedContexts = new ContextDeque<>(new LinkedList<>());
+            final ContextDeque<Context<T>> doneContexts = new ContextDeque<>(new LinkedList<>());
+            final ContextDeque<Context<T>> failedContexts = new ContextDeque<>(new LinkedList<>());
 
-            final Deque<Context<?>> nested = wrapper.getNestedContexts();
+            final Deque<Context<T>> nested = wrapper.getNestedContexts();
 
             final CountDownLatch executed = new CountDownLatch(nested.size());
-            final Context.StateChangedListener listener = (ctx, previous, newOne) -> {
+            final Context.StateChangedListener<T> listener = (ctx, previous, newOne) -> {
                 switch (newOne) {
                     case INIT, READY, WORK, UNDONE ->
                             getLog().debug("Changed state of '{}' form {} to {}", ctx.getCommand().getId(), previous, newOne);
@@ -107,7 +106,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @see Context
      * @see Context.StateChangedListener
      */
-    protected void redoNestedContexts(final Deque<Context<?>> nestedContexts, final Context.StateChangedListener listener) {
+    protected <T> void redoNestedContexts(final Deque<Context<T>> nestedContexts, final Context.StateChangedListener<T> listener) {
         nestedContexts.forEach(ctx -> redoNestedCommand(ctx, listener));
     }
 
@@ -117,7 +116,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @param nestedContext nested command execution context
      * @param listener      the lister of command state change
      */
-    protected <P> Context<P> redoNestedCommand(final Context<P> nestedContext, final Context.StateChangedListener listener) {
+    protected <P> Context<P> redoNestedCommand(final Context<P> nestedContext, final Context.StateChangedListener<P> listener) {
         nestedContext.addStateListener(listener);
         final SchoolCommand command = nestedContext.getCommand();
         try {
@@ -139,13 +138,13 @@ public abstract class MacroCommand implements CompositeCommand {
      * @see Context#getUndoParameter()
      */
     @Override
-    public void executeUndo(final Context<?> context) {
+    public <T> void executeUndo(final Context<T> context) {
         final Object parameter = context.getUndoParameter();
         getLog().debug("Do undo for {}", parameter);
         try {
-            final Deque<Context<?>> done = commandParameter(parameter);
+            final Deque<Context<T>> done = commandParameter(parameter);
             rollbackNestedDoneContexts(done);
-            final Optional<Context<?>> fail = done.stream().filter(Context::isFailed).findFirst();
+            final Optional<Context<T>> fail = done.stream().filter(Context::isFailed).findFirst();
             if (fail.isPresent()) {
                 throw fail.get().getException();
             }
@@ -162,7 +161,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @param nestedContexts collection of nested contexts with DONE state
      * @see Context.State#DONE
      */
-    protected Deque<Context<?>> rollbackNestedDoneContexts(final Deque<Context<?>> nestedContexts) {
+    protected <T> Deque<Context<T>> rollbackNestedDoneContexts(final Deque<Context<T>> nestedContexts) {
         return nestedContexts.stream()
                 .map(ctx -> rollbackDoneContext(ctx.getCommand(), ctx))
                 .collect(Collectors.toCollection(LinkedList::new));
@@ -177,7 +176,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    protected Context<?> rollbackDoneContext(SchoolCommand nestedCommand, final Context<?> nestedContext) {
+    protected <T> Context<T> rollbackDoneContext(SchoolCommand nestedCommand, final Context<T> nestedContext) {
         try {
             nestedCommand.undoCommand(nestedContext);
         } catch (Exception e) {
@@ -188,10 +187,10 @@ public abstract class MacroCommand implements CompositeCommand {
     }
 
     // private methods
-    private void afterRedoSet(final Context<?> context,
-                              final Deque<Context<?>> done,
-                              final Deque<Context<?>> failed,
-                              final Deque<Context<?>> nested) {
+    private <T> void afterRedoSet(final Context<T> context,
+                                  final Deque<Context<T>> done,
+                                  final Deque<Context<T>> failed,
+                                  final Deque<Context<T>> nested) {
         // check failed contexts
         if (failed.isEmpty()) {
             // no failed contexts
@@ -205,7 +204,7 @@ public abstract class MacroCommand implements CompositeCommand {
         }
     }
 
-    private static void addIntoContexts(final Context<?> context, final ContextDeque<Context<?>> contexts) {
+    private static <T> void addIntoContexts(final Context<T> context, final ContextDeque<Context<T>> contexts) {
         contexts.lock.lock();
         try {
             contexts.deque.add(context);

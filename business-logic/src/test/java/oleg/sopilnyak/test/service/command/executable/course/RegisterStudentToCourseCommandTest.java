@@ -50,7 +50,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
@@ -75,7 +75,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();

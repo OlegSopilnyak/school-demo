@@ -25,6 +25,7 @@ import static java.util.Objects.isNull;
 public class PrincipalProfileRestController {
     public static final String PROFILE_ID_VAR_NAME = "personProfileId";
     private static final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
+    public static final String WRONG_PRINCIPAL_PROFILE_ID = "Wrong principal profile-id: '";
     private PrincipalProfileFacade facade;
 
 
@@ -38,7 +39,7 @@ public class PrincipalProfileRestController {
             return ResponseEntity.ok(toDto(id, facade.findPrincipalProfileById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong principal profile-id: '{}'", personId);
-            throw new ResourceNotFoundException("Wrong principal profile-id: '" + personId + "'");
+            throw new ResourceNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + personId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -64,7 +65,7 @@ public class PrincipalProfileRestController {
         try {
             final Long id = profileDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong principal profile-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + id + "'");
             }
             return ResponseEntity.ok(toDto(id, facade.createOrUpdateProfile(profileDto)));
         } catch (ResourceNotFoundException e) {
@@ -108,7 +109,7 @@ public class PrincipalProfileRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | NotExistProfileException e) {
             log.error("Wrong principal profile-id: '{}'", profileId);
-            throw new ResourceNotFoundException("Wrong principal profile-id: '" + profileId + "'");
+            throw new ResourceNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + profileId + "'");
         } catch (Exception e) {
             log.error("Cannot delete principal-profile for id = {}", profileId, e);
             throw new CannotDeleteResourceException("Cannot delete principal-profile for id = " + profileId, e);

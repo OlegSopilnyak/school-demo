@@ -24,6 +24,8 @@ import static java.util.Objects.isNull;
 public class StudentsRestController {
     public static final String COURSE_ID_VAR_NAME = "courseId";
     public static final String STUDENT_ID_VAR_NAME = "studentId";
+    public static final String WRONG_STUDENT_ID_LOG = "Wrong student-id: '{}'";
+    public static final String WRONG_STUDENT_ID_EXCEPTION = "Wrong student-id: '";
     // delegate for requests processing
     private final StudentsFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -37,8 +39,8 @@ public class StudentsRestController {
 
             return ResponseEntity.ok(resultToDto(studentId, facade.findById(id)));
         } catch (NumberFormatException e) {
-            log.error("Wrong student-id: '{}'", studentId);
-            throw new ResourceNotFoundException("Wrong student-id: '" + studentId + "'");
+            log.error(WRONG_STUDENT_ID_LOG, studentId);
+            throw new ResourceNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -55,8 +57,8 @@ public class StudentsRestController {
 
             return ResponseEntity.ok(resultToDto(facade.findEnrolledTo(id)));
         } catch (NumberFormatException e) {
-            log.error("Wrong student-id: '{}'", courseId);
-            throw new ResourceNotFoundException("Wrong student-id: '" + courseId + "'");
+            log.error(WRONG_STUDENT_ID_LOG, courseId);
+            throw new ResourceNotFoundException(WRONG_STUDENT_ID_EXCEPTION + courseId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -91,7 +93,7 @@ public class StudentsRestController {
         try {
             Long id = studentDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong student-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_STUDENT_ID_EXCEPTION + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdate(studentDto)));
         } catch (ResourceNotFoundException e) {
@@ -112,8 +114,8 @@ public class StudentsRestController {
 
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | NotExistStudentException e) {
-            log.error("Wrong student-id: '{}'", studentId);
-            throw new ResourceNotFoundException("Wrong student-id: '" + studentId + "'");
+            log.error(WRONG_STUDENT_ID_LOG, studentId);
+            throw new ResourceNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {
             log.error("Cannot delete student for id = {}", studentId, e);
             throw new CannotDeleteResourceException("Cannot delete student for id = " + studentId, e);

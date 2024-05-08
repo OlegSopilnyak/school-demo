@@ -72,9 +72,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        Optional<StudentProfile> doResult = (Optional<StudentProfile>) context.getResult().orElseThrow();
+        Optional<StudentProfile> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(profile);
-        assertThat(context.getUndoParameter()).isEqualTo(profile);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
         verify(command).executeDo(context);
         verify(profile).getId();
         verify(persistence).findStudentProfileById(id);
@@ -94,8 +94,8 @@ class CreateOrUpdateStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(id);
-        Optional<StudentProfile> doResult = (Optional<StudentProfile>) context.getResult().orElseThrow();
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        Optional<StudentProfile> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(profile);
         verify(command).executeDo(context);
         verify(profile, times(2)).getId();

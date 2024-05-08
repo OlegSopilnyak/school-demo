@@ -53,7 +53,7 @@ public class CreateOrUpdateCourseCommand
      * @see NotExistCourseException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T>void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -90,7 +90,7 @@ public class CreateOrUpdateCourseCommand
      * @see NotExistCourseException
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T>void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo course changes using: {}", parameter.toString());

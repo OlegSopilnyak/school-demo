@@ -36,7 +36,7 @@ class FindAllAuthorityPersonsCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }
@@ -49,7 +49,7 @@ class FindAllAuthorityPersonsCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }

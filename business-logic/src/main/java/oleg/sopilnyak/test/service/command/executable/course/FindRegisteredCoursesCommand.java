@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find courses registered to student ID: {}", parameter);

@@ -33,7 +33,7 @@ public interface SchoolCommand {
      *
      * @param parameter value to check
      */
-    default void check(Object parameter){
+    default void check(Object parameter) {
         if (isNull(parameter)) {
             throw new NullPointerException("Wrong input parameter value null");
         }
@@ -42,13 +42,14 @@ public interface SchoolCommand {
     /**
      * To create command's context without doParameter
      *
+     * @param <T>     the type of command result
      * @return context instance
      * @see Context
      * @see CommandContext
      * @see Context.State#INIT
      */
-    default <R> Context<R> createContext() {
-        final CommandContext<R> context = CommandContext.<R>builder().command(this).build();
+    default <T> Context<T> createContext() {
+        final CommandContext<T> context = CommandContext.<T>builder().command(this).build();
         context.setState(Context.State.INIT);
         return context;
     }
@@ -57,17 +58,15 @@ public interface SchoolCommand {
      * To create command's context with doParameter
      *
      * @param input context's doParameter value
+     * @param <T>     the type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
      * @see CommandContext
      * @see Context.State#READY
      */
-    default <R> Context<R> createContext(Object input) {
-        final CommandContext<R> context = CommandContext.<R>builder()
-                .command(this)
-                .redoParameter(input)
-                .build();
+    default <T> Context<T> createContext(Object input) {
+        final CommandContext<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
@@ -77,12 +76,13 @@ public interface SchoolCommand {
      * Before redo context must be in READY state
      *
      * @param context command execution context
+     * @param <T>     the type of command result
      * @return true if redo is allowed
      * @see Context
      * @see Context#getState()
      * @see Context.State#READY
      */
-    default boolean isWrongRedoStateOf(Context<?> context) {
+    default <T> boolean isWrongRedoStateOf(Context<T> context) {
         return !context.isReady();
     }
 
@@ -90,9 +90,10 @@ public interface SchoolCommand {
      * To do command execution with Context
      *
      * @param context context of redo execution
+     * @param <T>     the type of command result
      * @see Context
      */
-    default void doCommand(Context<?> context) {
+    default <T> void doCommand(Context<T> context) {
 
     }
 
@@ -100,10 +101,11 @@ public interface SchoolCommand {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
+     * @param <T>     the type of command result
      * @see Context
      * @see Context.State#WORK
      */
-    default void executeDo(Context<?> context) {
+    default <T> void executeDo(Context<T> context) {
         context.setState(Context.State.DONE);
     }
 
@@ -111,12 +113,13 @@ public interface SchoolCommand {
      * Before undo context must be in DONE state
      *
      * @param context command execution context
+     * @param <T>     the type of command result
      * @return true if undo is allowed
      * @see Context
      * @see Context#getState()
      * @see Context.State#DONE
      */
-    default boolean isWrongUndoStateOf(Context<?> context) {
+    default <T> boolean isWrongUndoStateOf(Context<T> context) {
         return !context.isDone();
     }
 
@@ -125,10 +128,11 @@ public interface SchoolCommand {
      * To rollback command's execution
      *
      * @param context context of redo execution
+     * @param <T>     the type of command result
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void undoCommand(Context<?> context) {
+    default <T> void undoCommand(Context<T> context) {
 
     }
 
@@ -136,10 +140,11 @@ public interface SchoolCommand {
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
+     * @param <T>     the type of command result
      * @see Context
      * @see Context#getUndoParameter()
      */
-    default void executeUndo(Context<?> context) {
+    default <T> void executeUndo(Context<T> context) {
         context.setState(Context.State.UNDONE);
     }
 }

@@ -25,6 +25,7 @@ import static java.util.Objects.isNull;
 public class StudentProfileRestController {
     public static final String PROFILE_ID_VAR_NAME = "personProfileId";
     private static final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
+    public static final String WRONG_STUDENT_PROFILE_ID = "Wrong student profile-id: '";
     private StudentProfileFacade facade;
 
     @GetMapping("/{" + PROFILE_ID_VAR_NAME + "}")
@@ -37,7 +38,7 @@ public class StudentProfileRestController {
             return ResponseEntity.ok(toDto(id, facade.findStudentProfileById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong student profile-id: '{}'", personId);
-            throw new ResourceNotFoundException("Wrong student profile-id: '" + personId + "'");
+            throw new ResourceNotFoundException(WRONG_STUDENT_PROFILE_ID + personId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -63,7 +64,7 @@ public class StudentProfileRestController {
         try {
             final Long id = profileDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong student profile-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_STUDENT_PROFILE_ID + id + "'");
             }
             return ResponseEntity.ok(toDto(id, facade.createOrUpdateProfile(profileDto)));
         } catch (ResourceNotFoundException e) {
@@ -107,7 +108,7 @@ public class StudentProfileRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | NotExistProfileException e) {
             log.error("Wrong student profile-id: '{}'", profileId);
-            throw new ResourceNotFoundException("Wrong student profile-id: '" + profileId + "'");
+            throw new ResourceNotFoundException(WRONG_STUDENT_PROFILE_ID + profileId + "'");
         } catch (Exception e) {
             log.error("Cannot delete student-profile for id = {}", profileId, e);
             throw new CannotDeleteResourceException("Cannot delete student-profile for id = " + profileId, e);

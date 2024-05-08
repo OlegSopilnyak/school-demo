@@ -45,7 +45,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to delete student by ID: {}", parameter.toString());
@@ -86,7 +86,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student deletion using: {}", parameter.toString());

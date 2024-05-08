@@ -5,9 +5,9 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupExceptio
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see NotExistStudentsGroupException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -94,7 +94,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see NotExistStudentsGroupException
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo students group changes using: {}", parameter);

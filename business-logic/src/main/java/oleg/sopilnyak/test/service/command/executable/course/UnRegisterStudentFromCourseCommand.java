@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to un-link student from course: {}", parameter);
@@ -94,7 +94,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * @see Context#getUndoParameter()
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");

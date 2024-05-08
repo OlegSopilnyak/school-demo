@@ -75,7 +75,7 @@ public class CreateOrUpdatePrincipalProfileCommand
      */
     @Override
     protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
-        return entity -> (PrincipalProfile) persistence.toEntity(entity);
+        return persistence::toEntity;
     }
 
     /**

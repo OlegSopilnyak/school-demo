@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
-import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand {
      * @see StudentsGroupPersistenceFacade#findAllStudentsGroups()
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         try {
             log.debug("Trying to get all students groups");
 

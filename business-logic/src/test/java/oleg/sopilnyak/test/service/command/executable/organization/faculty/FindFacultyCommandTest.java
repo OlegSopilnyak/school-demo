@@ -37,7 +37,7 @@ class FindFacultyCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
     }
@@ -50,8 +50,8 @@ class FindFacultyCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.empty());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getResult().orElseThrow()).isEmpty();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
     }

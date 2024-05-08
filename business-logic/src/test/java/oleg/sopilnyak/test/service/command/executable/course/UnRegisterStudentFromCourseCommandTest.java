@@ -52,7 +52,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistence).toEntity(student);
         verify(persistence).findCourseById(id);
         verify(persistence).toEntity(course);
-        assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
 
         verify(persistence).unLink(student, course);
     }
@@ -108,7 +108,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);
         verify(persistence).unLink(student, course);
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
     }
 
     @Test

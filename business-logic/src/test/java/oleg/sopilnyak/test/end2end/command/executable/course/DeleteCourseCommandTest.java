@@ -12,7 +12,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -64,7 +63,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
         assertThat(context.getResult()).isPresent();
         assertThat(context.getResult().get()).isTrue();
         verify(command).executeDo(context);
@@ -82,7 +81,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
@@ -104,7 +103,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         assertThat(context.getException()).isInstanceOf(CourseWithStudentsException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" has enrolled students.");
         verify(command).executeDo(context);
@@ -124,7 +123,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);

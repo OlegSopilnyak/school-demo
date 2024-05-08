@@ -72,12 +72,12 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see NotExistProfileException
      */
     @Override
-    public void executeDo(Context<?> context) {
-        final Object parameter = context.getRedoParameter();
+    public <T> void executeDo(Context<T> context) {
+        final E parameter = context.getRedoParameter();
         try {
             check(parameter);
             getLog().debug("Trying to change profile using: {}", parameter);
-            final Long inputId = ((E) parameter).getId();
+            final Long inputId = parameter.getId();
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(inputId);
             if (!isCreateProfile) {
                 // previous version of profile is storing to context for further rollback (undo)
@@ -110,7 +110,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see this#functionSave()
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             getLog().debug("Trying to undo person profile changes using: {}", parameter);

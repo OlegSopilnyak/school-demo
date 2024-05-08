@@ -38,7 +38,7 @@ class CreateOrUpdateCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(id);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
         assertThat(result).contains(course);
@@ -59,7 +59,7 @@ class CreateOrUpdateCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(course);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
         assertThat(result).contains(course);

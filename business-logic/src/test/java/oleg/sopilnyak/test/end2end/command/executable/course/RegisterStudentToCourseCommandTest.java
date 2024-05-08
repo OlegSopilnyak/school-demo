@@ -71,7 +71,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
@@ -97,7 +97,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);

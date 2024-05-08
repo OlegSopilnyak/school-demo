@@ -61,7 +61,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to register student to course: {}", parameter);
@@ -127,7 +127,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * @see Context#getUndoParameter()
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");

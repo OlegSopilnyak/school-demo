@@ -38,7 +38,7 @@ class DeleteAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.getUndoParameter()).isEqualTo(entity);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence).toEntity(entity);

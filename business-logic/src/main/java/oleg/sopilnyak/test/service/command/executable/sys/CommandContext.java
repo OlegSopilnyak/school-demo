@@ -33,7 +33,7 @@ public class CommandContext<T> implements Context<T> {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Builder.Default
-    private final List<StateChangedListener> listeners = Collections.synchronizedList(new LinkedList<>());
+    private final List<StateChangedListener<T>> listeners = Collections.synchronizedList(new LinkedList<>());
 
     /**
      * To set up current state of the context
@@ -114,7 +114,7 @@ public class CommandContext<T> implements Context<T> {
      * @see StateChangedListener
      */
     @Override
-    public void addStateListener(final StateChangedListener listener) {
+    public void addStateListener(final StateChangedListener<T> listener) {
         listeners.add(listener);
     }
 
@@ -125,7 +125,7 @@ public class CommandContext<T> implements Context<T> {
      * @see StateChangedListener
      */
     @Override
-    public void removeStateListener(final StateChangedListener listener) {
+    public void removeStateListener(final StateChangedListener<T> listener) {
         listeners.remove(listener);
     }
 

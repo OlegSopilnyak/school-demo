@@ -38,7 +38,7 @@ class DeleteCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(course);
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
@@ -57,7 +57,7 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.<Object>getUndoParameter()).isNull();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);

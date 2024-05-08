@@ -12,7 +12,6 @@ import static java.util.Objects.isNull;
 
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
- *
  */
 public abstract class SequentialMacroCommand extends MacroCommand {
     /**
@@ -30,7 +29,7 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @see Context.State#CANCEL
      */
     @Override
-    protected void redoNestedContexts(Deque<Context<?>> nestedContexts, Context.StateChangedListener listener) {
+    protected <T> void redoNestedContexts(Deque<Context<T>> nestedContexts, Context.StateChangedListener<T> listener) {
         final AtomicBoolean failed = new AtomicBoolean(false);
         final AtomicReference<Context<?>> previousContext = new AtomicReference<>(null);
         nestedContexts.forEach(current -> {
@@ -63,7 +62,6 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @param targetContext   current command context to execute command's redo
      * @see Context
      * @see SchoolCommand#
-     * @see Optional
      */
     protected void transferPreviousRedoResult(SchoolCommand previousCommand, Optional<?> previousResult, Context<?> targetContext) {
     }
@@ -76,8 +74,8 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @see Context.State#DONE
      */
     @Override
-    protected Deque<Context<?>> rollbackNestedDoneContexts(Deque<Context<?>> nestedContexts) {
-        final List<Context<?>> reverted = new ArrayList<>(nestedContexts);
+    protected <T> Deque<Context<T>> rollbackNestedDoneContexts(Deque<Context<T>> nestedContexts) {
+        final List<Context<T>> reverted = new ArrayList<>(nestedContexts);
         Collections.reverse(reverted);
         return reverted.stream()
                 .map(ctx -> rollbackDoneContext(ctx.getCommand(), ctx))

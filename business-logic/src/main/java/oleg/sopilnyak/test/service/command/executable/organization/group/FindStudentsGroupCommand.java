@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
-import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +36,7 @@ public class FindStudentsGroupCommand implements StudentsGroupCommand {
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find students group by ID:{}", parameter);

@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
-import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ public class FindAllFacultiesCommand implements FacultyCommand {
      * @see FacultyPersistenceFacade#findAllFaculties()
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         try {
             log.debug("Trying to get all faculties");
 

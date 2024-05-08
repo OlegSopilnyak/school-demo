@@ -43,7 +43,7 @@ public abstract class FindProfileCommand<E extends PersonProfile> implements Pro
      * @see this#functionFindById()
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);

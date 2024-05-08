@@ -54,7 +54,7 @@ public class DeleteStudentsGroupCommand
      * @see NotExistStudentsGroupException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to delete students group with ID: {}", parameter);
@@ -95,7 +95,7 @@ public class DeleteStudentsGroupCommand
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo faculty deletion using: {}", parameter);

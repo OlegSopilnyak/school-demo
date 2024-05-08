@@ -74,7 +74,7 @@ public class CreateOrUpdateStudentProfileCommand
      */
     @Override
     protected UnaryOperator<StudentProfile> functionCopyEntity() {
-        return entity -> (StudentProfile) persistence.toEntity(entity);
+        return persistence::toEntity;
     }
 
     /**

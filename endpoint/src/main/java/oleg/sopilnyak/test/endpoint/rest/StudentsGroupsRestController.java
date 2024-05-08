@@ -24,6 +24,7 @@ import static java.util.Objects.isNull;
 @RequestMapping(RequestMappingRoot.STUDENT_GROUPS)
 public class StudentsGroupsRestController {
     public static final String VAR_NAME = "groupId";
+    public static final String WRONG_STUDENTS_GROUP_ID = "Wrong students-group-id: '";
     // delegate for requests processing
     private final StudentsGroupFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -48,7 +49,7 @@ public class StudentsGroupsRestController {
             return ResponseEntity.ok(resultToDto(groupId, facade.findStudentsGroupById(id)));
         } catch (NumberFormatException e) {
             log.error("Wrong students-group-id: '{}'", groupId);
-            throw new ResourceNotFoundException("Wrong students-group-id: '" + groupId + "'");
+            throw new ResourceNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -73,7 +74,7 @@ public class StudentsGroupsRestController {
         try {
             Long id = studentsGroupDto.getId();
             if (isInvalid(id)) {
-                throw new ResourceNotFoundException("Wrong students-group-id: '" + id + "'");
+                throw new ResourceNotFoundException(WRONG_STUDENTS_GROUP_ID + id + "'");
             }
             return ResponseEntity.ok(resultToDto(facade.createOrUpdateStudentsGroup(studentsGroupDto)));
         } catch (ResourceNotFoundException e) {
@@ -98,7 +99,7 @@ public class StudentsGroupsRestController {
             return ResponseEntity.ok().build();
         } catch (NumberFormatException | NotExistStudentsGroupException e) {
             log.error("Wrong students-group-id: '{}'", groupId);
-            throw new ResourceNotFoundException("Wrong students-group-id: '" + groupId + "'");
+            throw new ResourceNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (Exception e) {
             log.error("Cannot delete students group for id = {}", groupId, e);
             throw new CannotDeleteResourceException("Cannot delete students group for id = " + groupId, e);

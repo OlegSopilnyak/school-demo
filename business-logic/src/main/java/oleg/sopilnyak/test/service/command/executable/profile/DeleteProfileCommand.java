@@ -6,11 +6,14 @@ import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 
 import java.util.Optional;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Base-Implementation: command to delete person profile instance by id
@@ -70,7 +73,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see NotExistProfileException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -105,7 +108,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see this#functionSave()
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             getLog().debug("Trying to undo person profile deletion using: {}", parameter);

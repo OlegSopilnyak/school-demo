@@ -48,7 +48,7 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    void shouldDoAllNestedRedo() {
+    <T> void shouldDoAllNestedRedo() {
         int parameter = 100;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
@@ -56,21 +56,20 @@ class SequentialMacroCommandTest {
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
-        CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
+        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
+        Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(command.commands().size());
         // check contexts states
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
-        Context<?> nestedContext;
+        Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
         verify(command).redoNestedCommand(nestedContext, listener);
@@ -92,7 +91,7 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    void shouldNotDoSomeNestedRedo_NestedRedoThrown() {
+    <T> void shouldNotDoSomeNestedRedo_NestedRedoThrown() {
         int parameter = 101;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
@@ -100,18 +99,17 @@ class SequentialMacroCommandTest {
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
-        CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
+        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         doThrow(UnableExecuteCommandException.class).when(booleanCommand).doCommand(any(Context.class));
-        Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
+        Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(1);
-        Context<?> nestedContext;
+        Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
         verify(command).redoNestedCommand(nestedContext, listener);
@@ -132,7 +130,7 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    void shouldNotDoAllNestedRedo_NestedRedoThrown() {
+    <T> void shouldNotDoAllNestedRedo_NestedRedoThrown() {
         int parameter = 102;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
@@ -140,17 +138,16 @@ class SequentialMacroCommandTest {
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
-        CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
+        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
-        Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
+        Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
         command.redoNestedContexts(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isZero();
-        Context<?> nestedContext;
+        Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
@@ -165,32 +162,31 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    void shouldRollbackAllNestedDoneContexts() {
+    <T> void shouldRollbackAllNestedDoneContexts() {
         int parameter = 103;
         allowCreateRealContexts(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
-        CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
+        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
         command.doCommand(macroContext);
-        Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
+        Deque<Context<T>> nestedUndoneContexts = macroContext.getUndoParameter();
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context<?>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<T>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
-        List<Context<?>> params = nestedUndoneContexts.stream().toList();
-        List<Context<?>> undone = rollbackResults.stream().toList();
+        List<Context<T>> params = nestedUndoneContexts.stream().toList();
+        List<Context<T>> undone = rollbackResults.stream().toList();
         // check revers
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts states
@@ -201,32 +197,31 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    void shouldNotRollbackSomeNestedDoneContexts_NestedUndoThrown() {
+    <T> void shouldNotRollbackSomeNestedDoneContexts_NestedUndoThrown() {
         int parameter = 104;
         allowCreateRealContexts(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        assertThat(macroContext.getRedoParameter()).isInstanceOf(CommandParameterWrapper.class);
-        CommandParameterWrapper wrapper = (CommandParameterWrapper) macroContext.getRedoParameter();
+        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
         command.doCommand(macroContext);
-        Deque<Context<?>> nestedUndoneContexts = (Deque<Context<?>>) macroContext.getUndoParameter();
+        Deque<Context<T>> nestedUndoneContexts = macroContext.getUndoParameter();
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).undoCommand(any(Context.class));
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context<?>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<T>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
-        List<Context<?>> params = nestedUndoneContexts.stream().toList();
-        List<Context<?>> undone = rollbackResults.stream().toList();
+        List<Context<T>> params = nestedUndoneContexts.stream().toList();
+        List<Context<T>> undone = rollbackResults.stream().toList();
         // check revers
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts order and states
@@ -257,7 +252,7 @@ class SequentialMacroCommandTest {
         }
     }
 
-    static class ContextStateChangedListener implements Context.StateChangedListener {
+    static class ContextStateChangedListener<T> implements Context.StateChangedListener<T> {
         private final AtomicInteger counter;
 
         ContextStateChangedListener(AtomicInteger counter) {
@@ -265,7 +260,7 @@ class SequentialMacroCommandTest {
         }
 
         @Override
-        public void stateChanged(Context<?> context, Context.State previous, Context.State newOne) {
+        public void stateChanged(Context<T> context, Context.State previous, Context.State newOne) {
             if (newOne == DONE) {
                 counter.incrementAndGet();
             }
@@ -282,7 +277,7 @@ class SequentialMacroCommandTest {
 
     private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {
         doAnswer(invocationOnMock -> {
-            Context<?> context = invocationOnMock.getArgument(0, Context.class);
+            Context<T> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
             context.setResult(result);
             return null;

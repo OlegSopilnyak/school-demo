@@ -64,7 +64,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         Optional<PrincipalProfile> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(profile);
-        assertThat(context.getUndoParameter()).isEqualTo(profile);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
@@ -87,7 +87,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         Optional<PrincipalProfile> doResult = context.getResult().orElseThrow();
         assertProfilesEquals(doResult.orElseThrow(), profile, false);
-        assertThat(context.getUndoParameter()).isEqualTo(doResult.get().getId());
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(doResult.get().getId());
         verify(command).executeDo(context);
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);

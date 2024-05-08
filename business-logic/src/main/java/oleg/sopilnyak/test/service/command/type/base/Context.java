@@ -35,8 +35,9 @@ public interface Context<T> {
      * To get parameter value for command execution
      *
      * @return the value of parameter
+     * @param <R> type of do-parameter
      */
-    Object getRedoParameter();
+    <R> R getRedoParameter();
 
     /**
      * To set up parameter value for command execution
@@ -49,8 +50,9 @@ public interface Context<T> {
      * To get parameter value for rollback previous command execution changes
      *
      * @return the value of parameter
+     * @param <U> type of undo-parameter
      */
-    Object getUndoParameter();
+    <U> U getUndoParameter();
 
     /**
      * To set up parameter value for rollback changes
@@ -131,7 +133,7 @@ public interface Context<T> {
      * @param listener the listener of context-state changes
      * @see StateChangedListener
      */
-    void addStateListener(StateChangedListener listener);
+    void addStateListener(StateChangedListener<T> listener);
 
     /**
      * To remove change-context-state listener
@@ -139,7 +141,7 @@ public interface Context<T> {
      * @param listener the listener of context-state changes
      * @see StateChangedListener
      */
-    void removeStateListener(StateChangedListener listener);
+    void removeStateListener(StateChangedListener<T> listener);
 
 
     /**
@@ -165,7 +167,7 @@ public interface Context<T> {
     /**
      * The listener of context's state changing
      */
-    interface StateChangedListener {
-        void stateChanged(Context<?> context, State previous, State newOne);
+    interface StateChangedListener<T> {
+        void stateChanged(Context<T> context, State previous, State newOne);
     }
 }

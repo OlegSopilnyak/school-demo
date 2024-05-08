@@ -5,9 +5,9 @@ import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see NotExistAuthorityPersonException
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -93,7 +93,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see NotExistAuthorityPersonException
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo authority person changes using: {}", parameter);

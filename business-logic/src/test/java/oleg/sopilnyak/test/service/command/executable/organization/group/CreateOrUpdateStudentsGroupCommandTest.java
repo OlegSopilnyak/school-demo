@@ -39,8 +39,8 @@ class CreateOrUpdateStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(id);
-        Optional<StudentsGroup> doResult = (Optional<StudentsGroup>) context.getResult().orElseThrow();
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
         verify(persistence).save(entity);
@@ -58,8 +58,8 @@ class CreateOrUpdateStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(entity);
-        Optional<StudentsGroup> doResult = (Optional<StudentsGroup>) context.getResult().orElseThrow();
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
+        Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
         verify(entity).getId();

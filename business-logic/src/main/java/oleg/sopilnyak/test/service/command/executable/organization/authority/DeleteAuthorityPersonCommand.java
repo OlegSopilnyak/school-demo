@@ -52,7 +52,7 @@ public class DeleteAuthorityPersonCommand
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
      */
     @Override
-    public void executeDo(Context<?> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to delete authority person using: {}", parameter);
@@ -92,7 +92,7 @@ public class DeleteAuthorityPersonCommand
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public void executeUndo(Context<?> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo authority person deletion using: {}", parameter);

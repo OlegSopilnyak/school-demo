@@ -37,7 +37,7 @@ class CreateOrUpdateStudentCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(id);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent().contains(instance);
@@ -57,7 +57,7 @@ class CreateOrUpdateStudentCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(instance);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(instance);
         assertThat(context.getResult()).isPresent();
         Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent().contains(instance);
@@ -122,9 +122,8 @@ class CreateOrUpdateStudentCommandTest {
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isEqualTo(instance);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(instance);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
