@@ -18,9 +18,9 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
      *
-     * @param nestedContexts nested command contexts collection
-     * @param listener       listener of context-state-change
-     * @see super#redoNestedCommand(Context, Context.StateChangedListener)
+     * @param doContexts    nested command contexts collection
+     * @param stateListener listener of context-state-change
+     * @see super#doNestedCommand(Context, Context.StateChangedListener)
      * @see Deque
      * @see java.util.LinkedList
      * @see Context
@@ -29,25 +29,27 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @see Context.State#CANCEL
      */
     @Override
-    protected <T> void redoNestedContexts(Deque<Context<T>> nestedContexts, Context.StateChangedListener<T> listener) {
+    protected <T> void doNestedCommands(final Deque<Context<T>> doContexts,
+                                        final Context.StateChangedListener<T> stateListener) {
         final AtomicBoolean failed = new AtomicBoolean(false);
-        final AtomicReference<Context<?>> previousContext = new AtomicReference<>(null);
-        nestedContexts.forEach(current -> {
+        final AtomicReference<Context<T>> previousContext = new AtomicReference<>(null);
+        // sequential walking through contexts set
+        doContexts.forEach(doContext -> {
             if (failed.get()) {
                 // previous command's redo context.state had Context.State.FAIL
-                current.addStateListener(listener);
-                current.setState(Context.State.CANCEL);
-                current.removeStateListener(listener);
+                doContext.addStateListener(stateListener);
+                doContext.setState(Context.State.CANCEL);
+                doContext.removeStateListener(stateListener);
             } else {
                 // transfer previous context result to current one
-                configureCurrentRedoParameter(previousContext.get(), current);
+                configureCurrentDoParameter(previousContext.get(), doContext);
                 // current redo context executing
-                final Context<?> afterRedo = redoNestedCommand(current, listener);
+                final Context<T> afterRedo = doNestedCommand(doContext, stateListener);
                 if (afterRedo.isDone()) {
-                    // redo successful
+                    // command do successful
                     previousContext.getAndSet(afterRedo);
                 } else {
-                    // redo failed
+                    // command do failed
                     failed.compareAndSet(false, true);
                 }
             }
@@ -60,39 +62,46 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @param previousCommand previous successfully executed command
      * @param previousResult  the result of previous command execution
      * @param targetContext   current command context to execute command's redo
+     * @param <S>             type of previous result
+     * @param <T>             type of target result
+     * @see SchoolCommand
      * @see Context
-     * @see SchoolCommand#
      */
-    protected void transferPreviousRedoResult(SchoolCommand previousCommand, Optional<?> previousResult, Context<?> targetContext) {
+    protected <S, T> void transferPreviousRedoResult(final SchoolCommand previousCommand,
+                                                     final Optional<S> previousResult,
+                                                     final Context<T> targetContext) {
     }
 
     /**
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param nestedContexts collection of contexts with DONE state
+     * @param undoContexts collection of contexts with DONE state
+     * @see Deque
      * @see Context.State#DONE
      */
     @Override
-    protected <T> Deque<Context<T>> rollbackNestedDoneContexts(Deque<Context<T>> nestedContexts) {
-        final List<Context<T>> reverted = new ArrayList<>(nestedContexts);
+    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> undoContexts) {
+        final List<Context<T>> reverted = new ArrayList<>(undoContexts);
+        // revert the order of undo contexts
         Collections.reverse(reverted);
+        // rollback commands' changes
         return reverted.stream()
-                .map(ctx -> rollbackDoneContext(ctx.getCommand(), ctx))
+                .map(doneContext -> rollbackDoneContext(doneContext.getCommand(), doneContext))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
-    private void configureCurrentRedoParameter(Context<?> source, Context<?> target) {
+    private <S, T> void configureCurrentDoParameter(Context<S> source, Context<T> target) {
         if (isNull(source) || !source.isDone()) return;
         final SchoolCommand sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
-        final Optional<?> sourceCommandResult = source.getResult();
-        if (isNull(sourceCommandResult) || sourceCommandResult.isEmpty()) return;
-        getLog().debug("Transfer from '{}' result {} to '{}'",
-                sourceCommand.getId(),
-                sourceCommandResult,
-                target.getCommand().getId());
-        transferPreviousRedoResult(sourceCommand, sourceCommandResult, target);
+        final Optional<S> sourceResult = source.getResult();
+        if (isNull(sourceResult) || sourceResult.isEmpty()) return;
+        getLog().debug(
+                "Transfer from '{}' result {} to '{}'",
+                sourceCommand.getId(), sourceResult, target.getCommand().getId()
+        );
+        transferPreviousRedoResult(sourceCommand, sourceResult, target);
     }
 }

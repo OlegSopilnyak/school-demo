@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandParameterWrappe
 import org.slf4j.Logger;
 
 import java.util.Collection;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
 
@@ -48,12 +47,14 @@ public interface CompositeCommand extends SchoolCommand {
      */
     @Override
     default <T> Context<T> createContext(Object input) {
-        final Context<T> context = createContext();
-        final Deque<Context<T>> nested = commands().stream()
-                .<Context<T>>map(command -> this.prepareContext(command, input))
-                .collect(Collectors.toCollection(LinkedList::new));
+        final CommandParameterWrapper<T> doParameter = new CommandParameterWrapper<>(input,
+                this.commands().stream()
+                        .<Context<T>>map(command -> this.prepareContext(command, input))
+                        .collect(Collectors.toCollection(LinkedList::new))
+        );
         // assemble input parameter contexts for redo
-        context.setRedoParameter(new CommandParameterWrapper<>(input, nested));
+        final Context<T> context = createContext();
+        context.setRedoParameter(doParameter);
         return context;
     }
 
@@ -74,37 +75,37 @@ public interface CompositeCommand extends SchoolCommand {
     /**
      * To execute command
      *
-     * @param context context of redo execution
+     * @param doContext context of redo execution
      * @see Context
      */
     @Override
-    default <T> void doCommand(Context<T> context) {
-        if (isWrongRedoStateOf(context)) {
-            getLog().warn("Cannot do command '{}' with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
+    default <T> void doCommand(Context<T> doContext) {
+        if (isWrongRedoStateOf(doContext)) {
+            getLog().warn("Cannot do command '{}' with context:state '{}'", getId(), doContext.getState());
+            doContext.setState(Context.State.FAIL);
         } else {
             // start do execution with correct context state
-            context.setState(Context.State.WORK);
-            executeDo(context);
+            doContext.setState(Context.State.WORK);
+            executeDo(doContext);
         }
     }
 
     /**
      * To rollback command's execution
      *
-     * @param context context of redo execution
+     * @param undoContext context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
      */
     @Override
-    default <T> void undoCommand(Context<T> context) {
-        if (isWrongUndoStateOf(context)) {
-            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
+    default <T> void undoCommand(Context<T> undoContext) {
+        if (isWrongUndoStateOf(undoContext)) {
+            getLog().warn("Cannot undo command '{}' with context:state '{}'", getId(), undoContext.getState());
+            undoContext.setState(Context.State.FAIL);
         } else {
             // start undo with correct context state
-            context.setState(Context.State.WORK);
-            executeUndo(context);
+            undoContext.setState(Context.State.WORK);
+            executeUndo(undoContext);
         }
     }
 }

@@ -64,7 +64,7 @@ class SequentialMacroCommandTest {
         configureNestedRedoResult(intCommand, parameter * 10);
         Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
-        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
+        command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(command.commands().size());
         // check contexts states
@@ -72,19 +72,19 @@ class SequentialMacroCommandTest {
         Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(command).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(command).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(command, never()).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
@@ -106,25 +106,25 @@ class SequentialMacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(booleanCommand).doCommand(any(Context.class));
         Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
-        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
+        command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(1);
         Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(DONE);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(command).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(command, never()).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, FAIL);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(CANCEL);
-        verify(command, never()).redoNestedCommand(nestedContext, listener);
+        verify(command, never()).doNestedCommand(nestedContext, listener);
         verify(command, never()).transferPreviousRedoResult(eq(nestedContext.getCommand()), eq(nestedContext.getResult()), any(Context.class));
         verify(listener).stateChanged(nestedContext, READY, CANCEL);
     }
@@ -144,14 +144,14 @@ class SequentialMacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
         Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
 
-        command.redoNestedContexts(wrapper.getNestedContexts(), listener);
+        command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isZero();
         Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
-        verify(command).redoNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(nestedContext, listener);
         verify(listener).stateChanged(nestedContext, READY, FAIL);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.getState()).isEqualTo(CANCEL);
@@ -181,7 +181,7 @@ class SequentialMacroCommandTest {
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context<T>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<T>> rollbackResults = command.rollbackDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
@@ -216,7 +216,7 @@ class SequentialMacroCommandTest {
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
 
-        Deque<Context<T>> rollbackResults = command.rollbackNestedDoneContexts(nestedUndoneContexts);
+        Deque<Context<T>> rollbackResults = command.rollbackDoneContexts(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         int size = nestedUndoneContexts.size();
