@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.type;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import org.slf4j.Logger;
 
 /**
@@ -45,7 +46,6 @@ public interface StudentCommand extends SchoolCommand {
      */
     Logger getLog();
 
-
     /**
      * To execute command
      *
@@ -81,5 +81,18 @@ public interface StudentCommand extends SchoolCommand {
             context.setState(Context.State.WORK);
             executeUndo(context);
         }
+    }
+
+    /**
+     * To prepare command context for nested command using the visitor
+     *
+     * @param visitor visitor of prepared contexts
+     * @param input Macro-Command call's input
+     * @return prepared for nested command context
+     * @param <T> type of command result
+     */
+    @Override
+    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+        return visitor.prepareContext(this, input);
     }
 }

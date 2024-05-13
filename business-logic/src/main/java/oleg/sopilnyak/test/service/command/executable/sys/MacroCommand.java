@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 /**
  * Command-Base: macro-command the command with nested commands inside
  */
-public abstract class MacroCommand implements CompositeCommand {
-    private final List<SchoolCommand> commands = new LinkedList<>();
+public abstract class MacroCommand<C extends SchoolCommand> implements CompositeCommand<C> {
+    private final List<C> commands = new LinkedList<>();
 
     /**
      * To get the collection of commands used it composite
@@ -22,7 +22,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @return collection of included commands
      */
     @Override
-    public Collection<SchoolCommand> commands() {
+    public Collection<C> commands() {
         synchronized (commands) {
             return Collections.unmodifiableList(commands);
         }
@@ -35,7 +35,7 @@ public abstract class MacroCommand implements CompositeCommand {
      * @see SchoolCommand
      */
     @Override
-    public void add(final SchoolCommand command) {
+    public void add(final C command) {
         synchronized (commands) {
             commands.add(command);
         }
@@ -106,7 +106,7 @@ public abstract class MacroCommand implements CompositeCommand {
      *
      * @param doContexts    nested contexts collection
      * @param stateListener listener of context-state-change
-     * @see this#doNestedCommand(Context, Context.StateChangedListener)
+     * @see MacroCommand#doNestedCommand(Context, Context.StateChangedListener)
      * @see Deque
      * @see java.util.LinkedList
      * @see Context

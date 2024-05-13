@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
@@ -250,6 +251,21 @@ class SequentialMacroCommandTest {
         public String getId() {
             return "sequential-fake-command";
         }
+
+        /**
+         * To prepare context for particular type of the command
+         *
+         * @param command   nested command instance
+         * @param mainInput macro-command input parameter
+         * @return built context of the command for input parameter
+         * @see StudentCommand
+         * @see StudentCommand#createContext(Object)
+         * @see Context
+         */
+        @Override
+        public <T> Context<T> prepareContext(StudentCommand command, Object mainInput) {
+            return null;
+        }
     }
 
     static class ContextStateChangedListener<T> implements Context.StateChangedListener<T> {
@@ -273,6 +289,10 @@ class SequentialMacroCommandTest {
         doCallRealMethod().when(doubleCommand).createContext(parameter);
         doCallRealMethod().when(booleanCommand).createContext(parameter);
         doCallRealMethod().when(intCommand).createContext(parameter);
+        // visitor accept
+        doCallRealMethod().when(doubleCommand).acceptPreparedContext(command, parameter);
+        doCallRealMethod().when(booleanCommand).acceptPreparedContext(command, parameter);
+        doCallRealMethod().when(intCommand).acceptPreparedContext(command, parameter);
     }
 
     private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {

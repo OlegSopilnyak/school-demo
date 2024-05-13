@@ -13,7 +13,7 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  */
-public abstract class SequentialMacroCommand extends MacroCommand {
+public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand> {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
@@ -66,6 +66,7 @@ public abstract class SequentialMacroCommand extends MacroCommand {
      * @param <T>             type of target result
      * @see SchoolCommand
      * @see Context
+     * @see Optional
      */
     protected <S, T> void transferPreviousRedoResult(final SchoolCommand previousCommand,
                                                      final Optional<S> previousResult,

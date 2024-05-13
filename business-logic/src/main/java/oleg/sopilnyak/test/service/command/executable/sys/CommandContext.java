@@ -3,13 +3,14 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import lombok.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 
 @Data
 @NoArgsConstructor
@@ -56,8 +57,8 @@ public class CommandContext<T> implements Context<T> {
     @Override
     public void setRedoParameter(Object parameter) {
         this.redoParameter = parameter;
-        if (state == State.INIT) {
-            setState(State.READY);
+        if (state == INIT) {
+            setState(READY);
         }
     }
 
@@ -68,7 +69,7 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setUndoParameter(Object parameter) {
-        if (state == State.DONE || state == State.WORK) {
+        if (state == DONE || state == WORK) {
             undoParameter = parameter;
         }
     }
@@ -92,9 +93,9 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setResult(Object result) {
-        if (state == State.WORK) {
+        if (state == WORK) {
             this.resultData = (T) result;
-            setState(State.DONE);
+            setState(DONE);
         }
     }
 
@@ -131,7 +132,8 @@ public class CommandContext<T> implements Context<T> {
 
     // private methods
     private void notifyStateChangedListeners(final State old, final State state) {
-        if (isNull(this.listeners)) return;
-        this.listeners.forEach(listener -> listener.stateChanged(this, old, state));
+        if (!ObjectUtils.isEmpty(listeners)) {
+            listeners.forEach(listener -> listener.stateChanged(this, old, state));
+        }
     }
 }

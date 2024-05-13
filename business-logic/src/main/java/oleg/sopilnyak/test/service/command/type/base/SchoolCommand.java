@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 
 import static java.util.Objects.isNull;
 
@@ -70,6 +71,18 @@ public interface SchoolCommand {
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
+    }
+
+    /**
+     * To prepare command context for nested command using the visitor
+     *
+     * @param visitor visitor of prepared contexts
+     * @param input Macro-Command call's input
+     * @return prepared for nested command context
+     * @param <T> type of command result
+     */
+    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+        return visitor.prepareContext(this, input);
     }
 
     /**

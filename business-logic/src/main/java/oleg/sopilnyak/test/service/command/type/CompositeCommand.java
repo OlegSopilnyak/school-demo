@@ -1,7 +1,10 @@
-package oleg.sopilnyak.test.service.command.type.base;
+package oleg.sopilnyak.test.service.command.type;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandParameterWrapper;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -11,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Type: Command to execute the couple of commands
  */
-public interface CompositeCommand extends SchoolCommand {
+public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand, PrepareContextVisitor {
 
     /**
      * To get reference to command's logger
@@ -25,19 +28,20 @@ public interface CompositeCommand extends SchoolCommand {
      *
      * @return collection of included commands
      */
-    Collection<SchoolCommand> commands();
+    Collection<C> commands();
 
     /**
      * To add the command
      *
      * @param command the instance to add
      */
-    void add(SchoolCommand command);
+    void add(C command);
 
     /**
      * To create command's context with doParameter
      *
      * @param input context's doParameter value
+     * @param <T>   type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
@@ -49,27 +53,11 @@ public interface CompositeCommand extends SchoolCommand {
     default <T> Context<T> createContext(Object input) {
         final CommandParameterWrapper<T> doParameter = new CommandParameterWrapper<>(input,
                 this.commands().stream()
-                        .<Context<T>>map(command -> this.prepareContext(command, input))
+                        .<Context<T>>map(command -> command.acceptPreparedContext(this, input))
                         .collect(Collectors.toCollection(LinkedList::new))
         );
         // assemble input parameter contexts for redo
-        final Context<T> context = createContext();
-        context.setRedoParameter(doParameter);
-        return context;
-    }
-
-    /**
-     * To prepare context for particular command
-     *
-     * @param nestedCommand     nested command instance
-     * @param macroCommandInput macro-command input parameter
-     * @return built context of the command for input parameter
-     * @see SchoolCommand
-     * @see SchoolCommand#createContext(Object)
-     * @see Context
-     */
-    default <T> Context<T> prepareContext(SchoolCommand nestedCommand, Object macroCommandInput) {
-        return nestedCommand.createContext(macroCommandInput);
+        return SchoolCommand.super.createContext(doParameter);
     }
 
     /**
@@ -107,5 +95,18 @@ public interface CompositeCommand extends SchoolCommand {
             undoContext.setState(Context.State.WORK);
             executeUndo(undoContext);
         }
+    }
+
+    /**
+     * To prepare command context for nested command using the visitor
+     *
+     * @param visitor visitor of prepared contexts
+     * @param input   Macro-Command call's input
+     * @param <T>     type of command result
+     * @return prepared for nested command context
+     */
+    @Override
+    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+        return visitor.prepareContext(this, input);
     }
 }

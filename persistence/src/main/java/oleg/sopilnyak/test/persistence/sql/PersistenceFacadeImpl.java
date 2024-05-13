@@ -22,24 +22,24 @@ import javax.annotation.Resource;
  * Service-Facade-Implementation: Service for manage persistence layer of the school
  */
 @Slf4j
-@Component
 @Getter
+@Component
 public class PersistenceFacadeImpl implements PersistenceFacade,
         StudentCourseLinkPersistenceFacadeImplementation,
         OrganizationPersistenceFacadeImplementation,
         ProfilePersistence {
     @Resource
-    StudentRepository studentRepository;
+    private StudentRepository studentRepository;
     @Resource
-    CourseRepository courseRepository;
+    private CourseRepository courseRepository;
     @Resource
-    AuthorityPersonRepository authorityPersonRepository;
+    private AuthorityPersonRepository authorityPersonRepository;
     @Resource
-    FacultyRepository facultyRepository;
+    private FacultyRepository facultyRepository;
     @Resource
-    StudentsGroupRepository studentsGroupRepository;
+    private StudentsGroupRepository studentsGroupRepository;
     @Resource
-    PersonProfileRepository<PersonProfileEntity> personProfileRepository;
+    private PersonProfileRepository<PersonProfileEntity> personProfileRepository;
     private final SchoolEntityMapper mapper;
     @Getter(AccessLevel.NONE)
     private PersistenceFacade delegate;

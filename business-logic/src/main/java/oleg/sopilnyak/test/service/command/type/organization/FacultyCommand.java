@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 
 /**
@@ -30,4 +32,17 @@ public interface FacultyCommand extends OrganizationCommand {
      * Command-ID: for delete faculty entity
      */
     String DELETE = "organization.faculty.delete";
+
+    /**
+     * To prepare command context for nested command using the visitor
+     *
+     * @param visitor visitor of prepared contexts
+     * @param input   Macro-Command call's input
+     * @param <T>     type of command result
+     * @return prepared for nested command context
+     */
+    @Override
+    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+        return visitor.prepareContext(this, input);
+    }
 }
