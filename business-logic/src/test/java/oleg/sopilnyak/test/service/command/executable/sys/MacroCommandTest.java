@@ -556,7 +556,7 @@ class MacroCommandTest {
     }
 
     private static class FakeMacroCommand extends MacroCommand<SchoolCommand> {
-        static Context CONTEXT = CommandContext.builder().build();
+        static Context<?> CONTEXT = CommandContext.builder().build();
         Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
         /**
@@ -572,7 +572,7 @@ class MacroCommandTest {
          */
         @Override
         public <T> Context<T> prepareContext(StudentCommand command, Object mainInput) {
-            return CONTEXT;
+            return (Context<T>) CONTEXT;
         }
 
         @Override
@@ -601,13 +601,13 @@ class MacroCommandTest {
         doCallRealMethod().when(intCommand).acceptPreparedContext(command, parameter);
     }
 
-    private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {
+    private <T> void configureNestedRedoResult(SchoolCommand nestedCommand, T result) {
         doAnswer(invocationOnMock -> {
             Context<T> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
             context.setResult(result);
             return null;
-        }).when(nextedCommand).doCommand(any(Context.class));
+        }).when(nestedCommand).doCommand(any(Context.class));
     }
 
     private <T> void configureNestedUndoStatus(SchoolCommand nextedCommand) {

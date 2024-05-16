@@ -68,9 +68,9 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
      * @see Context
      * @see Optional
      */
-    protected <S, T> void transferPreviousRedoResult(final SchoolCommand previousCommand,
-                                                     final Optional<S> previousResult,
-                                                     final Context<T> targetContext) {
+    protected <S, T> void transferPreviousExecuteDoResult(final SchoolCommand previousCommand,
+                                                          final Optional<S> previousResult,
+                                                          final Context<T> targetContext) {
     }
 
     /**
@@ -103,6 +103,6 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
                 "Transfer from '{}' result {} to '{}'",
                 sourceCommand.getId(), sourceResult, target.getCommand().getId()
         );
-        transferPreviousRedoResult(sourceCommand, sourceResult, target);
+        transferPreviousExecuteDoResult(sourceCommand, sourceResult, target);
     }
 }
