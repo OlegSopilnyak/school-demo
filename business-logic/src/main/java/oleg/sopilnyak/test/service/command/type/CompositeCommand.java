@@ -7,10 +7,12 @@ import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -118,5 +120,23 @@ public interface CompositeCommand<C extends SchoolCommand>
     @Override
     default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
         return visitor.prepareContext(this, input);
+    }
+
+    /**
+     * To transfer command execution result to next command context
+     *
+     * @param visitor visitor for transfer result
+     * @param result  result of command execution
+     * @param target  command context for next execution
+     * @param <S>     type of current command execution result
+     * @param <T>     type of next command execution result
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(CompositeCommand, Optional, Context)
+     * @see Context#setRedoParameter(Object)
+     */
+    @Override
+    default <S, T> void transferResultTo(
+            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
+    ) {
+        visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 }

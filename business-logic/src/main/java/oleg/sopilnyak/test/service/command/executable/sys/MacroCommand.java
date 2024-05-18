@@ -112,7 +112,7 @@ public abstract class MacroCommand<C extends SchoolCommand> implements Composite
      * @see Context
      * @see Context.StateChangedListener
      */
-    protected <T> void doNestedCommands(final Deque<Context<T>> doContexts,
+    public  <T> void doNestedCommands(final Deque<Context<T>> doContexts,
                                         final Context.StateChangedListener<T> stateListener) {
         doContexts.forEach(context -> doNestedCommand(context, stateListener));
     }

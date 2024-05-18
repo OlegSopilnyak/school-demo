@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,7 +14,7 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  */
-public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand> {
+public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand> implements TransferResultVisitor {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
@@ -31,22 +30,22 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
      * @see Context.State#CANCEL
      */
     @Override
-    protected <T> void doNestedCommands(final Deque<Context<T>> doContexts,
-                                        final Context.StateChangedListener<T> stateListener) {
+    public <T> void doNestedCommands(final Deque<Context<T>> doContexts,
+                                     final Context.StateChangedListener<T> stateListener) {
         final AtomicBoolean failed = new AtomicBoolean(false);
         final AtomicReference<Context<T>> previousContext = new AtomicReference<>(null);
         // sequential walking through contexts set
-        doContexts.forEach(doContext -> {
+        doContexts.forEach(currentContext -> {
             if (failed.get()) {
                 // previous command's redo context.state had Context.State.FAIL
-                doContext.addStateListener(stateListener);
-                doContext.setState(Context.State.CANCEL);
-                doContext.removeStateListener(stateListener);
+                currentContext.addStateListener(stateListener);
+                currentContext.setState(Context.State.CANCEL);
+                currentContext.removeStateListener(stateListener);
             } else {
                 // transfer previous context result to current one
-                configureCurrentDoParameter(previousContext.get(), doContext);
+                transferPreviousResultToCurrentContextRedoParameter(previousContext.get(), currentContext);
                 // current redo context executing
-                final Context<T> afterRedo = doNestedCommand(doContext, stateListener);
+                final Context<T> afterRedo = doNestedCommand(currentContext, stateListener);
                 if (afterRedo.isDone()) {
                     // command do successful
                     previousContext.getAndSet(afterRedo);
@@ -56,40 +55,6 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
                 }
             }
         });
-    }
-
-    /**
-     * To transfer result form previous command to current context
-     *
-     * @param previousCommand previous successfully executed command
-     * @param previousResult  the result of previous command execution
-     * @param targetContext   current command context to execute command's redo
-     * @param <S>             type of previous result
-     * @param <T>             type of target result
-     * @see SchoolCommand
-     * @see Context
-     * @see Optional
-     */
-    protected <S, T> void transferPreviousExecuteDoResult(final SchoolCommand previousCommand,
-                                                          final Optional<S> previousResult,
-                                                          final Context<T> targetContext) {
-        if (previousResult.isPresent()) {
-            targetContext.setRedoParameter(previousResult.get());
-        }
-    }
-    protected <S, T> void transferPreviousExecuteDoResult(final StudentCommand previousCommand,
-                                                          final Optional<S> previousResult,
-                                                          final Context<T> targetContext) {
-        if (previousResult.isPresent()) {
-            targetContext.setRedoParameter(previousResult.get());
-        }
-    }
-    protected <S, T> void transferPreviousExecuteDoResult(final CourseCommand previousCommand,
-                                                          final Optional<S> previousResult,
-                                                          final Context<T> targetContext) {
-        if (previousResult.isPresent()) {
-            targetContext.setRedoParameter(previousResult.get());
-        }
     }
 
     /**
@@ -112,16 +77,22 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
     }
 
     // private methods
-    private <S, T> void configureCurrentDoParameter(Context<S> source, Context<T> target) {
+    private <S, T> void transferPreviousResultToCurrentContextRedoParameter(
+            final Context<S> source, final Context<T> target
+    ) {
         if (isNull(source) || !source.isDone()) return;
         final SchoolCommand sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
-        final Optional<S> sourceResult = source.getResult();
-        if (isNull(sourceResult) || sourceResult.isEmpty()) return;
+        final Optional<S> result = source.getResult();
+        if (isNull(result) || result.isEmpty()) return;
+
+        // everything is ready for transfer
         getLog().debug(
                 "Transfer from '{}' result {} to '{}'",
-                sourceCommand.getId(), sourceResult, target.getCommand().getId()
+                sourceCommand.getId(), result, target.getCommand().getId()
         );
-        transferPreviousExecuteDoResult(sourceCommand, sourceResult, target);
+
+        // transferring result to target
+        sourceCommand.transferResultTo(this, result, target);
     }
 }

@@ -33,7 +33,7 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
      * @see Context.State#FAIL
      */
     @Override
-    protected <T> void doNestedCommands(final Deque<Context<T>> doContexts,
+    public  <T> void doNestedCommands(final Deque<Context<T>> doContexts,
                                         final Context.StateChangedListener<T> stateListener) {
         final CountDownLatch latch = new CountDownLatch(doContexts.size());
         // parallel walking through contexts set

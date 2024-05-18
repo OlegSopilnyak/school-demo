@@ -2,7 +2,10 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+
+import java.util.Optional;
 
 /**
  * Type for school-student-profile commands
@@ -40,5 +43,23 @@ public interface StudentProfileCommand extends ProfileCommand {
     @Override
     default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
         return visitor.prepareContext(this, input);
+    }
+
+    /**
+     * To transfer command execution result to next command context
+     *
+     * @param visitor visitor for transfer result
+     * @param result  result of command execution
+     * @param target  command context for next execution
+     * @param <S>     type of current command execution result
+     * @param <T>     type of next command execution result
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(StudentProfileCommand, Optional, Context)
+     * @see Context#setRedoParameter(Object)
+     */
+    @Override
+    default <S, T> void transferResultTo(
+            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
+    ) {
+        visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 }

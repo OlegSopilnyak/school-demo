@@ -2,6 +2,9 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
+
+import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
@@ -163,6 +166,23 @@ public interface SchoolCommand {
      */
     default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
         return visitor.prepareContext(this, input);
+    }
+
+    /**
+     * To transfer command execution result to next command context
+     *
+     * @param visitor visitor for transfer result
+     * @param result  result of command execution
+     * @param target  command context for next execution
+     * @param <S>     type of current command execution result
+     * @param <T>     type of next command execution result
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(SchoolCommand, Optional, Context)
+     * @see Context#setRedoParameter(Object)
+     */
+    default <S, T> void transferResultTo(
+            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
+    ) {
+        visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 
 }
