@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 
@@ -71,6 +73,23 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
     protected <S, T> void transferPreviousExecuteDoResult(final SchoolCommand previousCommand,
                                                           final Optional<S> previousResult,
                                                           final Context<T> targetContext) {
+        if (previousResult.isPresent()) {
+            targetContext.setRedoParameter(previousResult.get());
+        }
+    }
+    protected <S, T> void transferPreviousExecuteDoResult(final StudentCommand previousCommand,
+                                                          final Optional<S> previousResult,
+                                                          final Context<T> targetContext) {
+        if (previousResult.isPresent()) {
+            targetContext.setRedoParameter(previousResult.get());
+        }
+    }
+    protected <S, T> void transferPreviousExecuteDoResult(final CourseCommand previousCommand,
+                                                          final Optional<S> previousResult,
+                                                          final Context<T> targetContext) {
+        if (previousResult.isPresent()) {
+            targetContext.setRedoParameter(previousResult.get());
+        }
     }
 
     /**

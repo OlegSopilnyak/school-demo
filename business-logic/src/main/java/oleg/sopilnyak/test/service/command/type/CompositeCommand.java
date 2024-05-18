@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.type;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandParameterWrapper;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
@@ -14,7 +16,10 @@ import java.util.stream.Collectors;
 /**
  * Type: Command to execute the couple of commands
  */
-public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand, PrepareContextVisitor {
+public interface CompositeCommand<C extends SchoolCommand>
+        extends
+        SchoolCommand,
+        PrepareContextVisitor {
 
     /**
      * To get reference to command's logger
@@ -97,13 +102,18 @@ public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand
         }
     }
 
+// For commands playing Nested Command Role
+
     /**
-     * To prepare command context for nested command using the visitor
+     * To prepare context for nested command using the visitor
      *
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input
      * @param <T>     type of command result
      * @return prepared for nested command context
+     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
+     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
     default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {

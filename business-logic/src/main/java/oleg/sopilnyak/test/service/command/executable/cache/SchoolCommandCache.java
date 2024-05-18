@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.base.command;
+package oleg.sopilnyak.test.service.command.executable.cache;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
@@ -35,9 +35,9 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     /**
      * To cache into context old value of the student instance for possible rollback
      *
-     * @param inputId system-id of the student
-     * @param findById function for find entity by id
-     * @param copy function for deep copy of the found entity
+     * @param inputId           system-id of the student
+     * @param findById          function for find entity by id
+     * @param copy              function for deep copy of the found entity
      * @param exceptionSupplier function-source of entity-not-found exception
      * @return copy of exists entity
      * @throws NotExistStudentException if student is not exist
@@ -114,7 +114,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     /**
      * To persist entity
      *
-     * @param context command's do context
+     * @param context    command's do context
      * @param facadeSave function for saving the entity
      * @return saved instance or empty
      * @see Optional#empty()
@@ -140,10 +140,10 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     /**
      * To do checking after persistence of the entity
      *
-     * @param context         command's do context
-     * @param rollbackProcess process to run after persistence fail
-     * @param persisted       persisted entity instance
-     * @param isCreateEntity  if true there was new entity creation action
+     * @param context             command's do context
+     * @param rollbackProcess     process to run after persistence fail
+     * @param persistedEntityCopy persisted entity instance
+     * @param isCreateEntity      if true there was new entity creation action
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
@@ -153,22 +153,21 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      */
     protected void afterPersistCheck(final Context<?> context,
                                      final Runnable rollbackProcess,
-                                     final Optional<T> persisted,
+                                     final Optional<T> persistedEntityCopy,
                                      final boolean isCreateEntity) {
-        final Object input = context.getRedoParameter();
         // checking execution context state
         if (context.isFailed()) {
             // there was a fail during store entity
-            getLog().error("Cannot save {} {}", entityName, input);
+            getLog().error("Cannot save {} {}", entityName, context.getRedoParameter());
             rollbackProcess.run();
         } else {
             // store entity operation is done successfully
-            getLog().info("Got stored {} {}\nfrom parameter {}", entityName, persisted, input);
-            context.setResult(persisted);
+            getLog().info("Got stored {} {}\nfrom parameter {}", entityName, persistedEntityCopy, context.getRedoParameter());
+            context.setResult(persistedEntityCopy);
 
-            if (persisted.isPresent() && isCreateEntity) {
+            if (persistedEntityCopy.isPresent() && isCreateEntity) {
                 // storing created entity.id for undo operation
-                context.setUndoParameter(persisted.get().getId());
+                context.setUndoParameter(persistedEntityCopy.get().getId());
             }
         }
     }

@@ -43,7 +43,7 @@ public interface SchoolCommand {
     /**
      * To create command's context without doParameter
      *
-     * @param <T>     the type of command result
+     * @param <T> the type of command result
      * @return context instance
      * @see Context
      * @see CommandContext
@@ -59,7 +59,7 @@ public interface SchoolCommand {
      * To create command's context with doParameter
      *
      * @param input context's doParameter value
-     * @param <T>     the type of command result
+     * @param <T>   the type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
@@ -71,18 +71,6 @@ public interface SchoolCommand {
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
-    }
-
-    /**
-     * To prepare command context for nested command using the visitor
-     *
-     * @param visitor visitor of prepared contexts
-     * @param input Macro-Command call's input
-     * @return prepared for nested command context
-     * @param <T> type of command result
-     */
-    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
-        return visitor.prepareContext(this, input);
     }
 
     /**
@@ -160,4 +148,21 @@ public interface SchoolCommand {
     default <T> void executeUndo(Context<T> context) {
         context.setState(Context.State.UNDONE);
     }
+
+// For commands playing Nested Command Role
+
+    /**
+     * To prepare context for nested command using the visitor
+     *
+     * @param visitor visitor of prepared contexts
+     * @param input   Macro-Command call's input
+     * @param <T>     type of command result
+     * @return prepared for nested command context
+     * @see PrepareContextVisitor#prepareContext(SchoolCommand, Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     */
+    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+        return visitor.prepareContext(this, input);
+    }
+
 }

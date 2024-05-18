@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPe
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.command.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;

@@ -61,7 +61,7 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    <T> void shouldDoAllNestedRedo() {
+    <T> void shouldDoAllNestedCommand() {
         int parameter = 100;
         AtomicInteger counter = new AtomicInteger(0);
         allowCreateRealContexts(parameter);
@@ -158,7 +158,7 @@ class SequentialMacroCommandTest {
             assertThat(context.getResult()).isPresent();
         });
         verify(command, times(wrapper.getNestedContexts().size() - 1))
-                .transferPreviousExecuteDoResult(any(), any(), any());
+                .transferPreviousExecuteDoResult(any(SchoolCommand.class), any(), any());
         assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
     }
@@ -349,6 +349,24 @@ class SequentialMacroCommandTest {
         @Override
         public <T> Context<T> prepareContext(CourseCommand command, Object mainInput) {
             return prepareCourseContext();
+        }
+
+        /**
+         * To transfer result form previous command to current context
+         *
+         * @param previousCommand previous successfully executed command
+         * @param previousResult  the result of previous command execution
+         * @param targetContext   current command context to execute command's redo
+         * @see SchoolCommand
+         * @see Context
+         * @see Optional
+         */
+        @Override
+        protected <S, T> void transferPreviousExecuteDoResult(
+                StudentCommand previousCommand,
+                Optional<S> previousResult,
+                Context<T> targetContext) {
+            super.transferPreviousExecuteDoResult(previousCommand, previousResult, targetContext);
         }
     }
 

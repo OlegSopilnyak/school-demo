@@ -68,13 +68,17 @@ public interface CourseCommand extends SchoolCommand {
         }
     }
 
+// For commands playing Nested Command Role
+
     /**
-     * To prepare command context for nested command using the visitor
+     * To prepare context for nested command using the visitor
      *
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input
      * @param <T>     type of command result
      * @return prepared for nested command context
+     * @see PrepareContextVisitor#prepareContext(CourseCommand, Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
     default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
