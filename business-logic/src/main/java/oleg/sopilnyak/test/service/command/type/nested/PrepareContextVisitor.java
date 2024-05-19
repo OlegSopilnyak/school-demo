@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.composite;
+package oleg.sopilnyak.test.service.command.type.nested;
 
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;

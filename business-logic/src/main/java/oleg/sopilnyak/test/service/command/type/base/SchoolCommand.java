@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.springframework.lang.NonNull;
 
 import static java.util.Objects.isNull;

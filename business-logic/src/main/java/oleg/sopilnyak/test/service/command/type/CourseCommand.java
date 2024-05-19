@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.type;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
-import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.slf4j.Logger;
 import org.springframework.lang.NonNull;
 

@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
-import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
