@@ -5,8 +5,7 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
 import org.slf4j.Logger;
-
-import java.util.Optional;
+import org.springframework.lang.NonNull;
 
 /**
  * Type for school-student command
@@ -99,7 +98,7 @@ public interface StudentCommand extends SchoolCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
@@ -111,13 +110,12 @@ public interface StudentCommand extends SchoolCommand {
      * @param target  command context for next execution
      * @param <S>     type of current command execution result
      * @param <T>     type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(StudentCommand, Optional, Context)
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(StudentCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
     @Override
-    default <S, T> void transferResultTo(
-            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
-    ) {
+    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
+                                         final S result, final Context<T> target) {
         visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 }

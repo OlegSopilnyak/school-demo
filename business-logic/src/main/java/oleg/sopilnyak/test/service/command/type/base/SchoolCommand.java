@@ -3,8 +3,7 @@ package oleg.sopilnyak.test.service.command.type.base;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
-
-import java.util.Optional;
+import org.springframework.lang.NonNull;
 
 import static java.util.Objects.isNull;
 
@@ -164,7 +163,7 @@ public interface SchoolCommand {
      * @see PrepareContextVisitor#prepareContext(SchoolCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
-    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
@@ -176,12 +175,11 @@ public interface SchoolCommand {
      * @param target  command context for next execution
      * @param <S>     type of current command execution result
      * @param <T>     type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(SchoolCommand, Optional, Context)
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(SchoolCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
-    default <S, T> void transferResultTo(
-            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
-    ) {
+    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
+                                         final S result, final Context<T> target) {
         visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 

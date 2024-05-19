@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import org.slf4j.Logger;
 
 import java.util.Deque;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final SchoolCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -51,7 +52,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -70,7 +71,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final CourseCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -89,7 +90,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand<SchoolCommand> command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -108,7 +109,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -127,7 +128,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentProfileCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -146,7 +147,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final AuthorityPersonCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -165,7 +166,7 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final FacultyCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
@@ -184,11 +185,19 @@ public interface TransferResultVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentsGroupCommand command,
-                                                        final Optional<S> result,
+                                                        final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
     }
 
-    private <S, T> void defaultResultTransfer(final SchoolCommand command, final Optional<S> result, final Context<T> target) {
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    Logger getLog();
+
+    private <S, T, C extends SchoolCommand> void defaultResultTransfer(final C command, final S result, final Context<T> target) {
+        getLog().debug("Default command execution result transfer for '{}' result:{} to context:{}", command, result, target);
     }
 }

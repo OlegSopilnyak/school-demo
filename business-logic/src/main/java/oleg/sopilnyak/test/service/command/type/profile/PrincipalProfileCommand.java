@@ -4,8 +4,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.composite.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.composite.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
-
-import java.util.Optional;
+import org.springframework.lang.NonNull;
 
 /**
  * Type for school-principal-profile commands
@@ -41,7 +40,7 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input) {
+    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
@@ -53,13 +52,12 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @param target  command context for next execution
      * @param <S>     type of current command execution result
      * @param <T>     type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(PrincipalProfileCommand, Optional, Context)
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(PrincipalProfileCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
     @Override
-    default <S, T> void transferResultTo(
-            final TransferResultVisitor visitor, final Optional<S> result, final Context<T> target
-    ) {
+    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
+                                         final S result, final Context<T> target) {
         visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 }

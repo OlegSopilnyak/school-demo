@@ -93,6 +93,6 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
         );
 
         // transferring result to target
-        sourceCommand.transferResultTo(this, result, target);
+        sourceCommand.transferResultTo(this, result.get(), target);
     }
 }
