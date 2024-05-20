@@ -13,7 +13,7 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 
 /**
- * Service: Prepare command context visitor
+ * Visitor: Prepare nested command context
  */
 public interface PrepareContextVisitor {
     /**

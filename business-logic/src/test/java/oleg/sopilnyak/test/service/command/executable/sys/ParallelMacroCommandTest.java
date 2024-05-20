@@ -63,7 +63,7 @@ class ParallelMacroCommandTest {
         assertThat(macroContext).isNotNull();
         assertThat(macroContext.getState()).isEqualTo(READY);
         assertThat(macroContext.getCommand()).isEqualTo(command);
-        CommandParameterWrapper<T> wrapper = macroContext.getRedoParameter();
+        MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
@@ -79,17 +79,17 @@ class ParallelMacroCommandTest {
         Context<T> nestedContext;
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(doubleCommand, nestedContext, listener);
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(booleanCommand, nestedContext, listener);
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
         nestedContext = wrapper.getNestedContexts().pop();
         assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(nestedContext, listener);
+        verify(command).doNestedCommand(intCommand, nestedContext, listener);
         verify(listener).stateChanged(nestedContext, READY, WORK);
         verify(listener).stateChanged(nestedContext, WORK, DONE);
     }

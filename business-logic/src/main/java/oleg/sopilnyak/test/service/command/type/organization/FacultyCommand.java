@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
@@ -67,5 +69,24 @@ public interface FacultyCommand extends OrganizationCommand {
     default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
                                          final S result, final Context<T> target) {
         visitor.transferPreviousExecuteDoResult(this, result, target);
+    }
+
+    /**
+     * To execute command as a nested command
+     *
+     * @param visitor       visitor to do nested command execution
+     * @param context       context for nested command execution
+     * @param stateListener listener of context-state-change
+     * @param <T>           type of command execution result
+     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see Context#addStateListener(Context.StateChangedListener)
+     * @see FacultyCommand#doCommand(Context)
+     * @see Context#removeStateListener(Context.StateChangedListener)
+     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     */
+    @Override
+    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
+        visitor.doNestedCommand(this, context, stateListener);
     }
 }

@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 
 import java.util.*;
@@ -21,7 +22,7 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
      *
      * @param doContexts    nested command contexts collection
      * @param stateListener listener of context-state-change
-     * @see super#doNestedCommand(Context, Context.StateChangedListener)
+     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Deque
      * @see java.util.LinkedList
      * @see Context
@@ -42,13 +43,14 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
                 currentContext.setState(Context.State.CANCEL);
                 currentContext.removeStateListener(stateListener);
             } else {
+                final SchoolCommand command = currentContext.getCommand();
                 // transfer previous context result to current one
                 transferPreviousResultToCurrentContextRedoParameter(previousContext.get(), currentContext);
                 // current redo context executing
-                final Context<T> afterRedo = doNestedCommand(currentContext, stateListener);
-                if (afterRedo.isDone()) {
+                command.doAsNestedCommand(this, currentContext, stateListener);
+                if (currentContext.isDone()) {
                     // command do successful
-                    previousContext.getAndSet(afterRedo);
+                    previousContext.getAndSet(currentContext);
                 } else {
                     // command do failed
                     failed.compareAndSet(false, true);

@@ -14,11 +14,11 @@ import java.util.LinkedList;
 @Data
 @Getter
 @ToString
-public class CommandParameterWrapper<T> {
+public class MacroCommandParameter<T> {
     private Object input;
     private final LinkedList<Context<T>> nestedContexts = new LinkedList<>();
 
-    public CommandParameterWrapper(Object input, Deque<Context<T>> nestedContexts) {
+    public MacroCommandParameter(Object input, Deque<Context<T>> nestedContexts) {
         this.input = input;
         this.nestedContexts.addAll(nestedContexts);
     }

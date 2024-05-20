@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -13,7 +14,8 @@ import java.util.stream.Collectors;
 /**
  * Command-Base: macro-command the command with nested commands inside
  */
-public abstract class MacroCommand<C extends SchoolCommand> implements CompositeCommand<C> {
+public abstract class MacroCommand<C extends SchoolCommand>
+        implements CompositeCommand<C>, NestedCommandExecutionVisitor {
     private final List<C> commands = new LinkedList<>();
 
     /**
@@ -54,7 +56,7 @@ public abstract class MacroCommand<C extends SchoolCommand> implements Composite
         final Object input = doContext.getRedoParameter();
         getLog().debug("Do redo for {}", input);
         try {
-            final CommandParameterWrapper<T> wrapper = commandParameter(input);
+            final MacroCommandParameter<T> wrapper = commandParameter(input);
 
             final ContextDeque<Context<T>> doneContextsDeque = new ContextDeque<>(new LinkedList<>());
             final ContextDeque<Context<T>> failedContextsDeque = new ContextDeque<>(new LinkedList<>());
@@ -106,38 +108,13 @@ public abstract class MacroCommand<C extends SchoolCommand> implements Composite
      *
      * @param doContexts    nested contexts collection
      * @param stateListener listener of context-state-change
-     * @see MacroCommand#doNestedCommand(Context, Context.StateChangedListener)
+     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Deque
-     * @see java.util.LinkedList
-     * @see Context
      * @see Context.StateChangedListener
      */
-    public  <T> void doNestedCommands(final Deque<Context<T>> doContexts,
-                                        final Context.StateChangedListener<T> stateListener) {
-        doContexts.forEach(context -> doNestedCommand(context, stateListener));
-    }
-
-    /**
-     * To execute one nested command
-     *
-     * @param doContext     nested command execution context
-     * @param stateListener the lister of command state change
-     */
-    protected <T> Context<T> doNestedCommand(final Context<T> doContext,
-                                             final Context.StateChangedListener<T> stateListener) {
-        doContext.addStateListener(stateListener);
-        final SchoolCommand command = doContext.getCommand();
-        final String commandId = command.getId();
-        try {
-            command.doCommand(doContext);
-            getLog().debug("Command:'{}' is done context:{}", commandId, doContext);
-        } catch (Exception e) {
-            getLog().error("Cannot run do for command:'{}'", commandId, e);
-            doContext.failed(e);
-        } finally {
-            doContext.removeStateListener(stateListener);
-        }
-        return doContext;
+    public <T> void doNestedCommands(final Deque<Context<T>> doContexts,
+                                     final Context.StateChangedListener<T> stateListener) {
+        doContexts.forEach(context -> context.getCommand().doAsNestedCommand(this, context, stateListener));
     }
 
     /**

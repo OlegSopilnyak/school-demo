@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 
@@ -25,7 +26,7 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
      *
      * @param doContexts    nested command contexts collection
      * @param stateListener listener of context-state-change
-     * @see super#doNestedCommand(Context, Context.StateChangedListener)
+     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see SchedulingTaskExecutor#submit(Callable)
      * @see Deque
      * @see Context
@@ -41,7 +42,8 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
             getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
             final Callable<Context<T>> doRunner = () -> {
                 try {
-                    return doNestedCommand(context, stateListener);
+                    context.getCommand().doAsNestedCommand(this, context, stateListener);
+                    return context;
                 } catch (Exception e) {
                     context.failed(e);
                     getLog().error("Command do execution is failed", e);

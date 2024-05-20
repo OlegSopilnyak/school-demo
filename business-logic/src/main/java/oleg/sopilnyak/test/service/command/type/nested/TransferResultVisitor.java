@@ -16,7 +16,7 @@ import java.util.Deque;
 import java.util.Optional;
 
 /**
- * Service: Transfer command result to next command context
+ * Visitor: Transfer command result to next command context
  */
 public interface TransferResultVisitor {
     /**

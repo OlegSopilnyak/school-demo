@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.springframework.lang.NonNull;
@@ -183,4 +184,21 @@ public interface SchoolCommand {
         visitor.transferPreviousExecuteDoResult(this, result, target);
     }
 
+    /**
+     * To execute command as a nested command
+     *
+     * @param visitor       visitor to do nested command execution
+     * @param context       context for nested command execution
+     * @param stateListener listener of context-state-change
+     * @param <T>           type of command execution result
+     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see Context#addStateListener(Context.StateChangedListener)
+     * @see SchoolCommand#doCommand(Context)
+     * @see Context#removeStateListener(Context.StateChangedListener)
+     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     */
+    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
+        visitor.doNestedCommand(this, context, stateListener);
+    }
 }
