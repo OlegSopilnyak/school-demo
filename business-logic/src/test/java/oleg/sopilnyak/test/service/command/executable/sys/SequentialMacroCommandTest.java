@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class SequentialMacroCommandTest {
     @Spy
     @InjectMocks
-    FakeSequentialCommand command;
+    volatile FakeSequentialCommand command;
     @Mock
     SchoolCommand doubleCommand;
     @Mock
@@ -126,18 +126,21 @@ class SequentialMacroCommandTest {
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
     }
 
-    private static void verifyNestedCommandContextPreparation(
-            FakeSequentialCommand command, SchoolCommand nestedCommand, Object parameter) {
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              SchoolCommand nestedCommand,
+                                                              Object parameter) {
         verify(nestedCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(nestedCommand, parameter);
     }
-    private static void verifyNestedCommandContextPreparation(
-            FakeSequentialCommand command, StudentCommand nestedCommand, Object parameter) {
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              StudentCommand nestedCommand,
+                                                              Object parameter) {
         verify(nestedCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(nestedCommand, parameter);
     }
-    private static void verifyNestedCommandContextPreparation(
-            FakeSequentialCommand command, CourseCommand nestedCommand, Object parameter) {
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              CourseCommand nestedCommand,
+                                                              Object parameter) {
         verify(nestedCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(nestedCommand, parameter);
     }
@@ -518,15 +521,3 @@ class SequentialMacroCommandTest {
         }).when(nestedCommand).undoCommand(any(Context.class));
     }
 }
-/*
-fakeSequentialCommand.doNestedCommand(
-    studentCommand,
-    CommandContext(command=studentCommand, redoParameter=200, undoParameter=null, resultData=22400.0, exception=null, state=DONE, states=[READY, WORK, DONE], listeners=[]),
-    <any oleg.sopilnyak.test.service.command.type.base.Context.StateChangedListener>
-);
-fakeSequentialCommand.doNestedCommand(
-    studentCommand,
-    CommandContext(command=studentCommand, redoParameter=200, undoParameter=null, resultData=22400.0, exception=null, state=DONE, states=[READY, WORK, DONE], listeners=[]),
-    oleg.sopilnyak.test.service.command.executable.sys.MacroCommand$$Lambda$446/0x00000287cd2edfe0@70cccd8f
-);
- */

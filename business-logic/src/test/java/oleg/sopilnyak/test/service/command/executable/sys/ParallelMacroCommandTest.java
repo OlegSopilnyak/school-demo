@@ -13,6 +13,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -28,13 +29,15 @@ class ParallelMacroCommandTest {
     ThreadPoolTaskExecutor executor = spy(new ThreadPoolTaskExecutor());
     @Spy
     @InjectMocks
-    FakeMacroCommand command;
+    FakeParallelCommand command;
     @Mock
     SchoolCommand doubleCommand;
     @Mock
     SchoolCommand booleanCommand;
     @Mock
     SchoolCommand intCommand;
+    @Mock
+    StudentCommand studentCommand;
 
     @BeforeEach
     void setUp() {
@@ -55,54 +58,41 @@ class ParallelMacroCommandTest {
     }
 
     @Test
-    <T> void shouldDoAllNestedRedo() {
+    <T> void shouldDoAllNestedCommands() {
         int parameter = 100;
-        AtomicInteger counter = new AtomicInteger(0);
-        allowCreateRealContexts();
+        allowRealPrepareContextBase(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
-        assertThat(macroContext).isNotNull();
-        assertThat(macroContext.getState()).isEqualTo(READY);
-        assertThat(macroContext.getCommand()).isEqualTo(command);
+        assertThat(macroContext.isReady()).isTrue();
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.getState()).isEqualTo(READY));
+        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
+        AtomicInteger counter = new AtomicInteger(0);
         Context.StateChangedListener<T> listener = spy(new ContextStateChangedListener<>(counter));
+        allowRealNestedCommandExecutionBase();
 
         command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(command.commands().size());
         // check contexts states
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isDone()).isTrue());
-        Context<T> nestedContext;
-        nestedContext = wrapper.getNestedContexts().pop();
-        assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(doubleCommand, nestedContext, listener);
-        verify(listener).stateChanged(nestedContext, READY, WORK);
-        verify(listener).stateChanged(nestedContext, WORK, DONE);
-        nestedContext = wrapper.getNestedContexts().pop();
-        assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(booleanCommand, nestedContext, listener);
-        verify(listener).stateChanged(nestedContext, READY, WORK);
-        verify(listener).stateChanged(nestedContext, WORK, DONE);
-        nestedContext = wrapper.getNestedContexts().pop();
-        assertThat(nestedContext.isDone()).isTrue();
-        verify(command).doNestedCommand(intCommand, nestedContext, listener);
-        verify(listener).stateChanged(nestedContext, READY, WORK);
-        verify(listener).stateChanged(nestedContext, WORK, DONE);
+        checkRegularNestedCommandExecution(doubleCommand, wrapper.getNestedContexts().pop(), listener);
+        checkRegularNestedCommandExecution(booleanCommand, wrapper.getNestedContexts().pop(), listener);
+        checkRegularNestedCommandExecution(intCommand, wrapper.getNestedContexts().pop(), listener);
     }
 
     @Test
     void rollbackDoneContexts() {
+        assertThat(command).isNotNull();
     }
 
     // inner classes
-    static class FakeMacroCommand extends ParallelMacroCommand {
-        private final Logger logger = LoggerFactory.getLogger(ParallelMacroCommandTest.FakeMacroCommand.class);
+    static class FakeParallelCommand extends ParallelMacroCommand {
+        private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
 
-        public FakeMacroCommand(SchedulingTaskExecutor commandContextExecutor) {
+        public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor) {
             super(commandContextExecutor);
         }
 
@@ -149,15 +139,49 @@ class ParallelMacroCommandTest {
     }
 
     // private methods
-    private void allowCreateRealContexts() {
-        doCallRealMethod().when(doubleCommand).createContext(any());
-        doCallRealMethod().when(booleanCommand).createContext(any());
-        doCallRealMethod().when(intCommand).createContext(any());
-        // visitor accept
-        doCallRealMethod().when(doubleCommand).acceptPreparedContext(eq(command), any());
-        doCallRealMethod().when(booleanCommand).acceptPreparedContext(eq(command), any());
-        doCallRealMethod().when(intCommand).acceptPreparedContext(eq(command), any());
+    private <T> void checkRegularNestedCommandExecution(SchoolCommand nestedCommand,
+                                                        @NonNull Context<T> nestedContext,
+                                                        Context.StateChangedListener<T> listener) {
+        assertThat(nestedContext.isDone()).isTrue();
+        verify(nestedCommand).doAsNestedCommand(command, nestedContext, listener);
+        verify(command).doNestedCommand(nestedCommand, nestedContext, listener);
+        verify(listener).stateChanged(nestedContext, READY, WORK);
+        verify(listener).stateChanged(nestedContext, WORK, DONE);
     }
+    private void allowRealPrepareContext(SchoolCommand nested, Object parameter) {
+        doCallRealMethod().when(nested).createContext(parameter);
+        doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
+    }
+
+    private void allowRealPrepareContextBase(Object parameter) {
+        allowRealPrepareContext(doubleCommand, parameter);
+        allowRealPrepareContext(booleanCommand, parameter);
+        allowRealPrepareContext(intCommand, parameter);
+    }
+
+    private void allowRealPrepareContextExtra(Object parameter) {
+        doCallRealMethod().when(studentCommand).acceptPreparedContext(command, parameter);
+    }
+
+    private void allowRealNestedCommandExecution(SchoolCommand nested) {
+        doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
+    }
+
+    private void allowRealNestedCommandExecutionBase() {
+        allowRealNestedCommandExecution(doubleCommand);
+        allowRealNestedCommandExecution(booleanCommand);
+        doCallRealMethod().when(intCommand).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
+    }
+
+//    private void allowCreateRealContexts() {
+//        doCallRealMethod().when(doubleCommand).createContext(any());
+//        doCallRealMethod().when(booleanCommand).createContext(any());
+//        doCallRealMethod().when(intCommand).createContext(any());
+//        // visitor accept
+//        doCallRealMethod().when(doubleCommand).acceptPreparedContext(eq(command), any());
+//        doCallRealMethod().when(booleanCommand).acceptPreparedContext(eq(command), any());
+//        doCallRealMethod().when(intCommand).acceptPreparedContext(eq(command), any());
+//    }
 
     private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {
         doAnswer(invocationOnMock -> {
