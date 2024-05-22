@@ -185,7 +185,7 @@ public interface SchoolCommand {
     }
 
     /**
-     * To execute command as a nested command
+     * To execute command Do as a nested command
      *
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
@@ -200,5 +200,19 @@ public interface SchoolCommand {
     default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
                                        final Context<T> context, final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
+    }
+
+    /**
+     * To execute command Undo as a nested command
+     *
+     * @param visitor visitor to do nested command execution
+     * @param context context for nested command execution
+     * @param <T>     type of command execution result
+     * @see NestedCommandExecutionVisitor#undoNestedCommand(SchoolCommand, Context)
+     * @see SchoolCommand#undoCommand(Context)
+     */
+    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+                                               final Context<T> context) {
+        return visitor.undoNestedCommand(this, context);
     }
 }

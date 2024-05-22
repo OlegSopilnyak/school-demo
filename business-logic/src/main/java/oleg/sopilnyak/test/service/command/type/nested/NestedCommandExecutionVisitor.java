@@ -27,6 +27,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final SchoolCommand command,
                                      final Context<T> doContext,
@@ -45,6 +48,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final StudentCommand command,
                                      final Context<T> doContext,
@@ -63,6 +69,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final CourseCommand command,
                                      final Context<T> doContext,
@@ -81,6 +90,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T, C extends SchoolCommand> void doNestedCommand(final CompositeCommand<C> command,
                                                               final Context<T> doContext,
@@ -99,6 +111,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final StudentProfileCommand command,
                                      final Context<T> doContext,
@@ -117,6 +132,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final PrincipalProfileCommand command,
                                      final Context<T> doContext,
@@ -135,6 +153,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final StudentsGroupCommand command,
                                      final Context<T> doContext,
@@ -153,6 +174,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final FacultyCommand command,
                                      final Context<T> doContext,
@@ -171,11 +195,140 @@ public interface NestedCommandExecutionVisitor {
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
      */
     default <T> void doNestedCommand(final AuthorityPersonCommand command,
                                      final Context<T> doContext,
                                      final Context.StateChangedListener<T> stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see SchoolCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final SchoolCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see StudentCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final StudentCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see CourseCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final CourseCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see CompositeCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final CompositeCommand<SchoolCommand> command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see StudentProfileCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final StudentProfileCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see PrincipalProfileCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final PrincipalProfileCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see StudentsGroupCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final StudentsGroupCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see FacultyCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final FacultyCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
+    }
+
+    /**
+     * To rollback changes for contexts with state DONE
+     *
+     * @param command     nested command to do undo with nested context (could be Override)
+     * @param undoContext nested context with DONE state
+     * @see AuthorityPersonCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     */
+    default <T> Context<T> undoNestedCommand(final AuthorityPersonCommand command, final Context<T> undoContext) {
+        return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
@@ -198,4 +351,16 @@ public interface NestedCommandExecutionVisitor {
             doContext.removeStateListener(stateListener);
         }
     }
+
+    private <T> Context<T> defaultUndoNestedCommand(SchoolCommand command, Context<T> undoContext) {
+        try {
+            command.undoCommand(undoContext);
+            getLog().debug("Rolled back done command '{}' with context:{}", command.getId(), undoContext);
+        } catch (Exception e) {
+            getLog().error("Cannot rollback for {}", undoContext, e);
+            undoContext.failed(e);
+        }
+        return undoContext;
+    }
+
 }

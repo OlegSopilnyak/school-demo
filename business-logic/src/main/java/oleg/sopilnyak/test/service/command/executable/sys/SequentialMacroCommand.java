@@ -63,18 +63,18 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param undoContexts collection of contexts with DONE state
+     * @param doneContexts collection of contexts with DONE state
      * @see Deque
      * @see Context.State#DONE
      */
     @Override
-    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> undoContexts) {
-        final List<Context<T>> reverted = new ArrayList<>(undoContexts);
+    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> doneContexts) {
+        final List<Context<T>> reverted = new ArrayList<>(doneContexts);
         // revert the order of undo contexts
         Collections.reverse(reverted);
         // rollback commands' changes
         return reverted.stream()
-                .map(doneContext -> rollbackDoneContext(doneContext.getCommand(), doneContext))
+                .map(doneContext -> doneContext.getCommand().undoAsNestedCommand(this, doneContext))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 

@@ -317,6 +317,7 @@ class SequentialMacroCommandTest {
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
+        allowRealNestedCommandRollbackBase();
 
         Deque<Context<T>> rollbackResults = command.rollbackDoneContexts(nestedUndoneContexts);
 
@@ -328,7 +329,8 @@ class SequentialMacroCommandTest {
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts states
         rollbackResults.forEach(ctx -> {
-            verify(command).rollbackDoneContext(ctx.getCommand(), ctx);
+            verify(ctx.getCommand()).undoAsNestedCommand(command, ctx);
+//            verify(command).rollbackDoneContext(ctx.getCommand(), ctx);
             assertThat(ctx.getState()).isEqualTo(UNDONE);
         });
     }
@@ -353,6 +355,7 @@ class SequentialMacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).undoCommand(any(Context.class));
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
+        allowRealNestedCommandRollbackBase();
 
         Deque<Context<T>> rollbackResults = command.rollbackDoneContexts(nestedUndoneContexts);
 
@@ -365,13 +368,16 @@ class SequentialMacroCommandTest {
         // check contexts order and states
         Context<?> nestedContext;
         nestedContext = rollbackResults.pop();
-        verify(command).rollbackDoneContext(intCommand, nestedContext);
+        verify(intCommand).undoAsNestedCommand(command, nestedContext);
+//        verify(command).rollbackDoneContext(intCommand, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(UNDONE);
         nestedContext = rollbackResults.pop();
-        verify(command).rollbackDoneContext(booleanCommand, nestedContext);
+        verify(booleanCommand).undoAsNestedCommand(command, nestedContext);
+//        verify(command).rollbackDoneContext(booleanCommand, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(UNDONE);
         nestedContext = rollbackResults.pop();
-        verify(command).rollbackDoneContext(doubleCommand, nestedContext);
+//        verify(command).rollbackDoneContext(doubleCommand, nestedContext);
+        verify(doubleCommand).undoAsNestedCommand(command, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
     }
@@ -501,6 +507,20 @@ class SequentialMacroCommandTest {
     private void allowRealNestedCommandExecutionExtra() {
         allowRealNestedCommandExecution(studentCommand);
         allowRealNestedCommandExecution(courseCommand);
+    }
+
+    private void allowRealNestedCommandRollback(SchoolCommand nested) {
+        doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
+    }
+
+    private void allowRealNestedCommandRollbackBase() {
+        allowRealNestedCommandRollback(doubleCommand);
+        allowRealNestedCommandRollback(booleanCommand);
+        allowRealNestedCommandRollback(intCommand);
+    }
+    private void allowRealNestedCommandRollbackExtra() {
+        allowRealNestedCommandRollback(studentCommand);
+        allowRealNestedCommandRollback(courseCommand);
     }
 
     private <T> void configureNestedRedoResult(SchoolCommand nestedCommand, T result) {

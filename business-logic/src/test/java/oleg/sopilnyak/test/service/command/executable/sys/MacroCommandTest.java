@@ -315,6 +315,8 @@ class MacroCommandTest {
         allowRealNestedCommandExecutionBase();
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
+        allowRealNestedCommandRollback(doubleCommand);
+        allowRealNestedCommandRollback(booleanCommand);
         doThrow(UnableExecuteCommandException.class).when(intCommand).doCommand(any(Context.class));
 
         command.doCommand(macroContext);
@@ -347,6 +349,8 @@ class MacroCommandTest {
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
+        allowRealNestedCommandRollback(intCommand);
+        allowRealNestedCommandRollback(booleanCommand);
 
         command.doCommand(macroContext);
 
@@ -387,6 +391,7 @@ class MacroCommandTest {
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(booleanCommand);
         configureNestedUndoStatus(intCommand);
+        allowRealNestedCommandRollbackBase();
 
         command.undoCommand(macroContext);
 
@@ -440,8 +445,9 @@ class MacroCommandTest {
         Deque<Context<T>> nestedDoneContexts = macroContext.getUndoParameter();
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
         configureNestedUndoStatus(doubleCommand);
-        doThrow(UnableExecuteCommandException.class).when(booleanCommand).undoCommand(any(Context.class));
         configureNestedUndoStatus(intCommand);
+        doThrow(UnableExecuteCommandException.class).when(booleanCommand).undoCommand(any(Context.class));
+        allowRealNestedCommandRollbackBase();
 
         command.undoCommand(macroContext);
 
@@ -547,7 +553,7 @@ class MacroCommandTest {
     }
 
     @Test
-    <T> void shouldRunNestedCommand() {
+    <T> void shouldDoNestedCommand() {
         int parameter = 117;
         AtomicInteger counter = new AtomicInteger(0);
         allowRealPrepareContext(doubleCommand, parameter);
@@ -572,7 +578,7 @@ class MacroCommandTest {
     }
 
     @Test
-    <T> void shouldNotRunNestedCommand_EmptyContext() {
+    <T> void shouldNotDoNestedCommand_EmptyContext() {
         int parameter = 118;
         AtomicInteger counter = new AtomicInteger(0);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -588,7 +594,7 @@ class MacroCommandTest {
     }
 
     @Test
-    <T> void shouldNotRunNestedCommand_NestedContextRedoThrows() {
+    <T> void shouldNotDoNestedCommand_NestedContextRedoThrows() {
         int parameter = 119;
         AtomicInteger counter = new AtomicInteger(0);
         allowRealPrepareContext(doubleCommand, parameter);
@@ -708,6 +714,18 @@ class MacroCommandTest {
     }
 
 
+    private void allowRealNestedCommandRollback(SchoolCommand nested) {
+        doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
+    }
+
+    private void allowRealNestedCommandRollbackBase() {
+        allowRealNestedCommandRollback(doubleCommand);
+        allowRealNestedCommandRollback(booleanCommand);
+        allowRealNestedCommandRollback(intCommand);
+    }
+    private void allowRealNestedCommandRollbackExtra() {
+        allowRealNestedCommandRollback(studentCommand);
+    }
     private <T> void configureNestedRedoResult(SchoolCommand nestedCommand, T result) {
         doAnswer(invocationOnMock -> {
             Context<T> context = invocationOnMock.getArgument(0, Context.class);

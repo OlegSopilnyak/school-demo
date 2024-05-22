@@ -58,8 +58,8 @@ public abstract class MacroCommand<C extends SchoolCommand>
         try {
             final MacroCommandParameter<T> wrapper = commandParameter(input);
 
-            final ContextDeque<Context<T>> doneContextsDeque = new ContextDeque<>(new LinkedList<>());
-            final ContextDeque<Context<T>> failedContextsDeque = new ContextDeque<>(new LinkedList<>());
+            final ContextDeque<Context<T>> doneContextsDeque = new ContextDeque<>();
+            final ContextDeque<Context<T>> failedContextsDeque = new ContextDeque<>();
 
             final Deque<Context<T>> nestedContexts = wrapper.getNestedContexts();
 
@@ -130,9 +130,9 @@ public abstract class MacroCommand<C extends SchoolCommand>
         getLog().debug("Do undo for {}", parameter);
         try {
             final Deque<Context<T>> doneContexts = commandParameter(parameter);
-            // rolling back successful commands
+            // rolling back successful nested commands
             rollbackDoneContexts(doneContexts);
-            // after rollback process check
+            // after rollback process check the contexts' states
             afterRollbackDoneCheck(doneContexts);
             // rollback successful
             undoContext.setState(Context.State.UNDONE);
@@ -143,36 +143,17 @@ public abstract class MacroCommand<C extends SchoolCommand>
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested successful commands (contexts with state DONE)
      *
-     * @param undoContexts collection of nested contexts with DONE state
+     * @param doneContexts collection of nested contexts with DONE state
+     * @see SchoolCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
+     * @see MacroCommand#undoNestedCommand(SchoolCommand, Context)
      * @see Context.State#DONE
      */
-    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> undoContexts) {
-        return undoContexts.stream()
-                .map(context -> rollbackDoneContext(context.getCommand(), context))
+    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> doneContexts) {
+        return doneContexts.stream()
+                .map(context -> context.getCommand().undoAsNestedCommand(this, context))
                 .collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    /**
-     * To rollback changes for contexts with state DONE
-     *
-     * @param nestedCommand nested command to do undo with nested context (could be Override)
-     * @param undoContext   nested context with DONE state
-     * @see SchoolCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
-     */
-    protected <T> Context<T> rollbackDoneContext(final SchoolCommand nestedCommand,
-                                                 final Context<T> undoContext) {
-        try {
-            nestedCommand.undoCommand(undoContext);
-            getLog().debug("Rolled back done command '{}' with context:{}", nestedCommand.getId(), undoContext);
-        } catch (Exception e) {
-            getLog().error("Cannot rollback for {}", undoContext, e);
-            undoContext.failed(e);
-        }
-        return undoContext;
     }
 
     // private methods
@@ -205,17 +186,15 @@ public abstract class MacroCommand<C extends SchoolCommand>
      * Synchronized Contexts Deque
      *
      * @param <T> type of deque item
-     * @see Context
-     */
+     * @see Deque#addLast(Object)
+     * @see Lock#lock()
+     * @see Lock#unlock()
+     * */
     static final class ContextDeque<T> {
-        private final Deque<T> deque;
+        private final Deque<T> deque = new LinkedList<>();
         private final Lock locker = new ReentrantLock();
 
-        private ContextDeque(Deque<T> deque) {
-            this.deque = deque;
-        }
-
-        private void putToTail(final T context) {
+        void putToTail(final T context) {
             locker.lock();
             try {
                 deque.addLast(context);
