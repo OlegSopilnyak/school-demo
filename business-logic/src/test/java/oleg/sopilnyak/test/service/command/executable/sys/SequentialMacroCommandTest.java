@@ -86,10 +86,34 @@ class SequentialMacroCommandTest {
         checkRegularNestedCommandExecution(intCommand, wrapper.getNestedContexts().pop(), listener, true);
     }
 
+    @Test
+    <T> void shouldDoSequentialCommand_BaseCommands() {
+        int parameter = 111;
+        allowRealPrepareContextBase(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
+        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+        configureNestedRedoResult(booleanCommand, true);
+        configureNestedRedoResult(intCommand, parameter * 10);
+        allowRealNestedCommandExecutionBase();
+
+        // doing command with macro-context
+        command.doCommand(macroContext);
+
+        // after do check
+        verify(command).executeDo(macroContext);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        assertThat(macroContext.isDone()).isTrue();
+        MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
+        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
+        macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
+    }
 
     @Test
-    <T> void shouldDoSequentialCommand_PrepareNestedContexts() {
-        int parameter = 111;
+    <T> void shouldDoSequentialCommand_ExtraCommands() {
+        int parameter = 121;
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
         command.add(studentCommand);
         command.add(courseCommand);
@@ -106,8 +130,6 @@ class SequentialMacroCommandTest {
         verifyNestedCommandContextPreparation(command, intCommand, parameter);
         Deque<Context<T>> contexts = checkRedefinedPrepareCommandContext(macroContext);
         contexts.forEach(context -> assertThat(context).isInstanceOf(CommandContext.class));
-        configureNestedRedoResult(studentCommand, parameter * 200.0);
-        configureNestedRedoResult(courseCommand, parameter * 300.0);
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
@@ -124,35 +146,98 @@ class SequentialMacroCommandTest {
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
+        assertThat(FakeSequentialCommand.STUDENT_CONTEXT.getResult()).contains(100.0);
+        assertThat(FakeSequentialCommand.COURSE_CONTEXT.getResult()).contains(200.0);
     }
 
-    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
-                                                              SchoolCommand nestedCommand,
-                                                              Object parameter) {
-        verify(nestedCommand).acceptPreparedContext(command, parameter);
-        verify(command).prepareContext(nestedCommand, parameter);
-    }
-    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
-                                                              StudentCommand nestedCommand,
-                                                              Object parameter) {
-        verify(nestedCommand).acceptPreparedContext(command, parameter);
-        verify(command).prepareContext(nestedCommand, parameter);
-    }
-    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
-                                                              CourseCommand nestedCommand,
-                                                              Object parameter) {
-        verify(nestedCommand).acceptPreparedContext(command, parameter);
-        verify(command).prepareContext(nestedCommand, parameter);
+    @Test
+    <T> void shouldUndoSequentialCommand_BaseCommands() {
+        int parameter = 131;
+        allowRealPrepareContextBase(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
+        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+        configureNestedRedoResult(booleanCommand, true);
+        configureNestedRedoResult(intCommand, parameter * 10);
+        allowRealNestedCommandExecutionBase();
+        command.doCommand(macroContext);
+        assertThat(macroContext.isDone()).isTrue();
+        Deque<Context<T>> nestedDoneContexts = macroContext.getUndoParameter();
+        nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
+        configureNestedUndoStatus(doubleCommand);
+        configureNestedUndoStatus(booleanCommand);
+        configureNestedUndoStatus(intCommand);
+        allowRealNestedCommandRollbackBase();
+
+        command.undoCommand(macroContext);
+
+        assertThat(macroContext.getState()).isEqualTo(UNDONE);
+        nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
+
+        verify(command).executeUndo(macroContext);
+        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        nestedDoneContexts.forEach(context -> {
+            final var nestedCommand = context.getCommand();
+            verify(nestedCommand).undoAsNestedCommand(command, context);
+            verify(command).undoNestedCommand(nestedCommand, context);
+            verify(nestedCommand).undoCommand(context);
+        });
     }
 
-    private static <T> Context<T> prepareStudentContext() {
-        FakeSequentialCommand.STUDENT_CONTEXT.setRedoParameter(200);
-        return (Context<T>) FakeSequentialCommand.STUDENT_CONTEXT;
-    }
+    @Test
+    <T> void shouldUndoSequentialCommand_ExtraCommands() {
+        int parameter = 132;
+        command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
+        command.add(studentCommand);
+        command.add(courseCommand);
+        command.add(doubleCommand);
+        command.add(booleanCommand);
+        command.add(intCommand);
+        allowRealPrepareContextBase(parameter);
+        allowRealPrepareContextExtra(parameter);
+        Context<Integer> macroContext = command.createContext(parameter);
+        verifyNestedCommandContextPreparation(command, studentCommand, parameter);
+        verifyNestedCommandContextPreparation(command, courseCommand, parameter);
+        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+        configureNestedRedoResult(booleanCommand, true);
+        configureNestedRedoResult(intCommand, parameter * 10);
+        allowRealNestedCommandExecutionBase();
+        allowRealNestedCommandExecutionExtra();
+        command.doCommand(macroContext);
+        assertThat(macroContext.isDone()).isTrue();
+        Deque<Context<T>> nestedDoneContexts = macroContext.getUndoParameter();
+        nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
+        configureNestedUndoStatus(courseCommand);
+        configureNestedUndoStatus(doubleCommand);
+        configureNestedUndoStatus(booleanCommand);
+        configureNestedUndoStatus(intCommand);
+        allowRealNestedCommandRollbackBase();
+        allowRealNestedCommandRollbackExtra();
 
-    private static <T> Context<T> prepareCourseContext() {
-        FakeSequentialCommand.COURSE_CONTEXT.setRedoParameter(300);
-        return (Context<T>) FakeSequentialCommand.COURSE_CONTEXT;
+        command.undoCommand(macroContext);
+
+        assertThat(macroContext.getState()).isEqualTo(UNDONE);
+        nestedDoneContexts.stream()
+                .filter(context -> context != FakeSequentialCommand.STUDENT_CONTEXT)
+                .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
+        verify(command).executeUndo(macroContext);
+        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        nestedDoneContexts.stream()
+                .filter(context -> context != FakeSequentialCommand.STUDENT_CONTEXT)
+                .filter(context -> context != FakeSequentialCommand.COURSE_CONTEXT)
+                .forEach(context -> {
+                    final var nestedCommand = context.getCommand();
+                    verify(nestedCommand).undoAsNestedCommand(command, context);
+                    verify(command).undoNestedCommand(nestedCommand, context);
+                    verify(nestedCommand).undoCommand(context);
+                });
+        assertThat(FakeSequentialCommand.COURSE_CONTEXT.getState()).isEqualTo(UNDONE);
+        assertThat(FakeSequentialCommand.STUDENT_CONTEXT.getState()).isEqualTo(CANCEL);
     }
 
     @Test
@@ -168,8 +253,8 @@ class SequentialMacroCommandTest {
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
         checkRedefinedPrepareCommandContext(macroContext);
-        configureNestedRedoResult(studentCommand, parameter * 200.0);
-        configureNestedRedoResult(courseCommand, parameter * 300.0);
+//        configureNestedRedoResult(studentCommand, parameter * 200.0);
+//        configureNestedRedoResult(courseCommand, parameter * 300.0);
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
@@ -196,7 +281,9 @@ class SequentialMacroCommandTest {
             } else {
                 verify(command).transferPreviousExecuteDoResult(eq(current), any(Optional.class), eq(context));
             }
-            verify(current).doCommand(context);
+            if (current != studentCommand && current != courseCommand) {
+                verify(current).doCommand(context);
+            }
             assertThat(context.isDone()).isTrue();
             assertThat(context.getResult()).isPresent();
         });
@@ -204,14 +291,10 @@ class SequentialMacroCommandTest {
         verify(command).transferPreviousExecuteDoResult(any(CourseCommand.class), any(), any());
         verify(command, times(2)).transferPreviousExecuteDoResult(any(SchoolCommand.class), any(), any());
         checkNestedCommandResultTransfer();
-        wrapper.getNestedContexts().stream().filter(context -> context != FakeSequentialCommand.COURSE_CONTEXT)
-                .forEach(context -> {
-                    if (context == FakeSequentialCommand.STUDENT_CONTEXT) {
-                        assertThat(context.<Object>getRedoParameter()).isEqualTo(200);
-                    } else {
-                        assertThat(context.<Object>getRedoParameter()).isEqualTo(parameter);
-                    }
-                });
+        wrapper.getNestedContexts().stream()
+                .filter(context -> context != FakeSequentialCommand.COURSE_CONTEXT)
+                .filter(context -> context != FakeSequentialCommand.STUDENT_CONTEXT)
+                .forEach(context -> assertThat(context.<Object>getRedoParameter()).isEqualTo(parameter));
         assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
     }
@@ -298,7 +381,7 @@ class SequentialMacroCommandTest {
     }
 
     @Test
-    <T> void shouldRollbackAllNestedDoneContexts() {
+    <T> void shouldRollbackAllNestedDoneContexts_BaseCommands() {
         int parameter = 103;
         allowRealPrepareContextBase(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -328,10 +411,10 @@ class SequentialMacroCommandTest {
         // check revers
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts states
-        rollbackResults.forEach(ctx -> {
-            verify(ctx.getCommand()).undoAsNestedCommand(command, ctx);
-//            verify(command).rollbackDoneContext(ctx.getCommand(), ctx);
-            assertThat(ctx.getState()).isEqualTo(UNDONE);
+        rollbackResults.forEach(context -> {
+            verify(context.getCommand()).undoAsNestedCommand(command, context);
+            verify(command).undoNestedCommand(context.getCommand(), context);
+            assertThat(context.getState()).isEqualTo(UNDONE);
         });
     }
 
@@ -369,14 +452,14 @@ class SequentialMacroCommandTest {
         Context<?> nestedContext;
         nestedContext = rollbackResults.pop();
         verify(intCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).rollbackDoneContext(intCommand, nestedContext);
+        verify(command).undoNestedCommand(intCommand, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(UNDONE);
         nestedContext = rollbackResults.pop();
         verify(booleanCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).rollbackDoneContext(booleanCommand, nestedContext);
+        verify(command).undoNestedCommand(booleanCommand, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(UNDONE);
         nestedContext = rollbackResults.pop();
-//        verify(command).rollbackDoneContext(doubleCommand, nestedContext);
+        verify(command).undoNestedCommand(doubleCommand, nestedContext);
         verify(doubleCommand).undoAsNestedCommand(command, nestedContext);
         assertThat(nestedContext.getState()).isEqualTo(FAIL);
         assertThat(nestedContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
@@ -412,17 +495,28 @@ class SequentialMacroCommandTest {
             return prepareCourseContext();
         }
 
-        /**
-         * To transfer result from current command to next command context
-         *
-         * @param command successfully executed command
-         * @param result  the result of successful command execution
-         * @param target  next command context to execute command's redo
-         * @see StudentCommand#doCommand(Context)
-         * @see Context#setRedoParameter(Object)
-         * @see Optional#get()
-         * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
-         */
+        @Override
+        public <T> void doNestedCommand(StudentCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
+            doContext.addStateListener(stateListener);
+            doContext.setState(WORK);
+            doContext.setResult(100.0);
+            doContext.removeStateListener(stateListener);
+        }
+
+        @Override
+        public <T> void doNestedCommand(CourseCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
+            doContext.addStateListener(stateListener);
+            doContext.setState(WORK);
+            doContext.setResult(200.0);
+            doContext.removeStateListener(stateListener);
+        }
+
+        @Override
+        public <T> Context<T> undoNestedCommand(StudentCommand command, Context<T> undoContext) {
+            undoContext.setState(CANCEL);
+            return undoContext;
+        }
+
         @Override
         public <S, T> void transferPreviousExecuteDoResult(StudentCommand command, S result, Context<T> target) {
             getLog().info("Transfer student-command '{}' result:{} to {}", command, result, target);
@@ -518,6 +612,7 @@ class SequentialMacroCommandTest {
         allowRealNestedCommandRollback(booleanCommand);
         allowRealNestedCommandRollback(intCommand);
     }
+
     private void allowRealNestedCommandRollbackExtra() {
         allowRealNestedCommandRollback(studentCommand);
         allowRealNestedCommandRollback(courseCommand);
@@ -540,4 +635,36 @@ class SequentialMacroCommandTest {
             return null;
         }).when(nestedCommand).undoCommand(any(Context.class));
     }
+
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              SchoolCommand nestedCommand,
+                                                              Object parameter) {
+        verify(nestedCommand).acceptPreparedContext(command, parameter);
+        verify(command).prepareContext(nestedCommand, parameter);
+    }
+
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              StudentCommand nestedCommand,
+                                                              Object parameter) {
+        verify(nestedCommand).acceptPreparedContext(command, parameter);
+        verify(command).prepareContext(nestedCommand, parameter);
+    }
+
+    private static void verifyNestedCommandContextPreparation(FakeSequentialCommand command,
+                                                              CourseCommand nestedCommand,
+                                                              Object parameter) {
+        verify(nestedCommand).acceptPreparedContext(command, parameter);
+        verify(command).prepareContext(nestedCommand, parameter);
+    }
+
+    private static <T> Context<T> prepareStudentContext() {
+        FakeSequentialCommand.STUDENT_CONTEXT.setRedoParameter(200);
+        return (Context<T>) FakeSequentialCommand.STUDENT_CONTEXT;
+    }
+
+    private static <T> Context<T> prepareCourseContext() {
+        FakeSequentialCommand.COURSE_CONTEXT.setRedoParameter(300);
+        return (Context<T>) FakeSequentialCommand.COURSE_CONTEXT;
+    }
+
 }
