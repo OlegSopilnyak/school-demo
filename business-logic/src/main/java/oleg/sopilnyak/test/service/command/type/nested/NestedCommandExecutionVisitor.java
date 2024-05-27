@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -257,7 +258,8 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#UNDONE
      * @see Context.State#FAIL
      */
-    default <T> Context<T> undoNestedCommand(final CompositeCommand<SchoolCommand> command, final Context<T> undoContext) {
+    default <T> Context<T> undoNestedCommand(final CompositeCommand<SchoolCommand> command,
+                                             final Context<T> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
@@ -338,7 +340,9 @@ public interface NestedCommandExecutionVisitor {
      */
     Logger getLog();
 
-    private <T> void defaultDoNestedCommand(SchoolCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
+    private <T> void defaultDoNestedCommand(final SchoolCommand command,
+                                            final Context<T> doContext,
+                                            final Context.StateChangedListener<T> stateListener) {
         doContext.addStateListener(stateListener);
         final String commandId = command.getId();
         try {
@@ -352,7 +356,8 @@ public interface NestedCommandExecutionVisitor {
         }
     }
 
-    private <T> Context<T> defaultUndoNestedCommand(SchoolCommand command, Context<T> undoContext) {
+    private <T> Context<T> defaultUndoNestedCommand(final SchoolCommand command,
+                                                    final Context<T> undoContext) {
         try {
             command.undoCommand(undoContext);
             getLog().debug("Rolled back done command '{}' with context:{}", command.getId(), undoContext);
@@ -363,4 +368,11 @@ public interface NestedCommandExecutionVisitor {
         return undoContext;
     }
 
+    interface Visitable<T> {
+        default void doNested(final NestedCommandExecutionVisitor visitor,
+                              final SchoolCommand command, final Context<T> doContext,
+                              final Context.StateChangedListener<T> stateListener) {
+            visitor.doNestedCommand(command, doContext, stateListener);
+        }
+    }
 }

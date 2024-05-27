@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,19 +78,24 @@ class MacroCommandTest {
         Context<Integer> macroContext = command.createContext(parameter);
 
         assertThat(macroContext.getState()).isEqualTo(READY);
-        command.commands().forEach(cmd -> {
-            verify(cmd).acceptPreparedContext(command, parameter);
-            verify(command).prepareContext(cmd, parameter);
-            verify(cmd).createContext(parameter);
-        });
+        command.commands().stream().map(NestedCommand.class::cast)
+                .forEach(cmd -> {
+                    verify(cmd).acceptPreparedContext(command, parameter);
+                    verify(cmd, never()).createContext(any());
+                });
+
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(context -> assertThat(context).isNull());
+        verify(command, times(command.commands().size())).prepareContext((SchoolCommand) null, parameter);
     }
 
     @Test
     void shouldNotCreateMacroContext_MacroContextExceptionThrown() {
         int parameter = 102;
+//        doCallRealMethod().when(doubleCommand).asNestedCommand();
+//        doCallRealMethod().when(booleanCommand).asNestedCommand();
+//        doCallRealMethod().when(intCommand).asNestedCommand();
         doCallRealMethod().when(doubleCommand).acceptPreparedContext(command, parameter);
         doCallRealMethod().when(booleanCommand).acceptPreparedContext(command, parameter);
         doCallRealMethod().when(intCommand).acceptPreparedContext(command, parameter);
@@ -99,17 +105,19 @@ class MacroCommandTest {
         var ex = assertThrows(UnableExecuteCommandException.class, () -> command.createContext(parameter));
 
         assertThat(ex.getMessage()).isEqualTo("Cannot execute command 'fake-command'");
-        command.commands().forEach(cmd -> {
-            verify(cmd, atLeastOnce()).acceptPreparedContext(command, parameter);
-            verify(command, atLeastOnce()).prepareContext(cmd, parameter);
-            verify(cmd, atLeastOnce()).createContext(parameter);
-        });
+        command.commands()
+//                .stream().map(NestedCommand.class::cast)
+                .forEach(cmd -> {
+                    verify(cmd, atLeastOnce()).acceptPreparedContext(command, parameter);
+//                    verify(command, atLeastOnce()).prepareContext(cmd, parameter);
+                    verify(cmd, atLeastOnce()).createContext(parameter);
+                });
     }
 
     @Test
     void shouldNotCreateMacroContext_DoubleContextExceptionThrown() {
         int parameter = 103;
-        doCallRealMethod().when(doubleCommand).acceptPreparedContext(command, parameter);
+        allowRealPrepareContext(doubleCommand, parameter);
         when(command.prepareContext(doubleCommand, parameter)).thenThrow(new UnableExecuteCommandException("double"));
 
         var ex = assertThrows(UnableExecuteCommandException.class, () -> command.createContext(parameter));
@@ -130,11 +138,13 @@ class MacroCommandTest {
         var ex = assertThrows(UnableExecuteCommandException.class, () -> command.createContext(parameter));
 
         assertThat(ex.getMessage()).isEqualTo("Cannot execute command 'int'");
-        command.commands().forEach(cmd -> {
-            verify(cmd, atLeastOnce()).acceptPreparedContext(command, parameter);
-            verify(command, atLeastOnce()).prepareContext(cmd, parameter);
-            verify(cmd, atLeastOnce()).createContext(parameter);
-        });
+        command.commands()
+//                .stream().map(NestedCommand.class::cast)
+                .forEach(cmd -> {
+                    verify(cmd, atLeastOnce()).acceptPreparedContext(command, parameter);
+//                    verify(command, atLeastOnce()).prepareContext(cmd, parameter);
+                    verify(cmd, atLeastOnce()).createContext(parameter);
+                });
     }
 
 
@@ -160,8 +170,9 @@ class MacroCommandTest {
         wrapper.getNestedContexts().stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
+                    NestedCommand nestedCommand = (NestedCommand) context.getCommand();
                     assertThat(context.<Object>getRedoParameter()).isEqualTo(parameter);
-                    verify(context.getCommand(), atLeastOnce()).acceptPreparedContext(command, parameter);
+                    verify(nestedCommand, atLeastOnce()).acceptPreparedContext(command, parameter);
                     verify(command).prepareContext(context.getCommand(), parameter);
                     verify(context.getCommand()).createContext(parameter);
                 });
@@ -567,9 +578,10 @@ class MacroCommandTest {
 
         assertThat(counter.get()).isEqualTo(3);
         wrapper.getNestedContexts().forEach(context -> {
-            verify(context.getCommand()).doAsNestedCommand(command, context, listener);
-            verify(command).doNestedCommand(context.getCommand(), context, listener);
-            verify(context.getCommand()).doCommand(context);
+            SchoolCommand nestedCommand = context.getCommand();
+            verify(nestedCommand).doAsNestedCommand(command, context, listener);
+            verify(command).doNestedCommand(nestedCommand, context, listener);
+            verify(nestedCommand).doCommand(context);
             assertThat(context.isDone()).isTrue();
         });
     }
@@ -723,7 +735,9 @@ class MacroCommandTest {
         assertThat(nestedContext.<Object>getRedoParameter()).isEqualTo(parameter);
     }
 
-    private void allowRealPrepareContext(SchoolCommand nested, Object parameter) {
+    private void allowRealPrepareContext(NestedCommand nested, Object parameter) {
+        doCallRealMethod().when(nested).asNestedCommand();
+        doCallRealMethod().when(nested).doNested(eq(command), any(SchoolCommand.class), eq(parameter));
         doCallRealMethod().when(nested).createContext(parameter);
         doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
     }
@@ -735,10 +749,13 @@ class MacroCommandTest {
     }
 
     private void allowRealPrepareContextExtra(Object parameter) {
+        doCallRealMethod().when(studentCommand).asNestedCommand();
+        doCallRealMethod().when(studentCommand).doNested(command, studentCommand, parameter);
+//        doCallRealMethod().when(studentCommand).createContext(parameter);
         doCallRealMethod().when(studentCommand).acceptPreparedContext(command, parameter);
     }
 
-    private void allowRealNestedCommandExecution(SchoolCommand nested) {
+    private void allowRealNestedCommandExecution(NestedCommand nested) {
         doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
     }
 
@@ -753,7 +770,7 @@ class MacroCommandTest {
     }
 
 
-    private void allowRealNestedCommandRollback(SchoolCommand nested) {
+    private void allowRealNestedCommandRollback(NestedCommand nested) {
         doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
     }
 

@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.AfterEach;
@@ -239,8 +240,9 @@ class ParallelMacroCommandTest {
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         // check contexts states
         rollbackResults.forEach(context -> {
-            verify(context.getCommand()).undoAsNestedCommand(command, context);
-            verify(command).undoNestedCommand(context.getCommand(), context);
+            SchoolCommand nestedCommand = context.getCommand();
+            verify(nestedCommand).undoAsNestedCommand(command, context);
+            verify(command).undoNestedCommand(nestedCommand, context);
             assertThat(context.getState()).isEqualTo(UNDONE);
         });
         verify(executor, times(rollbackResults.size())).submit(any(Callable.class));

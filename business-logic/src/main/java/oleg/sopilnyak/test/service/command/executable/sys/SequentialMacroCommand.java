@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
@@ -15,7 +16,9 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  */
-public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand> implements TransferResultVisitor {
+public abstract class SequentialMacroCommand
+        extends MacroCommand<SchoolCommand>
+        implements TransferResultVisitor {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
@@ -73,9 +76,11 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
         // revert the order of undo contexts
         Collections.reverse(reverted);
         // rollback commands' changes
-        return reverted.stream()
-                .map(doneContext -> doneContext.getCommand().undoAsNestedCommand(this, doneContext))
-                .collect(Collectors.toCollection(LinkedList::new));
+        return reverted.stream().map(doneContext -> {
+                    final var nestedCommand = doneContext.getCommand();
+                    nestedCommand.undoAsNestedCommand(this, doneContext);
+                    return doneContext;
+                }).collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
@@ -83,7 +88,7 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
             final Context<S> source, final Context<T> target
     ) {
         if (isNull(source) || !source.isDone()) return;
-        final SchoolCommand sourceCommand = source.getCommand();
+        final var sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
         final Optional<S> result = source.getResult();
         if (isNull(result) || result.isEmpty()) return;

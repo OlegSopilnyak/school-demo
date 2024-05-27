@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
@@ -42,7 +43,8 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
             getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
             final Callable<Context<T>> doRunner = () -> {
                 try {
-                    context.getCommand().doAsNestedCommand(this, context, stateListener);
+                    final var nestedCommand = context.getCommand();
+                    nestedCommand.doAsNestedCommand(this, context, stateListener);
                     return context;
                 } catch (Exception e) {
                     context.failed(e);
@@ -94,7 +96,8 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
             getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
             final Callable<Context<T>> undoRunner = () -> {
                 try {
-                    return context.getCommand().undoAsNestedCommand(this, context);
+                    final var nestedCommand = context.getCommand();
+                    return nestedCommand.undoAsNestedCommand(this, context);
                 } catch (Exception e) {
                     context.failed(e);
                     getLog().error("Rollback failed", e);

@@ -14,6 +14,7 @@ public interface Context<T> {
      *
      * @return command instance
      * @see SchoolCommand
+     * @see NestedCommand
      */
     SchoolCommand getCommand();
 

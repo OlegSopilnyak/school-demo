@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,7 @@ class SequentialMacroCommandTest {
     @Test
     void checkSequentialCommandIntegrity() {
         assertThat(command).isNotNull();
-        Deque<SchoolCommand> commands = new LinkedList<>(command.commands());
+        Deque<NestedCommand> commands = new LinkedList<>(command.commands());
         assertThat(commands.pop()).isEqualTo(doubleCommand);
         assertThat(commands.pop()).isEqualTo(booleanCommand);
         assertThat(commands.pop()).isEqualTo(intCommand);
@@ -270,7 +271,7 @@ class SequentialMacroCommandTest {
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         AtomicBoolean firstTime = new AtomicBoolean(true);
         wrapper.getNestedContexts().forEach(context -> {
-            var current = context.getCommand();
+            final var current = context.getCommand();
             verify(current).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
             if (current != intCommand) {
                 verify(current).transferResultTo(eq(command), any(), any(Context.class));
@@ -411,8 +412,9 @@ class SequentialMacroCommandTest {
         IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
         // check contexts states
         rollbackResults.forEach(context -> {
-            verify(context.getCommand()).undoAsNestedCommand(command, context);
-            verify(command).undoNestedCommand(context.getCommand(), context);
+            SchoolCommand nestedCommand = context.getCommand();
+            verify(nestedCommand).undoAsNestedCommand(command, context);
+            verify(command).undoNestedCommand(nestedCommand, context);
             assertThat(context.getState()).isEqualTo(UNDONE);
         });
     }
@@ -548,7 +550,9 @@ class SequentialMacroCommandTest {
         assertThat(contexts.pop()).isEqualTo(COURSE_CONTEXT);
     }
 
-    private <T> void checkRegularNestedCommandExecution(SchoolCommand nestedCommand, Context<T> nestedContext, Context.StateChangedListener<T> listener) {
+    private <T> void checkRegularNestedCommandExecution(SchoolCommand nestedCommand,
+                                                        Context<T> nestedContext,
+                                                        Context.StateChangedListener<T> listener) {
         checkRegularNestedCommandExecution(nestedCommand, nestedContext, listener, false);
     }
 
@@ -569,7 +573,7 @@ class SequentialMacroCommandTest {
         verify(listener).stateChanged(nestedContext, WORK, DONE);
     }
 
-    private void allowRealPrepareContext(SchoolCommand nested, Object parameter) {
+    private void allowRealPrepareContext(NestedCommand nested, Object parameter) {
         doCallRealMethod().when(nested).createContext(parameter);
         doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
     }
@@ -585,7 +589,7 @@ class SequentialMacroCommandTest {
         doCallRealMethod().when(courseCommand).acceptPreparedContext(command, parameter);
     }
 
-    private void allowRealNestedCommandExecution(SchoolCommand nested) {
+    private void allowRealNestedCommandExecution(NestedCommand nested) {
         doCallRealMethod().when(nested).transferResultTo(eq(command), any(), any(Context.class));
         doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
     }
@@ -601,7 +605,7 @@ class SequentialMacroCommandTest {
         allowRealNestedCommandExecution(courseCommand);
     }
 
-    private void allowRealNestedCommandRollback(SchoolCommand nested) {
+    private void allowRealNestedCommandRollback(NestedCommand nested) {
         doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
