@@ -19,10 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Type: Command to execute the couple of commands
  */
-public interface CompositeCommand<C extends SchoolCommand>
-        extends
-        SchoolCommand,
-        PrepareContextVisitor {
+public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand, PrepareContextVisitor {
 
     /**
      * To get reference to command's logger
@@ -34,16 +31,16 @@ public interface CompositeCommand<C extends SchoolCommand>
     /**
      * To get the collection of nested commands used it composite
      *
-     * @return collection of included commands
+     * @return collection of nested commands
      */
-    Collection<C> commands();
+    Collection<C> fromNest();
 
     /**
      * To add the command
      *
      * @param command the instance to add
      */
-    void add(C command);
+    void addToNest(C command);
 
     /**
      * To create command's context with doParameter
@@ -60,7 +57,7 @@ public interface CompositeCommand<C extends SchoolCommand>
     @Override
     default <T> Context<T> createContext(Object input) {
         final MacroCommandParameter<T> doParameter = new MacroCommandParameter<>(input,
-                this.commands().stream()
+                this.fromNest().stream()
                         .<Context<T>>map(command -> command.acceptPreparedContext(this, input))
                         .collect(Collectors.toCollection(LinkedList::new))
         );
@@ -72,6 +69,7 @@ public interface CompositeCommand<C extends SchoolCommand>
      * To execute command
      *
      * @param doContext context of redo execution
+     * @param <T>       type of command execution result
      * @see Context
      */
     @Override
@@ -90,9 +88,11 @@ public interface CompositeCommand<C extends SchoolCommand>
      * To rollback command's execution
      *
      * @param undoContext context of redo execution
+     * @param <T>         type of command execution result
      * @see Context
      * @see Context#getUndoParameter()
      */
+
     @Override
     default <T> void undoCommand(Context<T> undoContext) {
         if (isWrongUndoStateOf(undoContext)) {

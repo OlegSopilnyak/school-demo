@@ -13,33 +13,36 @@ import java.util.stream.Collectors;
 
 /**
  * Command-Base: macro-command the command with nested commands inside
+ *
+ * @see SchoolCommand
  */
 public abstract class MacroCommand<C extends SchoolCommand>
         implements CompositeCommand<C>, NestedCommandExecutionVisitor {
-    private final List<C> commands = new LinkedList<>();
+    // the list of nested commands
+    private final List<C> netsedCommandsList = new LinkedList<>();
 
     /**
-     * To get the collection of commands used it composite
+     * To get the collection of commands used into composite
      *
-     * @return collection of included commands
+     * @return collection of nested commands
      */
     @Override
-    public Collection<C> commands() {
-        synchronized (commands) {
-            return Collections.unmodifiableList(commands);
+    public Collection<C> fromNest() {
+        synchronized (netsedCommandsList) {
+            return Collections.unmodifiableList(netsedCommandsList);
         }
     }
 
     /**
-     * To add the command
+     * To add the command to the commands nest
      *
      * @param command the instance to add
      * @see SchoolCommand
      */
     @Override
-    public void add(final C command) {
-        synchronized (commands) {
-            commands.add(command);
+    public void addToNest(final C command) {
+        synchronized (netsedCommandsList) {
+            netsedCommandsList.add(command);
         }
     }
 
@@ -47,6 +50,7 @@ public abstract class MacroCommand<C extends SchoolCommand>
      * To execute command redo with correct context state
      *
      * @param doContext context of redo execution
+     * @param <T>       type of command execution result
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
@@ -108,19 +112,24 @@ public abstract class MacroCommand<C extends SchoolCommand>
      *
      * @param doContexts    nested contexts collection
      * @param stateListener listener of context-state-change
+     * @param <T>           type of command execution result
      * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Deque
      * @see Context.StateChangedListener
      */
     public <T> void doNestedCommands(final Deque<Context<T>> doContexts,
                                      final Context.StateChangedListener<T> stateListener) {
-        doContexts.forEach(context -> context.getCommand().doAsNestedCommand(this, context, stateListener));
+        doContexts.forEach(context -> {
+            final SchoolCommand nestedCommand = context.getCommand();
+            nestedCommand.doAsNestedCommand(this, context, stateListener);
+        });
     }
 
     /**
      * To rollback command's execution with correct context state
      *
      * @param undoContext context of redo execution
+     * @param <T>         type of command execution result
      * @see Context
      * @see Context#getUndoParameter()
      */
@@ -129,11 +138,11 @@ public abstract class MacroCommand<C extends SchoolCommand>
         final Object parameter = undoContext.getUndoParameter();
         getLog().debug("Do undo for {}", parameter);
         try {
-            final Deque<Context<T>> doneContexts = commandParameter(parameter);
+            final Deque<Context<T>> successfulDoContexts = commandParameter(parameter);
             // rolling back successful nested commands
-            rollbackDoneContexts(doneContexts);
+            rollbackDoneContexts(successfulDoContexts);
             // after rollback process check the contexts' states
-            afterRollbackDoneCheck(doneContexts);
+            afterRollbackDoneCheck(successfulDoContexts);
             // rollback successful
             undoContext.setState(Context.State.UNDONE);
         } catch (Exception e) {
@@ -145,14 +154,18 @@ public abstract class MacroCommand<C extends SchoolCommand>
     /**
      * To rollback changes for nested successful commands (contexts with state DONE)
      *
-     * @param doneContexts collection of nested contexts with DONE state
+     * @param successfulDoContexts collection of nested contexts with DONE state
+     * @param <T>                  type of command execution result
      * @see SchoolCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
      * @see MacroCommand#undoNestedCommand(SchoolCommand, Context)
      * @see Context.State#DONE
      */
-    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> doneContexts) {
-        return doneContexts.stream()
-                .map(context -> context.getCommand().undoAsNestedCommand(this, context))
+    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> successfulDoContexts) {
+        return successfulDoContexts.stream()
+                .map(context -> {
+                    final SchoolCommand nestedCommand = context.getCommand();
+                    return nestedCommand.undoAsNestedCommand(this, context);
+                })
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -176,9 +189,9 @@ public abstract class MacroCommand<C extends SchoolCommand>
     }
 
     private static <T> void afterRollbackDoneCheck(Deque<Context<T>> doneContexts) throws Exception {
-        final Optional<Context<T>> fail = doneContexts.stream().filter(Context::isFailed).findFirst();
-        if (fail.isPresent()) {
-            throw fail.get().getException();
+        final Optional<Context<T>> failContext = doneContexts.stream().filter(Context::isFailed).findFirst();
+        if (failContext.isPresent()) {
+            throw failContext.get().getException();
         }
     }
 
@@ -189,12 +202,12 @@ public abstract class MacroCommand<C extends SchoolCommand>
      * @see Deque#addLast(Object)
      * @see Lock#lock()
      * @see Lock#unlock()
-     * */
+     */
     static final class ContextDeque<T> {
         private final Deque<T> deque = new LinkedList<>();
         private final Lock locker = new ReentrantLock();
 
-        void putToTail(final T context) {
+        private void putToTail(final T context) {
             locker.lock();
             try {
                 deque.addLast(context);

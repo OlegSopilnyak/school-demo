@@ -23,12 +23,17 @@ public interface CommandExecutor {
      * @param input     command input parameter
      * @param factory   factory of the commands
      * @param <T>       type of command result
+     * @param <C>       type of command to execute doCommand method
      * @return result of command execution
      * @see CommandsFactory
      * @see SchoolCommand
+     * @see CommandExecutor#takeValidCommand(String, CommandsFactory)
+     * @see CommandExecutor#doCommand(SchoolCommand, Object)
      */
-    static <T> T doSimpleCommand(String commandId, Object input, CommandsFactory<? extends SchoolCommand> factory) {
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+    static <T, C extends SchoolCommand> T doSimpleCommand(final String commandId,
+                                                          final Object input,
+                                                          final CommandsFactory<C> factory) {
+        final C command = takeValidCommand(commandId, factory);
         return doCommand(command, input);
     }
 
@@ -39,6 +44,7 @@ public interface CommandExecutor {
      * @param command command to do
      * @param input   command's parameter(s)
      * @param <T>     type of command result
+     * @param <C>     type of command to execute doCommand method
      * @return result of command execution
      * @see SchoolCommand#createContext(Object)
      * @see SchoolCommand#doCommand(Context)
@@ -48,8 +54,7 @@ public interface CommandExecutor {
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandExecutor#createThrowFor(String)
      */
-    private static <T> T doCommand(SchoolCommand command, Object input) {
-        final String commandId = command.getId();
+    private static <T, C extends SchoolCommand> T doCommand(final C command, final Object input) {
         final Context<T> context = command.createContext(input);
         // doing command's do
         command.doCommand(context);
@@ -57,8 +62,8 @@ public interface CommandExecutor {
         final Optional<T> result = context.getResult();
         // returning result
         return context.isDone() ?
-                result.orElseThrow(createThrowFor(commandId)) :
-                throwFor(commandId, context.getException());
+                result.orElseThrow(createThrowFor(command.getId())) :
+                throwFor(command.getId(), context.getException());
     }
 
 
@@ -67,14 +72,15 @@ public interface CommandExecutor {
      *
      * @param commandId id of the command to take
      * @param factory   commands factory
+     * @param <T>       type of command to execute doCommand method
      * @return valid taken command or throws
-     * @see CommandsFactory
      * @see CommandsFactory#command(String)
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandNotRegisteredInFactoryException
      */
-    static <T extends SchoolCommand> SchoolCommand takeValidCommand(final String commandId, final CommandsFactory<T> factory) {
-        final SchoolCommand concreteCommand = factory.command(commandId);
+    static <T extends SchoolCommand> T takeValidCommand(final String commandId,
+                                                        final CommandsFactory<T> factory) {
+        final T concreteCommand = factory.command(commandId);
         return nonNull(concreteCommand) ? concreteCommand :
                 throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
     }
@@ -96,7 +102,9 @@ public interface CommandExecutor {
      *
      * @param commandId command-id where something went wrong
      * @param e         unhandled exception occurred during command execution
+     * @param <T>       type of command result or command type to execute doCommand
      * @return nothing
+     * @see CommandExecutor#doCommand(SchoolCommand, java.lang.Object)
      */
     static <T> T throwFor(final String commandId, final Exception e) {
         throw new UnableExecuteCommandException(commandId, e);

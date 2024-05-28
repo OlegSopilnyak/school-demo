@@ -46,9 +46,9 @@ class ParallelMacroCommandTest {
     @BeforeEach
     void setUp() {
         executor.initialize();
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
     }
 
     @AfterEach
@@ -79,7 +79,7 @@ class ParallelMacroCommandTest {
 
         command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
-        assertThat(counter.get()).isEqualTo(command.commands().size());
+        assertThat(counter.get()).isEqualTo(command.fromNest().size());
         verify(executor, times(counter.get())).submit(any(Callable.class));
         // check contexts states
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isDone()).isTrue());
@@ -117,17 +117,17 @@ class ParallelMacroCommandTest {
             verify(nestedCommand).doCommand(context);
         });
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
-        verify(executor, times(command.commands().size())).submit(any(Callable.class));
+        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
     }
 
     @Test
     <T> void shouldDoParallelCommand_ExtraCommands() {
         int parameter = 102;
         command = spy(new FakeParallelCommand(executor, studentCommand));
-        command.add(studentCommand);
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(studentCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
         allowRealPrepareContextBase(parameter);
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -166,7 +166,7 @@ class ParallelMacroCommandTest {
         verify(command).doNestedCommand(eq(studentCommand), eq(STUDENT_CONTEXT), any(Context.StateChangedListener.class));
         verify(studentCommand, never()).doCommand(any(Context.class));
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
-        verify(executor, times(command.commands().size())).submit(any(Callable.class));
+        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
     }
 
     @Test
@@ -207,7 +207,7 @@ class ParallelMacroCommandTest {
         assertThat(doubleContext.isFailed()).isTrue();
         verify(doubleCommand).doCommand(doubleContext);
         verify(doubleCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        var submitted = command.commands().size() * 2 - 1;
+        var submitted = command.fromNest().size() * 2 - 1;
         verify(executor, times(submitted)).submit(any(Callable.class));
     }
 
@@ -288,10 +288,10 @@ class ParallelMacroCommandTest {
     <T> void shouldUndoParallelCommand_ExtraCommands() {
         int parameter = 105;
         command = spy(new FakeParallelCommand(executor, studentCommand));
-        command.add(studentCommand);
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(studentCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
         allowRealPrepareContextBase(parameter);
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);

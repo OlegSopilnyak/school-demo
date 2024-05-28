@@ -80,17 +80,17 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param doneContexts collection of contexts with DONE state
+     * @param successfulDoContexts collection of contexts with DONE state
      * @see SchedulingTaskExecutor#submit(Callable)
      * @see Deque
      * @see Context.State#DONE
      */
     @Override
-    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> doneContexts) {
-        final CountDownLatch latch = new CountDownLatch(doneContexts.size());
+    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> successfulDoContexts) {
+        final CountDownLatch latch = new CountDownLatch(successfulDoContexts.size());
 
         // parallel walking through contexts set
-        doneContexts.forEach(context -> {
+        successfulDoContexts.forEach(context -> {
             getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
             final Callable<Context<T>> undoRunner = () -> {
                 try {
@@ -123,6 +123,6 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
             Thread.currentThread().interrupt();
             throw new CountDownLatchInterruptedException(latch.getCount(), e);
         }
-        return doneContexts;
+        return successfulDoContexts;
     }
 }

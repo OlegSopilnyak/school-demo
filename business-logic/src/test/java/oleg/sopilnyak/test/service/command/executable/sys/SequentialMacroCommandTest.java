@@ -49,15 +49,15 @@ class SequentialMacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
     }
 
     @Test
     void checkSequentialCommandIntegrity() {
         assertThat(command).isNotNull();
-        Deque<SchoolCommand> commands = new LinkedList<>(command.commands());
+        Deque<SchoolCommand> commands = new LinkedList<>(command.fromNest());
         assertThat(commands.pop()).isEqualTo(doubleCommand);
         assertThat(commands.pop()).isEqualTo(booleanCommand);
         assertThat(commands.pop()).isEqualTo(intCommand);
@@ -81,7 +81,7 @@ class SequentialMacroCommandTest {
 
         command.doNestedCommands(wrapper.getNestedContexts(), listener);
 
-        assertThat(counter.get()).isEqualTo(command.commands().size());
+        assertThat(counter.get()).isEqualTo(command.fromNest().size());
         // check contexts states
         checkRegularNestedCommandExecution(doubleCommand, wrapper.getNestedContexts().pop(), listener);
         checkRegularNestedCommandExecution(booleanCommand, wrapper.getNestedContexts().pop(), listener);
@@ -117,11 +117,11 @@ class SequentialMacroCommandTest {
     <T> void shouldDoSequentialCommand_ExtraCommands() {
         int parameter = 121;
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
-        command.add(studentCommand);
-        command.add(courseCommand);
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(studentCommand);
+        command.addToNest(courseCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
         allowRealPrepareContextBase(parameter);
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -191,11 +191,11 @@ class SequentialMacroCommandTest {
     <T> void shouldUndoSequentialCommand_ExtraCommands() {
         int parameter = 132;
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
-        command.add(studentCommand);
-        command.add(courseCommand);
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(studentCommand);
+        command.addToNest(courseCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
         allowRealPrepareContextBase(parameter);
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
@@ -245,11 +245,11 @@ class SequentialMacroCommandTest {
     <T> void shouldDoSequentialCommand_TransferNestedCommandResult() {
         int parameter = 112;
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
-        command.add(studentCommand);
-        command.add(courseCommand);
-        command.add(doubleCommand);
-        command.add(booleanCommand);
-        command.add(intCommand);
+        command.addToNest(studentCommand);
+        command.addToNest(courseCommand);
+        command.addToNest(doubleCommand);
+        command.addToNest(booleanCommand);
+        command.addToNest(intCommand);
         allowRealPrepareContextBase(parameter);
         allowRealPrepareContextExtra(parameter);
         Context<Integer> macroContext = command.createContext(parameter);
