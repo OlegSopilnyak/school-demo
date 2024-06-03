@@ -14,9 +14,11 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -52,14 +54,16 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
     PersistenceFacade persistenceFacade;
     CommandsFactory<CourseCommand> factory;
+    BusinessMessagePayloadMapper payloadMapper;
 
     CoursesFacade facade;
 
     @BeforeEach
     void setUp() {
+        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
-        facade = spy(new CoursesFacadeImpl(factory));
+        facade = spy(new CoursesFacadeImpl(factory, payloadMapper));
     }
 
     @Test

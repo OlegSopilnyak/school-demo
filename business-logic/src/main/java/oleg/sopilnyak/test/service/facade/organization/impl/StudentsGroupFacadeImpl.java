@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -26,8 +27,12 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements StudentsGroupFacade {
-    public StudentsGroupFacadeImpl(CommandsFactory<StudentsGroupCommand> factory) {
+    private final BusinessMessagePayloadMapper payloadMapper;
+
+    public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand> factory,
+                                   final BusinessMessagePayloadMapper payloadMapper) {
         super(factory);
+        this.payloadMapper = payloadMapper;
     }
 
     /**

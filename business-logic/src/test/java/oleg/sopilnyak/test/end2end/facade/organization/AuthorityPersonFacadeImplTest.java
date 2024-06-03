@@ -18,9 +18,11 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -54,12 +56,14 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     AuthorityPersonPersistenceFacade persistence;
     CommandsFactory<AuthorityPersonCommand> factory;
     AuthorityPersonFacadeImpl facade;
+    BusinessMessagePayloadMapper payloadMapper;
 
     @BeforeEach
     void setUp() {
+        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistence = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistence));
-        facade = spy(new AuthorityPersonFacadeImpl(factory));
+        facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
     }
 
     @Test

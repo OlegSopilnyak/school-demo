@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -33,8 +34,9 @@ public class CreateOrUpdateStudentProfileCommand
      *
      * @param persistence facade of persistence layer
      */
-    public CreateOrUpdateStudentProfileCommand(ProfilePersistenceFacade persistence) {
-        super(StudentProfile.class, persistence);
+    public CreateOrUpdateStudentProfileCommand(final ProfilePersistenceFacade persistence,
+                                               final BusinessMessagePayloadMapper payloadMapper) {
+        super(StudentProfile.class, persistence, payloadMapper);
     }
 
     /**

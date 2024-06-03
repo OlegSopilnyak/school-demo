@@ -5,9 +5,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to update the authority person
@@ -32,8 +32,9 @@ public class CreateOrUpdateAuthorityPersonCommand
         implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
 
-    public CreateOrUpdateAuthorityPersonCommand(AuthorityPersonPersistenceFacade persistence) {
-        super(AuthorityPerson.class);
+    public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
+                                                final BusinessMessagePayloadMapper payloadMapper) {
+        super(AuthorityPerson.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,11 +46,10 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see this#retrieveEntity(Long, LongFunction, Supplier)
      * @see this#persistRedoEntity(Context, Function)
      * @see this#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
-     * @see AuthorityPersonPersistenceFacade#toEntity(AuthorityPerson)
      * @see AuthorityPersonPersistenceFacade#save(AuthorityPerson)
      * @see NotExistAuthorityPersonException
      */
@@ -63,10 +63,10 @@ public class CreateOrUpdateAuthorityPersonCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // previous version of authority person is storing to context for further rollback (undo)
-                final AuthorityPerson previous = retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity,
+                final AuthorityPerson entity = retrieveEntity(id, persistence::findAuthorityPersonById,
                         () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                context.setUndoParameter(previous);
+                context.setUndoParameter(entity);
             }
 
             final Optional<AuthorityPerson> persisted = persistRedoEntity(context, persistence::save);

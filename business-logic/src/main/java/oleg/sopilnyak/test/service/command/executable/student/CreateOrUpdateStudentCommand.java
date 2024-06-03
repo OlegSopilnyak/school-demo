@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -29,8 +30,9 @@ public class CreateOrUpdateStudentCommand
         implements StudentCommand {
     private final StudentsPersistenceFacade persistence;
 
-    public CreateOrUpdateStudentCommand(StudentsPersistenceFacade persistence) {
-        super(Student.class);
+    public CreateOrUpdateStudentCommand(final StudentsPersistenceFacade persistence,
+                                        final BusinessMessagePayloadMapper payloadMapper) {
+        super(Student.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -41,11 +43,10 @@ public class CreateOrUpdateStudentCommand
      * @param context context of redo execution
      * @see Context
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsPersistenceFacade#findStudentById(Long)
-     * @see StudentsPersistenceFacade#toEntity(Student)
      * @see StudentsPersistenceFacade#save(Student)
      * @see NotExistStudentException
      */
@@ -59,11 +60,10 @@ public class CreateOrUpdateStudentCommand
             final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateStudent) {
                 // previous version of student is storing to context for further rollback (undo)
-                final Student previous = retrieveEntity(id,
-                        persistence::findStudentById, persistence::toEntity,
+                final Student entity = retrieveEntity(id, persistence::findStudentById,
                         () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                context.setUndoParameter(previous);
+                context.setUndoParameter(entity);
             }
             final Optional<Student> student = persistRedoEntity(context, persistence::save);
             // checking execution context state

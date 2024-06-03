@@ -6,16 +6,16 @@ import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsExcep
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the students group of the school by id
@@ -32,8 +32,9 @@ public class DeleteStudentsGroupCommand
         implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
 
-    public DeleteStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {
-        super(StudentsGroup.class);
+    public DeleteStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
+                                      final BusinessMessagePayloadMapper payloadMapper) {
+        super(StudentsGroup.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,10 +46,9 @@ public class DeleteStudentsGroupCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
-     * @see StudentsGroupPersistenceFacade#toEntity(StudentsGroup)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      * @see NotExistStudentsGroupException
@@ -63,8 +63,7 @@ public class DeleteStudentsGroupCommand
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-            final StudentsGroup entity =
-                    retrieveEntity(id, persistence::findStudentsGroupById, persistence::toEntity, () -> notFoundException);
+            final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById, () -> notFoundException);
 
             if (!entity.getStudents().isEmpty()) {
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");

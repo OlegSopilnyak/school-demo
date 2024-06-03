@@ -17,9 +17,11 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -49,12 +51,14 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     ProfilePersistenceFacade persistence;
     CommandsFactory<PrincipalProfileCommand> factory;
     PrincipalProfileFacadeImpl facade;
+    BusinessMessagePayloadMapper payloadMapper;
 
     @BeforeEach
     void setUp() {
+        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistence = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistence));
-        facade = spy(new PrincipalProfileFacadeImpl(factory));
+        facade = spy(new PrincipalProfileFacadeImpl(factory, payloadMapper));
     }
 
     @Test

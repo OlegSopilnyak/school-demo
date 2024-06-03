@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.business.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.*;
 
@@ -12,12 +13,12 @@ import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCom
  * Service: To process commands for school's student profiles facade
  */
 @Slf4j
-public class StudentProfileFacadeImpl
-        extends PersonProfileFacadeImpl<StudentProfileCommand>
+public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentProfileCommand>
         implements StudentProfileFacade {
 
-    public StudentProfileFacadeImpl(CommandsFactory<StudentProfileCommand> factory) {
-        super(factory);
+    public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand> factory,
+                                    final BusinessMessagePayloadMapper payloadMapper) {
+        super(factory, payloadMapper);
     }
 
     @Override

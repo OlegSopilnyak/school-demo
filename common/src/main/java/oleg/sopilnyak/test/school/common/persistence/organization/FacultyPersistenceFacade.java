@@ -54,12 +54,4 @@ public interface FacultyPersistenceFacade {
     void deleteFaculty(Long id) throws
             NotExistFacultyException,
             FacultyIsNotEmptyException;
-
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    Faculty toEntity(Faculty type);
 }

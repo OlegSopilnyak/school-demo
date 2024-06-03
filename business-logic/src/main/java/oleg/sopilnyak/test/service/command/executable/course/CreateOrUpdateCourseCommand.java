@@ -5,9 +5,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
+import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to create or update the course
@@ -32,8 +32,9 @@ public class CreateOrUpdateCourseCommand
         implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
 
-    public CreateOrUpdateCourseCommand(CoursesPersistenceFacade persistenceFacade) {
-        super(Course.class);
+    public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
+                                       final BusinessMessagePayloadMapper payloadMapper) {
+        super(Course.class, payloadMapper);
         this.persistenceFacade = persistenceFacade;
     }
 
@@ -44,16 +45,15 @@ public class CreateOrUpdateCourseCommand
      * @param context context of redo execution
      * @see Context
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see CoursesPersistenceFacade#findCourseById(Long)
-     * @see CoursesPersistenceFacade#toEntity(Course)
      * @see CoursesPersistenceFacade#save(Course)
      * @see NotExistCourseException
      */
     @Override
-    public <T>void executeDo(Context<T> context) {
+    public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
@@ -62,11 +62,10 @@ public class CreateOrUpdateCourseCommand
             final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateCourse) {
                 // previous version of course is storing to context for further rollback (undo)
-                final Course previous = retrieveEntity(id,
-                        persistenceFacade::findCourseById, persistenceFacade::toEntity,
+                final Course entity = retrieveEntity(id, persistenceFacade::findCourseById,
                         () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                context.setUndoParameter(previous);
+                context.setUndoParameter(entity);
             }
             final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);
             // checking execution context state
@@ -90,7 +89,7 @@ public class CreateOrUpdateCourseCommand
      * @see NotExistCourseException
      */
     @Override
-    public <T>void executeUndo(Context<T> context) {
+    public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo course changes using: {}", parameter.toString());

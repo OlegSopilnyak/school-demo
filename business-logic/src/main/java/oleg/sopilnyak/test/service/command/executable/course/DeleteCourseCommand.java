@@ -7,9 +7,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
+import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -17,7 +18,6 @@ import org.springframework.util.ObjectUtils;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the course by id
@@ -31,8 +31,9 @@ import java.util.function.UnaryOperator;
 public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
 
-    public DeleteCourseCommand(CoursesPersistenceFacade persistenceFacade) {
-        super(Course.class);
+    public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,
+                               final BusinessMessagePayloadMapper payloadMapper) {
+        super(Course.class, payloadMapper);
         this.persistenceFacade = persistenceFacade;
     }
 
@@ -44,8 +45,8 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier) )
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier) )
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -59,16 +60,15 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
                 throw notFoundException;
             }
 
-            final Course dbCourse = retrieveEntity(inputId, persistenceFacade::findCourseById,
-                    persistenceFacade::toEntity, () -> notFoundException);
+            final Course entity = retrieveEntity(inputId, persistenceFacade::findCourseById, () -> notFoundException);
 
-            if (!ObjectUtils.isEmpty(dbCourse.getStudents())) {
+            if (!ObjectUtils.isEmpty(entity.getStudents())) {
                 log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", inputId);
                 throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + inputId + " has enrolled students.");
             }
 
             // cached course is storing to context for further rollback (undo)
-            context.setUndoParameter(dbCourse);
+            context.setUndoParameter(entity);
             persistenceFacade.deleteCourse(inputId);
             context.setResult(Boolean.TRUE);
         } catch (Exception e) {

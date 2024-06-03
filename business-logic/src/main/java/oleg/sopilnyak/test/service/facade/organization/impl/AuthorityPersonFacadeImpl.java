@@ -11,6 +11,8 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -29,9 +31,12 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements AuthorityPersonFacade {
+    private final BusinessMessagePayloadMapper payloadMapper;
 
-    public AuthorityPersonFacadeImpl(CommandsFactory<AuthorityPersonCommand> factory) {
+    public AuthorityPersonFacadeImpl(final CommandsFactory<AuthorityPersonCommand> factory,
+                                     final BusinessMessagePayloadMapper payloadMapper) {
         super(factory);
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -39,10 +44,16 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
      *
      * @return list of persons
      * @see AuthorityPerson
+     * @see AuthorityPersonPayload
+     * @see AuthorityPersonCommand#FIND_ALL
      */
     @Override
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
-        return doSimpleCommand(AuthorityPersonCommand.FIND_ALL, null, factory);
+        log.debug("Find all authority persons");
+        final String commandId = AuthorityPersonCommand.FIND_ALL;
+        final Collection<AuthorityPerson> result = doSimpleCommand(commandId, null, factory);
+        log.debug("Found all authority persons {}", result);
+        return result.stream().map(payloadMapper::toPayload).map(AuthorityPerson.class::cast).toList();
     }
 
     /**
@@ -51,12 +62,17 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
      * @param id system-id of the authorityPerson
      * @return AuthorityPerson instance or empty() if not exists
      * @see AuthorityPerson
+     * @see AuthorityPersonPayload
      * @see Optional
      * @see Optional#empty()
      */
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
-        return doSimpleCommand(AuthorityPersonCommand.FIND_BY_ID, id, factory);
+        log.debug("Find authority person by ID:{}", id);
+        final String commandId = AuthorityPersonCommand.FIND_BY_ID;
+        final Optional<AuthorityPerson> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found authority person {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -65,12 +81,18 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
      * @param instance authorityPerson should be created or updated
      * @return AuthorityPerson instance or empty() if not exists
      * @see AuthorityPerson
+     * @see AuthorityPersonPayload
      * @see Optional
      * @see Optional#empty()
      */
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
-        return doSimpleCommand(AuthorityPersonCommand.CREATE_OR_UPDATE, instance, factory);
+        log.debug("Create or Update authority person {}", instance);
+        final String commandId = AuthorityPersonCommand.CREATE_OR_UPDATE;
+        final AuthorityPersonPayload payload = payloadMapper.toPayload(instance);
+        final Optional<AuthorityPerson> result = doSimpleCommand(commandId, payload, factory);
+        log.debug("Changed authority person {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -82,7 +104,8 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
      */
     @Override
     public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
-        String commandId = AuthorityPersonCommand.DELETE;
+        log.debug("Delete authority person with ID:{}", id);
+        final String commandId = AuthorityPersonCommand.DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
@@ -90,6 +113,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
 
         if (context.isDone()) {
             log.debug("Deleted authority person with ID:{} successfully.", id);
+            context.setUndoParameter(payloadMapper.toPayload(context.<AuthorityPerson>getUndoParameter()));
             return;
         }
 

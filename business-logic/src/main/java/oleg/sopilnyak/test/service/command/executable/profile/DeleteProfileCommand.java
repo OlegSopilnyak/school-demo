@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -30,8 +31,10 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
 
     protected final ProfilePersistenceFacade persistence;
 
-    protected DeleteProfileCommand(Class<E> entityType, ProfilePersistenceFacade persistence) {
-        super(entityType);
+    protected DeleteProfileCommand(final Class<E> entityType,
+                                   final ProfilePersistenceFacade persistence,
+                                   final BusinessMessagePayloadMapper payloadMapper) {
+        super(entityType, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -64,12 +67,12 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see ProfilePersistenceFacade#deleteProfileById(Long)
-     * @see this#functionFindById()
-     * @see this#functionCopyEntity()
-     * @see this#functionSave()
+     * @see DeleteProfileCommand#functionFindById()
+     * @see DeleteProfileCommand#functionCopyEntity()
+     * @see DeleteProfileCommand#functionSave()
      * @see NotExistProfileException
      */
     @Override
@@ -84,8 +87,8 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
                 throw notFoundException;
             }
             // previous profile is storing to context for further rollback (undo)
-            final E previous = retrieveEntity(id, functionFindById(), functionCopyEntity(), () -> notFoundException);
-            context.setUndoParameter(previous);
+            final E entity = retrieveEntity(id, functionFindById(), () -> notFoundException);
+            context.setUndoParameter(entity);
             // deleting profile by id
             persistence.deleteProfileById(id);
             context.setResult(true);

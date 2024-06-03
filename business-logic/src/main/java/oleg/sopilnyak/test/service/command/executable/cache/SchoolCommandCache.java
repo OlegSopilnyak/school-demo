@@ -2,14 +2,17 @@ package oleg.sopilnyak.test.service.command.executable.cache;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 
 import java.util.Optional;
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 import static java.util.Objects.nonNull;
 
@@ -19,10 +22,12 @@ import static java.util.Objects.nonNull;
 public abstract class SchoolCommandCache<T extends BaseType> {
     private final Class<T> entityType;
     private final String entityName;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
-    protected SchoolCommandCache(Class<T> entityType) {
+    protected SchoolCommandCache(Class<T> entityType, BusinessMessagePayloadMapper payloadMapper) {
         this.entityType = entityType;
         this.entityName = entityType.getSimpleName();
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -37,19 +42,17 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      *
      * @param inputId           system-id of the student
      * @param findById          function for find entity by id
-     * @param copy              function for deep copy of the found entity
      * @param exceptionSupplier function-source of entity-not-found exception
      * @return copy of exists entity
      * @throws NotExistStudentException if student is not exist
      * @see StudentsPersistenceFacade
      * @see StudentsPersistenceFacade#findStudentById(Long)
-     * @see StudentsPersistenceFacade#toEntity(Student)
      * @see Context
      * @see Context#setUndoParameter(Object)
+     * @see BusinessMessagePayloadMapper#toPayload(BaseType)
      */
-    protected T retrieveEntity(Long inputId,
-                               LongFunction<Optional<T>> findById, UnaryOperator<T> copy,
-                               Supplier<? extends EntityNotExistException> exceptionSupplier) {
+    protected T retrieveEntity(final Long inputId, final LongFunction<Optional<T>> findById,
+                               final Supplier<? extends EntityNotExistException> exceptionSupplier) {
 
         getLog().info("Getting entity of {} for ID:{}", entityName, inputId);
         final T existsEntity = findById.apply(inputId).orElseThrow(exceptionSupplier);
@@ -57,7 +60,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
         // return copy of exists entity for undo operation
         getLog().info("Copying the value of '{}'", existsEntity);
-        return copy.apply(existsEntity);
+        return (T) payloadMapper.toPayload(existsEntity);
     }
 
     /**

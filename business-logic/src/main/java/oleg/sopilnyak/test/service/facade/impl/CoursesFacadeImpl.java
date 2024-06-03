@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
 import java.util.Set;
@@ -27,6 +28,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
     private final CommandsFactory<CourseCommand> factory;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
      * To get the course by ID

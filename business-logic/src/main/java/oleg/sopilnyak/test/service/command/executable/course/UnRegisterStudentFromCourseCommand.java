@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
@@ -9,6 +11,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +28,8 @@ import static java.util.Objects.isNull;
 public class UnRegisterStudentFromCourseCommand implements CourseCommand {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
+    @Getter(AccessLevel.NONE)
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
      * DO: To unlink the student from the course<BR/>
@@ -33,8 +38,8 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * @param context context of redo execution
      * @see StudentCourseLinkPersistenceFacade#findStudentById(Long)
      * @see StudentCourseLinkPersistenceFacade#findCourseById(Long)
-     * @see StudentCourseLinkPersistenceFacade#toEntity(Student)
-     * @see StudentCourseLinkPersistenceFacade#toEntity(Course)
+     * @see BusinessMessagePayloadMapper#toPayload(Student)
+     * @see BusinessMessagePayloadMapper#toPayload(Course)
      * @see StudentCourseLinkPersistenceFacade#unLink(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
@@ -66,8 +71,8 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
             log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
 
             final StudentToCourseLink undoLink = StudentToCourseLink.builder()
-                    .student(persistenceFacade.toEntity(existingStudent))
-                    .course(persistenceFacade.toEntity(existingCourse))
+                    .student(payloadMapper.toPayload(existingStudent))
+                    .course(payloadMapper.toPayload(existingCourse))
                     .build();
             final boolean unLinked = persistenceFacade.unLink(existingStudent, existingCourse);
             if (unLinked) {

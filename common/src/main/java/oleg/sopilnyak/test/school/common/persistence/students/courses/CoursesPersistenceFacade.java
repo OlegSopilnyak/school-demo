@@ -40,14 +40,6 @@ public interface CoursesPersistenceFacade {
     void deleteCourse(Long courseId);
 
     /**
-     * Convert course to entity bean
-     *
-     * @param course instance to convert
-     * @return instance ready to use in the repository
-     */
-    Course toEntity(Course course);
-
-    /**
      * To check is there is any course in the database<BR/>For tests purposes only
      *
      * @return true if there is no course in database

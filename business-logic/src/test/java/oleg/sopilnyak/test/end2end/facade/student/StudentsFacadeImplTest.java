@@ -16,10 +16,12 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -39,7 +41,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true","school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
@@ -59,12 +61,14 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     CommandsFactory<StudentCommand> factory;
 
     StudentsFacadeImpl facade;
+    BusinessMessagePayloadMapper payloadMapper;
 
     @BeforeEach
     void setUp() {
+        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
-        facade = spy(new StudentsFacadeImpl(factory));
+        facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
     }
 
     @AfterEach

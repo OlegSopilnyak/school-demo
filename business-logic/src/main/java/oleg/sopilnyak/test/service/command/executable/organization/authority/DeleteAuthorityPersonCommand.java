@@ -6,16 +6,16 @@ import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the authority person by id
@@ -32,8 +32,9 @@ public class DeleteAuthorityPersonCommand
         implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
 
-    public DeleteAuthorityPersonCommand(AuthorityPersonPersistenceFacade persistence) {
-        super(AuthorityPerson.class);
+    public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
+                                        final BusinessMessagePayloadMapper payloadMapper) {
+        super(AuthorityPerson.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,10 +46,9 @@ public class DeleteAuthorityPersonCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
-     * @see AuthorityPersonPersistenceFacade#toEntity(AuthorityPerson)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
      */
     @Override
@@ -63,7 +63,7 @@ public class DeleteAuthorityPersonCommand
             }
 
             final AuthorityPerson entity =
-                    retrieveEntity(id, persistence::findAuthorityPersonById, persistence::toEntity, () -> notFoundException);
+                    retrieveEntity(id, persistence::findAuthorityPersonById, () -> notFoundException);
 
             if (!entity.getFaculties().isEmpty()) {
                 throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");

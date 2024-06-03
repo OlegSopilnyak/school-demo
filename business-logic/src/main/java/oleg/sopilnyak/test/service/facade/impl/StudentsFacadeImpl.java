@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
 import java.util.Set;
@@ -25,6 +26,7 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
 @AllArgsConstructor
 public class StudentsFacadeImpl implements StudentsFacade {
     private final CommandsFactory<StudentCommand> factory;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
      * To get the student by ID

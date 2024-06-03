@@ -17,10 +17,11 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
@@ -51,12 +52,14 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     ProfilePersistenceFacade persistence;
     CommandsFactory<StudentProfileCommand> factory;
     StudentProfileFacadeImpl facade;
+    BusinessMessagePayloadMapper payloadMapper;
 
     @BeforeEach
     void setUp() {
+        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistence = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistence));
-        facade = spy(new StudentProfileFacadeImpl(factory));
+        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper));
     }
 
     @Test

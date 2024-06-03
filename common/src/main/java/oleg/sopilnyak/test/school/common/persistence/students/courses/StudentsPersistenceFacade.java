@@ -39,14 +39,6 @@ public interface StudentsPersistenceFacade {
     boolean deleteStudent(Long studentId);
 
     /**
-     * Convert student to entity bean
-     *
-     * @param student instance to convert
-     * @return instance ready to use in the repository
-     */
-    Student toEntity(Student student);
-
-    /**
      * To check is there is any student in the database<BR/>For tests purposes only
      *
      * @return true if there is no student in database

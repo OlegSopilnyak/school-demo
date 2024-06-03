@@ -7,14 +7,18 @@ import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
+import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.function.*;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 /**
  * Command-Implementation: command to delete the student
@@ -28,8 +32,9 @@ import java.util.function.*;
 public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand {
     private final StudentsPersistenceFacade persistence;
 
-    public DeleteStudentCommand(StudentsPersistenceFacade persistence) {
-        super(Student.class);
+    public DeleteStudentCommand(final StudentsPersistenceFacade persistence,
+                                final BusinessMessagePayloadMapper payloadMapper) {
+        super(Student.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -41,8 +46,8 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier) )
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier) )
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -57,16 +62,16 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
                 throw notFoundException;
             }
 
-            final Student dbStudent = retrieveEntity(inputId, persistence::findStudentById, persistence::toEntity,
-                    () -> notFoundException);
+            // previous student is storing to context for further rollback (undo)
+            final Student entity = retrieveEntity(inputId, persistence::findStudentById, () -> notFoundException);
 
-            if (!ObjectUtils.isEmpty(dbStudent.getCourses())) {
+            if (!ObjectUtils.isEmpty(entity.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", inputId);
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
             }
 
             // cached student is storing to context for further rollback (undo)
-            context.setUndoParameter(dbStudent);
+            context.setUndoParameter(entity);
             persistence.deleteStudent(inputId);
             context.setResult(true);
         } catch (Exception e) {

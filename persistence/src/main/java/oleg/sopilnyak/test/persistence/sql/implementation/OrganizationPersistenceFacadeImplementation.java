@@ -250,39 +250,6 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
 
     }
 
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    default AuthorityPerson toEntity(AuthorityPerson type) {
-        return getMapper().toEntity(type);
-    }
-
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    default Faculty toEntity(Faculty type) {
-        return getMapper().toEntity(type);
-    }
-
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    default StudentsGroup toEntity(StudentsGroup type) {
-        return getMapper().toEntity(type);
-    }
-
     private static boolean isForCreate(Long id) {
         return isNull(id) || id < 0;
     }

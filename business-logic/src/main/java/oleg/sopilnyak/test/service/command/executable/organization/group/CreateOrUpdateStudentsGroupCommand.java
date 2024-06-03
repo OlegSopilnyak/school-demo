@@ -5,9 +5,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupExceptio
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to update the students group of the school
@@ -32,8 +32,9 @@ public class CreateOrUpdateStudentsGroupCommand
         implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
 
-    public CreateOrUpdateStudentsGroupCommand(StudentsGroupPersistenceFacade persistence) {
-        super(StudentsGroup.class);
+    public CreateOrUpdateStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
+                                              final BusinessMessagePayloadMapper payloadMapper) {
+        super(StudentsGroup.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,11 +46,10 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
-     * @see StudentsGroupPersistenceFacade#toEntity(StudentsGroup)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      * @see NotExistStudentsGroupException
      */
@@ -63,11 +63,9 @@ public class CreateOrUpdateStudentsGroupCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // cached students group is storing to context for further rollback (undo)
-                context.setUndoParameter(
-                        retrieveEntity(id, persistence::findStudentsGroupById, persistence::toEntity,
-                                () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
-                        )
-                );
+                final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById,
+                        () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists."));
+                context.setUndoParameter(entity);
             }
 
             final Optional<StudentsGroup> persisted = persistRedoEntity(context, persistence::save);

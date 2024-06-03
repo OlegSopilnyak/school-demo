@@ -55,12 +55,4 @@ public interface AuthorityPersonPersistenceFacade {
     boolean deleteAuthorityPerson(Long id) throws
             AuthorityPersonManageFacultyException,
             NotExistAuthorityPersonException;
-
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    AuthorityPerson toEntity(AuthorityPerson type);
 }

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
@@ -11,6 +12,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -26,21 +28,25 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * Command-Implementation: command to link the student to the course
  */
 @Slf4j
+@Getter
 @Component
 public class RegisterStudentToCourseCommand implements CourseCommand {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
+    @Getter(AccessLevel.NONE)
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
-    @Getter
+    @Getter(AccessLevel.NONE)
+    private final BusinessMessagePayloadMapper payloadMapper;
     private final int maximumRooms;
-    @Getter
     private final int coursesExceed;
 
-    public RegisterStudentToCourseCommand(StudentCourseLinkPersistenceFacade persistenceFacade,
+    public RegisterStudentToCourseCommand(final StudentCourseLinkPersistenceFacade persistenceFacade,
+                                          final BusinessMessagePayloadMapper payloadMapper,
                                           @Value("${school.courses.maximum.rooms:50}") int maximumRooms,
                                           @Value("${school.students.maximum.courses:5}") int coursesExceed) {
         this.persistenceFacade = persistenceFacade;
+        this.payloadMapper = payloadMapper;
         this.maximumRooms = maximumRooms;
         this.coursesExceed = coursesExceed;
     }
@@ -52,8 +58,8 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * @param context context of redo execution
      * @see StudentCourseLinkPersistenceFacade#findStudentById(Long)
      * @see StudentCourseLinkPersistenceFacade#findCourseById(Long)
-     * @see StudentCourseLinkPersistenceFacade#toEntity(Student)
-     * @see StudentCourseLinkPersistenceFacade#toEntity(Course)
+     * @see BusinessMessagePayloadMapper#toPayload(Student)
+     * @see BusinessMessagePayloadMapper#toPayload(Course)
      * @see StudentCourseLinkPersistenceFacade#link(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
@@ -99,8 +105,8 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
             log.debug("Linking student:{} to course:{}", studentId, courseId);
 
             final StudentToCourseLink undoLink = StudentToCourseLink.builder()
-                    .student(persistenceFacade.toEntity(existingStudent))
-                    .course(persistenceFacade.toEntity(existingCourse))
+                    .student(payloadMapper.toPayload(existingStudent))
+                    .course(payloadMapper.toPayload(existingCourse))
                     .build();
             final boolean linked = persistenceFacade.link(existingStudent, existingCourse);
             if (linked) {

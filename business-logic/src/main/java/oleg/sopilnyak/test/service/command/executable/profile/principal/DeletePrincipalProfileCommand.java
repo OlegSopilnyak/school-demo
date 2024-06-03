@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +31,9 @@ public class DeletePrincipalProfileCommand
      *
      * @param persistence persistence facade instance
      */
-    public DeletePrincipalProfileCommand(ProfilePersistenceFacade persistence) {
-        super(PrincipalProfile.class, persistence);
+    public DeletePrincipalProfileCommand(final ProfilePersistenceFacade persistence,
+                                         final BusinessMessagePayloadMapper payloadMapper) {
+        super(PrincipalProfile.class, persistence, payloadMapper);
     }
 
     /**

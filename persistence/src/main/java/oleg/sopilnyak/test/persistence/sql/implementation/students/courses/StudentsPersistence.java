@@ -69,17 +69,6 @@ public interface StudentsPersistence extends StudentsPersistenceFacade {
     }
 
     /**
-     * Convert student to entity bean
-     *
-     * @param student instance to convert
-     * @return instance ready to use in the repository
-     */
-    @Override
-    default Student toEntity(Student student) {
-        return getMapper().toEntity(student);
-    }
-
-    /**
      * To check is there are any student in the database<BR/>For tests purposes only
      *
      * @return true if there is no student in database

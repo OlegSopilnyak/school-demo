@@ -67,17 +67,6 @@ public interface CoursesPersistence extends CoursesPersistenceFacade {
     }
 
     /**
-     * Convert course to entity bean
-     *
-     * @param course instance to convert
-     * @return instance ready to use in the repository
-     */
-    @Override
-    default Course toEntity(Course course) {
-        return getMapper().toEntity(course);
-    }
-
-    /**
      * To check is there is any course in the database<BR/>For tests purposes only
      *
      * @return true if there is no course in database

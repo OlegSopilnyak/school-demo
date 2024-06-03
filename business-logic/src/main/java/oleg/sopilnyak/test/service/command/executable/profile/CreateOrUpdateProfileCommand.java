@@ -4,9 +4,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -29,8 +30,10 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
 
     protected final ProfilePersistenceFacade persistence;
 
-    protected CreateOrUpdateProfileCommand(Class<E> entityType, ProfilePersistenceFacade persistence) {
-        super(entityType);
+    protected CreateOrUpdateProfileCommand(final Class<E> entityType,
+                                           final ProfilePersistenceFacade persistence,
+                                           final BusinessMessagePayloadMapper payloadMapper) {
+        super(entityType, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -63,12 +66,12 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
-     * @see this#functionFindById()
-     * @see this#functionCopyEntity()
-     * @see this#functionSave()
+     * @see CreateOrUpdateProfileCommand#functionFindById()
+     * @see CreateOrUpdateProfileCommand#functionCopyEntity()
+     * @see CreateOrUpdateProfileCommand#functionSave()
      * @see NotExistProfileException
      */
     @Override
@@ -82,10 +85,10 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateProfile) {
                 // previous version of profile is storing to context for further rollback (undo)
-                final E previous = retrieveEntity(id, functionFindById(), functionCopyEntity(),
+                final E entity = retrieveEntity(id, functionFindById(),
                         () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                context.setUndoParameter(previous);
+                context.setUndoParameter(entity);
             }
             final Optional<E> savedProfile = persistRedoEntity(context, functionSave());
             // checking execution context state

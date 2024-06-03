@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
 
@@ -23,6 +24,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 @AllArgsConstructor
 public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
     private final CommandsFactory<P> factory;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     protected abstract String findByIdCommandId();
     protected abstract String createOrUpdateCommandId();

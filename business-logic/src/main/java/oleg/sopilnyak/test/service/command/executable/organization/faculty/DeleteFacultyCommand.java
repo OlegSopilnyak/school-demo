@@ -6,16 +6,16 @@ import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the faculty of the school by id
@@ -32,8 +32,9 @@ public class DeleteFacultyCommand
         implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
 
-    public DeleteFacultyCommand(FacultyPersistenceFacade persistence) {
-        super(Faculty.class);
+    public DeleteFacultyCommand(final FacultyPersistenceFacade persistence,
+                                final BusinessMessagePayloadMapper payloadMapper) {
+        super(Faculty.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,10 +46,9 @@ public class DeleteFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
-     * @see FacultyPersistenceFacade#toEntity(Faculty)
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
      */
     @Override
@@ -63,15 +63,14 @@ public class DeleteFacultyCommand
             }
 
             // getting from the database current version of the faculty
-            final Faculty previous =
-                    retrieveEntity(id, persistence::findFacultyById, persistence::toEntity, () -> notFoundException);
+            final Faculty entity = retrieveEntity(id, persistence::findFacultyById, () -> notFoundException);
 
-            if (!previous.getCourses().isEmpty()) {
+            if (!entity.getCourses().isEmpty()) {
                 throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");
             }
 
             // previous version of faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(previous);
+            context.setUndoParameter(entity);
             // deleting entity
             persistence.deleteFaculty(id);
             context.setResult(true);

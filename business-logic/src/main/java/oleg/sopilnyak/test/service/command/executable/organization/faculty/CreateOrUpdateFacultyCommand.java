@@ -5,9 +5,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to create or update the faculty of the school
@@ -32,8 +32,9 @@ public class CreateOrUpdateFacultyCommand
         implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
 
-    public CreateOrUpdateFacultyCommand(FacultyPersistenceFacade persistence) {
-        super(Faculty.class);
+    public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,
+                                        final BusinessMessagePayloadMapper payloadMapper) {
+        super(Faculty.class, payloadMapper);
         this.persistence = persistence;
     }
 
@@ -45,11 +46,10 @@ public class CreateOrUpdateFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
-     * @see FacultyPersistenceFacade#toEntity(Faculty)
      * @see FacultyPersistenceFacade#save(Faculty)
      * @see NotExistFacultyException
      */
@@ -63,10 +63,10 @@ public class CreateOrUpdateFacultyCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // previous version of faculty is storing to context for further rollback (undo)
-                final Faculty previous = retrieveEntity(id, persistence::findFacultyById, persistence::toEntity,
+                final Faculty entity = retrieveEntity(id, persistence::findFacultyById,
                         () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                context.setUndoParameter(previous);
+                context.setUndoParameter(entity);
             }
 
             final Optional<Faculty> persisted = persistRedoEntity(context, persistence::save);

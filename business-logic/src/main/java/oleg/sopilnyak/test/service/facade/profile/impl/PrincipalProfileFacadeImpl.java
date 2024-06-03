@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.business.profile.PrincipalProfileFacade
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import static oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand.*;
 
@@ -16,8 +17,9 @@ public class PrincipalProfileFacadeImpl
         extends PersonProfileFacadeImpl<PrincipalProfileCommand>
         implements PrincipalProfileFacade {
 
-    public PrincipalProfileFacadeImpl(CommandsFactory<PrincipalProfileCommand> factory) {
-        super(factory);
+    public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand> factory,
+                                      final BusinessMessagePayloadMapper payloadMapper) {
+        super(factory, payloadMapper);
     }
 
     @Override
