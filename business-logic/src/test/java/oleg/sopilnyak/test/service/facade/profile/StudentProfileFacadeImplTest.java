@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommand
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +35,8 @@ class StudentProfileFacadeImplTest {
     ProfilePersistenceFacade persistence = mock(ProfilePersistenceFacade.class);
     @Spy
     CommandsFactory<?> factory = buildFactory();
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
 
     @Spy
     @InjectMocks
@@ -236,9 +239,9 @@ class StudentProfileFacadeImplTest {
     private CommandsFactory<StudentProfileCommand> buildFactory() {
         return new StudentProfileCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateStudentProfileCommand(persistence)),
                         spy(new FindStudentProfileCommand(persistence)),
-                        spy(new DeleteStudentProfileCommand(persistence))
+                        spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)),
+                        spy(new DeleteStudentProfileCommand(persistence, payloadMapper))
                 )
 
         );

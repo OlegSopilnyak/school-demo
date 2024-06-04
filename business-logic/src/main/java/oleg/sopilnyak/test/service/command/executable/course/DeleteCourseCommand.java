@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the course by id
@@ -30,11 +31,13 @@ import java.util.function.Supplier;
 @Component
 public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                final BusinessMessagePayloadMapper payloadMapper) {
-        super(Course.class, payloadMapper);
+        super(Course.class);
         this.persistenceFacade = persistenceFacade;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -45,7 +48,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier) )
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
@@ -60,7 +63,9 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
                 throw notFoundException;
             }
 
-            final Course entity = retrieveEntity(inputId, persistenceFacade::findCourseById, () -> notFoundException);
+            final var entity = retrieveEntity(inputId,
+                    persistenceFacade::findCourseById, payloadMapper::toPayload,() -> notFoundException
+            );
 
             if (!ObjectUtils.isEmpty(entity.getStudents())) {
                 log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", inputId);

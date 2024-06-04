@@ -5,12 +5,15 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -21,12 +24,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CreateOrUpdateAuthorityPersonCommandTest {
     @Mock
+    AuthorityPerson entity;
+    @Mock
+    AuthorityPersonPayload payload;
+    @Mock
     AuthorityPersonPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     CreateOrUpdateAuthorityPersonCommand command;
-    @Mock
-    AuthorityPerson entity;
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
 
     @Test
     void shouldDoCommand_CreateEntity() {
@@ -50,20 +64,20 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 300L;
         when(entity.getId()).thenReturn(id);
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).toEntity(entity);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence).save(entity);
     }
 
@@ -81,7 +95,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence, never()).toEntity(any());
+//        verify(persistence, never()).toEntity(any());
         verify(persistence, never()).save(any());
     }
 
@@ -99,7 +113,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence, never()).toEntity(any());
+//        verify(persistence, never()).toEntity(any());
         verify(persistence, never()).save(any());
     }
 
@@ -122,8 +136,8 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 303L;
         when(entity.getId()).thenReturn(id);
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
-        doThrow(RuntimeException.class).when(persistence).save(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
+        doThrow(RuntimeException.class).when(persistence).save(any(AuthorityPerson.class));
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
@@ -133,8 +147,8 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).toEntity(entity);
-        verify(persistence, times(2)).save(entity);
+        verify(payloadMapper).toPayload(entity);
+        verify(persistence).save(entity);
     }
 
     @Test

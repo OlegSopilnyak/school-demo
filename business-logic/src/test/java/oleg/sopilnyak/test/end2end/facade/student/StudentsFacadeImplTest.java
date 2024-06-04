@@ -231,7 +231,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdate_Update() {
         Student student = getPersistentStudent(makeClearTestStudent());
-        Student oldStudent = persistenceFacade.toEntity(student);
+        Student oldStudent = null;
+//                persistenceFacade.toEntity(student);
         if (oldStudent instanceof StudentEntity entity) {
             entity.setFirstName(student.getFirstName() + "-newOne");
         }
@@ -329,8 +330,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
                         spy(new FindStudentCommand(persistenceFacade)),
                         spy(new FindEnrolledStudentsCommand(persistenceFacade)),
                         spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateStudentCommand(persistenceFacade)),
-                        spy(new DeleteStudentCommand(persistenceFacade))
+                        spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteStudentCommand(persistenceFacade, payloadMapper))
                 )
         );
     }

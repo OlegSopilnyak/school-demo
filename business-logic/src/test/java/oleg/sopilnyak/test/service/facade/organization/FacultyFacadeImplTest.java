@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,6 +42,8 @@ class FacultyFacadeImplTest {
     CommandsFactory<FacultyCommand> factory = buildFactory();
     @Mock
     Faculty mockFaculty;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
 
     @Spy
     @InjectMocks
@@ -127,7 +130,7 @@ class FacultyFacadeImplTest {
     void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 402L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
-        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
+//        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
 
         facade.deleteFacultyById(id);
 
@@ -157,7 +160,7 @@ class FacultyFacadeImplTest {
         Long id = 404L;
         when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
-        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
+//        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
 
         FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 
@@ -172,8 +175,8 @@ class FacultyFacadeImplTest {
     private CommandsFactory<FacultyCommand> buildFactory() {
         return new FacultyCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateFacultyCommand(persistence)),
-                        spy(new DeleteFacultyCommand(persistence)),
+                        spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),
+                        spy(new DeleteFacultyCommand(persistence, payloadMapper)),
                         spy(new FindAllFacultiesCommand(persistence)),
                         spy(new FindFacultyCommand(persistence))
                 )

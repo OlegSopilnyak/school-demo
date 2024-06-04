@@ -6,12 +6,16 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -22,22 +26,35 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UnRegisterStudentFromCourseCommandTest {
     @Mock
-    StudentCourseLinkPersistenceFacade persistence;
-    @Mock
     Course course;
     @Mock
+    CoursePayload coursePayload;
+    @Mock
     Student student;
+    @Mock
+    StudentPayload studentPayload;
+    @Mock
+    StudentCourseLinkPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     UnRegisterStudentFromCourseCommand command;
 
     @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistenceFacade"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
+
+    @Test
     void shouldDoCommand_Linked() {
         Long id = 130L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistence.toEntity(student)).thenReturn(student);
+        when(payloadMapper.toPayload(student)).thenReturn(studentPayload);
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistence.toEntity(course)).thenReturn(course);
+        when(payloadMapper.toPayload(course)).thenReturn(coursePayload);
         when(persistence.unLink(student, course)).thenReturn(true);
         Context<Boolean> context = command.createContext(new Long[]{id, id});
 
@@ -49,11 +66,10 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(student);
+        verify(payloadMapper).toPayload(student);
         verify(persistence).findCourseById(id);
-        verify(persistence).toEntity(course);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
-
+        verify(payloadMapper).toPayload(course);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(studentPayload, coursePayload));
         verify(persistence).unLink(student, course);
     }
 

@@ -8,11 +8,15 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,25 +28,38 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RegisterStudentToCourseCommandTest {
     @Mock
-    StudentCourseLinkPersistenceFacade persistence;
-    @Mock
     Course course;
     @Mock
+    CoursePayload coursePayload;
+    @Mock
     Student student;
+    @Mock
+    StudentPayload studentPayload;
+    @Mock
+    StudentCourseLinkPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     RegisterStudentToCourseCommand command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new RegisterStudentToCourseCommand(persistence, 2, 2));
+        command = spy(new RegisterStudentToCourseCommand(persistence, payloadMapper, 2, 2));
+    }
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistenceFacade"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
     }
 
     @Test
     void shouldDoCommand_LinkStudentWithCourse() {
         Long id = 120L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
-        when(persistence.toEntity(student)).thenReturn(student);
+        when(payloadMapper.toPayload(student)).thenReturn(studentPayload);
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistence.toEntity(course)).thenReturn(course);
+        when(payloadMapper.toPayload(course)).thenReturn(coursePayload);
         when(persistence.link(student, course)).thenReturn(true);
 
         Context<Boolean> context = command.createContext(new Long[]{id, id});
@@ -50,13 +67,15 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(studentPayload, coursePayload));
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
+        verify(payloadMapper).toPayload(student);
         verify(persistence).findCourseById(id);
+        verify(payloadMapper).toPayload(course);
         verify(persistence).link(student, course);
     }
 
@@ -64,8 +83,8 @@ class RegisterStudentToCourseCommandTest {
     void shouldDoCommand_AlreadyLinked() {
         Long id = 125L;
         when(student.getId()).thenReturn(id);
-        when(student.getCourses()).thenReturn(List.of(course));
         when(course.getId()).thenReturn(id);
+        when(student.getCourses()).thenReturn(List.of(course));
         when(course.getStudents()).thenReturn(List.of(student));
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));

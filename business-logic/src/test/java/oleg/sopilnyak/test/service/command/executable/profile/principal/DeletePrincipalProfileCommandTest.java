@@ -4,12 +4,15 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -20,12 +23,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeletePrincipalProfileCommandTest {
     @Mock
+    PrincipalProfile profile;
+    @Mock
+    PrincipalProfilePayload payload;
+    @Mock
     ProfilePersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     DeletePrincipalProfileCommand command;
-    @Mock
-    PrincipalProfile profile;
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
 
     @Test
     void shouldWorkFunctionFindById() {
@@ -40,9 +54,11 @@ class DeletePrincipalProfileCommandTest {
 
     @Test
     void shouldWorkFunctionCopyEntity() {
-        command.functionCopyEntity().apply(profile);
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        command.functionAdoptEntity().apply(profile);
 
         verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
     }
 
     @Test
@@ -61,6 +77,7 @@ class DeletePrincipalProfileCommandTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -68,10 +85,12 @@ class DeletePrincipalProfileCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getException()).isNull();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
         verify(persistence).deleteProfileById(id);
     }
 
@@ -89,6 +108,8 @@ class DeletePrincipalProfileCommandTest {
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
+        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(PrincipalProfile.class));
         verify(persistence, never()).deleteProfileById(id);
     }
 
@@ -121,6 +142,7 @@ class DeletePrincipalProfileCommandTest {
     void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
         long id = 416L;
         when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
@@ -133,6 +155,8 @@ class DeletePrincipalProfileCommandTest {
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
         verify(persistence).deleteProfileById(id);
     }
 

@@ -181,7 +181,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(group);
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence).toEntity(group);
+//        verify(persistence).toEntity(group);
         verify(persistence).save(group);
     }
 
@@ -197,7 +197,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence).toEntity(group);
+//        verify(persistence).toEntity(group);
         verify(persistence).deleteStudentsGroup(id);
         assertThat(persistence.findStudentsGroupById(id)).isEmpty();
     }
@@ -242,8 +242,8 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private CommandsFactory<StudentsGroupCommand> buildFactory(StudentsGroupPersistenceFacade persistence) {
         return new StudentsGroupCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateStudentsGroupCommand(persistence)),
-                        spy(new DeleteStudentsGroupCommand(persistence)),
+                        spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),
+                        spy(new DeleteStudentsGroupCommand(persistence, payloadMapper)),
                         spy(new FindAllStudentsGroupsCommand(persistence)),
                         spy(new FindStudentsGroupCommand(persistence))
                 )
@@ -262,6 +262,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Optional<StudentsGroup> dbStudentsGroup = database.findStudentsGroupById(entity.getId());
         assertStudentsGroupEquals(dbStudentsGroup.orElseThrow(), group, false);
         assertThat(dbStudentsGroup).contains(entity);
-        return database.toEntity(entity);
+//        return database.toEntity(entity);
+        return entity;
     }
 }

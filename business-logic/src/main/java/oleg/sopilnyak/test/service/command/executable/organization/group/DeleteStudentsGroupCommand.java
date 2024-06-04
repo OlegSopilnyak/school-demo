@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the students group of the school by id
@@ -31,11 +32,13 @@ public class DeleteStudentsGroupCommand
         extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                       final BusinessMessagePayloadMapper payloadMapper) {
-        super(StudentsGroup.class, payloadMapper);
+        super(StudentsGroup.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class DeleteStudentsGroupCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
@@ -63,7 +66,7 @@ public class DeleteStudentsGroupCommand
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-            final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById, () -> notFoundException);
+            final var entity = retrieveEntity(id, persistence::findStudentsGroupById, payloadMapper::toPayload, () -> notFoundException);
 
             if (!entity.getStudents().isEmpty()) {
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
@@ -76,9 +79,9 @@ public class DeleteStudentsGroupCommand
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot delete students group with :{}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 

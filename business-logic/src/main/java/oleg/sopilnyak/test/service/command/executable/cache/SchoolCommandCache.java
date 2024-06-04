@@ -9,10 +9,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 import static java.util.Objects.nonNull;
 
@@ -22,12 +19,10 @@ import static java.util.Objects.nonNull;
 public abstract class SchoolCommandCache<T extends BaseType> {
     private final Class<T> entityType;
     private final String entityName;
-    private final BusinessMessagePayloadMapper payloadMapper;
 
-    protected SchoolCommandCache(Class<T> entityType, BusinessMessagePayloadMapper payloadMapper) {
+    protected SchoolCommandCache(final Class<T> entityType) {
         this.entityType = entityType;
         this.entityName = entityType.getSimpleName();
-        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -41,7 +36,8 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * To cache into context old value of the student instance for possible rollback
      *
      * @param inputId           system-id of the student
-     * @param findById          function for find entity by id
+     * @param findEntityById    function for find entity by id
+     * @param adoptEntity       function for transform entity to payload
      * @param exceptionSupplier function-source of entity-not-found exception
      * @return copy of exists entity
      * @throws NotExistStudentException if student is not exist
@@ -51,16 +47,17 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Context#setUndoParameter(Object)
      * @see BusinessMessagePayloadMapper#toPayload(BaseType)
      */
-    protected T retrieveEntity(final Long inputId, final LongFunction<Optional<T>> findById,
+    protected T retrieveEntity(final Long inputId,
+                               final LongFunction<Optional<T>> findEntityById, final UnaryOperator<T> adoptEntity,
                                final Supplier<? extends EntityNotExistException> exceptionSupplier) {
 
         getLog().info("Getting entity of {} for ID:{}", entityName, inputId);
-        final T existsEntity = findById.apply(inputId).orElseThrow(exceptionSupplier);
+        final T existsEntity = findEntityById.apply(inputId).orElseThrow(exceptionSupplier);
         getLog().info("Got entity of {} '{}'", entityName, existsEntity);
 
         // return copy of exists entity for undo operation
-        getLog().info("Copying the value of '{}'", existsEntity);
-        return (T) payloadMapper.toPayload(existsEntity);
+        getLog().info("Adopting Entity to Payload '{}'", existsEntity);
+        return adoptEntity.apply(existsEntity);
     }
 
     /**
@@ -100,7 +97,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         final Object parameter = context.getUndoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().info("Restoring changed value of {}\n'{}'", entityName, parameter);
-            return facadeSave.apply((T) parameter);
+            return facadeSave.apply(context.getUndoParameter());
         } else if (nonNull(facadeDeleteById)) {
             getLog().info("Deleting created value of {} with ID:{}", entityName, parameter);
             if (parameter instanceof Long id) {
@@ -127,7 +124,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         final Object parameter = context.getRedoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().info("Storing changed value of {} '{}'", entityName, parameter);
-            return facadeSave.apply((T) parameter);
+            return facadeSave.apply(context.getRedoParameter());
         } else {
             if (nonNull(parameter)) {
                 final String message = "Wrong type of " + entityName + ":" + parameter.getClass().getName();

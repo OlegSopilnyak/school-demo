@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileComma
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,6 +36,8 @@ class PrincipalProfileFacadeImplTest {
     @Spy
     CommandsFactory<PrincipalProfileCommand> factory = buildFactory();
 
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     PrincipalProfileFacadeImpl facade;
@@ -218,9 +221,9 @@ class PrincipalProfileFacadeImplTest {
     private CommandsFactory<PrincipalProfileCommand> buildFactory() {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdatePrincipalProfileCommand(persistence)),
                         spy(new FindPrincipalProfileCommand(persistence)),
-                        spy(new DeletePrincipalProfileCommand(persistence))
+                        spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper)),
+                        spy(new DeletePrincipalProfileCommand(persistence, payloadMapper))
                 )
 
         );

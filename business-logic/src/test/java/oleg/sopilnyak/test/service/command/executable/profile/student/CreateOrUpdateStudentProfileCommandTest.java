@@ -6,12 +6,15 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -23,12 +26,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CreateOrUpdateStudentProfileCommandTest {
     @Mock
+    StudentProfile profile;
+    @Mock
+    StudentProfilePayload payload;
+    @Mock
     ProfilePersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     CreateOrUpdateStudentProfileCommand command;
-    @Mock
-    StudentProfile profile;
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
 
     @Test
     void shouldWorkFunctionFindById() {
@@ -43,9 +57,11 @@ class CreateOrUpdateStudentProfileCommandTest {
 
     @Test
     void shouldWorkFunctionCopyEntity() {
-        command.functionCopyEntity().apply(profile);
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        command.functionAdoptEntity().apply(profile);
 
         verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
     }
 
     @Test
@@ -66,6 +82,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         when(profile.getId()).thenReturn(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
         Context<Optional<StudentProfile>> context = command.createContext(profile);
 
@@ -74,11 +91,13 @@ class CreateOrUpdateStudentProfileCommandTest {
         assertThat(context.isDone()).isTrue();
         Optional<StudentProfile> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(profile);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(profile).getId();
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);
     }
@@ -188,10 +207,11 @@ class CreateOrUpdateStudentProfileCommandTest {
         Long id = 803L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
-        doCallRealMethod().when(persistence).save(profile);
+        doCallRealMethod().when(persistence).save(any(StudentProfile.class));
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
-        doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
+        doThrow(RuntimeException.class).when(persistence).saveProfile(any(StudentProfile.class));
         Context<Optional<StudentProfile>> context = command.createContext(profile);
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
@@ -203,8 +223,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
-        verify(persistence, times(2)).save(profile);
-        verify(persistence, times(2)).saveProfile(profile);
+        verify(payloadMapper).toPayload(profile);
+        verify(persistence).save(profile);
+        verify(persistence).saveProfile(profile);
     }
 
     @Test

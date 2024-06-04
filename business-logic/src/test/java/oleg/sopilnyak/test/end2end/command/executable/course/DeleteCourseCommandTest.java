@@ -68,7 +68,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getResult().get()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-        verify(persistence).toEntity(course);
+//        verify(persistence).toEntity(course);
         verify(persistence).deleteCourse(id);
     }
 
@@ -127,7 +127,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-        verify(persistence).toEntity(course);
+//        verify(persistence).toEntity(course);
         verify(persistence).deleteCourse(id);
         verify(persistence).save(course);
     }
@@ -207,7 +207,8 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }
@@ -222,7 +223,8 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }

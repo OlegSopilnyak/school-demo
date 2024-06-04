@@ -71,8 +71,9 @@ public class DeleteStudentProfileCommand extends DeleteProfileCommand<StudentPro
      * @return function implementation
      */
     @Override
-    protected UnaryOperator<StudentProfile> functionCopyEntity() {
-        return persistence::toEntity;
+    protected UnaryOperator<StudentProfile> functionAdoptEntity() {
+        final UnaryOperator<StudentProfile> persistenceAdoption = persistence::toEntity;
+        return profile -> payloadMapper.toPayload(persistenceAdoption.apply(profile));
     }
 
     /**

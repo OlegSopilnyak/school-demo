@@ -28,14 +28,15 @@ import java.util.function.UnaryOperator;
 public abstract class DeleteProfileCommand<E extends PersonProfile>
         extends SchoolCommandCache<E>
         implements ProfileCommand {
-
     protected final ProfilePersistenceFacade persistence;
+    protected final BusinessMessagePayloadMapper payloadMapper;
 
     protected DeleteProfileCommand(final Class<E> entityType,
                                    final ProfilePersistenceFacade persistence,
                                    final BusinessMessagePayloadMapper payloadMapper) {
-        super(entityType, payloadMapper);
+        super(entityType);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -50,7 +51,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      *
      * @return function implementation
      */
-    protected abstract UnaryOperator<E> functionCopyEntity();
+    protected abstract UnaryOperator<E> functionAdoptEntity();
 
     /**
      * to get function to persist the entity
@@ -67,11 +68,11 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see ProfilePersistenceFacade#deleteProfileById(Long)
      * @see DeleteProfileCommand#functionFindById()
-     * @see DeleteProfileCommand#functionCopyEntity()
+     * @see DeleteProfileCommand#functionAdoptEntity()
      * @see DeleteProfileCommand#functionSave()
      * @see NotExistProfileException
      */
@@ -87,7 +88,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
                 throw notFoundException;
             }
             // previous profile is storing to context for further rollback (undo)
-            final E entity = retrieveEntity(id, functionFindById(), () -> notFoundException);
+            final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> notFoundException);
             context.setUndoParameter(entity);
             // deleting profile by id
             persistence.deleteProfileById(id);

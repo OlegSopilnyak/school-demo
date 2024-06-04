@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCom
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,6 +42,8 @@ class StudentsGroupFacadeImplTest {
     CommandsFactory<StudentsGroupCommand> factory = buildFactory();
     @Mock
     StudentsGroup mockGroup;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
 
     @Spy
     @InjectMocks
@@ -115,7 +118,7 @@ class StudentsGroupFacadeImplTest {
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 502L;
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
-        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
+//        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
 
         facade.deleteStudentsGroupById(id);
 
@@ -144,7 +147,7 @@ class StudentsGroupFacadeImplTest {
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 504L;
         when(mockGroup.getStudents()).thenReturn(List.of(mock(Student.class)));
-        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
+//        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
         StudentGroupWithStudentsException thrown =
                 assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
@@ -160,8 +163,8 @@ class StudentsGroupFacadeImplTest {
     private CommandsFactory<StudentsGroupCommand> buildFactory() {
         return new StudentsGroupCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade)),
-                        spy(new DeleteStudentsGroupCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteStudentsGroupCommand(persistenceFacade, payloadMapper)),
                         spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
                         spy(new FindStudentsGroupCommand(persistenceFacade))
                 )

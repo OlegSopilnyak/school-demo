@@ -27,6 +27,6 @@ public class CoursePayload implements Course {
     private Long id;
     private String name;
     private String description;
-    @JsonDeserialize(contentAs= StudentPayload.class)
+    @JsonDeserialize(contentAs = StudentPayload.class)
     private List<Student> students;
 }

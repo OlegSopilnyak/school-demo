@@ -27,7 +27,7 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateStudentProfileCommand
         extends CreateOrUpdateProfileCommand<StudentProfile>
-        implements StudentProfileCommand{
+        implements StudentProfileCommand {
 
     /**
      * Constructor
@@ -75,8 +75,9 @@ public class CreateOrUpdateStudentProfileCommand
      * @return function implementation
      */
     @Override
-    protected UnaryOperator<StudentProfile> functionCopyEntity() {
-        return persistence::toEntity;
+    protected UnaryOperator<StudentProfile> functionAdoptEntity() {
+        final UnaryOperator<StudentProfile> persistenceAdoption = persistence::toEntity;
+        return profile -> payloadMapper.toPayload(persistenceAdoption.apply(profile));
     }
 
     /**

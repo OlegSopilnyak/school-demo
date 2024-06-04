@@ -76,8 +76,9 @@ public class CreateOrUpdatePrincipalProfileCommand
      * @return function implementation
      */
     @Override
-    protected UnaryOperator<PrincipalProfile> functionCopyEntity() {
-        return persistence::toEntity;
+    protected UnaryOperator<PrincipalProfile> functionAdoptEntity() {
+        final UnaryOperator<PrincipalProfile> persistenceAdoption = persistence::toEntity;
+        return profile -> payloadMapper.toPayload(persistenceAdoption.apply(profile));
     }
 
     /**

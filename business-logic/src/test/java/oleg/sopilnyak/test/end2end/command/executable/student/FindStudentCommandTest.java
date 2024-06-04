@@ -122,7 +122,8 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
             assertThat(entity).isNotNull();
             long id = entity.getId();
             assertThat(persistence.findStudentById(id)).isPresent();
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }

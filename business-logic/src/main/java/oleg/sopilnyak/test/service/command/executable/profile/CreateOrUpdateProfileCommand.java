@@ -27,14 +27,15 @@ import java.util.function.UnaryOperator;
 public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
         extends SchoolCommandCache<E>
         implements ProfileCommand {
-
     protected final ProfilePersistenceFacade persistence;
+    protected final BusinessMessagePayloadMapper payloadMapper;
 
     protected CreateOrUpdateProfileCommand(final Class<E> entityType,
                                            final ProfilePersistenceFacade persistence,
                                            final BusinessMessagePayloadMapper payloadMapper) {
-        super(entityType, payloadMapper);
+        super(entityType);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -49,7 +50,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      *
      * @return function implementation
      */
-    protected abstract UnaryOperator<E> functionCopyEntity();
+    protected abstract UnaryOperator<E> functionAdoptEntity();
 
     /**
      * to get function to persist the entity
@@ -66,11 +67,11 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see CreateOrUpdateProfileCommand#functionFindById()
-     * @see CreateOrUpdateProfileCommand#functionCopyEntity()
+     * @see CreateOrUpdateProfileCommand#functionAdoptEntity()
      * @see CreateOrUpdateProfileCommand#functionSave()
      * @see NotExistProfileException
      */
@@ -85,7 +86,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
             final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateProfile) {
                 // previous version of profile is storing to context for further rollback (undo)
-                final E entity = retrieveEntity(id, functionFindById(),
+                final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(),
                         () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);

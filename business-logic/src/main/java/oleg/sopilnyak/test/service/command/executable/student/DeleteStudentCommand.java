@@ -15,10 +15,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.function.Function;
-import java.util.function.LongConsumer;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * Command-Implementation: command to delete the student
@@ -31,11 +28,13 @@ import java.util.function.Supplier;
 @Component
 public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand {
     private final StudentsPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteStudentCommand(final StudentsPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
-        super(Student.class, payloadMapper);
+        super(Student.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +45,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier) )
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
@@ -63,7 +62,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             }
 
             // previous student is storing to context for further rollback (undo)
-            final Student entity = retrieveEntity(inputId, persistence::findStudentById, () -> notFoundException);
+            final var entity = retrieveEntity(inputId, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException);
 
             if (!ObjectUtils.isEmpty(entity.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", inputId);

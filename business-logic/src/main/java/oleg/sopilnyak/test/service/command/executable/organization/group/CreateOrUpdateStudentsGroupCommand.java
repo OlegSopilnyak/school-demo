@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to update the students group of the school
@@ -31,11 +32,13 @@ public class CreateOrUpdateStudentsGroupCommand
         extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand {
     private final StudentsGroupPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                               final BusinessMessagePayloadMapper payloadMapper) {
-        super(StudentsGroup.class, payloadMapper);
+        super(StudentsGroup.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
@@ -63,7 +66,7 @@ public class CreateOrUpdateStudentsGroupCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // cached students group is storing to context for further rollback (undo)
-                final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById,
+                final var entity = retrieveEntity(id, persistence::findStudentsGroupById, payloadMapper::toPayload,
                         () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists."));
                 context.setUndoParameter(entity);
             }

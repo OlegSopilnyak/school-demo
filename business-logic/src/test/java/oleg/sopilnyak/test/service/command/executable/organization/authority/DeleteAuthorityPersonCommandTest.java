@@ -5,12 +5,15 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -20,28 +23,39 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeleteAuthorityPersonCommandTest {
     @Mock
+    AuthorityPerson entity;
+    @Mock
+    AuthorityPersonPayload payload;
+    @Mock
     AuthorityPersonPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     DeleteAuthorityPersonCommand command;
-    @Mock
-    AuthorityPerson entity;
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
 
     @Test
     void shouldDoCommand_EntityExists() {
         long id = 314L;
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).toEntity(entity);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
@@ -57,7 +71,7 @@ class DeleteAuthorityPersonCommandTest {
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence, never()).toEntity(entity);
+        verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
 
@@ -90,7 +104,7 @@ class DeleteAuthorityPersonCommandTest {
     void shouldNotDoCommand_DeleteExceptionThrown() throws NotExistProfileException {
         long id = 316L;
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         doThrow(new UnsupportedOperationException()).when(persistence).deleteAuthorityPerson(id);
         Context<Boolean> context = command.createContext(id);
 

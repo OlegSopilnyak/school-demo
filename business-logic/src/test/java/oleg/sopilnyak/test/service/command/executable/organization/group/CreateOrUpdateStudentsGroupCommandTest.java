@@ -5,12 +5,15 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupExceptio
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -22,12 +25,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CreateOrUpdateStudentsGroupCommandTest {
     @Mock
+    StudentsGroup entity;
+    @Mock
+    StudentsGroupPayload payload;
+    @Mock
     StudentsGroupPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     CreateOrUpdateStudentsGroupCommand command;
-    @Mock
-    StudentsGroup entity;
+
+    @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
 
     @Test
     void shouldDoCommand_CreateEntity() {
@@ -51,20 +65,20 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = 500L;
         when(entity.getId()).thenReturn(id);
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence).toEntity(entity);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence).save(entity);
     }
 
@@ -82,7 +96,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(StudentsGroup.class));
         verify(persistence, never()).save(any());
     }
 
@@ -100,7 +114,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(StudentsGroup.class));
         verify(persistence, never()).save(any());
     }
 
@@ -123,8 +137,8 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = 503L;
         when(entity.getId()).thenReturn(id);
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
-        when(persistence.toEntity(entity)).thenReturn(entity);
-        doThrow(RuntimeException.class).when(persistence).save(entity);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
+        doThrow(RuntimeException.class).when(persistence).save(any(StudentsGroup.class));
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
@@ -134,8 +148,8 @@ class CreateOrUpdateStudentsGroupCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(persistence).toEntity(entity);
-        verify(persistence, times(2)).save(entity);
+        verify(payloadMapper).toPayload(entity);
+        verify(persistence).save(entity);
     }
 
     @Test

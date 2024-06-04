@@ -50,7 +50,7 @@ class CreateOrUpdateStudentCommandTest {
         Long id = 110L;
         when(instance.getId()).thenReturn(id);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistence.toEntity(instance)).thenReturn(instance);
+//        when(persistence.toEntity(instance)).thenReturn(instance);
         when(persistence.save(instance)).thenReturn(Optional.of(instance));
         Context<Optional<Student>> context = command.createContext(instance);
 
@@ -63,7 +63,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(result).isPresent().contains(instance);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(instance);
+//        verify(persistence).toEntity(instance);
         verify(persistence).save(instance);
     }
 
@@ -115,7 +115,7 @@ class CreateOrUpdateStudentCommandTest {
         Long id = 111L;
         when(instance.getId()).thenReturn(id);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistence.toEntity(instance)).thenReturn(instance);
+//        when(persistence.toEntity(instance)).thenReturn(instance);
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
         when(persistence.save(instance)).thenThrow(cannotExecute).thenReturn(Optional.of(instance));
         Context<Optional<Student>> context = command.createContext(instance);
@@ -127,7 +127,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(instance);
+//        verify(persistence).toEntity(instance);
         verify(persistence, times(2)).save(instance);
     }
 

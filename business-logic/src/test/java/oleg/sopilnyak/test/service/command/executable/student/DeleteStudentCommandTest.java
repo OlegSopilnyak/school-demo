@@ -36,7 +36,7 @@ class DeleteStudentCommandTest {
         Long id = 110L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
         when(persistence.deleteStudent(id)).thenReturn(true);
-        when(persistence.toEntity(instance)).thenReturn(instance);
+//        when(persistence.toEntity(instance)).thenReturn(instance);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -47,7 +47,7 @@ class DeleteStudentCommandTest {
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(instance);
+//        verify(persistence).toEntity(instance);
         verify(persistence).deleteStudent(id);
     }
 
@@ -55,7 +55,7 @@ class DeleteStudentCommandTest {
     void shouldNotDoCommand_ExceptionThrown() {
         Long id = 111L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistence.toEntity(instance)).thenReturn(instance);
+//        when(persistence.toEntity(instance)).thenReturn(instance);
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).deleteStudent(id);
         Context<Boolean> context = command.createContext(id);
@@ -67,7 +67,7 @@ class DeleteStudentCommandTest {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(instance);
+//        verify(persistence).toEntity(instance);
         verify(persistence).deleteStudent(id);
     }
 
@@ -83,7 +83,7 @@ class DeleteStudentCommandTest {
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence, never()).toEntity(instance);
+//        verify(persistence, never()).toEntity(instance);
         verify(persistence, never()).deleteStudent(id);
     }
 
@@ -92,7 +92,7 @@ class DeleteStudentCommandTest {
         Long id = 113L;
         when(instance.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-        when(persistence.toEntity(instance)).thenReturn(instance);
+//        when(persistence.toEntity(instance)).thenReturn(instance);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -102,7 +102,7 @@ class DeleteStudentCommandTest {
         assertThat(context.getException()).isInstanceOf(StudentWithCoursesException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(persistence).toEntity(instance);
+//        verify(persistence).toEntity(instance);
         verify(persistence, never()).deleteStudent(id);
     }
 

@@ -157,7 +157,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-        verify(persistence).toEntity(facultySource);
+//        verify(persistence).toEntity(facultySource);
         verify(persistence).save(facultySource);
     }
 
@@ -196,7 +196,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-        verify(persistence).toEntity(facultySource);
+//        verify(persistence).toEntity(facultySource);
         verify(persistence).deleteFaculty(id);
         assertThat(persistence.findFacultyById(id)).isEmpty();
     }
@@ -234,7 +234,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-        verify(persistence).toEntity(faculty.get());
+//        verify(persistence).toEntity(faculty.get());
         verify(persistence, never()).deleteFaculty(id);
     }
 
@@ -242,8 +242,8 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     private CommandsFactory<FacultyCommand> buildFactory(FacultyPersistenceFacade persistence) {
         return new FacultyCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateFacultyCommand(persistence)),
-                        spy(new DeleteFacultyCommand(persistence)),
+                        spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),
+                        spy(new DeleteFacultyCommand(persistence, payloadMapper)),
                         spy(new FindAllFacultiesCommand(persistence)),
                         spy(new FindFacultyCommand(persistence))
                 )
@@ -257,6 +257,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         Optional<Faculty> dbAuthorityPerson = database.findFacultyById(entity.getId());
         assertFacultyEquals(dbAuthorityPerson.orElseThrow(), faculty, false);
         assertThat(dbAuthorityPerson).contains(entity);
-        return database.toEntity(entity);
+//        return database.toEntity(entity);
+        return entity;
     }
 }

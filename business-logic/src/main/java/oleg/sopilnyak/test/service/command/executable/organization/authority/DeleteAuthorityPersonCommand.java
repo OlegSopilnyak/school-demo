@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the authority person by id
@@ -31,11 +32,13 @@ public class DeleteAuthorityPersonCommand
         extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
-        super(AuthorityPerson.class, payloadMapper);
+        super(AuthorityPerson.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class DeleteAuthorityPersonCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
@@ -62,8 +65,9 @@ public class DeleteAuthorityPersonCommand
                 throw notFoundException;
             }
 
-            final AuthorityPerson entity =
-                    retrieveEntity(id, persistence::findAuthorityPersonById, () -> notFoundException);
+            final var entity = retrieveEntity(id,
+                    persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> notFoundException
+            );
 
             if (!entity.getFaculties().isEmpty()) {
                 throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
@@ -75,9 +79,9 @@ public class DeleteAuthorityPersonCommand
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot delete authority person with :{}", parameter, e);
             context.failed(e);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 

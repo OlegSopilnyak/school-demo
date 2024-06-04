@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
@@ -8,6 +9,8 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPer
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,20 +30,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     CoursesPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     CreateOrUpdateCourseCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -48,6 +53,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -71,8 +77,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateCourse() {
         Course course = persistCourse();
-        Course courseUpdated = persistence.toEntity(course);
-        if (courseUpdated instanceof CourseEntity updated) {
+        Course courseUpdated = payloadMapper.toPayload(course);
+        if (courseUpdated instanceof CoursePayload updated) {
             updated.setName(course.getName() + "-updated");
         }
         Context<Optional<Course>> context = command.createContext(courseUpdated);
@@ -86,7 +92,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         assertCourseEquals(courseUpdated, result.orElseThrow(), false);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
-        verify(persistence).toEntity(courseUpdated);
+        verify(payloadMapper).toPayload(course);
         verify(persistence).save(courseUpdated);
     }
 
@@ -152,7 +158,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
-        verify(persistence).toEntity(course);
+        verify(payloadMapper).toPayload(course);
+//        verify(persistence).toEntity(course);
         verify(persistence, times(2)).save(course);
     }
 
@@ -268,7 +275,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-            return persistence.toEntity(entity);
+            return payloadMapper.toPayload(entity);
+//            return persistence.toEntity(entity);
         } finally {
             reset(persistence);
         }

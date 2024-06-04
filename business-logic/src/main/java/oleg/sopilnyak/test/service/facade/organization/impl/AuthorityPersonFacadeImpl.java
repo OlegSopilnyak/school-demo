@@ -113,7 +113,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
 
         if (context.isDone()) {
             log.debug("Deleted authority person with ID:{} successfully.", id);
-            context.setUndoParameter(payloadMapper.toPayload(context.<AuthorityPerson>getUndoParameter()));
             return;
         }
 

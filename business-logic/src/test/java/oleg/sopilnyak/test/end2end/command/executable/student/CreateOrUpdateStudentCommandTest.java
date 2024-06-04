@@ -73,7 +73,8 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateStudent() {
         Student student = persistStudent();
-        Student studentUpdated = persistence.toEntity(student);
+        Student studentUpdated = null;
+//                persistence.toEntity(student);
         if (studentUpdated instanceof StudentEntity updated) {
             updated.setFirstName(student.getFirstName() + "-updated");
         }
@@ -88,7 +89,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertStudentEquals(studentUpdated, result.orElseThrow(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(student.getId());
-        verify(persistence).toEntity(studentUpdated);
+//        verify(persistence).toEntity(studentUpdated);
         verify(persistence).save(studentUpdated);
     }
 
@@ -150,7 +151,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.<Object>getUndoParameter()).isEqualTo(student);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistence).toEntity(student);
+//        verify(persistence).toEntity(student);
         verify(persistence, times(2)).save(student);
     }
 
@@ -260,7 +261,8 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }

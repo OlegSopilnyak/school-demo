@@ -4,47 +4,60 @@ import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteCourseCommandTest {
     @Mock
+    Course mockedCourse;
+    @Mock
+    CoursePayload mockedCoursePayload;
+    @Mock
     CoursesPersistenceFacade persistence;
     @Mock
-    Course course;
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     DeleteCourseCommand command;
 
     @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistenceFacade"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
+
+    @Test
     void shouldDoCommand_CourseFound() {
         Long id = 100L;
-        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistence.toEntity(course)).thenReturn(course);
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(mockedCourse));
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(mockedCoursePayload);
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-        verify(persistence).toEntity(any(Course.class));
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistence).deleteCourse(id);
     }
 
@@ -69,18 +82,17 @@ class DeleteCourseCommandTest {
         Long id = 101L;
         RuntimeException cannotExecute = new RuntimeException("Cannot delete");
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
-        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(persistence.toEntity(course)).thenReturn(course);
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(mockedCourse));
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-        verify(persistence).toEntity(any(Course.class));
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistence).deleteCourse(id);
     }
 
@@ -88,15 +100,15 @@ class DeleteCourseCommandTest {
     void shouldUndoCommand_CourseFound() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
-        context.setUndoParameter(course);
-        when(persistence.save(course)).thenReturn(Optional.of(course));
+        context.setUndoParameter(mockedCourse);
+        when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
-        verify(persistence).save(course);
+        verify(persistence).save(mockedCourse);
     }
 
     @Test
@@ -110,7 +122,7 @@ class DeleteCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(course);
+        verify(persistence, never()).save(mockedCourse);
     }
 
     @Test
@@ -123,16 +135,16 @@ class DeleteCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(course);
+        verify(persistence, never()).save(mockedCourse);
     }
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
         RuntimeException cannotExecute = new RuntimeException("Cannot restore");
-        doThrow(cannotExecute).when(persistence).save(course);
+        doThrow(cannotExecute).when(persistence).save(mockedCourse);
         context.setState(DONE);
-        context.setUndoParameter(course);
+        context.setUndoParameter(mockedCourse);
 
         command.undoCommand(context);
 
@@ -140,6 +152,6 @@ class DeleteCourseCommandTest {
         assertThat(context.getException()).isEqualTo(cannotExecute);
 
         verify(command).executeUndo(context);
-        verify(persistence).save(course);
+        verify(persistence).save(mockedCourse);
     }
 }

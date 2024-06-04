@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to delete the faculty of the school by id
@@ -31,11 +32,13 @@ public class DeleteFacultyCommand
         extends SchoolCommandCache<Faculty>
         implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteFacultyCommand(final FacultyPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
-        super(Faculty.class, payloadMapper);
+        super(Faculty.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class DeleteFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
@@ -63,7 +66,7 @@ public class DeleteFacultyCommand
             }
 
             // getting from the database current version of the faculty
-            final Faculty entity = retrieveEntity(id, persistence::findFacultyById, () -> notFoundException);
+            final var entity = retrieveEntity(id, persistence::findFacultyById, payloadMapper::toPayload, () -> notFoundException);
 
             if (!entity.getCourses().isEmpty()) {
                 throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");

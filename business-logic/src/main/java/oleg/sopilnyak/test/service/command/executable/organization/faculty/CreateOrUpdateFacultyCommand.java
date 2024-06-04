@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to create or update the faculty of the school
@@ -31,11 +32,13 @@ public class CreateOrUpdateFacultyCommand
         extends SchoolCommandCache<Faculty>
         implements FacultyCommand {
     private final FacultyPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
-        super(Faculty.class, payloadMapper);
+        super(Faculty.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class CreateOrUpdateFacultyCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
@@ -63,7 +66,7 @@ public class CreateOrUpdateFacultyCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // previous version of faculty is storing to context for further rollback (undo)
-                final Faculty entity = retrieveEntity(id, persistence::findFacultyById,
+                final var entity = retrieveEntity(id, persistence::findFacultyById, payloadMapper::toPayload,
                         () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);

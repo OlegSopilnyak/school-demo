@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +38,8 @@ class StudentsFacadeImplTest {
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     @Spy
     CommandsFactory<StudentCommand> factory = buildFactory();
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
 
     @Spy
     @InjectMocks
@@ -153,7 +156,7 @@ class StudentsFacadeImplTest {
     void shouldDelete() throws StudentWithCoursesException, NotExistStudentException {
         Long studentId = 101L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
-        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
+//        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
 
         facade.delete(studentId);
 
@@ -182,7 +185,7 @@ class StudentsFacadeImplTest {
         Long studentId = 103L;
         when(mockedStudent.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
-        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
+//        when(persistenceFacade.toEntity(mockedStudent)).thenReturn(mockedStudent);
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
@@ -199,8 +202,8 @@ class StudentsFacadeImplTest {
                         spy(new FindStudentCommand(persistenceFacade)),
                         spy(new FindEnrolledStudentsCommand(persistenceFacade)),
                         spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateStudentCommand(persistenceFacade)),
-                        spy(new DeleteStudentCommand(persistenceFacade))
+                        spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteStudentCommand(persistenceFacade, payloadMapper))
                 )
         );
     }

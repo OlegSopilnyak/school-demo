@@ -1,8 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
@@ -28,7 +26,6 @@ import static java.util.Objects.isNull;
 public class UnRegisterStudentFromCourseCommand implements CourseCommand {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     private final StudentCourseLinkPersistenceFacade persistenceFacade;
-    @Getter(AccessLevel.NONE)
     private final BusinessMessagePayloadMapper payloadMapper;
 
     /**

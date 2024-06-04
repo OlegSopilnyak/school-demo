@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to update the authority person
@@ -31,11 +32,13 @@ public class CreateOrUpdateAuthorityPersonCommand
         extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand {
     private final AuthorityPersonPersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                                 final BusinessMessagePayloadMapper payloadMapper) {
-        super(AuthorityPerson.class, payloadMapper);
+        super(AuthorityPerson.class);
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -46,7 +49,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, Supplier)
+     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see this#persistRedoEntity(Context, Function)
      * @see this#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
@@ -63,7 +66,8 @@ public class CreateOrUpdateAuthorityPersonCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // previous version of authority person is storing to context for further rollback (undo)
-                final AuthorityPerson entity = retrieveEntity(id, persistence::findAuthorityPersonById,
+                final var entity = retrieveEntity(id,
+                        persistence::findAuthorityPersonById, payloadMapper::toPayload,
                         () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);

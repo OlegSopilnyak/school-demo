@@ -193,7 +193,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).doCommand(any(Context.class));
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).toEntity(authorityPerson);
+//        verify(persistence).toEntity(authorityPerson);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
@@ -233,7 +233,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).doCommand(any(Context.class));
         verify(persistence).findAuthorityPersonById(id);
-        verify(persistence).toEntity(any(AuthorityPerson.class));
+//        verify(persistence).toEntity(any(AuthorityPerson.class));
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
 
@@ -241,8 +241,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private CommandsFactory<AuthorityPersonCommand> buildFactory(AuthorityPersonPersistenceFacade persistenceFacade) {
         return new AuthorityPersonCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
-                        spy(new DeleteAuthorityPersonCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                         spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
                         spy(new FindAuthorityPersonCommand(persistenceFacade))
                 )
@@ -256,6 +256,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Optional<AuthorityPerson> dbAuthorityPerson = database.findAuthorityPersonById(entity.getId());
         assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
         assertThat(dbAuthorityPerson).contains(entity);
-        return database.toEntity(entity);
+//        return database.toEntity(entity);
+        return entity;
     }
 }

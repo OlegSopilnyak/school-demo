@@ -468,10 +468,10 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
                 spy(new FindCourseCommand(persistenceFacade)),
                 spy(new FindRegisteredCoursesCommand(persistenceFacade)),
                 spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
-                spy(new CreateOrUpdateCourseCommand(persistenceFacade)),
-                spy(new DeleteCourseCommand(persistenceFacade)),
-                spy(new RegisterStudentToCourseCommand(persistenceFacade, 50, 5)),
-                spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
+                spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),
+                spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),
+                spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)),
+                spy(new UnRegisterStudentFromCourseCommand(persistenceFacade, payloadMapper))
         ));
     }
 }

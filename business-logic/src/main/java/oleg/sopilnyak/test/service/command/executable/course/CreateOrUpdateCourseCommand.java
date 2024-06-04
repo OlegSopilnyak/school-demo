@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Command-Implementation: command to create or update the course
@@ -31,11 +32,13 @@ public class CreateOrUpdateCourseCommand
         extends SchoolCommandCache<Course>
         implements CourseCommand {
     private final CoursesPersistenceFacade persistenceFacade;
+    private final BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                        final BusinessMessagePayloadMapper payloadMapper) {
-        super(Course.class, payloadMapper);
+        super(Course.class);
         this.persistenceFacade = persistenceFacade;
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -45,7 +48,7 @@ public class CreateOrUpdateCourseCommand
      * @param context context of redo execution
      * @see Context
      * @see Context.State#WORK
-     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, Supplier)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see CoursesPersistenceFacade#findCourseById(Long)
@@ -62,9 +65,10 @@ public class CreateOrUpdateCourseCommand
             final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateCourse) {
                 // previous version of course is storing to context for further rollback (undo)
-                final Course entity = retrieveEntity(id, persistenceFacade::findCourseById,
-                        () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
-                );
+                final var entity =
+                        retrieveEntity(id, persistenceFacade::findCourseById, payloadMapper::toPayload,
+                                () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
+                        );
                 context.setUndoParameter(entity);
             }
             final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);

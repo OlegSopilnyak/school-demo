@@ -162,7 +162,7 @@ class CoursesFacadeImplTest {
     void shouldDelete() throws NotExistCourseException, CourseWithStudentsException {
         Long courseId = 202L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
+//        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
 
         facade.delete(courseId);
 
@@ -192,7 +192,7 @@ class CoursesFacadeImplTest {
         Long courseId = 204L;
         when(mockedCourse.getStudents()).thenReturn(List.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
+//        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 
@@ -337,10 +337,10 @@ class CoursesFacadeImplTest {
                         spy(new FindCourseCommand(persistenceFacade)),
                         spy(new FindRegisteredCoursesCommand(persistenceFacade)),
                         spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateCourseCommand(persistenceFacade)),
-                        spy(new DeleteCourseCommand(persistenceFacade)),
-                        spy(new RegisterStudentToCourseCommand(persistenceFacade, 50, 5)),
-                        spy(new UnRegisterStudentFromCourseCommand(persistenceFacade))
+                        spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),
+                        spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)),
+                        spy(new UnRegisterStudentFromCourseCommand(persistenceFacade, payloadMapper))
                 )
         );
     }

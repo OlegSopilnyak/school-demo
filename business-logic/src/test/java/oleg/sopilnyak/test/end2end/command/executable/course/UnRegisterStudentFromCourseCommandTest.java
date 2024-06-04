@@ -73,9 +73,9 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
-        verify(persistence).toEntity(student);
+//        verify(persistence).toEntity(student);
         verify(persistence).findCourseById(courseId);
-        verify(persistence).toEntity(course);
+//        verify(persistence).toEntity(course);
         assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
         assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses()).isEmpty();
         assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents()).isEmpty();
@@ -239,7 +239,8 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }
@@ -258,7 +259,8 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }

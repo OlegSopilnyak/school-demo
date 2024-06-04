@@ -148,7 +148,7 @@ class AuthorityPersonFacadeImplTest {
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 302L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
-        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
+//        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
 
         facade.deleteAuthorityPersonById(id);
 
@@ -180,7 +180,7 @@ class AuthorityPersonFacadeImplTest {
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 304L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
-        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
+//        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
         when(mockPerson.getFaculties()).thenReturn(List.of(mockFaculty));
 
         AuthorityPersonManageFacultyException thrown =
@@ -198,8 +198,8 @@ class AuthorityPersonFacadeImplTest {
     private CommandsFactory<AuthorityPersonCommand> buildFactory() {
         return new AuthorityPersonCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade)),
-                        spy(new DeleteAuthorityPersonCommand(persistenceFacade)),
+                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper)),
+                        spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                         spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
                         spy(new FindAuthorityPersonCommand(persistenceFacade))
                 )

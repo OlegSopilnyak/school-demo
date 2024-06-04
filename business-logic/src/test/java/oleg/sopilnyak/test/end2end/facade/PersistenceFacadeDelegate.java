@@ -62,17 +62,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
-     * Convert course to entity bean
-     *
-     * @param course instance to convert
-     * @return instance ready to use in the repository
-     */
-    @Override
-    public Course toEntity(Course course) {
-        return delegator.toEntity(course);
-    }
-
-    /**
      * To check is there is any course in the database<BR/>For tests purposes only
      *
      * @return true if there is no course in database
@@ -134,16 +123,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
         return delegator.deleteAuthorityPerson(id);
     }
 
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    public AuthorityPerson toEntity(AuthorityPerson type) {
-        return delegator.toEntity(type);
-    }
 
     /**
      * To get all faculties of the school
@@ -198,17 +177,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    public Faculty toEntity(Faculty type) {
-        return delegator.toEntity(type);
-    }
-
-    /**
      * To get all students groups of the school
      *
      * @return the set of students groups
@@ -258,17 +226,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     @Override
     public void deleteStudentsGroup(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         delegator.deleteStudentsGroup(id);
-    }
-
-    /**
-     * To transform model type to the entity
-     *
-     * @param type source instance
-     * @return entity instance
-     */
-    @Override
-    public StudentsGroup toEntity(StudentsGroup type) {
-        return delegator.toEntity(type);
     }
 
     /**
@@ -377,17 +334,6 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
-     * Convert student to entity bean
-     *
-     * @param student instance to convert
-     * @return instance ready to use in the repository
-     */
-    @Override
-    public Student toEntity(Student student) {
-        return delegator.toEntity(student);
-    }
-
-    /**
      * To check is there are any student in the database<BR/>For tests purposes only
      *
      * @return true if there is no student in database
@@ -442,7 +388,7 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * @return instance ready to use in the repository
      */
     @Override
-    public PersonProfile toEntity(PersonProfile profile) {
+    public <T extends PersonProfile> T toEntity(T profile) {
         return delegator.toEntity(profile);
     }
 }

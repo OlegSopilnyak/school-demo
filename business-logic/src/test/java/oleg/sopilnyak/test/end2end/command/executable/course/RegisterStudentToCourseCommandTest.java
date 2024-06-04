@@ -295,7 +295,8 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }
@@ -314,7 +315,8 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-            return persistence.toEntity(entity);
+//            return persistence.toEntity(entity);
+            return entity;
         } finally {
             reset(persistence);
         }
