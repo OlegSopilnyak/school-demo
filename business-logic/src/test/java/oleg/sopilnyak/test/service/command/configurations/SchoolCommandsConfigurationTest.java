@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SchoolCommandsConfigurationTest {
     @MockBean
     PersistenceFacade persistenceFacade;
+    @MockBean
+    BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     @Qualifier("studentCommandsFactory")
     CommandsFactory<StudentCommand> studentsCommandsFactory;

@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.FacultyPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,16 +39,17 @@ class FacultyFacadeImplTest {
     private static final String ORGANIZATION_FACULTY_CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
     private static final String ORGANIZATION_FACULTY_DELETE = "organization.faculty.delete";
     FacultyPersistenceFacade persistence = mock(FacultyPersistenceFacade.class);
+    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
     CommandsFactory<FacultyCommand> factory = buildFactory();
-    @Mock
-    Faculty mockFaculty;
-    @Mock
-    BusinessMessagePayloadMapper payloadMapper;
-
     @Spy
     @InjectMocks
     FacultyFacadeImpl facade;
+
+    @Mock
+    Faculty mockFaculty;
+    @Mock
+    FacultyPayload mockFacultyPayload;
 
     @Test
     void shouldFindAllFaculties_EmptySet() {
@@ -90,6 +92,7 @@ class FacultyFacadeImplTest {
     @Test
     void shouldFindFacultyById() {
         Long id = 410L;
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
         Optional<Faculty> faculty = facade.findFacultyById(id);
@@ -103,34 +106,37 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateFaculty() {
-        when(persistence.save(mockFaculty)).thenReturn(Optional.of(mockFaculty));
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
+        when(payloadMapper.toPayload(mockFacultyPayload)).thenReturn(mockFacultyPayload);
+        when(persistence.save(mockFacultyPayload)).thenReturn(Optional.of(mockFacultyPayload));
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFaculty);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFacultyPayload);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistence).save(mockFaculty);
+        verify(persistence).save(mockFacultyPayload);
     }
 
     @Test
     void shouldNotCreateOrUpdateFaculty() {
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFaculty);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFacultyPayload);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistence).save(mockFaculty);
+        verify(persistence).save(mockFacultyPayload);
     }
 
     @Test
     void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 402L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
-//        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
 
         facade.deleteFacultyById(id);
 
@@ -158,9 +164,9 @@ class FacultyFacadeImplTest {
     @Test
     void shouldNoDeleteFacultyById_FacultyNotEmpty() throws NotExistFacultyException, FacultyIsNotEmptyException {
         Long id = 404L;
-        when(mockFaculty.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
-//        when(persistence.toEntity(mockFaculty)).thenReturn(mockFaculty);
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
+        when(mockFacultyPayload.getCourses()).thenReturn(List.of(mock(Course.class)));
 
         FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 

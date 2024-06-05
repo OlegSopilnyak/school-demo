@@ -64,7 +64,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             }
 
             final var entity = retrieveEntity(inputId,
-                    persistenceFacade::findCourseById, payloadMapper::toPayload,() -> notFoundException
+                    persistenceFacade::findCourseById, payloadMapper::toPayload, () -> notFoundException
             );
 
             if (!ObjectUtils.isEmpty(entity.getStudents())) {

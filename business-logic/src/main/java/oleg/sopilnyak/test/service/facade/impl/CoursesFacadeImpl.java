@@ -10,9 +10,11 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
@@ -33,26 +35,36 @@ public class CoursesFacadeImpl implements CoursesFacade {
     /**
      * To get the course by ID
      *
-     * @param courseId system-id of the course
+     * @param id system-id of the course
      * @return course instance or empty() if not exists
      * @see Course
      * @see Optional
      * @see Optional#empty()
      */
     @Override
-    public Optional<Course> findById(Long courseId) {
-        return doSimpleCommand(FIND_BY_ID_COMMAND_ID, courseId, factory);
+    public Optional<Course> findById(Long id) {
+        log.debug("Find course by ID:{}", id);
+        final String commandId = FIND_BY_ID_COMMAND_ID;
+        final Optional<Course> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found the course {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
      * To get courses registered for the student
      *
-     * @param studentId system-id of the student
+     * @param id system-id of the student
      * @return set of courses
      */
     @Override
-    public Set<Course> findRegisteredFor(Long studentId) {
-        return doSimpleCommand(FIND_REGISTERED_COMMAND_ID, studentId, factory);
+    public Set<Course> findRegisteredFor(Long id) {
+        log.debug("Find courses registered to student with ID:{}", id);
+        final String commandId = FIND_REGISTERED_COMMAND_ID;
+        final Set<Course> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found courses registered to student {}", result);
+        return result.stream()
+                .map(payloadMapper::toPayload).map(Course.class::cast)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -62,39 +74,51 @@ public class CoursesFacadeImpl implements CoursesFacade {
      */
     @Override
     public Set<Course> findWithoutStudents() {
-        return doSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
+        log.debug("Find no-students courses");
+        final String commandId = FIND_NOT_REGISTERED_COMMAND_ID;
+        final Set<Course> result = doSimpleCommand(commandId, null, factory);
+        log.debug("Found no-students courses {}", result);
+        return result.stream()
+                .map(payloadMapper::toPayload).map(Course.class::cast)
+                .collect(Collectors.toSet());
     }
 
     /**
      * To create or update course instance
      *
-     * @param course course should be created or updated
+     * @param instance course should be created or updated
      * @return student instance or empty() if not exists
      * @see Optional
      * @see Optional#empty()
      */
     @Override
-    public Optional<Course> createOrUpdate(Course course) {
-        return doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, course, factory);
+    public Optional<Course> createOrUpdate(Course instance) {
+        log.debug("Create or Update course {}", instance);
+        final String commandId = CREATE_OR_UPDATE_COMMAND_ID;
+        final CoursePayload payload = payloadMapper.toPayload(instance);
+        final Optional<Course> result = doSimpleCommand(commandId, payload, factory);
+        log.debug("Changed course {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
      * To delete course from the school
      *
-     * @param courseId system-id of the course to delete
+     * @param id system-id of the course to delete
      * @throws NotExistCourseException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
     @Override
-    public void delete(Long courseId) throws NotExistCourseException, CourseWithStudentsException {
+    public void delete(Long id) throws NotExistCourseException, CourseWithStudentsException {
+        log.debug("Delete course with ID:{}", id);
         final String commandId = DELETE_COMMAND_ID;
         final SchoolCommand command = takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(courseId);
+        final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
-            log.debug("Deleted course with ID:{} successfully.", courseId);
+            log.debug("Deleted course with ID:{} successfully.", id);
             return;
         }
 
@@ -126,6 +150,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public void register(Long studentId, Long courseId)
             throws NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
+        log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
         final String commandId = REGISTER_COMMAND_ID;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
@@ -165,6 +190,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
+        log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
         final String commandId = UN_REGISTER_COMMAND_ID;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});

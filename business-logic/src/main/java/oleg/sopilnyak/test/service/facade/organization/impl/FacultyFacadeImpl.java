@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.FacultyPayload;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -45,7 +46,11 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
      */
     @Override
     public Collection<Faculty> findAllFaculties() {
-        return doSimpleCommand(FacultyCommand.FIND_ALL, null, factory);
+        log.debug("Find all faculties");
+        final String commandId = FacultyCommand.FIND_ALL;
+        final Collection<Faculty> result = doSimpleCommand(commandId, null, factory);
+        log.debug("Found all faculties {}", result);
+        return result.stream().map(payloadMapper::toPayload).map(Faculty.class::cast).toList();
     }
 
     /**
@@ -59,7 +64,11 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
      */
     @Override
     public Optional<Faculty> findFacultyById(Long id) {
-        return doSimpleCommand(FacultyCommand.FIND_BY_ID, id, factory);
+        log.debug("Find faculty by ID:{}", id);
+        final String commandId = FacultyCommand.FIND_BY_ID;
+        final Optional<Faculty> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found faculty {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -73,7 +82,12 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
      */
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
-        return doSimpleCommand(FacultyCommand.CREATE_OR_UPDATE, instance, factory);
+        log.debug("Create or Update faculty {}", instance);
+        final String commandId = FacultyCommand.CREATE_OR_UPDATE;
+        final FacultyPayload payload = payloadMapper.toPayload(instance);
+        final Optional<Faculty> result = doSimpleCommand(commandId, payload, factory);
+        log.debug("Changed faculty {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -85,6 +99,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl implements Faculty
      */
     @Override
     public void deleteFacultyById(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
+        log.debug("Delete faculty with ID:{}", id);
         String commandId = FacultyCommand.DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);

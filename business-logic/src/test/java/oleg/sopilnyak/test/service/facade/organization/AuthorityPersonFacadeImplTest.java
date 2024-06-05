@@ -41,16 +41,15 @@ class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE = "organization.authority.person.delete";
 
     AuthorityPersonPersistenceFacade persistenceFacade = mock(AuthorityPersonPersistenceFacade.class);
+    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
     CommandsFactory<AuthorityPersonCommand> factory = buildFactory();
     @Mock
     AuthorityPerson mockPerson;
     @Mock
-    AuthorityPersonPayload mockPayload;
+    AuthorityPersonPayload mockPersonPayload;
     @Mock
     Faculty mockFaculty;
-    @Mock
-    BusinessMessagePayloadMapper payloadMapper;
 
     @Spy
     @InjectMocks
@@ -100,7 +99,7 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldFindAuthorityPersonById() {
         Long id = 301L;
-        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPayload);
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
 
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
@@ -114,41 +113,41 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Create() {
-        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPayload);
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
 
         Optional<AuthorityPerson> result = facade.createOrUpdateAuthorityPerson(mockPerson);
 
         assertThat(result).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPayload);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPersonPayload);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistenceFacade).save(mockPayload);
+        verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
         verify(payloadMapper, never()).toPayload(any(AuthorityPersonPayload.class));
     }
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Update() {
-        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPayload);
-        when(payloadMapper.toPayload(mockPayload)).thenReturn(mockPayload);
-        when(persistenceFacade.save(mockPayload)).thenReturn(Optional.of(mockPayload));
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
+        when(payloadMapper.toPayload(mockPersonPayload)).thenReturn(mockPersonPayload);
+        when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPersonPayload));
 
         Optional<AuthorityPerson> result = facade.createOrUpdateAuthorityPerson(mockPerson);
 
-        assertThat(result).contains(mockPayload);
+        assertThat(result).contains(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPayload);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPersonPayload);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistenceFacade).save(mockPayload);
+        verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
-        verify(payloadMapper).toPayload(mockPayload);
+        verify(payloadMapper).toPayload(mockPersonPayload);
     }
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 302L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
-//        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
 
         facade.deleteAuthorityPersonById(id);
 
@@ -180,8 +179,8 @@ class AuthorityPersonFacadeImplTest {
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
         Long id = 304L;
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
-//        when(persistenceFacade.toEntity(mockPerson)).thenReturn(mockPerson);
-        when(mockPerson.getFaculties()).thenReturn(List.of(mockFaculty));
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
+        when(mockPersonPayload.getFaculties()).thenReturn(List.of(mockFaculty));
 
         AuthorityPersonManageFacultyException thrown =
                 assertThrows(AuthorityPersonManageFacultyException.class, () -> facade.deleteAuthorityPersonById(id));

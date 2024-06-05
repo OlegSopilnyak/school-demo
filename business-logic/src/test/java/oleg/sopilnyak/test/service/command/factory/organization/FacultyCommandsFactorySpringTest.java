@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.factory.organization;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,8 @@ class FacultyCommandsFactorySpringTest {
     private Collection<String> commandsId;
     @MockBean
     PersistenceFacade persistenceFacade;
+    @MockBean
+    BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     CommandsFactory<FacultyCommand> factory;
     @Autowired

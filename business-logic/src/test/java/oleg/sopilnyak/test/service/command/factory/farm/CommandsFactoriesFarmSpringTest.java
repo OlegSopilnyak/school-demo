@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
@@ -32,6 +33,8 @@ class CommandsFactoriesFarmSpringTest {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
     @MockBean
     PersistenceFacade persistenceFacade;
+    @MockBean
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @Autowired
     CommandsFactory<CourseCommand> factory1;

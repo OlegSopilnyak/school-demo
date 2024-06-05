@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -38,16 +39,17 @@ class StudentsGroupFacadeImplTest {
     private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
     private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "organization.students.group.delete";
     StudentsGroupPersistenceFacade persistenceFacade = mock(StudentsGroupPersistenceFacade.class);
+    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
     CommandsFactory<StudentsGroupCommand> factory = buildFactory();
-    @Mock
-    StudentsGroup mockGroup;
-    @Mock
-    BusinessMessagePayloadMapper payloadMapper;
-
     @Spy
     @InjectMocks
     StudentsGroupFacadeImpl facade;
+
+    @Mock
+    StudentsGroup mockGroup;
+    @Mock
+    StudentsGroupPayload mockGroupPayload;
 
     @Test
     void shouldFindAllStudentsGroup() {
@@ -77,6 +79,7 @@ class StudentsGroupFacadeImplTest {
     @Test
     void shouldFindStudentsGroupById() {
         Long id = 500L;
+        when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
 
         Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
@@ -103,22 +106,24 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateStudentsGroup() {
-        when(persistenceFacade.save(mockGroup)).thenReturn(Optional.of(mockGroup));
+        when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
+        when(payloadMapper.toPayload(mockGroupPayload)).thenReturn(mockGroupPayload);
+        when(persistenceFacade.save(mockGroupPayload)).thenReturn(Optional.of(mockGroupPayload));
 
         Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(mockGroup);
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(mockGroup);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(mockGroupPayload);
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistenceFacade).save(mockGroup);
+        verify(persistenceFacade).save(mockGroupPayload);
     }
 
     @Test
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 502L;
+        when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
-//        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
 
         facade.deleteStudentsGroupById(id);
 
@@ -146,9 +151,10 @@ class StudentsGroupFacadeImplTest {
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
         Long id = 504L;
-        when(mockGroup.getStudents()).thenReturn(List.of(mock(Student.class)));
-//        when(persistenceFacade.toEntity(mockGroup)).thenReturn(mockGroup);
+        when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
+        when(mockGroupPayload.getStudents()).thenReturn(List.of(mock(Student.class)));
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
+
         StudentGroupWithStudentsException thrown =
                 assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
 

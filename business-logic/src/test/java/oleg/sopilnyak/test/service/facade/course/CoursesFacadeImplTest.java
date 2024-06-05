@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.facade.course;
 
 import oleg.sopilnyak.test.school.common.exception.*;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.course.*;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -11,9 +11,9 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -38,17 +38,17 @@ class CoursesFacadeImplTest {
     private static final String COURSE_REGISTER = "course.register";
     private static final String COURSE_UN_REGISTER = "course.unRegister";
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
+    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
     CommandsFactory<CourseCommand> factory = buildFactory();
-    @Spy
-    BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
-
     @Spy
     @InjectMocks
     CoursesFacadeImpl facade;
 
     @Mock
     Course mockedCourse;
+    @Mock
+    CoursePayload mockedCoursePayload;
     @Mock
     Student mockedStudent;
 
@@ -68,11 +68,12 @@ class CoursesFacadeImplTest {
     @Test
     void shouldFindById() {
         Long courseId = 201L;
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
         Optional<Course> course = facade.findById(courseId);
 
-        assertThat(course).isPresent();
+        assertThat(course).isPresent().contains(mockedCoursePayload);
         verify(factory).command(COURSE_FIND_BY_ID);
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
@@ -133,36 +134,39 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdate() {
-        when(persistenceFacade.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+        when(payloadMapper.toPayload(mockedCoursePayload)).thenReturn(mockedCoursePayload);
+        when(persistenceFacade.save(mockedCoursePayload)).thenReturn(Optional.of(mockedCoursePayload));
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
 
-        assertThat(course).isPresent();
+        assertThat(course).isPresent().contains(mockedCoursePayload);
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
-        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCoursePayload);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).findCourseById(anyLong());
-        verify(persistenceFacade).save(mockedCourse);
+        verify(persistenceFacade).save(mockedCoursePayload);
     }
 
     @Test
     void shouldNotCreateOrUpdate() {
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
-        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCourse);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCoursePayload);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade, never()).findCourseById(anyLong());
-        verify(persistenceFacade).save(mockedCourse);
+        verify(persistenceFacade).save(mockedCoursePayload);
     }
 
     @Test
     void shouldDelete() throws NotExistCourseException, CourseWithStudentsException {
         Long courseId = 202L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-//        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
         facade.delete(courseId);
 
@@ -190,9 +194,9 @@ class CoursesFacadeImplTest {
     @Test
     void shouldNotDelete_CourseWithStudents() {
         Long courseId = 204L;
-        when(mockedCourse.getStudents()).thenReturn(List.of(mockedStudent));
+        when(mockedCoursePayload.getStudents()).thenReturn(List.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-//        when(persistenceFacade.toEntity(mockedCourse)).thenReturn(mockedCourse);
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
         CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
 

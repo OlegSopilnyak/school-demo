@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -36,14 +37,18 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     }
 
     /**
-     * To get all faculties
+     * To get all students groups
      *
-     * @return list of faculties
+     * @return list of students groups
      * @see StudentsGroup
      */
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
-        return doSimpleCommand(StudentsGroupCommand.FIND_ALL, null, factory);
+        log.debug("Find all students groups");
+        final String commandId = StudentsGroupCommand.FIND_ALL;
+        final Collection<StudentsGroup> result = doSimpleCommand(commandId, null, factory);
+        log.debug("Found all students groups {}", result);
+        return result.stream().map(payloadMapper::toPayload).map(StudentsGroup.class::cast).toList();
     }
 
     /**
@@ -57,7 +62,11 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
      */
     @Override
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
-        return doSimpleCommand(StudentsGroupCommand.FIND_BY_ID, id, factory);
+        log.debug("Find students group by ID:{}", id);
+        final String commandId = StudentsGroupCommand.FIND_BY_ID;
+        final Optional<StudentsGroup> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found students group {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -71,18 +80,24 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
      */
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
-        return doSimpleCommand(StudentsGroupCommand.CREATE_OR_UPDATE, instance, factory);
+        log.debug("Create or Update students group {}", instance);
+        final String commandId = StudentsGroupCommand.CREATE_OR_UPDATE;
+        final StudentsGroupPayload payload = payloadMapper.toPayload(instance);
+        final Optional<StudentsGroup> result = doSimpleCommand(commandId, payload, factory);
+        log.debug("Changed students group {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
      * To delete students group instance from the school
      *
-     * @param id system-id of the faculty to delete
+     * @param id system-id of the students group to delete
      * @throws NotExistStudentsGroupException    throws when students group is not exists
      * @throws StudentGroupWithStudentsException throws when students group has students
      */
     @Override
     public void deleteStudentsGroupById(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
+        log.debug("Delete students group with ID:{}", id);
         String commandId = StudentsGroupCommand.DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
