@@ -1,7 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -14,9 +16,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -74,6 +78,24 @@ class DeleteCourseCommandTest {
         assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
+        verify(persistence, never()).deleteCourse(id);
+    }
+
+    @Test
+    void shouldNotDoCommand_CourseHasEnrolledStudent() {
+        Long id = 113L;
+        when(mockedCoursePayload.getStudents()).thenReturn(List.of(mock(Student.class)));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(mockedCourse));
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+        Context<Boolean> context = command.createContext(id);
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(CourseWithStudentsException.class);
+        verify(command).executeDo(context);
+        verify(persistence).findCourseById(id);
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistence, never()).deleteCourse(id);
     }
 

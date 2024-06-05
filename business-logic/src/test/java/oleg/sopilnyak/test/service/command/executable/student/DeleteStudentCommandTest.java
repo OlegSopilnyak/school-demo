@@ -6,12 +6,15 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPe
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,19 +27,30 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DeleteStudentCommandTest {
     @Mock
+    Student entity;
+    @Mock
+    StudentPayload payload;
+    @Mock
     StudentsPersistenceFacade persistence;
     @Mock
-    Student instance;
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     DeleteStudentCommand command;
 
     @Test
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
+
+    @Test
     void shouldDoCommand_StudentFound() {
         Long id = 110L;
-        when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
         when(persistence.deleteStudent(id)).thenReturn(true);
-//        when(persistence.toEntity(instance)).thenReturn(instance);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -47,27 +61,26 @@ class DeleteStudentCommandTest {
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence).toEntity(instance);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence).deleteStudent(id);
     }
 
     @Test
     void shouldNotDoCommand_ExceptionThrown() {
         Long id = 111L;
-        when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-//        when(persistence.toEntity(instance)).thenReturn(instance);
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).deleteStudent(id);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence).toEntity(instance);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence).deleteStudent(id);
     }
 
@@ -78,31 +91,29 @@ class DeleteStudentCommandTest {
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence, never()).toEntity(instance);
+        verify(payloadMapper, never()).toPayload(any(Student.class));
         verify(persistence, never()).deleteStudent(id);
     }
 
     @Test
     void shouldNotDoCommand_StudentHasCourses() {
         Long id = 113L;
-        when(instance.getCourses()).thenReturn(List.of(mock(Course.class)));
-        when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-//        when(persistence.toEntity(instance)).thenReturn(instance);
+        when(payload.getCourses()).thenReturn(List.of(mock(Course.class)));
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(StudentWithCoursesException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence).toEntity(instance);
+        verify(payloadMapper).toPayload(entity);
         verify(persistence, never()).deleteStudent(id);
     }
 
@@ -110,15 +121,15 @@ class DeleteStudentCommandTest {
     void shouldUndoCommand_RestoreStudent() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
-        context.setUndoParameter(instance);
-        when(persistence.save(instance)).thenReturn(Optional.of(instance));
+        context.setUndoParameter(entity);
+        when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
-        verify(persistence).save(instance);
+        verify(persistence).save(entity);
     }
 
     @Test
@@ -132,7 +143,7 @@ class DeleteStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(instance);
+        verify(persistence, never()).save(entity);
     }
 
     @Test
@@ -145,6 +156,6 @@ class DeleteStudentCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeUndo(context);
-        verify(persistence, never()).save(instance);
+        verify(persistence, never()).save(entity);
     }
 }

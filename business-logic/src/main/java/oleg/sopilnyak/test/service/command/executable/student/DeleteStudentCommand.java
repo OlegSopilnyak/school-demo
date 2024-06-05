@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -54,7 +53,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
         try {
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long inputId = commandParameter(parameter);
-            final EntityNotExistException notFoundException =
+            final var notFoundException =
                     new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(inputId)) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", inputId);
