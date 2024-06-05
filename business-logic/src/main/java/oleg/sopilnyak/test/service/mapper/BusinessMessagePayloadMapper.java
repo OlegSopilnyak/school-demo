@@ -16,7 +16,6 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 /**
  * MapStruct Mapper: To convert model types to Payloads
  */
-@SuppressWarnings("SpellCheckingInspection")
 @Mapper(
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = IGNORE,
@@ -24,9 +23,10 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
         builder = @Builder(disableBuilder = true)
 )
 public interface BusinessMessagePayloadMapper {
-    default BaseType toPayload(BaseType baseType){
+    default BaseType toPayload(BaseType baseType) {
         throw new UnsupportedOperationException("Cannot convert to payload for type:" + baseType.getClass().getSimpleName());
     }
+
     /**
      * Convert model-type to Payload
      *
@@ -109,6 +109,16 @@ public interface BusinessMessagePayloadMapper {
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentPayloads")
     @Mapping(source = "leader", target = "leader", dependsOn = "students", qualifiedByName = "toShortStudent")
     StudentsGroupPayload toPayload(StudentsGroup group);
+
+    default PersonProfile toPayload(PersonProfile profile) {
+        if (profile instanceof StudentProfile studentProfile) {
+            return toPayload(studentProfile);
+        } else if (profile instanceof PrincipalProfile principalProfileProfile) {
+            return toPayload(principalProfileProfile);
+        } else {
+            throw new UnsupportedOperationException("Cannot convert to payload for type:" + profile.getClass().getSimpleName());
+        }
+    }
 
     /**
      * Convert model-type to DTO

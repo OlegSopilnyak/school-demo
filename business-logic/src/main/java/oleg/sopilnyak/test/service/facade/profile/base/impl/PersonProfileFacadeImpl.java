@@ -2,14 +2,14 @@ package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.business.profile.base.PersonProfileFacade;
+import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
@@ -27,7 +27,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     private final BusinessMessagePayloadMapper payloadMapper;
 
     protected abstract String findByIdCommandId();
+
     protected abstract String createOrUpdateCommandId();
+
     protected abstract String deleteByIdCommandId();
 
     /**
@@ -44,13 +46,17 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
      */
     @Override
     public Optional<PersonProfile> findById(Long id) {
-        return doSimpleCommand(findByIdCommandId(), id, factory);
+        log.debug("Find profile by ID:{}", id);
+        final String commandId = findByIdCommandId();
+        final Optional<PersonProfile> result = doSimpleCommand(commandId, id, factory);
+        log.debug("Found profile {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
      * To create person-profile
      *
-     * @param profile instance to create or update
+     * @param instance instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfileFacadeImpl#createOrUpdateCommandId()
      * @see CommandExecutor#doSimpleCommand(String, Object, CommandsFactory)
@@ -59,8 +65,13 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
      * @see Optional#empty()
      */
     @Override
-    public Optional<PersonProfile> createOrUpdate(PersonProfile profile) {
-        return doSimpleCommand(createOrUpdateCommandId(), profile, factory);
+    public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
+        log.debug("Create or Update profile {}", instance);
+        final String commandId = createOrUpdateCommandId();
+        final PersonProfile payload = payloadMapper.toPayload(instance);
+        final Optional<PersonProfile> result = doSimpleCommand(commandId, payload, factory);
+        log.debug("Changed profile {}", result);
+        return result.map(payloadMapper::toPayload);
     }
 
     /**
@@ -76,7 +87,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
      */
     @Override
     public void deleteById(Long id) throws NotExistProfileException {
-        final SchoolCommand command = takeValidCommand(deleteByIdCommandId(), factory);
+        log.debug("Delete profile with ID:{}", id);
+        final String commandId = deleteByIdCommandId();
+        final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

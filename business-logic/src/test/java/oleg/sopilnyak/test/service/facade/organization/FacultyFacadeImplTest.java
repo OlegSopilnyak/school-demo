@@ -97,7 +97,7 @@ class FacultyFacadeImplTest {
 
         Optional<Faculty> faculty = facade.findFacultyById(id);
 
-        assertThat(faculty).isPresent();
+        assertThat(faculty).contains(mockFacultyPayload);
         verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(id);
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
