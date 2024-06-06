@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.student;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
@@ -8,6 +9,8 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPe
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,20 +31,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentsPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     CreateOrUpdateStudentCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -49,6 +54,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -73,23 +79,21 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateStudent() {
         Student student = persistStudent();
-        Student studentUpdated = null;
-//                persistence.toEntity(student);
-        if (studentUpdated instanceof StudentEntity updated) {
+        Student studentUpdated = payloadMapper.toPayload(student);
+        if (studentUpdated instanceof StudentPayload updated) {
             updated.setFirstName(student.getFirstName() + "-updated");
         }
         Context<Optional<Student>> context = command.createContext(studentUpdated);
+        reset(payloadMapper);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.<Object>getUndoParameter()).isEqualTo(student);
-        assertThat(context.getResult()).isPresent();
-        Optional<Student> result = context.getResult().get();
-        assertStudentEquals(studentUpdated, result.orElseThrow(), false);
+        assertStudentEquals(studentUpdated, context.getResult().orElseThrow().orElseThrow(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(student.getId());
-//        verify(persistence).toEntity(studentUpdated);
+        verify(payloadMapper).toPayload(any(StudentEntity.class));
         verify(persistence).save(studentUpdated);
     }
 
@@ -261,10 +265,9 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }
