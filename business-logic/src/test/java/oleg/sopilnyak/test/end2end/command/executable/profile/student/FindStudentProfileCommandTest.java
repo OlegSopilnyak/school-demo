@@ -1,11 +1,13 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,22 +29,22 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentProfileCommand.class})
-@TestPropertySource(properties = {
-        "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
-})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentProfileCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     FindStudentProfileCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -50,6 +52,7 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -62,7 +65,7 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow().orElseThrow()).isEqualTo(profile);
+        assertProfilesEquals(profile, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -146,9 +149,9 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
             Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
             assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
             assertThat(dbProfile).contains(entity);
-            return persistence.toEntity(entity);
+            return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

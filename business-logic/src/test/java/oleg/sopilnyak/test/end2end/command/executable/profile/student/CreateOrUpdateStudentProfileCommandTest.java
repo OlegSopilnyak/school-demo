@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -8,6 +9,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,22 +30,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentProfileCommand.class})
-@TestPropertySource(properties = {
-        "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
-})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentProfileCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     CreateOrUpdateStudentProfileCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -51,6 +53,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -63,8 +66,8 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow().orElseThrow()).isEqualTo(profile);
         assertThat(context.<Object>getUndoParameter()).isEqualTo(profile);
+        assertProfilesEquals(profile, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -183,6 +186,8 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
+        StudentProfile exists = persistence.findStudentProfileById(id).orElseThrow();
+        reset(persistence);
         doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
         Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
 
@@ -193,7 +198,8 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(exists);
+        verify(payloadMapper).toPayload(exists);
         verify(persistence, times(2)).save(profile);
         verify(persistence, times(2)).saveProfile(profile);
     }
@@ -379,9 +385,9 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
             Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
             assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
             assertThat(dbProfile).contains(entity);
-            return persistence.toEntity(entity);
+            return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

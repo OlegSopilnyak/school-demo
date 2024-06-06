@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -7,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,22 +28,22 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteStudentProfileCommand.class})
-@TestPropertySource(properties = {
-        "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
-})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteStudentProfileCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     DeleteStudentProfileCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -49,6 +51,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -56,6 +59,8 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_ProfileExists() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
+        StudentProfile exists = persistence.findStudentProfileById(id).orElseThrow();
+        reset(persistence);
         Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -67,7 +72,8 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(exists);
+        verify(payloadMapper).toPayload(exists);
         verify(persistence).deleteProfileById(id);
         assertThat(persistence.findStudentProfileById(id)).isEmpty();
     }
@@ -216,9 +222,9 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
             Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
             assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
             assertThat(dbProfile).contains(entity);
-            return persistence.toEntity(entity);
+            return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

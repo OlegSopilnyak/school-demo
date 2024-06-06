@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.principal;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
@@ -7,6 +8,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.FindPrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,22 +29,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, FindPrincipalProfileCommand.class})
-@TestPropertySource(properties = {
-        "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
-})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindPrincipalProfileCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     FindPrincipalProfileCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -50,6 +52,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -62,7 +65,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult()).contains(Optional.of(profile));
+        assertProfilesEquals(profile, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
@@ -147,9 +150,9 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
             Optional<PrincipalProfile> dbProfile = persistence.findPrincipalProfileById(id);
             assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
             assertThat(dbProfile).contains(entity);
-            return persistence.toEntity(entity);
+            return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }
