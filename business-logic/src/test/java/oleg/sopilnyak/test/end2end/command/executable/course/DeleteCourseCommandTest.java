@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -9,6 +11,7 @@ import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenc
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.DeleteCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,21 +32,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteCourseCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class DeleteCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentCourseLinkPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     DeleteCourseCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command);
-        reset(persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -51,6 +55,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -63,12 +68,12 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
+        assertCourseEquals(course, context.getUndoParameter());
         assertThat(context.getResult()).isPresent();
         assertThat(context.getResult().get()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-//        verify(persistence).toEntity(course);
+        verify(payloadMapper).toPayload(any(CourseEntity.class));
         verify(persistence).deleteCourse(id);
     }
 
@@ -86,6 +91,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
+        verify(payloadMapper, never()).toPayload(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());
     }
 
@@ -108,6 +114,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" has enrolled students.");
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
+        verify(payloadMapper).toPayload(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());
     }
 
@@ -123,11 +130,11 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
+        assertCourseEquals(course, context.getUndoParameter());
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-//        verify(persistence).toEntity(course);
+        verify(payloadMapper).toPayload(any(CourseEntity.class));
         verify(persistence).deleteCourse(id);
         verify(persistence).save(course);
     }
@@ -223,10 +230,9 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

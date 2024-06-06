@@ -63,6 +63,7 @@ class PrincipalProfileFacadeImplTest {
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findPrincipalProfileById(id);
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -108,6 +109,7 @@ class PrincipalProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(payload);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
+        verify(payloadMapper, times(2)).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -122,6 +124,7 @@ class PrincipalProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(payload);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test

@@ -1,11 +1,13 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.FindCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,21 +28,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, FindCourseCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class FindCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     CoursesPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     FindCourseCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command);
-        reset(persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -48,6 +51,7 @@ class FindCourseCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
@@ -60,9 +64,7 @@ class FindCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult()).isPresent();
-        Optional<Course> result = context.getResult().orElseThrow();
-        assertThat(result).contains(course);
+        assertCourseEquals(course, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
     }
@@ -123,10 +125,9 @@ class FindCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

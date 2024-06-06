@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
@@ -12,6 +13,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.course.StudentToCourseLink;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, RegisterStudentToCourseCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, RegisterStudentToCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {
         "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update",
         "school.courses.maximum.rooms=2", "school.students.maximum.courses=2"
@@ -41,13 +43,15 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentCourseLinkPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     RegisterStudentToCourseCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -55,6 +59,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
         assertThat(command.getCoursesExceed()).isEqualTo(2);
         assertThat(command.getMaximumRooms()).isEqualTo(2);
     }
@@ -76,9 +81,11 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
         verify(persistence).findCourseById(courseId);
-        verify(persistence).link(student, course);
-        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses()).contains(course);
-        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents()).contains(student);
+        verify(persistence).link(any(Student.class), any(Course.class));
+        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses())
+                .contains(persistence.findCourseById(courseId).orElseThrow());
+        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents())
+                .contains(persistence.findStudentById(studentId).orElseThrow());
     }
 
     @Test
@@ -89,8 +96,10 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Long studentId = student.getId();
         Long courseId = course.getId();
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses()).contains(course);
-        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents()).contains(student);
+        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses())
+                .contains(persistence.findCourseById(courseId).orElseThrow());
+        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents())
+                .contains(persistence.findStudentById(studentId).orElseThrow());
         reset(persistence);
         Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
@@ -190,11 +199,11 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() {
         Student student = persistStudent();
-        Course course = persistCourse();
         Long studentId = student.getId();
+        Course course = persistCourse();
         Long courseId = course.getId();
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
-        doThrow(cannotExecute).when(persistence).link(student, course);
+        doThrow(cannotExecute).when(persistence).link(any(Student.class), any(Course.class));
         Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
@@ -204,7 +213,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
         verify(persistence).findCourseById(courseId);
-        verify(persistence).link(student, course);
+        verify(persistence).link(any(Student.class), any(Course.class));
     }
 
     @Test
@@ -213,8 +222,10 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Student student = persistStudent();
         Course course = persistCourse();
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).contains(course);
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents()).contains(student);
+        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
+                .contains(persistence.findCourseById(course.getId()).orElseThrow());
+        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
+                .contains(persistence.findStudentById(student.getId()).orElseThrow());
         reset(persistence);
         final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
@@ -262,8 +273,10 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Student student = persistStudent();
         Course course = persistCourse();
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).contains(course);
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents()).contains(student);
+        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
+                .contains(persistence.findCourseById(course.getId()).orElseThrow());
+        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
+                .contains(persistence.findStudentById(student.getId()).orElseThrow());
         reset(persistence);
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
         doThrow(cannotExecute).when(persistence).unLink(student, course);
@@ -276,8 +289,10 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).contains(course);
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents()).contains(student);
+        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
+                .contains(persistence.findCourseById(course.getId()).orElseThrow());
+        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
+                .contains(persistence.findStudentById(student.getId()).orElseThrow());
         verify(persistence).unLink(student, course);
     }
 
@@ -295,10 +310,9 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 
@@ -315,10 +329,9 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

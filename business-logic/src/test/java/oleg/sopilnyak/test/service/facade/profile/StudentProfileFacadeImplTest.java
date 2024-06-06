@@ -63,6 +63,7 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -113,6 +114,7 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
+        verify(payloadMapper, times(2)).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -129,6 +131,7 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -147,6 +150,7 @@ class StudentProfileFacadeImplTest {
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
         verify(persistence).deleteProfileById(id);
     }
 

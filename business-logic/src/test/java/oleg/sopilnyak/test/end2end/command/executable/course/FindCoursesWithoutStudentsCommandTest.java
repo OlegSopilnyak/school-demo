@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -7,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenc
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.FindCoursesWithoutStudentsCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,20 +30,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, FindCoursesWithoutStudentsCommand.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindCoursesWithoutStudentsCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentCourseLinkPersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     FindCoursesWithoutStudentsCommand command;
 
     @AfterEach
     void tearDown() {
-        reset(command, persistence);
+        reset(command, persistence, payloadMapper);
     }
 
     @Test
@@ -49,20 +53,20 @@ class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CoursesFound() {
         Course course = persistCourse();
+        Course saved = persistence.findCourseById(course.getId()).orElseThrow();
         Context<Set<Course>> context = command.createContext(null);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult()).isPresent();
-        Set<Course> result = context.getResult().orElseThrow();
-        assertThat(result).contains(course);
+        assertThat(context.getResult().orElseThrow()).contains(saved);
         verify(command).executeDo(context);
         verify(persistence).findCoursesWithoutStudents();
     }
@@ -71,8 +75,9 @@ class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CoursesWithStudent() {
         Course course = persistCourse();
+        assertThat(persistence.findCoursesWithoutStudents())
+                .contains(persistence.findCourseById(course.getId()).orElseThrow());
         Student student = persistStudent();
-        assertThat(persistence.findCoursesWithoutStudents()).contains(course);
         persistence.link(student, course);
         reset(persistence);
         Context<Set<Course>> context = command.createContext(null);
@@ -80,9 +85,7 @@ class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult()).isPresent();
-        Set<Course> result = context.getResult().orElseThrow();
-        assertThat(result).isEmpty();
+        assertThat(context.getResult().orElseThrow()).isEmpty();
         verify(command).executeDo(context);
         verify(persistence).findCoursesWithoutStudents();
     }
@@ -141,10 +144,9 @@ class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
             Optional<Student> dbStudent = persistence.findStudentById(id);
             assertStudentEquals(dbStudent.orElseThrow(), student, false);
             assertThat(dbStudent).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 
@@ -157,10 +159,9 @@ class FindCoursesWithoutStudentsCommandTest extends MysqlTestModelFactory {
             Optional<Course> dbCourse = persistence.findCourseById(id);
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
-//            return persistence.toEntity(entity);
-            return entity;
+            return payloadMapper.toPayload(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }

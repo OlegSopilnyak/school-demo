@@ -14,6 +14,7 @@ import org.springframework.test.context.TestPropertySource;
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
+@Deprecated(forRemoval = true)
 class CreateOrUpdateProfileCommandTest extends MysqlTestModelFactory {
     //    @SpyBean
 //    @Autowired

@@ -92,8 +92,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         assertCourseEquals(courseUpdated, result.orElseThrow(), false);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
-        verify(payloadMapper).toPayload(course);
         verify(persistence).save(courseUpdated);
+        verify(payloadMapper).toPayload(any(CourseEntity.class));
     }
 
     @Test
@@ -141,6 +141,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).save(course);
+        verify(payloadMapper, never()).toPayload(any(Course.class));
     }
 
     @Test
@@ -155,11 +156,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
-        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
+        assertCourseEquals(course, context.getUndoParameter());
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
-        verify(payloadMapper).toPayload(course);
-//        verify(persistence).toEntity(course);
+        verify(payloadMapper).toPayload(any(CourseEntity.class));
         verify(persistence, times(2)).save(course);
     }
 
@@ -191,7 +191,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(persistence.findCourseById(course.getId())).contains(course);
+        assertCourseEquals(course, persistence.findCourseById(course.getId()).orElseThrow());
         verify(command).executeUndo(context);
         verify(persistence).save(course);
     }
@@ -276,9 +276,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
             assertCourseEquals(dbCourse.orElseThrow(), course, false);
             assertThat(dbCourse).contains(entity);
             return payloadMapper.toPayload(entity);
-//            return persistence.toEntity(entity);
         } finally {
-            reset(persistence);
+            reset(persistence, payloadMapper);
         }
     }
 }
