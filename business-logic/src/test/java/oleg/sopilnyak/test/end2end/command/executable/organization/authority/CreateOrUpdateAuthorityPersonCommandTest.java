@@ -1,20 +1,29 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
+import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -23,20 +32,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrUpdateAuthorityPersonCommandTest {
-    @Mock
-    AuthorityPerson entity;
-    @Mock
-    AuthorityPersonPayload payload;
-    @Mock
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateAuthorityPersonCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@Rollback
+class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
+    @SpyBean
+    @Autowired
     AuthorityPersonPersistenceFacade persistence;
-    @Mock
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @Spy
-    @InjectMocks
+    @SpyBean
+    @Autowired
     CreateOrUpdateAuthorityPersonCommand command;
 
+    @AfterEach
+    void tearDown() {
+        reset(command, persistence, payloadMapper);
+    }
+
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -44,48 +59,49 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
-        Long id = -300L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.save(entity)).thenReturn(Optional.of(entity));
+        AuthorityPerson entity = makeCleanAuthorityPerson(1);
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
-        Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        AuthorityPerson result = context.getResult().orElseThrow().orElseThrow();
+        assertThat(context.<Long>getUndoParameter()).isEqualTo(result.getId());
+        assertAuthorityPersonEquals(entity, result, false);
         verify(command).executeDo(context);
         verify(persistence).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateEntity() {
-        Long id = 300L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        AuthorityPerson entity = persist();
+        Long id = entity.getId();
+        AuthorityPerson entityUpdated = payloadMapper.toPayload(entity);
+        if (entityUpdated instanceof AuthorityPersonPayload updated) {
+            updated.setFirstName(entity.getFirstName() + "-updated");
+        }
+        Context<Optional<AuthorityPerson>> context = command.createContext(entityUpdated);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
-        Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        assertThat(context.<AuthorityPerson>getUndoParameter()).isEqualTo(entity);
+        assertAuthorityPersonEquals(entityUpdated, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(entity);
-        verify(persistence).save(entity);
+        verify(payloadMapper).toPayload(any(AuthorityPersonEntity.class));
+        verify(persistence).save(entityUpdated);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 301L;
-        when(entity.getId()).thenReturn(id);
+        AuthorityPerson entity = spy(makeTestAuthorityPerson(id));
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
         command.doCommand(context);
@@ -94,16 +110,17 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, atLeastOnce()).getId();
         verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).save(any());
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         Long id = 302L;
-        when(entity.getId()).thenReturn(id);
+        AuthorityPerson entity = spy(makeTestAuthorityPerson(id));
         doThrow(RuntimeException.class).when(persistence).findAuthorityPersonById(id);
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
@@ -112,14 +129,16 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, atLeastOnce()).getId();
         verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).save(any());
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
+        AuthorityPerson entity = spy(makeTestAuthorityPerson(null));
         doThrow(RuntimeException.class).when(persistence).save(entity);
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
@@ -128,16 +147,15 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, atLeastOnce()).getId();
         verify(persistence).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
-        Long id = 303L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(payload);
+        AuthorityPerson entity = spy(persist());
+        Long id = entity.getId();
         doThrow(RuntimeException.class).when(persistence).save(any(AuthorityPerson.class));
         Context<Optional<AuthorityPerson>> context = command.createContext(entity);
 
@@ -146,13 +164,14 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, atLeastOnce()).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(payloadMapper).toPayload(entity);
+        verify(payloadMapper).toPayload(any(AuthorityPersonEntity.class));
         verify(persistence).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext("input");
 
@@ -164,6 +183,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<AuthorityPerson>> context = command.createContext(null);
 
@@ -175,6 +195,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
 
@@ -186,8 +207,11 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateEntity() {
-        Long id = 304L;
+        AuthorityPerson entity = spy(persist());
+        Long id = entity.getId();
+        assertThat(persistence.findAuthorityPersonById(id)).isPresent();
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(id);
@@ -198,23 +222,34 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         verify(command).executeUndo(context);
         verify(persistence).deleteAuthorityPerson(id);
+        assertThat(persistence.findAuthorityPersonById(id)).isEmpty();
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateEntity() {
+        AuthorityPerson entity = spy(persist());
+        Long id = entity.getId();
+        assertAuthorityPersonEquals(entity, persistence.findAuthorityPersonById(id).orElseThrow());
+        AuthorityPerson entityUpdated = payloadMapper.toPayload(entity);
+        if (entityUpdated instanceof AuthorityPersonPayload updated) {
+            updated.setFirstName(entity.getFirstName() + "-updated");
+        }
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
+        context.setUndoParameter(entityUpdated);
         context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         verify(command).executeUndo(context);
-        verify(persistence).save(entity);
+        verify(persistence).save(entityUpdated);
+        assertAuthorityPersonEquals(entityUpdated, persistence.findAuthorityPersonById(entity.getId()).orElseThrow());
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
 
@@ -225,6 +260,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -238,6 +274,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -253,6 +290,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
@@ -270,7 +308,9 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
+        AuthorityPerson entity = spy(persist());
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(entity);
@@ -283,5 +323,21 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
         verify(persistence).save(entity);
+    }
+
+    // private methods
+    private AuthorityPerson persist() {
+        try {
+            AuthorityPerson source = makeCleanAuthorityPerson(0);
+            AuthorityPerson entity = persistence.save(source).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
+            assertAuthorityPersonEquals(person.orElseThrow(), source, false);
+            assertThat(person).contains(entity);
+            return payloadMapper.toPayload(entity);
+        } finally {
+            reset(persistence, payloadMapper);
+        }
     }
 }

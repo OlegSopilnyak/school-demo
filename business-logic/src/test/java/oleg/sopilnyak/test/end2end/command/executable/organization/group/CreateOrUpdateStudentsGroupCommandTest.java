@@ -1,21 +1,31 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.group;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
+import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,20 +34,26 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrUpdateStudentsGroupCommandTest {
-    @Mock
-    StudentsGroup entity;
-    @Mock
-    StudentsGroupPayload payload;
-    @Mock
+@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentsGroupCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@Rollback
+class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
+    @SpyBean
+    @Autowired
     StudentsGroupPersistenceFacade persistence;
-    @Mock
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @Spy
-    @InjectMocks
+    @SpyBean
+    @Autowired
     CreateOrUpdateStudentsGroupCommand command;
 
+    @AfterEach
+    void tearDown() {
+        reset(command, persistence, payloadMapper);
+    }
+
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -45,48 +61,51 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
-        Long id = -500L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.save(entity)).thenReturn(Optional.of(entity));
+        StudentsGroup entity = makeCleanStudentsGroup(1);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
-        Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        StudentsGroup result = context.getResult().orElseThrow().orElseThrow();
+        assertStudentsGroupEquals(entity, result, false);
+        assertThat(context.<Object>getUndoParameter()).isEqualTo(result.getId());
         verify(command).executeDo(context);
         verify(persistence).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateEntity() {
-        Long id = 500L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        StudentsGroup entity = persist();
+        Long id = entity.getId();
+        StudentsGroup entityUpdated = payloadMapper.toPayload(entity);
+        if (entityUpdated instanceof StudentsGroupPayload updated) {
+            updated.setName(entity.getName() + "-updated");
+        }
+        Context<Optional<StudentsGroup>> context = command.createContext(entityUpdated);
+        reset(payloadMapper);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
-        Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        StudentsGroup undo = context.getUndoParameter();
+        assertStudentsGroupEquals(entity, undo, true);
+        StudentsGroup result = context.getResult().orElseThrow().orElseThrow();
+        assertStudentsGroupEquals(entityUpdated, result, true);
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(payloadMapper).toPayload(entity);
-        verify(persistence).save(entity);
+        verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));
+        verify(persistence).save(entityUpdated);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 501L;
-        when(entity.getId()).thenReturn(id);
+        StudentsGroup entity = makeTestStudentsGroup(id);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
         command.doCommand(context);
@@ -95,16 +114,16 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
         assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, never()).toPayload(any(StudentsGroup.class));
-        verify(persistence, never()).save(any());
+        verify(persistence, never()).save(any(StudentsGroup.class));
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
-        Long id = 502L;
-        when(entity.getId()).thenReturn(id);
+        StudentsGroup entity = persist();
+        Long id = entity.getId();
         doThrow(RuntimeException.class).when(persistence).findStudentsGroupById(id);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
@@ -113,14 +132,15 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, never()).toPayload(any(StudentsGroup.class));
-        verify(persistence, never()).save(any());
+        verify(persistence, never()).save(any(StudentsGroup.class));
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
+        StudentsGroup entity = makeTestStudentsGroup(null);
         doThrow(RuntimeException.class).when(persistence).save(entity);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
@@ -129,16 +149,14 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
-        Long id = 503L;
-        when(entity.getId()).thenReturn(id);
-        when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(payload);
+        StudentsGroup entity = persist();
+        Long id = entity.getId();
         doThrow(RuntimeException.class).when(persistence).save(any(StudentsGroup.class));
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
@@ -147,13 +165,13 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
         verify(persistence).findStudentsGroupById(id);
-        verify(payloadMapper).toPayload(entity);
-        verify(persistence).save(entity);
+        verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));
+        verify(persistence, times(2)).save(entity);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<StudentsGroup>> context = command.createContext("input");
 
@@ -165,6 +183,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<StudentsGroup>> context = command.createContext(null);
 
@@ -176,6 +195,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<StudentsGroup>> context = command.createContext();
 
@@ -187,8 +207,15 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateEntity() {
-        Long id = 504L;
+        Long id = 500L;
+        StudentsGroup entity = makeTestStudentsGroup(null);
+        if (entity instanceof FakeStudentsGroup fake) {
+            fake.setStudents(List.of());
+            fake.setLeader(null);
+            id = persistence.save(fake).orElseThrow().getId();
+        }
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(id);
@@ -202,7 +229,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateEntity() {
+        StudentsGroup entity = persist();
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(entity);
@@ -216,6 +245,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<StudentsGroup>> context = command.createContext();
 
@@ -226,6 +256,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -239,6 +270,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -254,8 +286,10 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
-        Long id = 505L;
+        StudentsGroup entity = persist();
+        Long id = entity.getId();
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(id);
@@ -271,7 +305,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
+        StudentsGroup entity = persist();
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         context.setUndoParameter(entity);
@@ -284,5 +320,21 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
         verify(persistence).save(entity);
+    }
+
+    // private methods
+    private StudentsGroup persist() {
+        try {
+            StudentsGroup source = makeCleanStudentsGroup(0);
+            StudentsGroup entity = persistence.save(source).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            Optional<StudentsGroup> group = persistence.findStudentsGroupById(id);
+            assertStudentsGroupEquals(group.orElseThrow(), source, false);
+            assertThat(group).contains(entity);
+            return payloadMapper.toPayload(entity);
+        } finally {
+            reset(persistence, payloadMapper);
+        }
     }
 }

@@ -95,7 +95,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).save(any());
     }
 
@@ -113,7 +113,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence, never()).toEntity(any());
+        verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).save(any());
     }
 

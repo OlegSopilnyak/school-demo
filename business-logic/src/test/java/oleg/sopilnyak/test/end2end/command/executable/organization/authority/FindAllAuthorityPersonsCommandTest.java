@@ -1,16 +1,26 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
+import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
@@ -19,30 +29,42 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class FindAllAuthorityPersonsCommandTest {
-    @Mock
+@ContextConfiguration(classes = {PersistenceConfiguration.class, FindAllAuthorityPersonsCommand.class, TestConfig.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@Rollback
+class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
+    @SpyBean
+    @Autowired
     AuthorityPersonPersistenceFacade persistence;
-    @Spy
-    @InjectMocks
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
+    @SpyBean
+    @Autowired
     FindAllAuthorityPersonsCommand command;
-    @Mock
-    AuthorityPerson entity;
+
+    @AfterEach
+    void tearDown() {
+        reset(command, persistence, payloadMapper);
+    }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityExists() {
-        when(persistence.findAllAuthorityPersons()).thenReturn(Set.of(entity));
+        AuthorityPerson entity = persist();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
+        assertThat(context.getResult().orElseThrow())
+                .contains(persistence.findAuthorityPersonById(entity.getId()).orElseThrow());
         assertThat(context.<Object>getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         Context<Set<AuthorityPerson>> context = command.createContext(null);
 
@@ -56,6 +78,7 @@ class FindAllAuthorityPersonsCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         doThrow(RuntimeException.class).when(persistence).findAllAuthorityPersons();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
@@ -69,7 +92,9 @@ class FindAllAuthorityPersonsCommandTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
+        AuthorityPerson entity = persist();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
         context.setState(DONE);
         context.setUndoParameter(entity);
@@ -79,5 +104,21 @@ class FindAllAuthorityPersonsCommandTest {
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
+    }
+
+    // private methods
+    private AuthorityPerson persist() {
+        try {
+            AuthorityPerson source = makeCleanAuthorityPerson(0);
+            AuthorityPerson entity = persistence.save(source).orElse(null);
+            assertThat(entity).isNotNull();
+            long id = entity.getId();
+            Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
+            assertAuthorityPersonEquals(person.orElseThrow(), source, false);
+            assertThat(person).contains(entity);
+            return payloadMapper.toPayload(entity);
+        } finally {
+            reset(persistence, payloadMapper);
+        }
     }
 }

@@ -65,10 +65,9 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        Optional<Course> result = context.getResult().orElseThrow();
-        assertThat(result).isPresent();
-        assertCourseEquals(course, result.get(), false);
-        assertThat(context.<Long>getUndoParameter()).isEqualTo(result.get().getId());
+        Course result = context.getResult().orElseThrow().orElseThrow();
+        assertThat(context.<Long>getUndoParameter()).isEqualTo(result.getId());
+        assertCourseEquals(course, result, false);
         verify(command).executeDo(context);
         verify(persistence).save(course);
     }
@@ -87,9 +86,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
-        assertThat(context.getResult()).isPresent();
-        Optional<Course> result = context.getResult().get();
-        assertCourseEquals(courseUpdated, result.orElseThrow(), false);
+        assertCourseEquals(courseUpdated, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
         verify(persistence).save(courseUpdated);
