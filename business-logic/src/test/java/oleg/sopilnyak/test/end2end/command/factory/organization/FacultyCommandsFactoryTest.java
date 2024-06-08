@@ -1,47 +1,93 @@
 package oleg.sopilnyak.test.end2end.command.factory.organization;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
+import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FacultyCommandsFactoryTest {
-    @Mock
-    FacultyCommand command1;
-    @Mock
-    FacultyCommand command2;
-    @Mock
-    FacultyCommand command3;
-
-    FacultyCommandsFactory factory;
+@ContextConfiguration(classes = {
+        FacultyCommandsFactoryTest.FactoryConfiguration.class,
+        PersistenceConfiguration.class,
+        TestConfig.class
+})
+@Rollback
+class FacultyCommandsFactoryTest extends MysqlTestModelFactory {
+    private static final String FACTORY_NAME = "Organization.Faculties";
+    private static final String SPRING_NAME = "facultyCommandsFactory";
+    private Collection<String> commandsId;
+    @SpyBean
+    @Autowired
+    PersistenceFacade persistence;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    CommandsFactory<FacultyCommand> factory;
+    @Autowired
+    ApplicationContext context;
 
     @BeforeEach
     void setUp() {
-        when(command1.getId()).thenReturn("cmd1");
-        when(command2.getId()).thenReturn("cmd2");
-        when(command3.getId()).thenReturn("cmd3");
-        factory = new FacultyCommandsFactory(Set.of(command1, command2, command3));
+        commandsId = Set.of(
+                "organization.faculty.findAll",
+                "organization.faculty.findById",
+                "organization.faculty.createOrUpdate",
+                "organization.faculty.delete"
+        );
     }
 
     @Test
-    void shouldGetTheCommandByCommandId() {
-        assertThat(factory.command("cmd1")).isEqualTo(command1);
-        assertThat(factory.command("cmd2")).isEqualTo(command2);
-        assertThat(factory.command("cmd3")).isEqualTo(command3);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldBeValidComponents() {
+        assertThat(context).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(payloadMapper).isNotNull();
     }
 
     @Test
-    void shouldDontGetTheCommandByCommandId() {
-        assertThat(factory.command(null)).isNull();
-        assertThat(factory.command("cmd4")).isNull();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldGetTheCommandsFactory() {
+        assertThat(factory).isEqualTo(context.getBean(CommandsFactory.class)).isEqualTo(context.getBean(SPRING_NAME));
+        assertThat(factory.getName()).isEqualTo(FACTORY_NAME);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldGetTheCommandsByCommandId() {
+        assertThat(factory.getSize()).isEqualTo(commandsId.size());
+        commandsId.forEach(cmdId -> assertThat(factory.command(cmdId)).isNotNull());
+    }
+
+    @Configuration
+    @ComponentScan("oleg.sopilnyak.test.service.command.executable")
+    static class FactoryConfiguration {
+        @Bean(name = SPRING_NAME)
+        public CommandsFactory<FacultyCommand> commandsFactory(final Collection<FacultyCommand> commands) {
+            return new FacultyCommandsFactory(commands);
+        }
     }
 }
