@@ -96,7 +96,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Optional<Course> course = facade.findById(courseId);
 
         assertThat(course).isNotEmpty();
-        assertCourseEquals(newCourse, course.orElse(null), false);
+        assertCourseEquals(newCourse, course.orElseThrow(), false);
         verify(factory).command(COURSE_FIND_BY_ID);
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
@@ -168,16 +168,17 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdate() {
-        Course courseToUpdate = mock(Course.class);
+        Course newCourse = makeClearCourse(1);
+        Course courseToUpdate = getPersistent(newCourse);
 
         Optional<Course> course = facade.createOrUpdate(courseToUpdate);
 
         assertThat(course).isPresent();
         assertCourseEquals(courseToUpdate, course.get(), false);
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
-        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(courseToUpdate);
+        verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(any(Course.class));
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistenceFacade).save(courseToUpdate);
+        verify(persistenceFacade).save(any(Course.class));
     }
 
     @Test

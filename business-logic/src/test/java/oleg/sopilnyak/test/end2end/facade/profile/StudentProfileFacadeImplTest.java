@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.profile;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -18,6 +19,7 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,6 +68,10 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldAllPartsBeReady() {
         assertThat(database).isNotNull();
+        assertThat(payloadMapper).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(facade).isNotNull();
     }
 
     @Test
@@ -129,29 +135,29 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertProfilesEquals(entity.get(), profileSource, false);
         verify(facade).createOrUpdate(profileSource);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(profileSource);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(StudentProfilePayload.class));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(persistence).save(profileSource);
-        verify(persistence).saveProfile(profileSource);
+        verify(persistence).save(any(StudentProfilePayload.class));
+        verify(persistence).saveProfile(any(StudentProfilePayload.class));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateProfile_Update() {
-        StudentProfile profile = persistStudent();
+        StudentProfile profile = payloadMapper.toPayload(persistStudent());
         Long id = profile.getId();
 
         Optional<StudentProfile> entity = facade.createOrUpdateProfile(profile);
 
         assertThat(entity).isPresent();
-        assertProfilesEquals(entity.get(), profile, true);
+        assertProfilesEquals(entity.orElseThrow(), profile, true);
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(profile);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(any(StudentProfileEntity.class));
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);
     }
@@ -160,13 +166,9 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateProfile_Create() {
         Long id = 711L;
-        StudentProfile profileSource = makeStudentProfile(null);
-        if (profileSource instanceof FakeStudentsProfile fake) {
-            fake.setId(id);
-        }
+        StudentProfile profileSource = payloadMapper.toPayload(makeStudentProfile(id));
 
-        UnableExecuteCommandException thrown =
-                assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateProfile(profileSource));
+        var thrown = assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateProfile(profileSource));
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(PROFILE_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();

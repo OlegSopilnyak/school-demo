@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.profile;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -65,6 +66,10 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldAllPartsBeReady() {
         assertThat(database).isNotNull();
+        assertThat(payloadMapper).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(facade).isNotNull();
     }
 
     @Test
@@ -120,7 +125,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateProfile_Create() {
-        PrincipalProfile profileSource = makePrincipalProfile(null);
+        PrincipalProfile profileSource = payloadMapper.toPayload(makePrincipalProfile(null));
 
         Optional<PrincipalProfile> entity = facade.createOrUpdateProfile(profileSource);
 
@@ -137,7 +142,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateProfile_Update() {
-        PrincipalProfile profile = persistPrincipal();
+        PrincipalProfile profile = payloadMapper.toPayload(persistPrincipal());
         Long id = profile.getId();
 
         Optional<PrincipalProfile> entity = facade.createOrUpdateProfile(profile);
@@ -150,7 +155,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(any(PrincipalProfileEntity.class));
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);
     }
@@ -159,10 +164,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateProfile_Create() {
         Long id = 611L;
-        PrincipalProfile profileSource = makePrincipalProfile(null);
-        if (profileSource instanceof FakePrincipalProfile fake) {
-            fake.setId(id);
-        }
+        PrincipalProfile profileSource = payloadMapper.toPayload(makePrincipalProfile(id));
 
         UnableExecuteCommandException thrown =
                 assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateProfile(profileSource));

@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -19,6 +20,7 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.FacultyPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,6 +71,10 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(database).isNotNull();
+        assertThat(payloadMapper).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(facade).isNotNull();
     }
 
     @Test
@@ -87,7 +93,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllFaculties_NotEmptySet() {
-        Faculty faculty = persistFaculty();
+        Faculty faculty = payloadMapper.toPayload(persistFaculty());
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
@@ -131,7 +137,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateFaculty_Create() {
-        Faculty facultySource = makeCleanFacultyNoDean(1);
+        Faculty facultySource = payloadMapper.toPayload(makeCleanFacultyNoDean(1));
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(facultySource);
 
@@ -146,8 +152,9 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateFaculty_Update() {
-        Faculty facultySource = persistFaculty();
+        Faculty facultySource = payloadMapper.toPayload(persistFaculty());
         Long id = facultySource.getId();
+        reset(payloadMapper);
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(facultySource);
 
@@ -157,7 +164,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-//        verify(persistence).toEntity(facultySource);
+        verify(payloadMapper, times(2)).toPayload(any(FacultyEntity.class));
         verify(persistence).save(facultySource);
     }
 
@@ -165,8 +172,9 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateFaculty() {
         Long id = 401L;
-        Faculty facultySource = makeCleanFacultyNoDean(1);
-        if (facultySource instanceof FakeFaculty source) {
+        Faculty facultySource = payloadMapper.toPayload(makeCleanFacultyNoDean(1));
+        reset(payloadMapper);
+        if (facultySource instanceof FacultyPayload source) {
             source.setId(id);
         }
 
@@ -180,7 +188,9 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(facultySource);
         verify(persistence).findFacultyById(id);
+        verify(payloadMapper, never()).toPayload(any(FacultyEntity.class));
         verify(persistence, never()).save(any(Faculty.class));
     }
 

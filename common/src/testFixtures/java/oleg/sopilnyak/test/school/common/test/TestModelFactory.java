@@ -110,11 +110,14 @@ public class TestModelFactory {
     }
 
     protected List<Course> makeCourses(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1)).toList();
+        return IntStream.range(0, count).mapToObj(i -> makeCourse(i + 1))
+                .sorted(Comparator.comparing(Course::getName)).toList();
     }
 
     protected List<Course> makeClearCourses(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeClearCourse(i + 1)).toList();
+        return IntStream.range(0, count)
+                .mapToObj(i -> makeClearCourse(i + 1))
+                .sorted(Comparator.comparing(Course::getName)).toList();
     }
 
     protected Course makeTestCourse(Long id) {
@@ -155,11 +158,13 @@ public class TestModelFactory {
 
 
     protected List<Student> makeStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1)).toList();
+        return IntStream.range(0, count).mapToObj(i -> makeStudent(i + 1))
+                .sorted(Comparator.comparing(Student::getFullName)).toList();
     }
 
     protected List<Student> makeClearStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1)).toList();
+        return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1))
+                .sorted(Comparator.comparing(Student::getFullName)).toList();
     }
 
     protected Student makeTestStudent(Long id) {
@@ -530,7 +535,7 @@ public class TestModelFactory {
     }
 
     @Data
-    @EqualsAndHashCode(callSuper=true)
+    @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakeStudentsProfile extends FakePersonProfile implements StudentProfile {
     }

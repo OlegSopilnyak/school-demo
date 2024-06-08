@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -70,13 +71,17 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(database).isNotNull();
+        assertThat(payloadMapper).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(facade).isNotNull();
     }
 
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllStudentsGroup() {
-        StudentsGroup group = persistStudentsGroup();
+        StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
@@ -133,10 +138,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateStudentsGroup_Create() {
         Long id = 511L;
-        StudentsGroup group = makeCleanStudentsGroup(3);
-        if (group instanceof FakeStudentsGroup fake) {
-            fake.setId(id);
-        }
+        StudentsGroup group = payloadMapper.toPayload(makeTestStudentsGroup(id));
 
         UnableExecuteCommandException thrown =
                 assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateStudentsGroup(group));
@@ -155,7 +157,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateStudentsGroup_Create() {
-        StudentsGroup group = makeCleanStudentsGroup(3);
+        StudentsGroup group = payloadMapper.toPayload(makeCleanStudentsGroup(3));
 
         Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(group);
 
@@ -170,7 +172,8 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateStudentsGroup_Update() {
-        StudentsGroup group = persistStudentsGroup();
+        StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
+        reset(payloadMapper);
         Long id = group.getId();
 
         Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(group);
@@ -181,7 +184,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(group);
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
-//        verify(persistence).toEntity(group);
+        verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(group);
     }
 

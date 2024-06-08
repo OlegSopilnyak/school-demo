@@ -19,6 +19,7 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +71,10 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(database).isNotNull();
+        assertThat(payloadMapper).isNotNull();
+        assertThat(persistence).isNotNull();
+        assertThat(factory).isNotNull();
+        assertThat(facade).isNotNull();
     }
 
     @Test
@@ -93,7 +98,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
-        assertThat(persons).contains(person);
+        assertThat(persons).contains(payloadMapper.toPayload(person));
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(null);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
@@ -117,7 +122,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAuthorityPersonById() {
-        AuthorityPerson authorityPerson = persistAuthorityPerson();
+        AuthorityPerson authorityPerson = payloadMapper.toPayload(persistAuthorityPerson());
         Long id = authorityPerson.getId();
 
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
@@ -131,7 +136,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateAuthorityPerson_Create() {
-        AuthorityPerson authorityPerson = makeCleanAuthorityPerson(2);
+        AuthorityPerson authorityPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
+
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(authorityPerson);
 
         assertThat(person).isPresent();
@@ -145,7 +151,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateAuthorityPerson_Update() {
-        AuthorityPerson authorityPerson = persistAuthorityPerson();
+        AuthorityPerson authorityPerson = payloadMapper.toPayload(persistAuthorityPerson());
 
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(authorityPerson);
 
@@ -161,8 +167,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateFaculty() {
         Long id = 301L;
-        AuthorityPerson authorityPersonSource = makeCleanAuthorityPerson(2);
-        if (authorityPersonSource instanceof FakeAuthorityPerson source) {
+        AuthorityPerson authorityPersonSource = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
+        reset(payloadMapper);
+        if (authorityPersonSource instanceof AuthorityPersonPayload source) {
             source.setId(id);
         }
 
