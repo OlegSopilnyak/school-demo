@@ -1,16 +1,20 @@
 package oleg.sopilnyak.test.service.message;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 /**
  * BusinessMessage Payload Type: POJO for StudentProfile type
  *
  * @see StudentProfile
- * @see BasePersonProfile
+ * @see BaseProfilePayload
  */
 @Builder
 @NoArgsConstructor
-public class StudentProfilePayload extends BasePersonProfile implements StudentProfile {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class StudentProfilePayload extends BaseProfilePayload<StudentProfile> implements StudentProfile {
 }

@@ -34,6 +34,7 @@ public interface BusinessMessagePayloadMapper {
      * @return Payload instance
      */
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentPayloads")
+    @Mapping(target = "original", expression = "java(course)")
     CoursePayload toPayload(Course course);
 
     /**
@@ -54,6 +55,7 @@ public interface BusinessMessagePayloadMapper {
      * @return Payload instance
      */
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCoursePayloads")
+    @Mapping(target = "original", expression = "java(student)")
     StudentPayload toPayload(Student student);
 
     /**
@@ -76,6 +78,7 @@ public interface BusinessMessagePayloadMapper {
      * @return Payload instance
      */
     @Mapping(source = "faculties", target = "faculties", qualifiedByName = "toFacultyPayloads")
+    @Mapping(target = "original", expression = "java(person)")
     AuthorityPersonPayload toPayload(AuthorityPerson person);
 
     /**
@@ -86,6 +89,7 @@ public interface BusinessMessagePayloadMapper {
      */
     @Mapping(target = "dean", expression = "java(null)")
     @Mapping(source = "courses", target = "courses", qualifiedByName = "toCoursePayloads")
+    @Mapping(target = "original", expression = "java(faculty)")
     FacultyPayload toPayload(Faculty faculty);
 
     /**
@@ -101,13 +105,14 @@ public interface BusinessMessagePayloadMapper {
     FacultyPayload toPayloadShort(Faculty faculty);
 
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Payload
      *
      * @param group instance to convert
-     * @return DTO instance
+     * @return Payload instance
      */
     @Mapping(source = "students", target = "students", qualifiedByName = "toStudentPayloads")
     @Mapping(source = "leader", target = "leader", dependsOn = "students", qualifiedByName = "toShortStudent")
+    @Mapping(target = "original", expression = "java(group)")
     StudentsGroupPayload toPayload(StudentsGroup group);
 
     default PersonProfile toPayload(PersonProfile profile) {
@@ -121,29 +126,31 @@ public interface BusinessMessagePayloadMapper {
     }
 
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Payload
      *
      * @param profile instance to convert
-     * @return DTO instance
+     * @return Payload instance
      */
     @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
+    @Mapping(target = "original", expression = "java(profile)")
     StudentProfilePayload toPayload(StudentProfile profile);
 
     /**
-     * Convert model-type to DTO
+     * Convert model-type to Payload
      *
      * @param profile instance to convert
-     * @return DTO instance
+     * @return Payload instance
      */
     @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
+    @Mapping(target = "original", expression = "java(profile)")
     PrincipalProfilePayload toPayload(PrincipalProfile profile);
 
     @Named("toProfileExtras")
-    default BasePersonProfile.Extra[] toProfileExtras(PersonProfile profile) {
+    default BaseProfilePayload.Extra[] toProfileExtras(PersonProfile profile) {
         return Arrays.stream(profile.getExtraKeys())
                 .filter(key -> profile.getExtra(key).isPresent())
-                .map(key -> new BasePersonProfile.Extra(key, profile.getExtra(key).orElse(null)))
-                .toList().toArray(BasePersonProfile.Extra[]::new);
+                .map(key -> new BaseProfilePayload.Extra(key, profile.getExtra(key).orElse(null)))
+                .toList().toArray(BaseProfilePayload.Extra[]::new);
     }
 
     @Named("toCoursePayloads")

@@ -24,11 +24,12 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * @see Extra
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class BasePersonProfile implements PersonProfile {
-    private Long id;
+public abstract class BaseProfilePayload<T extends PersonProfile> extends BasePayload<T> implements PersonProfile {
     private String photoUrl;
     private String email;
     private String phone;

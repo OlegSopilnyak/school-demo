@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
  * BusinessMessage Payload Type: POJO for PrincipalProfile type
  *
  * @see PrincipalProfile
- * @see BasePersonProfile
+ * @see BaseProfilePayload
  */
 @Data
 @NoArgsConstructor
@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class PrincipalProfilePayload extends BasePersonProfile implements PrincipalProfile {
+public class PrincipalProfilePayload extends BaseProfilePayload<PrincipalProfile> implements PrincipalProfile {
     // user-name for principal person's login
     private String login;
 }

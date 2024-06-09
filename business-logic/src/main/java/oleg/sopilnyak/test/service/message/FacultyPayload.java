@@ -2,10 +2,7 @@ package oleg.sopilnyak.test.service.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -23,12 +20,13 @@ import java.util.List;
  * @see CoursePayload
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FacultyPayload implements Faculty {
-    private Long id;
+public class FacultyPayload extends BasePayload<Faculty> implements Faculty {
     private String name;
 
     @JsonDeserialize(as = AuthorityPersonPayload.class)

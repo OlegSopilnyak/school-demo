@@ -13,6 +13,20 @@ public interface Student extends Person {
     String TITLE = "student";
 
     /**
+     * To get description of the student
+     *
+     * @return description value
+     */
+    String getDescription();
+
+    /**
+     * To get the list of courses, the student is registered
+     *
+     * @return list of courses
+     */
+    List<Course> getCourses();
+
+    /**
      * To get the title of the authority person
      *
      * @return person's title value
@@ -30,18 +44,4 @@ public interface Student extends Person {
     default String getFullName() {
         return getGender() + ". " + getFirstName() + " " + getLastName();
     }
-
-    /**
-     * To get description of the student
-     *
-     * @return description value
-     */
-    String getDescription();
-
-    /**
-     * To get the list of courses, the student is registered
-     *
-     * @return list of courses
-     */
-    List<Course> getCourses();
 }
