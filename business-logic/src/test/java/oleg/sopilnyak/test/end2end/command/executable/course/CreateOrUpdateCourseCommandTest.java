@@ -78,7 +78,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         Course course = persistCourse();
         Course courseUpdated = payloadMapper.toPayload(course);
         if (courseUpdated instanceof CoursePayload updated) {
-            updated.setName(course.getName() + "-updated");
+            updated.setName(updated.getName() + "-updated");
         }
         Context<Optional<Course>> context = command.createContext(courseUpdated);
 

@@ -29,6 +29,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertAuthorityPersonEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -49,6 +50,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         AuthorityPersonPayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -63,6 +65,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertCourseEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -83,6 +86,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         CoursePayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -113,6 +117,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         FacultyPayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -127,6 +132,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertProfilesEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -147,6 +153,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         PrincipalProfilePayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -161,6 +168,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertStudentEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -181,6 +189,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         StudentPayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -194,6 +203,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertProfilesEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -213,6 +223,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         StudentProfilePayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -227,6 +238,7 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         assertStudentsGroupEquals(payload, source);
         assertThat(payload.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 
     @Test
@@ -247,5 +259,6 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
 
         StudentsGroupPayload triple = mapper.toPayload(mapper.toPayload(mapper.toPayload(source)));
         assertThat(triple.getOriginal()).isSameAs(source);
+        assertThat(payload.getOriginalType()).isEqualTo(source.getClass().getName());
     }
 }

@@ -167,15 +167,15 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateFaculty() {
         Long id = 301L;
-        AuthorityPerson authorityPersonSource = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
+        AuthorityPersonPayload authorityPersonSource = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
+        authorityPersonSource.setId(id);
         reset(payloadMapper);
-        if (authorityPersonSource instanceof AuthorityPersonPayload source) {
-            source.setId(id);
-        }
 
 
-        UnableExecuteCommandException thrown =
-                assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateAuthorityPerson(authorityPersonSource));
+        UnableExecuteCommandException thrown = assertThrows(
+                UnableExecuteCommandException.class,
+                () -> facade.createOrUpdateAuthorityPerson(authorityPersonSource)
+        );
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();

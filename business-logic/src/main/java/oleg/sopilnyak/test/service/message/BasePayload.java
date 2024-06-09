@@ -11,16 +11,19 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
  * @see BaseType
  */
 
-@Getter
 @ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true, exclude = {"original","originalType"})
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BasePayload<T extends BaseType> {
+    @Getter
     @Setter
     private Long id;
+
     // the type (class) of the original
     private String originalType;
+    // the reference to original data
     @JsonIgnore
     private T original;
 
@@ -34,5 +37,12 @@ public abstract class BasePayload<T extends BaseType> {
     public void setOriginal(T original) {
         this.originalType = original.getClass().getName();
         this.original = original;
+    }
+
+    public String getOriginalType() {
+        if (original instanceof BasePayload<?> payload){
+            return payload.getOriginalType();
+        }
+        return originalType;
     }
 }
