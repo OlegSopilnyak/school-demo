@@ -12,7 +12,7 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
  */
 
 @ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true, exclude = {"original","originalType"})
+@EqualsAndHashCode(exclude = {"original"})
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
