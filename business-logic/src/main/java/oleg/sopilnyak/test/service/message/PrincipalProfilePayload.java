@@ -15,7 +15,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 @Builder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 public class PrincipalProfilePayload extends BaseProfilePayload<PrincipalProfile> implements PrincipalProfile {
     // user-name for principal person's login
     private String login;

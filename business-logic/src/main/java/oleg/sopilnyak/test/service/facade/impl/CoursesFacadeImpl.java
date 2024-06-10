@@ -28,7 +28,7 @@ import static oleg.sopilnyak.test.service.command.type.CourseCommand.*;
 public class CoursesFacadeImpl implements CoursesFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
-    public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
+    public static final String EXCEPTION_WAS_NOT_STORED = "Command fail Exception was not stored!!!";
     private final CommandsFactory<CourseCommand> factory;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -44,8 +44,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> findById(Long id) {
         log.debug("Find course by ID:{}", id);
-        final String commandId = FIND_BY_ID_COMMAND_ID;
-        final Optional<Course> result = doSimpleCommand(commandId, id, factory);
+        final Optional<Course> result = doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
         log.debug("Found the course {}", result);
         return result.map(payloadMapper::toPayload);
     }
@@ -59,8 +58,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findRegisteredFor(Long id) {
         log.debug("Find courses registered to student with ID:{}", id);
-        final String commandId = FIND_REGISTERED_COMMAND_ID;
-        final Set<Course> result = doSimpleCommand(commandId, id, factory);
+        final Set<Course> result = doSimpleCommand(FIND_REGISTERED_COMMAND_ID, id, factory);
         log.debug("Found courses registered to student {}", result);
         return result.stream()
                 .map(payloadMapper::toPayload).map(Course.class::cast)
@@ -75,8 +73,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findWithoutStudents() {
         log.debug("Find no-students courses");
-        final String commandId = FIND_NOT_REGISTERED_COMMAND_ID;
-        final Set<Course> result = doSimpleCommand(commandId, null, factory);
+        final Set<Course> result = doSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
         log.debug("Found no-students courses {}", result);
         return result.stream()
                 .map(payloadMapper::toPayload).map(Course.class::cast)
@@ -94,9 +91,8 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> createOrUpdate(Course instance) {
         log.debug("Create or Update course {}", instance);
-        final String commandId = CREATE_OR_UPDATE_COMMAND_ID;
         final CoursePayload payload = payloadMapper.toPayload(instance);
-        final Optional<Course> result = doSimpleCommand(commandId, payload, factory);
+        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, payload, factory);
         log.debug("Changed course {}", result);
         return result.map(payloadMapper::toPayload);
     }
@@ -132,7 +128,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
             throwFor(commandId, doException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
         }
     }
 
@@ -176,7 +172,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
             throwFor(commandId, doException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
         }
     }
 
@@ -212,7 +208,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
             throwFor(commandId, doException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
         }
     }
 }

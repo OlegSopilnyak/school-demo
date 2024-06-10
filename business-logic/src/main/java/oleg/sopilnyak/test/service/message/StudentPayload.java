@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 
 import java.util.List;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 /**
  * BusinessMessage Payload Type: POJO for Student type
  *
@@ -17,7 +19,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,5 +28,11 @@ public class StudentPayload extends BasePersonPayload<Student> implements Studen
     private String description;
 
     @JsonDeserialize(contentAs= CoursePayload.class)
+    @ToString.Exclude
     private List<Course> courses;
+
+    @ToString.Include(name = "courses")
+    private String itemsCapacity() {
+        return String.format(ITEMS_CAPACITY_FORMAT, isEmpty(courses) ? 0 : courses.size());
+    }
 }

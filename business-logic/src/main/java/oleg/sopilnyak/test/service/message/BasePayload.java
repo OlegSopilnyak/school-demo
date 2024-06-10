@@ -17,6 +17,7 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BasePayload<T extends BaseType> {
+    public static final String ITEMS_CAPACITY_FORMAT = " '%d items'";
     @Getter
     @Setter
     private Long id;

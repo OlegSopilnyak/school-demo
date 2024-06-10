@@ -28,12 +28,12 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 public class AuthorityPersonPayload extends BasePersonPayload<AuthorityPerson> implements AuthorityPerson {
     private String title;
 
-    @ToString.Exclude
     @JsonDeserialize(contentAs = FacultyPayload.class)
+    @ToString.Exclude
     private List<Faculty> faculties;
 
-    @ToString.Include
-    String faculties() {
-        return " '" + (isEmpty(faculties) ? 0 : faculties.size()) +" items'";
+    @ToString.Include(name = "faculties")
+    private String itemsCapacity() {
+        return String.format(ITEMS_CAPACITY_FORMAT, isEmpty(faculties) ? 0 : faculties.size());
     }
 }

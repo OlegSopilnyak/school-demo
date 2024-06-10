@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 
 import java.util.List;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 
 /**
  * BusinessMessage Payload Type: POJO for Faculty type
@@ -21,7 +23,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,6 +33,13 @@ public class FacultyPayload extends BasePayload<Faculty> implements Faculty {
 
     @JsonDeserialize(as = AuthorityPersonPayload.class)
     private AuthorityPerson dean;
+
     @JsonDeserialize(contentAs = CoursePayload.class)
+    @ToString.Exclude
     private List<Course> courses;
+
+    @ToString.Include(name = "courses")
+    private String itemsCapacity() {
+        return String.format(ITEMS_CAPACITY_FORMAT, isEmpty(courses) ? 0 : courses.size());
+    }
 }

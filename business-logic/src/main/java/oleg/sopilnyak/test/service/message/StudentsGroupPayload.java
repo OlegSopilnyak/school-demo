@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
 import java.util.List;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 /**
  * BusinessMessage Payload Type: POJO for StudentGroup type
  *
@@ -17,7 +19,7 @@ import java.util.List;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -27,6 +29,13 @@ public class StudentsGroupPayload extends BasePayload<StudentsGroup> implements 
 
     @JsonDeserialize(as= StudentPayload.class)
     private Student leader;
+
     @JsonDeserialize(contentAs= StudentPayload.class)
+    @ToString.Exclude
     private List<Student> students;
+
+    @ToString.Include(name = "students")
+    private String itemsCapacity() {
+        return String.format(ITEMS_CAPACITY_FORMAT, isEmpty(students) ? 0 : students.size());
+    }
 }
