@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.*;
@@ -14,6 +13,7 @@ import oleg.sopilnyak.test.service.message.CoursePayload;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -24,13 +24,20 @@ import static oleg.sopilnyak.test.service.command.type.CourseCommand.*;
  * Service: To process command for school's courses facade
  */
 @Slf4j
-@AllArgsConstructor
 public class CoursesFacadeImpl implements CoursesFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_WAS_NOT_STORED = "Command fail Exception was not stored!!!";
     private final CommandsFactory<CourseCommand> factory;
     private final BusinessMessagePayloadMapper payloadMapper;
+    // semantic payload mapper
+    private final UnaryOperator<Course> mapToPayload;
+
+    public CoursesFacadeImpl(CommandsFactory<CourseCommand> factory, BusinessMessagePayloadMapper payloadMapper) {
+        this.factory = factory;
+        this.payloadMapper = payloadMapper;
+        mapToPayload = course -> course instanceof CoursePayload ? course : this.payloadMapper.toPayload(course);
+    }
 
     /**
      * To get the course by ID
@@ -46,7 +53,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("Find course by ID:{}", id);
         final Optional<Course> result = doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
         log.debug("Found the course {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -60,9 +67,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("Find courses registered to student with ID:{}", id);
         final Set<Course> result = doSimpleCommand(FIND_REGISTERED_COMMAND_ID, id, factory);
         log.debug("Found courses registered to student {}", result);
-        return result.stream()
-                .map(payloadMapper::toPayload).map(Course.class::cast)
-                .collect(Collectors.toSet());
+        return result.stream().map(mapToPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -75,9 +80,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("Find no-students courses");
         final Set<Course> result = doSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
         log.debug("Found no-students courses {}", result);
-        return result.stream()
-                .map(payloadMapper::toPayload).map(Course.class::cast)
-                .collect(Collectors.toSet());
+        return result.stream().map(mapToPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -91,10 +94,10 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> createOrUpdate(Course instance) {
         log.debug("Create or Update course {}", instance);
-        final CoursePayload payload = payloadMapper.toPayload(instance);
-        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, payload, factory);
+        final Optional<Course> result =
+                doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, mapToPayload.apply(instance), factory);
         log.debug("Changed course {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**

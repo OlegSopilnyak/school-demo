@@ -108,7 +108,7 @@ class AuthorityPersonFacadeImplTest {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(id);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
-        verify(payloadMapper).toPayload(mockPerson);
+        verify(payloadMapper).toPayload(any(AuthorityPerson.class));
     }
 
     @Test
@@ -140,7 +140,6 @@ class AuthorityPersonFacadeImplTest {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
-        verify(payloadMapper).toPayload(mockPersonPayload);
     }
 
     @Test

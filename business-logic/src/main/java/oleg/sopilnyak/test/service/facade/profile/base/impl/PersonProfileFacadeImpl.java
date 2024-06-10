@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
@@ -11,8 +10,10 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseProfilePayload;
 
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
@@ -21,10 +22,17 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  * Service: To process commands for school's person profiles facade
  */
 @Slf4j
-@AllArgsConstructor
 public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
     private final CommandsFactory<P> factory;
     private final BusinessMessagePayloadMapper payloadMapper;
+    // semantic payload mapper
+    private final UnaryOperator<PersonProfile> mapToPayload;
+
+    protected PersonProfileFacadeImpl(CommandsFactory<P> factory, BusinessMessagePayloadMapper payloadMapper) {
+        this.factory = factory;
+        this.payloadMapper = payloadMapper;
+        mapToPayload = profile -> profile instanceof BaseProfilePayload ? profile : this.payloadMapper.toPayload(profile);
+    }
 
     protected abstract String findByIdCommandId();
 
@@ -47,10 +55,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     @Override
     public Optional<PersonProfile> findById(Long id) {
         log.debug("Find profile by ID:{}", id);
-        final String commandId = findByIdCommandId();
-        final Optional<PersonProfile> result = doSimpleCommand(commandId, id, factory);
+        final Optional<PersonProfile> result = doSimpleCommand(findByIdCommandId(), id, factory);
         log.debug("Found profile {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -67,11 +74,10 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     @Override
     public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
         log.debug("Create or Update profile {}", instance);
-        final String commandId = createOrUpdateCommandId();
-        final PersonProfile payload = payloadMapper.toPayload(instance);
-        final Optional<PersonProfile> result = doSimpleCommand(commandId, payload, factory);
+        final Optional<PersonProfile> result =
+                doSimpleCommand(createOrUpdateCommandId(), mapToPayload.apply(instance), factory);
         log.debug("Changed profile {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**

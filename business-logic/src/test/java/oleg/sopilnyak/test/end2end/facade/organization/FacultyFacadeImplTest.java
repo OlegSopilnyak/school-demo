@@ -188,7 +188,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
-        verify(payloadMapper).toPayload(facultySource);
         verify(persistence).findFacultyById(id);
         verify(payloadMapper, never()).toPayload(any(FacultyEntity.class));
         verify(persistence, never()).save(any(Faculty.class));

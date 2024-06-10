@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
@@ -27,13 +28,16 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  * @see StudentsGroup
  */
 @Slf4j
-public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements StudentsGroupFacade {
+public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand> implements StudentsGroupFacade {
     private final BusinessMessagePayloadMapper payloadMapper;
+    // semantic payload mapper
+    private final UnaryOperator<StudentsGroup> mapToPayload;
 
     public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand> factory,
                                    final BusinessMessagePayloadMapper payloadMapper) {
         super(factory);
         this.payloadMapper = payloadMapper;
+        mapToPayload = group -> group instanceof StudentsGroupPayload ? group : this.payloadMapper.toPayload(group);
     }
 
     /**
@@ -45,10 +49,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
         log.debug("Find all students groups");
-        final String commandId = StudentsGroupCommand.FIND_ALL;
-        final Collection<StudentsGroup> result = doSimpleCommand(commandId, null, factory);
+        final Collection<StudentsGroup> result = doSimpleCommand(StudentsGroupCommand.FIND_ALL, null, factory);
         log.debug("Found all students groups {}", result);
-        return result.stream().map(payloadMapper::toPayload).map(StudentsGroup.class::cast).toList();
+        return result.stream().map(mapToPayload).toList();
     }
 
     /**
@@ -63,10 +66,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     @Override
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
         log.debug("Find students group by ID:{}", id);
-        final String commandId = StudentsGroupCommand.FIND_BY_ID;
-        final Optional<StudentsGroup> result = doSimpleCommand(commandId, id, factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(StudentsGroupCommand.FIND_BY_ID, id, factory);
         log.debug("Found students group {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -81,11 +83,10 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
         log.debug("Create or Update students group {}", instance);
-        final String commandId = StudentsGroupCommand.CREATE_OR_UPDATE;
-        final StudentsGroupPayload payload = payloadMapper.toPayload(instance);
-        final Optional<StudentsGroup> result = doSimpleCommand(commandId, payload, factory);
+        final Optional<StudentsGroup> result =
+                doSimpleCommand(StudentsGroupCommand.CREATE_OR_UPDATE, mapToPayload.apply(instance), factory);
         log.debug("Changed students group {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -98,7 +99,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl implements S
     @Override
     public void deleteStudentsGroupById(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         log.debug("Delete students group with ID:{}", id);
-        String commandId = StudentsGroupCommand.DELETE;
+        final String commandId = StudentsGroupCommand.DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 

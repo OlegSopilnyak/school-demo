@@ -68,7 +68,7 @@ public interface StudentsFacade {
      *
      * @param studentId system-id of the student
      * @return true if success
-     * @throws NotExistStudentException   throws when student it not exists
+     * @throws NotExistStudentException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     boolean delete(Long studentId) throws NotExistStudentException, StudentWithCoursesException;
@@ -78,7 +78,7 @@ public interface StudentsFacade {
      *
      * @param student student instance
      * @return true if success
-     * @throws NotExistStudentException   throws when student it not exists
+     * @throws NotExistStudentException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     default boolean delete(Student student) throws NotExistStudentException, StudentWithCoursesException {

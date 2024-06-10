@@ -114,7 +114,7 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
-        verify(payloadMapper, times(2)).toPayload(any(PersonProfile.class));
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test

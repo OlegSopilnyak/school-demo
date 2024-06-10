@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
@@ -30,13 +31,16 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  * @see AuthorityPersonCommand
  */
 @Slf4j
-public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements AuthorityPersonFacade {
+public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand> implements AuthorityPersonFacade {
     private final BusinessMessagePayloadMapper payloadMapper;
+    // semantic payload mapper
+    private final UnaryOperator<AuthorityPerson> mapToPayload;
 
     public AuthorityPersonFacadeImpl(final CommandsFactory<AuthorityPersonCommand> factory,
                                      final BusinessMessagePayloadMapper payloadMapper) {
         super(factory);
         this.payloadMapper = payloadMapper;
+        mapToPayload = person -> person instanceof AuthorityPersonPayload ? person : this.payloadMapper.toPayload(person);
     }
 
     /**
@@ -50,10 +54,10 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
     @Override
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
         log.debug("Find all authority persons");
-        final String commandId = AuthorityPersonCommand.FIND_ALL;
-        final Collection<AuthorityPerson> result = doSimpleCommand(commandId, null, factory);
+        final Collection<AuthorityPerson> result =
+                doSimpleCommand(AuthorityPersonCommand.FIND_ALL, null, factory);
         log.debug("Found all authority persons {}", result);
-        return result.stream().map(payloadMapper::toPayload).map(AuthorityPerson.class::cast).toList();
+        return result.stream().map(mapToPayload).toList();
     }
 
     /**
@@ -69,10 +73,10 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
         log.debug("Find authority person by ID:{}", id);
-        final String commandId = AuthorityPersonCommand.FIND_BY_ID;
-        final Optional<AuthorityPerson> result = doSimpleCommand(commandId, id, factory);
+        final Optional<AuthorityPerson> result =
+                doSimpleCommand(AuthorityPersonCommand.FIND_BY_ID, id, factory);
         log.debug("Found authority person {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -88,11 +92,10 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl implements
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
         log.debug("Create or Update authority person {}", instance);
-        final String commandId = AuthorityPersonCommand.CREATE_OR_UPDATE;
-        final AuthorityPersonPayload payload = payloadMapper.toPayload(instance);
-        final Optional<AuthorityPerson> result = doSimpleCommand(commandId, payload, factory);
+        final Optional<AuthorityPerson> result =
+                doSimpleCommand(AuthorityPersonCommand.CREATE_OR_UPDATE, mapToPayload.apply(instance), factory);
         log.debug("Changed authority person {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**

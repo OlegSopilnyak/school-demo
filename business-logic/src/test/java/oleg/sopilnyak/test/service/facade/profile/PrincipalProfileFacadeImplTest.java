@@ -47,7 +47,6 @@ class PrincipalProfileFacadeImplTest {
     @Mock
     PrincipalProfilePayload payload;
 
-
     @Test
     void shouldFindProfileById() {
         Long id = 600L;
@@ -109,7 +108,7 @@ class PrincipalProfileFacadeImplTest {
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(payload);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
-        verify(payloadMapper, times(2)).toPayload(any(PersonProfile.class));
+        verify(payloadMapper).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -194,7 +193,7 @@ class PrincipalProfileFacadeImplTest {
         Long id = 716L;
         when(profile.getId()).thenReturn(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class,() -> facade.delete(profile));
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
         verify(facade).deleteById(id);
@@ -210,7 +209,7 @@ class PrincipalProfileFacadeImplTest {
         Long id = -716L;
         when(profile.getId()).thenReturn(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class,() -> facade.delete(profile));
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
@@ -221,7 +220,7 @@ class PrincipalProfileFacadeImplTest {
     void shouldNotDeleteProfileInstance_NullId() {
         when(profile.getId()).thenReturn(null);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class,() -> facade.delete(profile));
+        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());

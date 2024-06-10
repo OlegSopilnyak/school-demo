@@ -9,9 +9,9 @@ import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCo
  * Base Service: To process commands for school's organization structure
  */
 @AllArgsConstructor
-public class OrganizationFacadeImpl implements OrganizationFacade {
+public class OrganizationFacadeImpl<T extends OrganizationCommand> implements OrganizationFacade {
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
-    protected final CommandsFactory<? extends OrganizationCommand> factory;
+    protected final CommandsFactory<T> factory;
 }

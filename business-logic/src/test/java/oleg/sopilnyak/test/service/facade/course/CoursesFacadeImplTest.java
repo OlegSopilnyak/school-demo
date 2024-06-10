@@ -63,6 +63,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Course.class));
     }
 
     @Test
@@ -78,6 +79,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(courseId);
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedCourse);
     }
 
     @Test
@@ -92,6 +94,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
+        verify(payloadMapper).toPayload(mockedCourse);
     }
 
     @Test
@@ -105,6 +108,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(studentId);
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
+        verify(payloadMapper, never()).toPayload(any(Course.class));
     }
 
     @Test
@@ -118,6 +122,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
+        verify(payloadMapper).toPayload(mockedCourse);
     }
 
     @Test
@@ -130,12 +135,12 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
+        verify(payloadMapper, never()).toPayload(any(Course.class));
     }
 
     @Test
     void shouldCreateOrUpdate() {
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
-        when(payloadMapper.toPayload(mockedCoursePayload)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.save(mockedCoursePayload)).thenReturn(Optional.of(mockedCoursePayload));
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
@@ -144,6 +149,7 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCoursePayload);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade).save(mockedCoursePayload);
     }
@@ -158,6 +164,7 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_CREATE_OR_UPDATE);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).createContext(mockedCoursePayload);
         verify(factory.command(COURSE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade).save(mockedCoursePayload);
     }
@@ -174,6 +181,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade).deleteCourse(courseId);
     }
 
@@ -188,6 +196,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).deleteCourse(courseId);
     }
 
@@ -205,6 +214,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_DELETE)).createContext(courseId);
         verify(factory.command(COURSE_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade, never()).deleteCourse(courseId);
     }
 
@@ -225,6 +235,8 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade).link(mockedStudent, mockedCourse);
     }
 
@@ -239,6 +251,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_REGISTER);
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade, never()).findCourseById(anyLong());
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -254,6 +270,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_REGISTER);
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -271,6 +291,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_REGISTER);
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -288,6 +312,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_REGISTER);
         verify(factory.command(COURSE_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).link(mockedStudent, mockedCourse);
     }
 
@@ -303,6 +331,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_UN_REGISTER);
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade).unLink(mockedStudent, mockedCourse);
     }
 
@@ -317,6 +349,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_UN_REGISTER);
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade, never()).findCourseById(anyLong());
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
@@ -332,6 +368,10 @@ class CoursesFacadeImplTest {
         verify(factory).command(COURSE_UN_REGISTER);
         verify(factory.command(COURSE_UN_REGISTER)).createContext(new Long[]{studentId, courseId});
         verify(factory.command(COURSE_UN_REGISTER)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Student.class));
+        verify(payloadMapper, never()).toPayload(any(Course.class));
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 

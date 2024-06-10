@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
@@ -15,6 +14,7 @@ import oleg.sopilnyak.test.service.message.StudentPayload;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
@@ -25,10 +25,18 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
  * Service: To process command for school's student-facade
  */
 @Slf4j
-@AllArgsConstructor
 public class StudentsFacadeImpl implements StudentsFacade {
     private final CommandsFactory<StudentCommand> factory;
     private final BusinessMessagePayloadMapper payloadMapper;
+    // semantic payload mapper
+    private final UnaryOperator<Student> mapToPayload;
+
+    public StudentsFacadeImpl(CommandsFactory<StudentCommand> factory, BusinessMessagePayloadMapper payloadMapper) {
+        this.factory = factory;
+        this.payloadMapper = payloadMapper;
+        mapToPayload = student -> student instanceof StudentPayload ? student : this.payloadMapper.toPayload(student);
+    }
+
 
     /**
      * To get the student by ID
@@ -41,10 +49,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> findById(Long id) {
         log.debug("Find student by ID:{}", id);
-        final String commandId = FIND_BY_ID_COMMAND_ID;
-        final Optional<Student> result = doSimpleCommand(commandId, id, factory);
+        final Optional<Student> result = doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
         log.debug("Found the student {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**
@@ -56,12 +63,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Set<Student> findEnrolledTo(Long id) {
         log.debug("Find students enrolled to the course with ID:{}", id);
-        final String commandId = FIND_ENROLLED_COMMAND_ID;
-        final Set<Student> result = doSimpleCommand(commandId, id, factory);
+        final Set<Student> result = doSimpleCommand(FIND_ENROLLED_COMMAND_ID, id, factory);
         log.debug("Found students enrolled to the course {}", result);
-        return result.stream()
-                .map(payloadMapper::toPayload).map(Student.class::cast)
-                .collect(Collectors.toSet());
+        return result.stream().map(mapToPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -72,12 +76,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Set<Student> findNotEnrolled() {
         log.debug("Find students not enrolled to any course");
-        final String commandId = FIND_NOT_ENROLLED_COMMAND_ID;
-        final Set<Student> result = doSimpleCommand(commandId, null, factory);
+        final Set<Student> result = doSimpleCommand(FIND_NOT_ENROLLED_COMMAND_ID, null, factory);
         log.debug("Found students not enrolled to any course {}", result);
-        return result.stream()
-                .map(payloadMapper::toPayload).map(Student.class::cast)
-                .collect(Collectors.toSet());
+        return result.stream().map(mapToPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -91,11 +92,10 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> createOrUpdate(Student instance) {
         log.debug("Create or Update student {}", instance);
-        final String commandId = CREATE_OR_UPDATE_COMMAND_ID;
-        final StudentPayload payload = payloadMapper.toPayload(instance);
-        final Optional<Student> result = doSimpleCommand(commandId, payload, factory);
+        final Optional<Student> result =
+                doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, mapToPayload.apply(instance), factory);
         log.debug("Changed student {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(mapToPayload);
     }
 
     /**

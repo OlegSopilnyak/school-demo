@@ -284,13 +284,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     // private methods
     private Student getPersistentStudent(Student newStudent) {
         Optional<Student> saved = database.save(newStudent);
-        assertThat(saved).isNotEmpty();
-        return saved.orElseThrow();
+        assertThat(saved).isPresent();
+        return saved.get();
     }
 
     private Course getPersistentCourse(Course newCourse) {
         Optional<Course> saved = database.save(newCourse);
-        assertThat(saved).isNotEmpty();
+        assertThat(saved).isPresent();
         return saved.get();
     }
 
