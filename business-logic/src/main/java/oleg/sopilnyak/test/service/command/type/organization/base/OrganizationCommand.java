@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.organization.base;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -14,7 +14,7 @@ import org.slf4j.Logger;
  * @see FacultyCommand
  * @see StudentsGroupCommand
  */
-public interface OrganizationCommand extends SchoolCommand {
+public interface OrganizationCommand extends RootCommand {
     /**
      * To get reference to command's logger
      *

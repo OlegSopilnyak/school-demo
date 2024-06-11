@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.exception;
 
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 /**
  * Exception throws when command-executor cannot execute the command
@@ -17,7 +17,7 @@ public class CountDownLatchInterruptedException extends RuntimeException {
      *                  {@link #getCause()} method).  (A {@code null} value is
      *                  permitted, and indicates that the cause is nonexistent or
      *                  unknown.)
-     * @see SchoolCommand#getId()
+     * @see RootCommand#getId()
      */
     public CountDownLatchInterruptedException(long latchSize, Throwable cause) {
         super("CountDownLatch interrupted for " + latchSize + " countDowns", cause);

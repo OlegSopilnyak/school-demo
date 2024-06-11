@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -23,11 +23,11 @@ public interface PrepareContextVisitor {
      * @param mainInput macro-command input parameter
      * @param <T>       type of command's do result
      * @return built context of the command for input parameter
-     * @see SchoolCommand
-     * @see SchoolCommand#createContext(Object)
+     * @see RootCommand
+     * @see RootCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final SchoolCommand command, final Object mainInput) {
+    default <T> Context<T> prepareContext(final RootCommand command, final Object mainInput) {
         return command.createContext(mainInput);
     }
 

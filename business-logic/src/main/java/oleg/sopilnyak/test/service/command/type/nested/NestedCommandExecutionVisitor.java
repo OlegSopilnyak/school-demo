@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -23,7 +23,7 @@ public interface NestedCommandExecutionVisitor {
      * @param doContext     context for execution
      * @param stateListener the lister of command state change
      * @param <T>           type of command execution result
-     * @see SchoolCommand#doCommand(Context)
+     * @see RootCommand#doCommand(Context)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
@@ -31,7 +31,7 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    default <T> void doNestedCommand(final SchoolCommand command,
+    default <T> void doNestedCommand(final RootCommand command,
                                      final Context<T> doContext,
                                      final Context.StateChangedListener<T> stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
@@ -94,9 +94,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    default <T, C extends SchoolCommand> void doNestedCommand(final CompositeCommand<C> command,
-                                                              final Context<T> doContext,
-                                                              final Context.StateChangedListener<T> stateListener) {
+    default <T, C extends RootCommand> void doNestedCommand(final CompositeCommand<C> command,
+                                                            final Context<T> doContext,
+                                                            final Context.StateChangedListener<T> stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
@@ -210,12 +210,12 @@ public interface NestedCommandExecutionVisitor {
      *
      * @param command     nested command to do undo with nested context (could be Override)
      * @param undoContext nested context with DONE state
-     * @see SchoolCommand#undoCommand(Context)
+     * @see RootCommand#undoCommand(Context)
      * @see Context.State#DONE
      * @see Context.State#UNDONE
      * @see Context.State#FAIL
      */
-    default <T> Context<T> undoNestedCommand(final SchoolCommand command, final Context<T> undoContext) {
+    default <T> Context<T> undoNestedCommand(final RootCommand command, final Context<T> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
@@ -257,7 +257,7 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#UNDONE
      * @see Context.State#FAIL
      */
-    default <T> Context<T> undoNestedCommand(final CompositeCommand<SchoolCommand> command, final Context<T> undoContext) {
+    default <T> Context<T> undoNestedCommand(final CompositeCommand<RootCommand> command, final Context<T> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
@@ -338,7 +338,7 @@ public interface NestedCommandExecutionVisitor {
      */
     Logger getLog();
 
-    private <T> void defaultDoNestedCommand(SchoolCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
+    private <T> void defaultDoNestedCommand(RootCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
         doContext.addStateListener(stateListener);
         final String commandId = command.getId();
         try {
@@ -352,7 +352,7 @@ public interface NestedCommandExecutionVisitor {
         }
     }
 
-    private <T> Context<T> defaultUndoNestedCommand(SchoolCommand command, Context<T> undoContext) {
+    private <T> Context<T> defaultUndoNestedCommand(RootCommand command, Context<T> undoContext) {
         try {
             command.undoCommand(undoContext);
             getLog().debug("Rolled back done command '{}' with context:{}", command.getId(), undoContext);

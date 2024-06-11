@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     @SpyBean
     CommandsFactory<FacultyCommand> factory3;
     @SpyBean
-    CommandsFactoriesFarm<SchoolCommand> farm;
+    CommandsFactoriesFarm<RootCommand> farm;
     @Autowired
     ApplicationContext context;
 
@@ -88,7 +88,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
         assertThat(farm.getSize()).isEqualTo(commandsIds.size());
 
         commandsIds.forEach(commandId -> {
-            SchoolCommand command = farm.command(commandId);
+            RootCommand command = farm.command(commandId);
             assertThat(command).isNotNull();
             CommandsFactory<?> factory = findCommandFactory(factories, commandId);
             assertThat(command).isEqualTo(factory.command(commandId));
@@ -119,7 +119,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
         }
 
         @Bean
-        public <T extends SchoolCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
+        public <T extends RootCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
             return new CommandsFactoriesFarm<>(factories);
         }
     }

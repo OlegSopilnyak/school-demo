@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class RegisterCourseCommandConfigurationTest {
             @Value("${school.courses.maximum.rooms:50}") final int maximumRooms,
             @Value("${school.students.maximum.courses:5}") final int coursesExceed
     ) {
-        SchoolCommand command = factory.command(REGISTER_COMMAND_ID);
+        RootCommand command = factory.command(REGISTER_COMMAND_ID);
         assertThat(command).isNotNull();
         if (command instanceof RegisterStudentToCourseCommand registerCommand) {
             assertThat(registerCommand.getMaximumRooms()).isEqualTo(maximumRooms).isEqualTo(20);

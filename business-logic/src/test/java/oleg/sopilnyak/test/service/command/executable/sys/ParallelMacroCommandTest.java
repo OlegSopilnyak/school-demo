@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +35,11 @@ class ParallelMacroCommandTest {
     @InjectMocks
     volatile FakeParallelCommand command;
     @Mock
-    SchoolCommand doubleCommand;
+    RootCommand doubleCommand;
     @Mock
-    SchoolCommand booleanCommand;
+    RootCommand booleanCommand;
     @Mock
-    SchoolCommand intCommand;
+    RootCommand intCommand;
     @Mock
     StudentCommand studentCommand;
 
@@ -439,7 +439,7 @@ class ParallelMacroCommandTest {
     }
 
     // private methods
-    private <T> void checkRegularNestedCommandExecution(SchoolCommand nestedCommand,
+    private <T> void checkRegularNestedCommandExecution(RootCommand nestedCommand,
                                                         @NonNull Context<T> nestedContext,
                                                         Context.StateChangedListener<T> listener) {
         assertThat(nestedContext.isDone()).isTrue();
@@ -449,7 +449,7 @@ class ParallelMacroCommandTest {
         verify(listener).stateChanged(nestedContext, WORK, DONE);
     }
 
-    private void allowRealPrepareContext(SchoolCommand nested, Object parameter) {
+    private void allowRealPrepareContext(RootCommand nested, Object parameter) {
         doCallRealMethod().when(nested).createContext(parameter);
         doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
     }
@@ -464,7 +464,7 @@ class ParallelMacroCommandTest {
         doCallRealMethod().when(studentCommand).acceptPreparedContext(command, parameter);
     }
 
-    private void allowRealNestedCommandExecution(SchoolCommand nested) {
+    private void allowRealNestedCommandExecution(RootCommand nested) {
         doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
     }
 
@@ -478,7 +478,7 @@ class ParallelMacroCommandTest {
         allowRealNestedCommandExecution(studentCommand);
     }
 
-    private void allowRealNestedCommandRollback(SchoolCommand nested) {
+    private void allowRealNestedCommandRollback(RootCommand nested) {
         doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
@@ -493,14 +493,14 @@ class ParallelMacroCommandTest {
     }
 
     private static void verifyNestedCommandContextPreparation(FakeParallelCommand command,
-                                                              SchoolCommand nestedCommand,
+                                                              RootCommand nestedCommand,
                                                               Object parameter) {
         verify(nestedCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(nestedCommand, parameter);
     }
 
 
-    private <T> void configureNestedRedoResult(SchoolCommand nextedCommand, T result) {
+    private <T> void configureNestedRedoResult(RootCommand nextedCommand, T result) {
         doAnswer(invocationOnMock -> {
             Context<T> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);
@@ -509,7 +509,7 @@ class ParallelMacroCommandTest {
         }).when(nextedCommand).doCommand(any(Context.class));
     }
 
-    private <T> void configureNestedUndoStatus(SchoolCommand nextedCommand) {
+    private <T> void configureNestedUndoStatus(RootCommand nextedCommand) {
         doAnswer(invocationOnMock -> {
             Context<T> context = invocationOnMock.getArgument(0, Context.class);
             context.setState(WORK);

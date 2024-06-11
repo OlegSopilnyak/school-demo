@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
@@ -70,7 +70,7 @@ public interface StudentProfileCommand extends ProfileCommand {
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
      * @param <T>           type of command execution result
-     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see StudentProfileCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
@@ -88,7 +88,7 @@ public interface StudentProfileCommand extends ProfileCommand {
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
      * @param <T>     type of command execution result
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(SchoolCommand, Context)
+     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see StudentProfileCommand#undoCommand(Context)
      */
     @Override

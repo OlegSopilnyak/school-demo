@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Collections;
@@ -17,7 +17,7 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 @AllArgsConstructor
 @Builder
 public class CommandContext<T> implements Context<T> {
-    private SchoolCommand command;
+    private RootCommand command;
     private Object redoParameter;
     private Object undoParameter;
     private T resultData;

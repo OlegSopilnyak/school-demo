@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
 
@@ -110,7 +110,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public void delete(Long id) throws NotExistCourseException, CourseWithStudentsException {
         log.debug("Delete course with ID:{}", id);
         final String commandId = DELETE;
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -152,7 +152,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
             NoRoomInTheCourseException, StudentCoursesExceedException {
         log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
         final String commandId = REGISTER;
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
@@ -194,7 +194,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
         log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
         final String commandId = UN_REGISTER;
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);

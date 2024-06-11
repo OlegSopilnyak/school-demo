@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 
 import java.util.*;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 /**
  * Command-Base: macro-command the command with nested commands inside
  *
- * @see SchoolCommand
+ * @see RootCommand
  */
-public abstract class MacroCommand<C extends SchoolCommand>
+public abstract class MacroCommand<C extends RootCommand>
         implements CompositeCommand<C>, NestedCommandExecutionVisitor {
     // the list of nested commands
     private final List<C> netsedCommandsList = new LinkedList<>();
@@ -37,7 +37,7 @@ public abstract class MacroCommand<C extends SchoolCommand>
      * To add the command to the commands nest
      *
      * @param command the instance to add
-     * @see SchoolCommand
+     * @see RootCommand
      */
     @Override
     public void addToNest(final C command) {
@@ -113,14 +113,14 @@ public abstract class MacroCommand<C extends SchoolCommand>
      * @param doContexts    nested contexts collection
      * @param stateListener listener of context-state-change
      * @param <T>           type of command execution result
-     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Deque
      * @see Context.StateChangedListener
      */
     public <T> void doNestedCommands(final Deque<Context<T>> doContexts,
                                      final Context.StateChangedListener<T> stateListener) {
         doContexts.forEach(context -> {
-            final SchoolCommand nestedCommand = context.getCommand();
+            final RootCommand nestedCommand = context.getCommand();
             nestedCommand.doAsNestedCommand(this, context, stateListener);
         });
     }
@@ -156,14 +156,14 @@ public abstract class MacroCommand<C extends SchoolCommand>
      *
      * @param successfulDoContexts collection of nested contexts with DONE state
      * @param <T>                  type of command execution result
-     * @see SchoolCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
-     * @see MacroCommand#undoNestedCommand(SchoolCommand, Context)
+     * @see RootCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
+     * @see MacroCommand#undoNestedCommand(RootCommand, Context)
      * @see Context.State#DONE
      */
     protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> successfulDoContexts) {
         return successfulDoContexts.stream()
                 .map(context -> {
-                    final SchoolCommand nestedCommand = context.getCommand();
+                    final RootCommand nestedCommand = context.getCommand();
                     return nestedCommand.undoAsNestedCommand(this, context);
                 })
                 .collect(Collectors.toCollection(LinkedList::new));

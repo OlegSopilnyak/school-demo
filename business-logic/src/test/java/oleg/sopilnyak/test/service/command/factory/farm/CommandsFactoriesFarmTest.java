@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory.farm;
 
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CommandsFactoriesFarmTest<T extends SchoolCommand> {
+class CommandsFactoriesFarmTest<T extends RootCommand> {
     @Mock
     CommandsFactory<T> factory1;
     @Mock
@@ -52,8 +52,8 @@ class CommandsFactoriesFarmTest<T extends SchoolCommand> {
 
     @Test
     void shouldGetCommandFromFarm() {
-        T cmd1 = (T) mock(SchoolCommand.class);
-        T cmd2 = (T) mock(SchoolCommand.class);
+        T cmd1 = (T) mock(RootCommand.class);
+        T cmd2 = (T) mock(RootCommand.class);
         when(factory1.command("cmd1")).thenReturn(cmd1);
         when(factory1.command("cmd2")).thenReturn(cmd2);
         assertThat(farm.command("cmd1")).isEqualTo(cmd1);

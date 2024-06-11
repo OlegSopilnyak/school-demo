@@ -1,13 +1,13 @@
 package oleg.sopilnyak.test.service.command.type.profile.base;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.slf4j.Logger;
 
 /**
  * Type for school-profile command
  */
-public interface ProfileCommand extends SchoolCommand {
+public interface ProfileCommand extends RootCommand {
     String PROFILE_WITH_ID_PREFIX = "Profile with ID:";
 
     /**

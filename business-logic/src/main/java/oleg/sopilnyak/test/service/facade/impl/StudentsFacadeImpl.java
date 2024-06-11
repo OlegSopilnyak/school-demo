@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 
@@ -109,7 +109,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     public boolean delete(Long id) throws NotExistStudentException, StudentWithCoursesException {
         log.debug("Delete student with ID:{}", id);
         final String commandId = DELETE;
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

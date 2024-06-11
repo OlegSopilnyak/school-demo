@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.factory.base;
 
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 import java.util.*;
 import java.util.function.Function;
@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of commands in the factory
  */
-public abstract class AbstractCommandFactory<T extends SchoolCommand> implements CommandsFactory<T> {
+public abstract class AbstractCommandFactory<T extends RootCommand> implements CommandsFactory<T> {
     private final Map<String, T> commandMap = new HashMap<>();
 
     /**
@@ -21,7 +21,7 @@ public abstract class AbstractCommandFactory<T extends SchoolCommand> implements
      */
     protected void applyFactoryCommands(Collection<T> commands) {
         this.commandMap.clear();
-        this.commandMap.putAll(commands.stream().collect(Collectors.toMap(SchoolCommand::getId, Function.identity())));
+        this.commandMap.putAll(commands.stream().collect(Collectors.toMap(RootCommand::getId, Function.identity())));
     }
 
     /**
@@ -39,8 +39,8 @@ public abstract class AbstractCommandFactory<T extends SchoolCommand> implements
      *
      * @param commandId command-id
      * @return command instance or null if not registered
-     * @see SchoolCommand
-     * @see SchoolCommand#getId()
+     * @see RootCommand
+     * @see RootCommand#getId()
      */
     @Override
     public T command(String commandId) {

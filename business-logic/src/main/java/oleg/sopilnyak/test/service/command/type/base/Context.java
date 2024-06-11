@@ -5,7 +5,7 @@ import java.util.Optional;
 /**
  * Type: The context of the command execution
  *
- * @see SchoolCommand
+ * @see RootCommand
  * @param <T> type of result
  */
 public interface Context<T> {
@@ -13,9 +13,9 @@ public interface Context<T> {
      * To get the command associated with the context
      *
      * @return command instance
-     * @see SchoolCommand
+     * @see RootCommand
      */
-    SchoolCommand getCommand();
+    RootCommand getCommand();
 
     /**
      * To get the state of the context

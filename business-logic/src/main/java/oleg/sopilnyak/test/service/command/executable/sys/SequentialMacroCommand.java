@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 
@@ -15,14 +15,14 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  */
-public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand> implements TransferResultVisitor {
+public abstract class SequentialMacroCommand extends MacroCommand<RootCommand> implements TransferResultVisitor {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
      *
      * @param doContexts    nested command contexts collection
      * @param stateListener listener of context-state-change
-     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Deque
      * @see java.util.LinkedList
      * @see Context
@@ -43,7 +43,7 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
                 currentContext.setState(Context.State.CANCEL);
                 currentContext.removeStateListener(stateListener);
             } else {
-                final SchoolCommand command = currentContext.getCommand();
+                final RootCommand command = currentContext.getCommand();
                 // transfer previous context result to current one
                 transferPreviousResultToCurrentContextRedoParameter(previousContext.get(), currentContext);
                 // current redo context executing
@@ -83,7 +83,7 @@ public abstract class SequentialMacroCommand extends MacroCommand<SchoolCommand>
             final Context<S> source, final Context<T> target
     ) {
         if (isNull(source) || !source.isDone()) return;
-        final SchoolCommand sourceCommand = source.getCommand();
+        final RootCommand sourceCommand = source.getCommand();
         if (isNull(sourceCommand)) return;
         final Optional<S> result = source.getResult();
         if (isNull(result) || result.isEmpty()) return;

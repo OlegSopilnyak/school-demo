@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileComma
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -125,7 +125,7 @@ public class SchoolCommandsConfiguration {
      * @see CommandsFactory
      */
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
-    public <T extends SchoolCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
+    public <T extends RootCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
     }
 }

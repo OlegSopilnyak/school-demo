@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -102,7 +102,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     public void deleteFacultyById(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
         log.debug("Delete faculty with ID:{}", id);
         final String commandId = DELETE;
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

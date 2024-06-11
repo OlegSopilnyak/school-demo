@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import org.springframework.scheduling.SchedulingTaskExecutor;
@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
  * Uses execution of nested commands simultaneously
  */
 @AllArgsConstructor
-public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
+public abstract class ParallelMacroCommand extends MacroCommand<RootCommand> {
     protected final SchedulingTaskExecutor commandContextExecutor;
 
     /**
@@ -26,7 +26,7 @@ public abstract class ParallelMacroCommand extends MacroCommand<SchoolCommand> {
      *
      * @param doContexts    nested command contexts collection
      * @param stateListener listener of context-state-change
-     * @see SchoolCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see SchedulingTaskExecutor#submit(Callable)
      * @see Deque
      * @see Context

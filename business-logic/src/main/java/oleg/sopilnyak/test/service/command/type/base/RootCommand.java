@@ -11,7 +11,7 @@ import static java.util.Objects.isNull;
 /**
  * Type: Command to execute the business-logic action
  */
-public interface SchoolCommand {
+public interface RootCommand {
 
     /**
      * To get unique command-id for the command
@@ -161,7 +161,7 @@ public interface SchoolCommand {
      * @param input   Macro-Command call's input
      * @param <T>     type of command result
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SchoolCommand, Object)
+     * @see PrepareContextVisitor#prepareContext(RootCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
@@ -176,7 +176,7 @@ public interface SchoolCommand {
      * @param target  command context for next execution
      * @param <S>     type of current command execution result
      * @param <T>     type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(SchoolCommand, Object, Context)
+     * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
     default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
@@ -191,9 +191,9 @@ public interface SchoolCommand {
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
      * @param <T>           type of command execution result
-     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
-     * @see SchoolCommand#doCommand(Context)
+     * @see RootCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
@@ -208,8 +208,8 @@ public interface SchoolCommand {
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
      * @param <T>     type of command execution result
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(SchoolCommand, Context)
-     * @see SchoolCommand#undoCommand(Context)
+     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
+     * @see RootCommand#undoCommand(Context)
      */
     default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {

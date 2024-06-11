@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Type: Command to execute the couple of commands
  */
-public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand, PrepareContextVisitor {
+public interface CompositeCommand<C extends RootCommand> extends RootCommand, PrepareContextVisitor {
 
     /**
      * To get reference to command's logger
@@ -52,7 +52,7 @@ public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand
      * @see Context#getRedoParameter()
      * @see CommandContext
      * @see Context.State#READY
-     * @see SchoolCommand#createContext()
+     * @see RootCommand#createContext()
      */
     @Override
     default <T> Context<T> createContext(Object input) {
@@ -62,7 +62,7 @@ public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand
                         .collect(Collectors.toCollection(LinkedList::new))
         );
         // assemble input parameter contexts for redo
-        return SchoolCommand.super.createContext(doParameter);
+        return RootCommand.super.createContext(doParameter);
     }
 
     /**
@@ -147,7 +147,7 @@ public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
      * @param <T>           type of command execution result
-     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see CompositeCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
@@ -165,7 +165,7 @@ public interface CompositeCommand<C extends SchoolCommand> extends SchoolCommand
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
      * @param <T>     type of command execution result
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(SchoolCommand, Context)
+     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override

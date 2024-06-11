@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseProfilePayload;
@@ -95,7 +95,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     public void deleteById(Long id) throws NotExistProfileException {
         log.debug("Delete profile with ID:{}", id);
         final String commandId = deleteByIdCommandId();
-        final SchoolCommand command = takeValidCommand(commandId, factory);
+        final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

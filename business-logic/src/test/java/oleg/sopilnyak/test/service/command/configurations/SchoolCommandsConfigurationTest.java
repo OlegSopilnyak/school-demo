@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -55,7 +55,7 @@ class SchoolCommandsConfigurationTest {
     CommandsFactory<PrincipalProfileCommand> principalProfileCommandsFactory;
     @Autowired
     @Qualifier("commandFactoriesFarm")
-    CommandsFactory<SchoolCommand> farm;
+    CommandsFactory<RootCommand> farm;
     @Autowired
     ApplicationContext context;
 
@@ -144,7 +144,7 @@ class SchoolCommandsConfigurationTest {
 
     @Test
     void shouldHaveFactoriesCommandsInTheFarm() {
-        CommandsFactoriesFarm<SchoolCommand> factoriesFarm = (CommandsFactoriesFarm<SchoolCommand>) farm;
+        CommandsFactoriesFarm<RootCommand> factoriesFarm = (CommandsFactoriesFarm<RootCommand>) farm;
         assertThat(factoriesFarm.findCommandFactory(studentsCommandsFactory.getName()).orElseThrow()).isEqualTo(studentsCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(courseCommandsFactory.getName()).orElseThrow()).isEqualTo(courseCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(authorityPersonCommandFactory.getName()).orElseThrow()).isEqualTo(authorityPersonCommandFactory);
@@ -156,7 +156,7 @@ class SchoolCommandsConfigurationTest {
 
     @Test
     void shouldHaveCommandsInTheFarm() {
-        List<CommandsFactory<? extends SchoolCommand>> factories = List.of(
+        List<CommandsFactory<? extends RootCommand>> factories = List.of(
                 studentsCommandsFactory,
                 courseCommandsFactory,
                 authorityPersonCommandFactory,
@@ -170,7 +170,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(commandsCount).isEqualTo(farm.getSize());
 
         factories.forEach(factory -> factory.commandIds().forEach(cmdId -> {
-                    SchoolCommand command = factory.command(cmdId);
+                    RootCommand command = factory.command(cmdId);
                     assertThat(command).isEqualTo(farm.command(cmdId));
                 })
         );

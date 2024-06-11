@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
@@ -11,7 +11,7 @@ import org.springframework.lang.NonNull;
 /**
  * Type for school-course command
  */
-public interface CourseCommand extends SchoolCommand {
+public interface CourseCommand extends RootCommand {
     String COURSE_WITH_ID_PREFIX = "Course with ID:";
     /**
      * The name of commands-factory SpringBean
@@ -112,7 +112,7 @@ public interface CourseCommand extends SchoolCommand {
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
      * @param <T>           type of command execution result
-     * @see NestedCommandExecutionVisitor#doNestedCommand(SchoolCommand, Context, Context.StateChangedListener)
+     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see CourseCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
@@ -130,7 +130,7 @@ public interface CourseCommand extends SchoolCommand {
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
      * @param <T>     type of command execution result
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(SchoolCommand, Context)
+     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CourseCommand#undoCommand(Context)
      */
     @Override

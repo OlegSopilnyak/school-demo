@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.exception;
 
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 /**
  * Exception throws when command-executor cannot execute the command
@@ -17,7 +17,7 @@ public class UnableExecuteCommandException extends RuntimeException {
      *                  {@link #getCause()} method).  (A {@code null} value is
      *                  permitted, and indicates that the cause is nonexistent or
      *                  unknown.)
-     * @see SchoolCommand#getId()
+     * @see RootCommand#getId()
      */
     public UnableExecuteCommandException(String commandId, Throwable cause) {
         super("Cannot execute command '" + commandId + "'", cause);
@@ -27,7 +27,7 @@ public class UnableExecuteCommandException extends RuntimeException {
      * Constructs a new instance of th exception with the specified detail command-id.
      *
      * @param commandId the id of the school-command
-     * @see SchoolCommand#getId()
+     * @see RootCommand#getId()
      */
     public UnableExecuteCommandException(String commandId) {
         super("Cannot execute command '" + commandId + "'");

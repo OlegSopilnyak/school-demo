@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory.farm;
 
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 import java.util.*;
 
@@ -11,9 +11,9 @@ import static java.util.Objects.isNull;
  * Container: all commands factories farm
  *
  * @see CommandsFactory
- * @see SchoolCommand
+ * @see RootCommand
  */
-public class CommandsFactoriesFarm<T extends SchoolCommand> implements CommandsFactory<T> {
+public class CommandsFactoriesFarm<T extends RootCommand> implements CommandsFactory<T> {
     public static final String FARM_BEAN_NAME = "commandFactoriesFarm";
     public static final String NAME = "CommandFactories-Farm";
     // The list of registered factories
@@ -55,7 +55,7 @@ public class CommandsFactoriesFarm<T extends SchoolCommand> implements CommandsF
      *
      * @param commandId command-id value
      * @return command instance or null if not exists
-     * @see SchoolCommand
+     * @see RootCommand
      * @see Optional
      */
     public T command(String commandId) {

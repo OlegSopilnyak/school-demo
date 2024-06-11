@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.factory.base;
 
-import oleg.sopilnyak.test.service.command.type.base.SchoolCommand;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 import java.util.Collection;
 
@@ -9,7 +9,7 @@ import java.util.Collection;
  *
  * @param <T> type of factory's commands
  */
-public interface CommandsFactory<T extends SchoolCommand> {
+public interface CommandsFactory<T extends RootCommand> {
 
     /**
      * To get the commandIds of registered commands
