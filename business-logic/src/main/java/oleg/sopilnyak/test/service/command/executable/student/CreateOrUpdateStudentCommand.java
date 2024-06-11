@@ -110,7 +110,7 @@ public class CreateOrUpdateStudentCommand
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE_COMMAND_ID;
+        return CREATE_OR_UPDATE;
     }
 
     /**

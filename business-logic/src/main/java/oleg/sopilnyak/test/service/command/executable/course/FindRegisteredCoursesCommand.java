@@ -54,7 +54,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand {
      */
     @Override
     public String getId() {
-        return FIND_REGISTERED_COMMAND_ID;
+        return FIND_REGISTERED;
     }
 
     /**

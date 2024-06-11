@@ -24,23 +24,23 @@ public interface StudentCommand extends SchoolCommand {
     /**
      * ID of student's findById command
      */
-    String FIND_BY_ID_COMMAND_ID = "student.findById";
+    String FIND_BY_ID = "student.findById";
     /**
      * ID of student's findEnrolledTo command
      */
-    String FIND_ENROLLED_COMMAND_ID = "student.findEnrolledTo";
+    String FIND_ENROLLED = "student.findEnrolledTo";
     /**
      * ID of student's findNotEnrolled command
      */
-    String FIND_NOT_ENROLLED_COMMAND_ID = "student.findNotEnrolled";
+    String FIND_NOT_ENROLLED = "student.findNotEnrolled";
     /**
      * ID of student's createOrUpdate command
      */
-    String CREATE_OR_UPDATE_COMMAND_ID = "student.createOrUpdate";
+    String CREATE_OR_UPDATE = "student.createOrUpdate";
     /**
      * ID of student's delete command
      */
-    String DELETE_COMMAND_ID = "student.delete";
+    String DELETE = "student.delete";
 
     /**
      * To get reference to command's logger

@@ -124,7 +124,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      */
     @Override
     public String getId() {
-        return UN_REGISTER_COMMAND_ID;
+        return UN_REGISTER;
     }
 
     /**

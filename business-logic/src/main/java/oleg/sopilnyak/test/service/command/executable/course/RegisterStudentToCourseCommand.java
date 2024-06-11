@@ -161,7 +161,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      */
     @Override
     public String getId() {
-        return REGISTER_COMMAND_ID;
+        return REGISTER;
     }
 
     /**

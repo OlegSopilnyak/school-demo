@@ -54,7 +54,7 @@ public class FindEnrolledStudentsCommand implements StudentCommand {
      */
     @Override
     public String getId() {
-        return FIND_ENROLLED_COMMAND_ID;
+        return FIND_ENROLLED;
     }
 
     /**

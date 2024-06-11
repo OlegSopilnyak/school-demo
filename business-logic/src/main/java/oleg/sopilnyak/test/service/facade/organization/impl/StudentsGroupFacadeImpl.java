@@ -20,6 +20,7 @@ import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand.*;
 
 /**
  * Service-Facade: Service for manage organization in the school (school students groups)
@@ -29,15 +30,15 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand> implements StudentsGroupFacade {
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<StudentsGroup> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<StudentsGroup> convert;
 
     public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand> factory,
-                                   final BusinessMessagePayloadMapper payloadMapper) {
+                                   final BusinessMessagePayloadMapper mapper) {
         super(factory);
-        this.payloadMapper = payloadMapper;
-        mapToPayload = group -> group instanceof StudentsGroupPayload ? group : this.payloadMapper.toPayload(group);
+        this.mapper = mapper;
+        this.convert = group -> group instanceof StudentsGroupPayload ? group : this.mapper.toPayload(group);
     }
 
     /**
@@ -49,9 +50,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
         log.debug("Find all students groups");
-        final Collection<StudentsGroup> result = doSimpleCommand(StudentsGroupCommand.FIND_ALL, null, factory);
+        final Collection<StudentsGroup> result = doSimpleCommand(FIND_ALL, null, factory);
         log.debug("Found all students groups {}", result);
-        return result.stream().map(mapToPayload).toList();
+        return result.stream().map(convert).toList();
     }
 
     /**
@@ -66,9 +67,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
         log.debug("Find students group by ID:{}", id);
-        final Optional<StudentsGroup> result = doSimpleCommand(StudentsGroupCommand.FIND_BY_ID, id, factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(FIND_BY_ID, id, factory);
         log.debug("Found students group {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -83,10 +84,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
         log.debug("Create or Update students group {}", instance);
-        final Optional<StudentsGroup> result =
-                doSimpleCommand(StudentsGroupCommand.CREATE_OR_UPDATE, mapToPayload.apply(instance), factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
         log.debug("Changed students group {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -99,21 +99,23 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public void deleteStudentsGroupById(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
         log.debug("Delete students group with ID:{}", id);
-        final String commandId = StudentsGroupCommand.DELETE;
+        final String commandId = DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted authority person with ID:{} successfully.", id);
             return;
         }
 
+        // fail processing
         final Exception doException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistStudentsGroupException exception) {
-            throw exception;
+        if (doException instanceof NotExistStudentsGroupException noGroupException) {
+            throw noGroupException;
         } else if (doException instanceof StudentGroupWithStudentsException exception) {
             throw exception;
         } else if (nonNull(doException)) {

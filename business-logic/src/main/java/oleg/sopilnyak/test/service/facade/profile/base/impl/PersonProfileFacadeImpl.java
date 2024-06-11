@@ -24,14 +24,15 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
 @Slf4j
 public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
     private final CommandsFactory<P> factory;
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<PersonProfile> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<PersonProfile> convert;
 
-    protected PersonProfileFacadeImpl(CommandsFactory<P> factory, BusinessMessagePayloadMapper payloadMapper) {
+    protected PersonProfileFacadeImpl(final CommandsFactory<P> factory,
+                                      final BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
-        this.payloadMapper = payloadMapper;
-        mapToPayload = profile -> profile instanceof BaseProfilePayload ? profile : this.payloadMapper.toPayload(profile);
+        this.mapper = mapper;
+        this.convert = profile -> profile instanceof BaseProfilePayload ? profile : this.mapper.toPayload(profile);
     }
 
     protected abstract String findByIdCommandId();
@@ -57,7 +58,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
         log.debug("Find profile by ID:{}", id);
         final Optional<PersonProfile> result = doSimpleCommand(findByIdCommandId(), id, factory);
         log.debug("Found profile {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -74,10 +75,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     @Override
     public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
         log.debug("Create or Update profile {}", instance);
-        final Optional<PersonProfile> result =
-                doSimpleCommand(createOrUpdateCommandId(), mapToPayload.apply(instance), factory);
+        final Optional<PersonProfile> result = doSimpleCommand(createOrUpdateCommandId(), convert.apply(instance), factory);
         log.debug("Changed profile {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -101,23 +101,21 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted profile with ID:{} successfully.", id);
-        } else {
-            deleteProfileExceptionProcessing(context.getException());
+            return;
         }
-    }
 
-    // private methods
-    private void deleteProfileExceptionProcessing(Exception deleteException) throws NotExistProfileException {
-        final String commandId = deleteByIdCommandId();
+        // fail processing
+        final Exception deleteException = context.getException();
         log.warn("Something went wrong with profile deletion", deleteException);
-        if (deleteException instanceof NotExistProfileException exception) {
-            throw exception;
+        if (deleteException instanceof NotExistProfileException profileException) {
+            throw profileException;
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
             log.error("For command-id:'{}' there is not exception after wrong command execution.", commandId);
-            throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
+            throwFor(commandId, new NullPointerException("Exception was not stored!!!"));
         }
     }
 

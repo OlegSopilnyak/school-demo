@@ -27,14 +27,14 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
 @Slf4j
 public class StudentsFacadeImpl implements StudentsFacade {
     private final CommandsFactory<StudentCommand> factory;
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<Student> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<Student> convert;
 
-    public StudentsFacadeImpl(CommandsFactory<StudentCommand> factory, BusinessMessagePayloadMapper payloadMapper) {
+    public StudentsFacadeImpl(CommandsFactory<StudentCommand> factory, BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
-        this.payloadMapper = payloadMapper;
-        mapToPayload = student -> student instanceof StudentPayload ? student : this.payloadMapper.toPayload(student);
+        this.mapper = mapper;
+        this.convert = student -> student instanceof StudentPayload ? student : this.mapper.toPayload(student);
     }
 
 
@@ -49,9 +49,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> findById(Long id) {
         log.debug("Find student by ID:{}", id);
-        final Optional<Student> result = doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
+        final Optional<Student> result = doSimpleCommand(FIND_BY_ID, id, factory);
         log.debug("Found the student {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -63,9 +63,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Set<Student> findEnrolledTo(Long id) {
         log.debug("Find students enrolled to the course with ID:{}", id);
-        final Set<Student> result = doSimpleCommand(FIND_ENROLLED_COMMAND_ID, id, factory);
+        final Set<Student> result = doSimpleCommand(FIND_ENROLLED, id, factory);
         log.debug("Found students enrolled to the course {}", result);
-        return result.stream().map(mapToPayload).collect(Collectors.toSet());
+        return result.stream().map(convert).collect(Collectors.toSet());
     }
 
     /**
@@ -76,9 +76,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Set<Student> findNotEnrolled() {
         log.debug("Find students not enrolled to any course");
-        final Set<Student> result = doSimpleCommand(FIND_NOT_ENROLLED_COMMAND_ID, null, factory);
+        final Set<Student> result = doSimpleCommand(FIND_NOT_ENROLLED, null, factory);
         log.debug("Found students not enrolled to any course {}", result);
-        return result.stream().map(mapToPayload).collect(Collectors.toSet());
+        return result.stream().map(convert).collect(Collectors.toSet());
     }
 
     /**
@@ -92,10 +92,9 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> createOrUpdate(Student instance) {
         log.debug("Create or Update student {}", instance);
-        final Optional<Student> result =
-                doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, mapToPayload.apply(instance), factory);
+        final Optional<Student> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
         log.debug("Changed student {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -109,25 +108,27 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public boolean delete(Long id) throws NotExistStudentException, StudentWithCoursesException {
         log.debug("Delete student with ID:{}", id);
-        final String commandId = DELETE_COMMAND_ID;
+        final String commandId = DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted student with ID:{} successfully.", id);
             return true;
         }
 
-        final Exception doException = context.getException();
-        log.warn("Something went wrong", doException);
-        if (doException instanceof NotExistStudentException studentNotExistsException) {
-            throw studentNotExistsException;
-        } else if (doException instanceof StudentWithCoursesException studentWithCoursesException) {
+        // fail processing
+        final Exception deleteException = context.getException();
+        log.warn("Something went wrong", deleteException);
+        if (deleteException instanceof NotExistStudentException noStudentException) {
+            throw noStudentException;
+        } else if (deleteException instanceof StudentWithCoursesException studentWithCoursesException) {
             throw studentWithCoursesException;
-        } else if (nonNull(doException)) {
-            return throwFor(commandId, doException);
+        } else if (nonNull(deleteException)) {
+            return throwFor(commandId, deleteException);
         } else {
             log.error("For command-id:'{}' there is not exception after command execution.", commandId);
             return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));

@@ -52,7 +52,7 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand {
      */
     @Override
     public String getId() {
-        return FIND_NOT_REGISTERED_COMMAND_ID;
+        return FIND_NOT_REGISTERED;
     }
 
     /**

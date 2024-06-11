@@ -20,6 +20,7 @@ import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.type.organization.FacultyCommand.*;
 
 /**
  * Service-Facade: Service for manage organization in the school (groups of courses)
@@ -31,15 +32,15 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> implements FacultyFacade {
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<Faculty> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<Faculty> convert;
 
     public FacultyFacadeImpl(final CommandsFactory<FacultyCommand> factory,
-                             final BusinessMessagePayloadMapper payloadMapper) {
+                             final BusinessMessagePayloadMapper mapper) {
         super(factory);
-        this.payloadMapper = payloadMapper;
-        mapToPayload = faculty -> faculty instanceof FacultyPayload ? faculty : this.payloadMapper.toPayload(faculty);
+        this.mapper = mapper;
+        this.convert = faculty -> faculty instanceof FacultyPayload ? faculty : this.mapper.toPayload(faculty);
     }
 
     /**
@@ -51,9 +52,9 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     @Override
     public Collection<Faculty> findAllFaculties() {
         log.debug("Find all faculties");
-        final Collection<Faculty> result = doSimpleCommand(FacultyCommand.FIND_ALL, null, factory);
+        final Collection<Faculty> result = doSimpleCommand(FIND_ALL, null, factory);
         log.debug("Found all faculties {}", result);
-        return result.stream().map(mapToPayload).toList();
+        return result.stream().map(convert).toList();
     }
 
     /**
@@ -68,9 +69,9 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     @Override
     public Optional<Faculty> findFacultyById(Long id) {
         log.debug("Find faculty by ID:{}", id);
-        final Optional<Faculty> result = doSimpleCommand(FacultyCommand.FIND_BY_ID, id, factory);
+        final Optional<Faculty> result = doSimpleCommand(FIND_BY_ID, id, factory);
         log.debug("Found faculty {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -85,10 +86,9 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
         log.debug("Create or Update faculty {}", instance);
-        final Optional<Faculty> result =
-                doSimpleCommand(FacultyCommand.CREATE_OR_UPDATE, mapToPayload.apply(instance), factory);
+        final Optional<Faculty> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
         log.debug("Changed faculty {}", result);
-        return result.map(payloadMapper::toPayload);
+        return result.map(convert);
     }
 
     /**
@@ -101,25 +101,27 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     @Override
     public void deleteFacultyById(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
         log.debug("Delete faculty with ID:{}", id);
-        final String commandId = FacultyCommand.DELETE;
+        final String commandId = DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted faculty with ID:{} successfully.", id);
             return;
         }
 
-        final Exception doException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistFacultyException exception) {
+        // fail processing
+        final Exception deleteException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, deleteException);
+        if (deleteException instanceof NotExistFacultyException noFacultyException) {
+            throw noFacultyException;
+        } else if (deleteException instanceof FacultyIsNotEmptyException exception) {
             throw exception;
-        } else if (doException instanceof FacultyIsNotEmptyException exception) {
-            throw exception;
-        } else if (nonNull(doException)) {
-            throwFor(commandId, doException);
+        } else if (nonNull(deleteException)) {
+            throwFor(commandId, deleteException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
             throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));

@@ -115,7 +115,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      */
     @Override
     public String getId() {
-        return DELETE_COMMAND_ID;
+        return DELETE;
     }
 
     /**

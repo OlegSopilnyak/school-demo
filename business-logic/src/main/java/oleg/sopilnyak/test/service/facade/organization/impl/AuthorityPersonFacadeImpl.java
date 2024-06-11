@@ -20,6 +20,7 @@ import java.util.function.UnaryOperator;
 
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand.*;
 
 
 /**
@@ -32,15 +33,15 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand> implements AuthorityPersonFacade {
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<AuthorityPerson> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<AuthorityPerson> convert;
 
     public AuthorityPersonFacadeImpl(final CommandsFactory<AuthorityPersonCommand> factory,
-                                     final BusinessMessagePayloadMapper payloadMapper) {
+                                     final BusinessMessagePayloadMapper mapper) {
         super(factory);
-        this.payloadMapper = payloadMapper;
-        mapToPayload = person -> person instanceof AuthorityPersonPayload ? person : this.payloadMapper.toPayload(person);
+        this.mapper = mapper;
+        this.convert = person -> person instanceof AuthorityPersonPayload ? person : this.mapper.toPayload(person);
     }
 
     /**
@@ -54,10 +55,9 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
         log.debug("Find all authority persons");
-        final Collection<AuthorityPerson> result =
-                doSimpleCommand(AuthorityPersonCommand.FIND_ALL, null, factory);
+        final Collection<AuthorityPerson> result = doSimpleCommand(FIND_ALL, null, factory);
         log.debug("Found all authority persons {}", result);
-        return result.stream().map(mapToPayload).toList();
+        return result.stream().map(convert).toList();
     }
 
     /**
@@ -73,10 +73,9 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
         log.debug("Find authority person by ID:{}", id);
-        final Optional<AuthorityPerson> result =
-                doSimpleCommand(AuthorityPersonCommand.FIND_BY_ID, id, factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(FIND_BY_ID, id, factory);
         log.debug("Found authority person {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -92,10 +91,9 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
         log.debug("Create or Update authority person {}", instance);
-        final Optional<AuthorityPerson> result =
-                doSimpleCommand(AuthorityPersonCommand.CREATE_OR_UPDATE, mapToPayload.apply(instance), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
         log.debug("Changed authority person {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -108,25 +106,27 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
         log.debug("Delete authority person with ID:{}", id);
-        final String commandId = AuthorityPersonCommand.DELETE;
+        final String commandId = DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted authority person with ID:{} successfully.", id);
             return;
         }
 
-        final Exception doException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistAuthorityPersonException exception) {
+        // fail processing
+        final Exception deleteException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, deleteException);
+        if (deleteException instanceof NotExistAuthorityPersonException noPersonException) {
+            throw noPersonException;
+        } else if (deleteException instanceof AuthorityPersonManageFacultyException exception) {
             throw exception;
-        } else if (doException instanceof AuthorityPersonManageFacultyException exception) {
-            throw exception;
-        } else if (nonNull(doException)) {
-            throwFor(commandId, doException);
+        } else if (nonNull(deleteException)) {
+            throwFor(commandId, deleteException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
             throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));

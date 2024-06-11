@@ -29,14 +29,14 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_WAS_NOT_STORED = "Command fail Exception was not stored!!!";
     private final CommandsFactory<CourseCommand> factory;
-    private final BusinessMessagePayloadMapper payloadMapper;
-    // semantic payload mapper
-    private final UnaryOperator<Course> mapToPayload;
+    private final BusinessMessagePayloadMapper mapper;
+    // semantic data to payload converter
+    private final UnaryOperator<Course> convert;
 
-    public CoursesFacadeImpl(CommandsFactory<CourseCommand> factory, BusinessMessagePayloadMapper payloadMapper) {
+    public CoursesFacadeImpl(CommandsFactory<CourseCommand> factory, BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
-        this.payloadMapper = payloadMapper;
-        mapToPayload = course -> course instanceof CoursePayload ? course : this.payloadMapper.toPayload(course);
+        this.mapper = mapper;
+        this.convert = course -> course instanceof CoursePayload ? course : this.mapper.toPayload(course);
     }
 
     /**
@@ -51,9 +51,9 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> findById(Long id) {
         log.debug("Find course by ID:{}", id);
-        final Optional<Course> result = doSimpleCommand(FIND_BY_ID_COMMAND_ID, id, factory);
+        final Optional<Course> result = doSimpleCommand(FIND_BY_ID, id, factory);
         log.debug("Found the course {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -65,9 +65,9 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findRegisteredFor(Long id) {
         log.debug("Find courses registered to student with ID:{}", id);
-        final Set<Course> result = doSimpleCommand(FIND_REGISTERED_COMMAND_ID, id, factory);
+        final Set<Course> result = doSimpleCommand(FIND_REGISTERED, id, factory);
         log.debug("Found courses registered to student {}", result);
-        return result.stream().map(mapToPayload).collect(Collectors.toSet());
+        return result.stream().map(convert).collect(Collectors.toSet());
     }
 
     /**
@@ -78,9 +78,9 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findWithoutStudents() {
         log.debug("Find no-students courses");
-        final Set<Course> result = doSimpleCommand(FIND_NOT_REGISTERED_COMMAND_ID, null, factory);
+        final Set<Course> result = doSimpleCommand(FIND_NOT_REGISTERED, null, factory);
         log.debug("Found no-students courses {}", result);
-        return result.stream().map(mapToPayload).collect(Collectors.toSet());
+        return result.stream().map(convert).collect(Collectors.toSet());
     }
 
     /**
@@ -94,10 +94,9 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> createOrUpdate(Course instance) {
         log.debug("Create or Update course {}", instance);
-        final Optional<Course> result =
-                doSimpleCommand(CREATE_OR_UPDATE_COMMAND_ID, mapToPayload.apply(instance), factory);
+        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
         log.debug("Changed course {}", result);
-        return result.map(mapToPayload);
+        return result.map(convert);
     }
 
     /**
@@ -110,25 +109,27 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public void delete(Long id) throws NotExistCourseException, CourseWithStudentsException {
         log.debug("Delete course with ID:{}", id);
-        final String commandId = DELETE_COMMAND_ID;
+        final String commandId = DELETE;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Deleted course with ID:{} successfully.", id);
             return;
         }
 
-        final Exception doException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistCourseException exception) {
+        // fail processing
+        final Exception deleteException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, deleteException);
+        if (deleteException instanceof NotExistCourseException noCourseException) {
+            throw noCourseException;
+        } else if (deleteException instanceof CourseWithStudentsException exception) {
             throw exception;
-        } else if (doException instanceof CourseWithStudentsException exception) {
-            throw exception;
-        } else if (nonNull(doException)) {
-            throwFor(commandId, doException);
+        } else if (nonNull(deleteException)) {
+            throwFor(commandId, deleteException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
             throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
@@ -150,29 +151,31 @@ public class CoursesFacadeImpl implements CoursesFacade {
             throws NotExistStudentException, NotExistCourseException,
             NoRoomInTheCourseException, StudentCoursesExceedException {
         log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
-        final String commandId = REGISTER_COMMAND_ID;
+        final String commandId = REGISTER;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Linked course:{} to student:{} successfully.", courseId, studentId);
             return;
         }
 
-        final Exception doException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistStudentException exception) {
-            throw exception;
-        } else if (doException instanceof NotExistCourseException exception) {
-            throw exception;
-        } else if (doException instanceof NoRoomInTheCourseException exception) {
-            throw exception;
-        } else if (doException instanceof StudentCoursesExceedException exception) {
-            throw exception;
-        } else if (nonNull(doException)) {
-            throwFor(commandId, doException);
+        // fail processing
+        final Exception registerException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, registerException);
+        if (registerException instanceof NotExistStudentException noStudentException) {
+            throw noStudentException;
+        } else if (registerException instanceof NotExistCourseException noCourseException) {
+            throw noCourseException;
+        } else if (registerException instanceof NoRoomInTheCourseException noRoomException) {
+            throw noRoomException;
+        } else if (registerException instanceof StudentCoursesExceedException coursesExceedException) {
+            throw coursesExceedException;
+        } else if (nonNull(registerException)) {
+            throwFor(commandId, registerException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
             throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
@@ -190,25 +193,27 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
         log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
-        final String commandId = UN_REGISTER_COMMAND_ID;
+        final String commandId = UN_REGISTER;
         final SchoolCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
 
         if (context.isDone()) {
+            // success processing
             log.debug("Unlinked course:{} from student:{} successfully.", courseId, studentId);
             return;
         }
 
-        final Exception doException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistStudentException exception) {
-            throw exception;
-        } else if (doException instanceof NotExistCourseException exception) {
-            throw exception;
-        } else if (nonNull(doException)) {
-            throwFor(commandId, doException);
+        // fail processing
+        final Exception unregisterException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, unregisterException);
+        if (unregisterException instanceof NotExistStudentException noStudentException) {
+            throw noStudentException;
+        } else if (unregisterException instanceof NotExistCourseException noCourseException) {
+            throw noCourseException;
+        } else if (nonNull(unregisterException)) {
+            throwFor(commandId, unregisterException);
         } else {
             log.error(WRONG_COMMAND_EXECUTION, commandId);
             throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));

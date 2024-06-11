@@ -111,7 +111,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      */
     @Override
     public String getId() {
-        return DELETE_COMMAND_ID;
+        return DELETE;
     }
 
     /**

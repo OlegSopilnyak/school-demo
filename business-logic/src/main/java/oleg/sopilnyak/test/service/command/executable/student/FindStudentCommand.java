@@ -54,7 +54,7 @@ public class FindStudentCommand implements StudentCommand {
      */
     @Override
     public final String getId() {
-        return FIND_BY_ID_COMMAND_ID;
+        return FIND_BY_ID;
     }
 
     /**
