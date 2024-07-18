@@ -56,6 +56,7 @@ class StudentCommandsFactoryTest extends MysqlTestModelFactory {
                 "student.findEnrolledTo",
                 "student.findNotEnrolled",
                 "student.createOrUpdate",
+                "student.create.macro",
                 "student.delete"
         );
     }
