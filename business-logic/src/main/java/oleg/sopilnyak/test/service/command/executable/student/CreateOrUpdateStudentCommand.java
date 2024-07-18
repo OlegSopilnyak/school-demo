@@ -17,7 +17,7 @@ import java.util.function.*;
 
 
 /**
- * Command-Implementation: command to update the student
+ * Command-Implementation: command to create or update the student instance
  *
  * @see SchoolCommandCache
  * @see Student

@@ -50,7 +50,7 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * To transfer command execution result to next command context
      *
      * @param visitor visitor for transfer result
-     * @param result  result of command execution
+     * @param resultValue  result of command execution
      * @param target  command context for next execution
      * @param <S>     type of current command execution result
      * @param <T>     type of next command execution result
@@ -59,8 +59,8 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      */
     @Override
     default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S result, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, result, target);
+                                         final S resultValue, final Context<T> target) {
+        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
     }
 
     /**

@@ -1,63 +1,39 @@
-package oleg.sopilnyak.test.service.command.type;
+package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
+import org.slf4j.Logger;
 import org.springframework.lang.NonNull;
-
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
- * Type: Command to execute the couple of commands
+ * Command-Implementation: command to create the student instance
+ *
+ * @see Student
  */
-public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
-    /**
-     * To get the collection of nested commands used it composite
-     *
-     * @return collection of nested commands
-     */
-    Collection<NestedCommand> fromNest();
+@Slf4j
+@Component
+public class CreateStudentMacroCommand extends SequentialMacroCommand implements StudentCommand {
+    private final CreateOrUpdateStudentCommand studentCommand;
+    private final CreateOrUpdateStudentProfileCommand profileCommand;
 
-    /**
-     * To add the command
-     *
-     * @param command the instance to add
-     */
-    void addToNest(NestedCommand command);
-
-    /**
-     * To create command's context with doParameter
-     *
-     * @param input context's doParameter value
-     * @param <T>   type of command result
-     * @return context instance
-     * @see Context
-     * @see Context#getRedoParameter()
-     * @see CommandContext
-     * @see Context.State#READY
-     * @see RootCommand#createContext()
-     */
-    @Override
-    default <T> Context<T> createContext(Object input) {
-        final MacroCommandParameter<T> doParameter = new MacroCommandParameter<>(input,
-                this.fromNest().stream()
-                        .<Context<T>>map(command -> command.acceptPreparedContext(this, input))
-                        .collect(Collectors.toCollection(LinkedList::new))
-        );
-        // assemble input parameter contexts for redo
-        return RootCommand.super.createContext(doParameter);
+    public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand studentCommand,
+                                     final CreateOrUpdateStudentProfileCommand profileCommand) {
+        this.studentCommand = studentCommand;
+        this.profileCommand = profileCommand;
+        addToNest(profileCommand);
+        addToNest(studentCommand);
     }
-
-// For commands playing Nested Command Role
 
     /**
      * To prepare context for nested command using the visitor
@@ -71,9 +47,10 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
-        return visitor.prepareContext(this, input);
+    public <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+        return super.acceptPreparedContext(visitor, input);
     }
+
 
     /**
      * To transfer command execution result to next command context
@@ -87,9 +64,9 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see Context#setRedoParameter(Object)
      */
     @Override
-    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S resultValue, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
+    public <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
+                                        final S resultValue, final Context<T> target) {
+        super.transferResultTo(visitor, resultValue, target);
     }
 
     /**
@@ -98,7 +75,6 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see CompositeCommand#doCommand(Context)
@@ -106,9 +82,9 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
+    public <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+                                      final Context<T> context, final Context.StateChangedListener<T> stateListener) {
+        super.doAsNestedCommand(visitor, context, stateListener);
     }
 
     /**
@@ -121,8 +97,28 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
-        return visitor.undoNestedCommand(this, context);
+    public <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+                                              final Context<T> context) {
+        return super.undoAsNestedCommand(visitor, context);
+    }
+
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    @Override
+    public Logger getLog() {
+        return log;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CREATE_NEW;
     }
 }

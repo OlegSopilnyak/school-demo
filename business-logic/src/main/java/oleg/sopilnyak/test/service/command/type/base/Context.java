@@ -126,6 +126,10 @@ public interface Context<T> {
         return getState() == State.FAIL;
     }
 
+    default boolean isWorking() {
+        return getState() == State.WORK;
+    }
+
 
     /**
      * To add change-context-state listener

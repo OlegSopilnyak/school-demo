@@ -23,6 +23,20 @@ public interface PrepareContextVisitor {
      * @param mainInput macro-command input parameter
      * @param <T>       type of command's do result
      * @return built context of the command for input parameter
+     * @see NestedCommand
+     * @see RootCommand#createContext(Object)
+     * @see Context
+     */
+    default <T> Context<T> prepareContext(final NestedCommand command, final Object mainInput) {
+        return prepareContext((RootCommand) command, mainInput);
+    }
+    /**
+     * To prepare context for particular type of the nested command
+     *
+     * @param command   nested command instance
+     * @param mainInput macro-command input parameter
+     * @param <T>       type of command's do result
+     * @return built context of the command for input parameter
      * @see RootCommand
      * @see RootCommand#createContext(Object)
      * @see Context

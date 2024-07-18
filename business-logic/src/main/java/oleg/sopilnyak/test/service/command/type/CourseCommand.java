@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
-import org.slf4j.Logger;
 import org.springframework.lang.NonNull;
 
 /**
@@ -25,51 +24,6 @@ public interface CourseCommand extends RootCommand {
     String DELETE = "course.delete";
     String REGISTER = "course.register";
     String UN_REGISTER = "course.unRegister";
-
-
-    /**
-     * To get reference to command's logger
-     *
-     * @return reference to the logger
-     */
-    Logger getLog();
-
-    /**
-     * To execute command
-     *
-     * @param context context of redo execution
-     * @see Context
-     */
-    @Override
-    default <T> void doCommand(Context<T> context) {
-        if (isWrongRedoStateOf(context)) {
-            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        } else {
-            // start redo with correct context state
-            context.setState(Context.State.WORK);
-            executeDo(context);
-        }
-    }
-
-    /**
-     * To rollback command's execution
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context#getUndoParameter()
-     */
-    @Override
-    default <T> void undoCommand(Context<T> context) {
-        if (isWrongUndoStateOf(context)) {
-            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        } else {
-            // start undo with correct context state
-            context.setState(Context.State.WORK);
-            executeUndo(context);
-        }
-    }
 
 // For commands playing Nested Command Role
 
@@ -91,18 +45,18 @@ public interface CourseCommand extends RootCommand {
     /**
      * To transfer command execution result to next command context
      *
-     * @param visitor visitor for transfer result
-     * @param result  result of command execution
-     * @param target  command context for next execution
-     * @param <S>     type of current command execution result
-     * @param <T>     type of next command execution result
+     * @param visitor     visitor for transfer result
+     * @param resultValue result of command execution
+     * @param target      command context for next execution
+     * @param <S>         type of current command execution result
+     * @param <T>         type of next command execution result
      * @see TransferResultVisitor#transferPreviousExecuteDoResult(CourseCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
     @Override
     default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S result, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, result, target);
+                                         final S resultValue, final Context<T> target) {
+        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
     }
 
     /**

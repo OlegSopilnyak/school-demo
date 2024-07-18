@@ -15,7 +15,7 @@ import static java.util.Objects.isNull;
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
  */
-public abstract class SequentialMacroCommand extends MacroCommand<RootCommand> implements TransferResultVisitor {
+public abstract class SequentialMacroCommand extends MacroCommand implements TransferResultVisitor {
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts

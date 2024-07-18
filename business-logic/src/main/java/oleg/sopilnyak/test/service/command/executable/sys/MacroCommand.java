@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 
 import java.util.*;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
  *
  * @see RootCommand
  */
-public abstract class MacroCommand<C extends RootCommand>
-        implements CompositeCommand<C>, NestedCommandExecutionVisitor {
+public abstract class MacroCommand
+        implements CompositeCommand, NestedCommandExecutionVisitor {
     // the list of nested commands
-    private final List<C> netsedCommandsList = new LinkedList<>();
+    private final List<NestedCommand> netsedCommandsList = new LinkedList<>();
 
     /**
      * To get the collection of commands used into composite
@@ -27,7 +28,7 @@ public abstract class MacroCommand<C extends RootCommand>
      * @return collection of nested commands
      */
     @Override
-    public Collection<C> fromNest() {
+    public Collection<NestedCommand> fromNest() {
         synchronized (netsedCommandsList) {
             return Collections.unmodifiableList(netsedCommandsList);
         }
@@ -40,7 +41,7 @@ public abstract class MacroCommand<C extends RootCommand>
      * @see RootCommand
      */
     @Override
-    public void addToNest(final C command) {
+    public void addToNest(final NestedCommand command) {
         synchronized (netsedCommandsList) {
             netsedCommandsList.add(command);
         }

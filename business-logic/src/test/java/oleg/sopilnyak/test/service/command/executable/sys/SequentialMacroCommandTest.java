@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,7 @@ class SequentialMacroCommandTest {
     @Test
     void checkSequentialCommandIntegrity() {
         assertThat(command).isNotNull();
-        Deque<RootCommand> commands = new LinkedList<>(command.fromNest());
+        Deque<NestedCommand> commands = new LinkedList<>(command.fromNest());
         assertThat(commands.pop()).isEqualTo(doubleCommand);
         assertThat(commands.pop()).isEqualTo(booleanCommand);
         assertThat(commands.pop()).isEqualTo(intCommand);

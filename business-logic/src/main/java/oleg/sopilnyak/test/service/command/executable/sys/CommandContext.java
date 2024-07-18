@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 
@@ -69,7 +70,7 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setUndoParameter(Object parameter) {
-        if (state == DONE || state == WORK) {
+        if (isDone() || isWorking()) {
             undoParameter = parameter;
         }
     }
@@ -93,7 +94,7 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setResult(Object result) {
-        if (state == WORK) {
+        if (isWorking()) {
             this.resultData = (T) result;
             setState(DONE);
         }
@@ -131,9 +132,11 @@ public class CommandContext<T> implements Context<T> {
     }
 
     // private methods
-    private void notifyStateChangedListeners(final State old, final State state) {
-        if (!ObjectUtils.isEmpty(listeners)) {
-            listeners.forEach(listener -> listener.stateChanged(this, old, state));
-        }
+    private void notifyStateChangedListeners(final State previous, final State last) {
+        if (ObjectUtils.isEmpty(listeners)) return;
+        // delivery state-changed notification
+        final Consumer<StateChangedListener<T>> doStateChangedNotification =
+                listener -> listener.stateChanged(this, previous, last);
+        listeners.forEach(doStateChangedNotification);
     }
 }

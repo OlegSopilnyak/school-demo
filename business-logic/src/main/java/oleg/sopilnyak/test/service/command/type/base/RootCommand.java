@@ -1,9 +1,11 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
+import org.slf4j.Logger;
 import org.springframework.lang.NonNull;
 
 import static java.util.Objects.isNull;
@@ -11,7 +13,13 @@ import static java.util.Objects.isNull;
 /**
  * Type: Command to execute the business-logic action
  */
-public interface RootCommand {
+public interface RootCommand extends CommandExecutable, NestedCommand {
+    /**
+     * To get reference to command's logger
+     *
+     * @return reference to the logger
+     */
+    Logger getLog();
 
     /**
      * To get unique command-id for the command
@@ -21,7 +29,7 @@ public interface RootCommand {
     String getId();
 
     /**
-     * Cast parameter to particular type
+     * Cast input parameter to particular type
      *
      * @param parameter actual parameter
      * @param <P>       type of the parameter
@@ -35,7 +43,7 @@ public interface RootCommand {
     /**
      * To check nullable of the input parameter
      *
-     * @param parameter value to check
+     * @param parameter input value to check
      */
     default void check(Object parameter) {
         if (isNull(parameter)) {
@@ -52,6 +60,7 @@ public interface RootCommand {
      * @see CommandContext
      * @see Context.State#INIT
      */
+    @Override
     default <T> Context<T> createContext() {
         final CommandContext<T> context = CommandContext.<T>builder().command(this).build();
         context.setState(Context.State.INIT);
@@ -69,6 +78,7 @@ public interface RootCommand {
      * @see CommandContext
      * @see Context.State#READY
      */
+    @Override
     default <T> Context<T> createContext(Object input) {
         final CommandContext<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
         context.setState(Context.State.INIT);
@@ -77,79 +87,42 @@ public interface RootCommand {
     }
 
     /**
-     * Before redo context must be in READY state
-     *
-     * @param context command execution context
-     * @param <T>     the type of command result
-     * @return true if redo is allowed
-     * @see Context
-     * @see Context#getState()
-     * @see Context.State#READY
-     */
-    default <T> boolean isWrongRedoStateOf(Context<T> context) {
-        return !context.isReady();
-    }
-
-    /**
-     * To do command execution with Context
+     * To execute command logic with context
      *
      * @param context context of redo execution
-     * @param <T>     the type of command result
      * @see Context
+     * @see CommandExecutable#executeDo(Context)
      */
+    @Override
     default <T> void doCommand(Context<T> context) {
-
+        if (!context.isReady()) {
+            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
+        } else {
+            // start redo with correct context state
+            context.setState(Context.State.WORK);
+            executeDo(context);
+        }
     }
 
     /**
-     * To execute command redo with correct context state
+     * To rollback command's execution according to command context
      *
      * @param context context of redo execution
-     * @param <T>     the type of command result
-     * @see Context
-     * @see Context.State#WORK
-     */
-    default <T> void executeDo(Context<T> context) {
-        context.setState(Context.State.DONE);
-    }
-
-    /**
-     * Before undo context must be in DONE state
-     *
-     * @param context command execution context
-     * @param <T>     the type of command result
-     * @return true if undo is allowed
-     * @see Context
-     * @see Context#getState()
-     * @see Context.State#DONE
-     */
-    default <T> boolean isWrongUndoStateOf(Context<T> context) {
-        return !context.isDone();
-    }
-
-
-    /**
-     * To rollback command's execution
-     *
-     * @param context context of redo execution
-     * @param <T>     the type of command result
      * @see Context
      * @see Context#getUndoParameter()
+     * @see CommandExecutable#executeUndo(Context)
      */
+    @Override
     default <T> void undoCommand(Context<T> context) {
-
-    }
-
-    /**
-     * To rollback command's execution with correct context state
-     *
-     * @param context context of redo execution
-     * @param <T>     the type of command result
-     * @see Context
-     * @see Context#getUndoParameter()
-     */
-    default <T> void executeUndo(Context<T> context) {
-        context.setState(Context.State.UNDONE);
+        if (!context.isDone()) {
+            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
+        } else {
+            // start undo with correct context state
+            context.setState(Context.State.WORK);
+            executeUndo(context);
+        }
     }
 
 // For commands playing Nested Command Role
@@ -164,6 +137,7 @@ public interface RootCommand {
      * @see PrepareContextVisitor#prepareContext(RootCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
+    @Override
     default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
@@ -171,17 +145,18 @@ public interface RootCommand {
     /**
      * To transfer command execution result to next command context
      *
-     * @param visitor visitor for transfer result
-     * @param result  result of command execution
-     * @param target  command context for next execution
-     * @param <S>     type of current command execution result
-     * @param <T>     type of next command execution result
+     * @param visitor     visitor for transfer result
+     * @param resultValue result of command execution
+     * @param target      command context for next execution
+     * @param <S>         type of current command execution result
+     * @param <T>         type of next command execution result
      * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
      * @see Context#setRedoParameter(Object)
      */
+    @Override
     default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S result, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, result, target);
+                                         final S resultValue, final Context<T> target) {
+        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
     }
 
     /**
@@ -197,6 +172,7 @@ public interface RootCommand {
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
+    @Override
     default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
                                        final Context<T> context, final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
@@ -211,6 +187,7 @@ public interface RootCommand {
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */
+    @Override
     default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {
         return visitor.undoNestedCommand(this, context);

@@ -89,7 +89,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand<RootCommand> command,
+    default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);

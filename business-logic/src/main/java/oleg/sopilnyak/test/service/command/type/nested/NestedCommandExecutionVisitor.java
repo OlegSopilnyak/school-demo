@@ -94,9 +94,9 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#DONE
      * @see Context.State#FAIL
      */
-    default <T, C extends RootCommand> void doNestedCommand(final CompositeCommand<C> command,
-                                                            final Context<T> doContext,
-                                                            final Context.StateChangedListener<T> stateListener) {
+    default <T> void doNestedCommand(final CompositeCommand command,
+                                     final Context<T> doContext,
+                                     final Context.StateChangedListener<T> stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
@@ -257,7 +257,7 @@ public interface NestedCommandExecutionVisitor {
      * @see Context.State#UNDONE
      * @see Context.State#FAIL
      */
-    default <T> Context<T> undoNestedCommand(final CompositeCommand<RootCommand> command, final Context<T> undoContext) {
+    default <T> Context<T> undoNestedCommand(final CompositeCommand command, final Context<T> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 

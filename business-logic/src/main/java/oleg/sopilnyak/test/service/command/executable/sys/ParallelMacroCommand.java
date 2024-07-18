@@ -17,7 +17,7 @@ import java.util.concurrent.Future;
  * Uses execution of nested commands simultaneously
  */
 @AllArgsConstructor
-public abstract class ParallelMacroCommand extends MacroCommand<RootCommand> {
+public abstract class ParallelMacroCommand extends MacroCommand {
     protected final SchedulingTaskExecutor commandContextExecutor;
 
     /**
