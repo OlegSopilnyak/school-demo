@@ -15,15 +15,15 @@ public interface StudentProfileCommand extends ProfileCommand {
     /**
      * ID of findById student profile command
      */
-    String FIND_BY_ID_COMMAND_ID = "profile.student.findById";
+    String FIND_BY_ID = "profile.student.findById";
     /**
      * ID of deleteById student profile command
      */
-    String DELETE_BY_ID_COMMAND_ID = "profile.student.deleteById";
+    String DELETE_BY_ID = "profile.student.deleteById";
     /**
      * ID of createOrUpdate student profile command
      */
-    String CREATE_OR_UPDATE_COMMAND_ID = "profile.student.createOrUpdate";
+    String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     /**
      * The name of commands-factory SpringBean
      */

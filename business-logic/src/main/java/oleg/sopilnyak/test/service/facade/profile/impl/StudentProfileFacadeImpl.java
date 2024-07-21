@@ -23,16 +23,16 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
 
     @Override
     protected final String findByIdCommandId() {
-        return FIND_BY_ID_COMMAND_ID;
+        return FIND_BY_ID;
     }
 
     @Override
     protected final String createOrUpdateCommandId() {
-        return CREATE_OR_UPDATE_COMMAND_ID;
+        return CREATE_OR_UPDATE;
     }
 
     @Override
     protected final String deleteByIdCommandId() {
-        return DELETE_BY_ID_COMMAND_ID;
+        return DELETE_BY_ID;
     }
 }

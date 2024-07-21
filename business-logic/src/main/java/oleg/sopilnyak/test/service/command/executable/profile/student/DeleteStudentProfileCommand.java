@@ -52,7 +52,7 @@ public class DeleteStudentProfileCommand extends DeleteProfileCommand<StudentPro
      */
     @Override
     public String getId() {
-        return DELETE_BY_ID_COMMAND_ID;
+        return DELETE_BY_ID;
     }
 
     /**

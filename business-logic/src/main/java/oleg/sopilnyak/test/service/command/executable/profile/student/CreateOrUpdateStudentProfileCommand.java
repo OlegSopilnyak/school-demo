@@ -22,6 +22,7 @@ import java.util.function.UnaryOperator;
  * @see StudentProfile
  * @see ProfilePersistenceFacade
  * @see oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity
+ * @see CreateOrUpdateStudentProfileCommand
  */
 @Slf4j
 @Component
@@ -56,7 +57,7 @@ public class CreateOrUpdateStudentProfileCommand
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE_COMMAND_ID;
+        return CREATE_OR_UPDATE;
     }
 
     /**

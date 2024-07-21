@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.message;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
 
 /**
@@ -11,6 +12,7 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
  * @see BaseType
  */
 
+@SuperBuilder
 @ToString(doNotUseGetters = true)
 @EqualsAndHashCode(exclude = {"original"})
 @NoArgsConstructor

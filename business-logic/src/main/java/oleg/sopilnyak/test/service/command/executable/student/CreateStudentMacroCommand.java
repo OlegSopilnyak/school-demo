@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
@@ -12,7 +13,13 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentPayload;
+import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
@@ -20,19 +27,97 @@ import org.springframework.stereotype.Component;
  * Command-Implementation: command to create the student instance
  *
  * @see Student
+ * @see StudentProfile
+ * @see SequentialMacroCommand
  */
 @Slf4j
 @Component
 public class CreateStudentMacroCommand extends SequentialMacroCommand implements StudentCommand {
     private final CreateOrUpdateStudentCommand studentCommand;
     private final CreateOrUpdateStudentProfileCommand profileCommand;
+    private final BusinessMessagePayloadMapper payloadMapper;
+    @Value("${school.mail.basic.domain:gmail.com}")
+    private String emailDomain;
 
     public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand studentCommand,
-                                     final CreateOrUpdateStudentProfileCommand profileCommand) {
+                                     final CreateOrUpdateStudentProfileCommand profileCommand,
+                                     final BusinessMessagePayloadMapper payloadMapper) {
         this.studentCommand = studentCommand;
         this.profileCommand = profileCommand;
         addToNest(profileCommand);
         addToNest(studentCommand);
+        this.payloadMapper = payloadMapper;
+    }
+
+    /**
+     * To prepare context for particular type of the nested command
+     *
+     * @param command   nested command instance
+     * @param mainInput macro-command input parameter
+     * @return built context of the command for input parameter
+     * @see Student
+     * @see StudentCommand
+     * @see this#createStudentContext(StudentCommand, Student)
+     * @see Context
+     */
+    @Override
+    public <T> Context<T> prepareContext(StudentCommand command, Object mainInput) {
+        return mainInput instanceof Student student && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+                createStudentContext(command, student) : cannotCreateNestedContextFor(command);
+    }
+
+    /**
+     * To create context for create-or-update student command
+     *
+     * @param command   create-or-update student command instance
+     * @param parameter input parameter of student to create
+     * @param <T>       type of create-or-update student command result
+     * @return built context of the command for input student
+     * @see BusinessMessagePayloadMapper#toPayload(Student)
+     * @see StudentPayload
+     */
+    public <T> Context<T> createStudentContext(StudentCommand command, Student parameter) {
+        final StudentPayload payload = parameter instanceof StudentPayload studentPayload ?
+                studentPayload : payloadMapper.toPayload(parameter);
+        payload.setId(null);
+        return command.createContext(payload);
+    }
+
+    /**
+     * To prepare context for particular type of the nested command
+     *
+     * @param command   nested command instance
+     * @param mainInput macro-command input parameter
+     * @param <T>       type of create-or-update student profile command result
+     * @return built context of the command for input parameter
+     * @see Student
+     * @see StudentProfileCommand
+     * @see this#createStudentProfileContext(StudentProfileCommand, Student)
+     * @see Context
+     */
+    @Override
+    public <T> Context<T> prepareContext(final StudentProfileCommand command, final Object mainInput) {
+        return mainInput instanceof Student student && StudentProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+                createStudentProfileContext(command, student) : cannotCreateNestedContextFor(command);
+    }
+
+    /**
+     * To create context for create-or-update student profile command
+     *
+     * @param command   create-or-update student profile command instance
+     * @param parameter input parameter of student to create
+     * @param <T>       type of create-or-update student profile command result
+     * @return built context of the command for input parameter
+     * @see StudentProfilePayload
+     */
+    public <T> Context<T> createStudentProfileContext(StudentProfileCommand command, Student parameter) {
+        final String emailPrefix = parameter.getFirstName().toLowerCase() + "." + parameter.getLastName().toLowerCase();
+        final StudentProfilePayload payload = StudentProfilePayload.builder()
+                .id(null)
+                .phone("Not-Exists-Yet")
+                .email(emailPrefix + "@" + emailDomain)
+                .build();
+        return command.createContext(payload);
     }
 
     /**
@@ -120,5 +205,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     @Override
     public String getId() {
         return CREATE_NEW;
+    }
+
+// private methods
+
+    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
+        throw new CannotCreateCommandContextException(command.getId());
     }
 }

@@ -41,7 +41,7 @@ public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile
      */
     @Override
     public String getId() {
-        return FIND_BY_ID_COMMAND_ID;
+        return FIND_BY_ID;
     }
 
     /**

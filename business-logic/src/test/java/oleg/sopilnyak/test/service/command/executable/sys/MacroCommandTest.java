@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -262,11 +263,13 @@ class MacroCommandTest {
     void shouldNotCreateMacroContext_DoubleContextExceptionThrown() {
         int parameter = 103;
         allowRealAcceptPrepareContext(doubleCommand, parameter);
-        doThrow(new UnableExecuteCommandException("double")).when(doubleCommand).createContext(parameter);
+        doThrow(new CannotCreateCommandContextException("double")).when(doubleCommand).createContext(parameter);
 
-        var exception = assertThrows(UnableExecuteCommandException.class, () -> command.createContext(parameter));
+        Context<Integer> macroContext = command.createContext(parameter);
 
-        assertThat(exception.getMessage()).isEqualTo("Cannot execute command 'double'");
+        assertThat(macroContext).isNotNull();
+        assertThat(macroContext.isFailed()).isTrue();
+        assertThat(macroContext.getException().getMessage()).isEqualTo("Cannot create command context for id: 'double'");
         // check doubleCommand
         verify(doubleCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(doubleCommand, parameter);
@@ -282,11 +285,13 @@ class MacroCommandTest {
         allowRealPrepareContext(doubleCommand, parameter);
         allowRealPrepareContext(booleanCommand, parameter);
         allowRealAcceptPrepareContext(intCommand, parameter);
-        doThrow(new UnableExecuteCommandException("int")).when(intCommand).createContext(parameter);
+        doThrow(new CannotCreateCommandContextException("int")).when(intCommand).createContext(parameter);
 
-        var exception = assertThrows(UnableExecuteCommandException.class, () -> command.createContext(parameter));
+        Context<Integer> macroContext = command.createContext(parameter);
 
-        assertThat(exception.getMessage()).isEqualTo("Cannot execute command 'int'");
+        assertThat(macroContext).isNotNull();
+        assertThat(macroContext.isFailed()).isTrue();
+        assertThat(macroContext.getException().getMessage()).isEqualTo("Cannot create command context for id: 'int'");
         command.fromNest().forEach(nestedCommand -> {
             verify(nestedCommand).acceptPreparedContext(command, parameter);
             if (nestedCommand instanceof RootCommand rootCommand) {
@@ -1179,7 +1184,7 @@ class MacroCommandTest {
         }).when(nextedCommand).undoCommand(any(Context.class));
     }
 
-    private <T> void configureNestedUndoStatus(NestedCommand nextedCommand) {
+    private void configureNestedUndoStatus(NestedCommand nextedCommand) {
         configureNestedUndoStatus((RootCommand) nextedCommand);
     }
 }

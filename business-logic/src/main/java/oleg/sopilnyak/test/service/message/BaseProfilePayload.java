@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * @see Extra
  */
 @Data
+@SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor

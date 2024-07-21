@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.message;
 
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 /**
@@ -12,7 +12,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
  * @see StudentProfile
  * @see BaseProfilePayload
  */
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true, doNotUseGetters = true)

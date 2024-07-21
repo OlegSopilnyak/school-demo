@@ -44,10 +44,12 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setState(final State newState) {
-        final State oldState = this.state;
-        this.states.add(newState);
-        this.state = newState;
-        notifyStateChangedListeners(oldState, newState);
+        if (newState != state) {
+            final State oldState = this.state;
+            this.states.add(newState);
+            this.state = newState;
+            notifyStateChangedListeners(oldState, newState);
+        }
     }
 
     /**

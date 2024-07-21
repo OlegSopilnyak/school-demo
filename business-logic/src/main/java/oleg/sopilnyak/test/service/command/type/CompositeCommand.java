@@ -13,8 +13,8 @@ import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.springframework.lang.NonNull;
 
 import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of commands
@@ -35,9 +35,9 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
     void addToNest(NestedCommand command);
 
     /**
-     * To create command's context with doParameter
+     * To create command's context of macro command for input
      *
-     * @param input context's doParameter value
+     * @param input command context's parameter value
      * @param <T>   type of command result
      * @return context instance
      * @see Context
@@ -48,13 +48,19 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      */
     @Override
     default <T> Context<T> createContext(Object input) {
-        final MacroCommandParameter<T> doParameter = new MacroCommandParameter<>(input,
-                this.fromNest().stream()
-                        .<Context<T>>map(command -> command.acceptPreparedContext(this, input))
-                        .collect(Collectors.toCollection(LinkedList::new))
-        );
-        // assemble input parameter contexts for redo
-        return RootCommand.super.createContext(doParameter);
+        final Context<T> macroCommandContext = createContext();
+        final Deque<Context<T>> nestedContexts = new LinkedList<>();
+        try {
+            for (final NestedCommand nestedCommand : fromNest()) {
+                final Context<T> nestedContext = nestedCommand.acceptPreparedContext(this, input);
+                nestedContexts.add(nestedContext);
+            }
+            macroCommandContext.setRedoParameter(new MacroCommandParameter<>(input, nestedContexts));
+        } catch (Exception e) {
+            getLog().error("Cannot create macro command context for {}", input, e);
+            macroCommandContext.failed(e);
+        }
+        return macroCommandContext;
     }
 
 // For commands playing Nested Command Role
