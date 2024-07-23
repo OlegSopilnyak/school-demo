@@ -142,7 +142,7 @@ class StudentsRestControllerTest extends TestModelFactory {
             assertStudentEquals(student, received);
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
-        }).when(facade).createOrUpdate(any(Student.class));
+        }).when(facade).create(any(Student.class));
         String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 

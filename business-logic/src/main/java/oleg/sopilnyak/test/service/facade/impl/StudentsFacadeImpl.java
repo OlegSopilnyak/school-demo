@@ -98,6 +98,23 @@ public class StudentsFacadeImpl implements StudentsFacade {
     }
 
     /**
+     * To create student instance + it's profile
+     *
+     * @param instance student should be created
+     * @return student instance or empty() if not exists
+     * @see Student
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<Student> create(Student instance) {
+        log.debug("Creating student {}", instance);
+        final Optional<Student> result = doSimpleCommand(CREATE_NEW, convert.apply(instance), factory);
+        log.debug("Created student {}", result);
+        return result.map(convert);
+    }
+
+    /**
      * To delete student from the school
      *
      * @param id system-id of the student

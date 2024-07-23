@@ -64,6 +64,17 @@ public interface StudentsFacade {
     Optional<Student> createOrUpdate(Student student);
 
     /**
+     * To create student instance + it's profile
+     *
+     * @param student student should be created
+     * @return student instance or empty() if not exists
+     * @see Student
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<Student> create(Student student);
+
+    /**
      * To delete student from the school
      *
      * @param studentId system-id of the student

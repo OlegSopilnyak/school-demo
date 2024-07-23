@@ -80,8 +80,7 @@ public class StudentsRestController {
     public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto studentDto) {
         log.debug("Trying to create the student {}", studentDto);
         try {
-            studentDto.setId(null);
-            return ResponseEntity.ok(resultToDto(facade.createOrUpdate(studentDto)));
+            return ResponseEntity.ok(resultToDto(facade.create(studentDto)));
         } catch (Exception e) {
             throw new UnsupportedOperationException("Cannot create new Student " + studentDto.toString());
         }
