@@ -83,17 +83,20 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
             final E profile = commandParameter(parameter);
             getLog().debug("Trying to change profile using: {}", profile);
             final Long id = profile.getId();
-            final boolean isCreateProfile = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateProfile) {
+            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntity) {
                 // previous version of profile is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(),
                         () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);
             }
-            final Optional<E> savedProfile = persistRedoEntity(context, functionSave());
-            // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, functionSave()), savedProfile, isCreateProfile);
+            // persisting entity trough persistence layer
+            final Optional<E> persisted = persistRedoEntity(context, functionSave());
+            // checking command context state after entity persistence
+            afterEntityPersistenceCheck(context,
+                    () -> rollbackCachedEntity(context, functionSave()),
+                    persisted.orElse(null), isCreateEntity);
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
             context.failed(e);

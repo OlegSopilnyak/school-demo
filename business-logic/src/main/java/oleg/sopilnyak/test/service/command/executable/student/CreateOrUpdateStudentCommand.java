@@ -59,17 +59,20 @@ public class CreateOrUpdateStudentCommand
             check(parameter);
             log.debug("Trying to change student using: {}", parameter.toString());
             final Long id = ((Student) parameter).getId();
-            final boolean isCreateStudent = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateStudent) {
+            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntity) {
                 // previous version of student is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(id, persistence::findStudentById, payloadMapper::toPayload,
                         () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);
             }
-            final Optional<Student> student = persistRedoEntity(context, persistence::save);
-            // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), student, isCreateStudent);
+            // persisting entity trough persistence layer
+            final Optional<Student> persisted = persistRedoEntity(context, persistence::save);
+            // checking command context state after entity persistence
+            afterEntityPersistenceCheck(context,
+                    () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity);
         } catch (Exception e) {
             log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);

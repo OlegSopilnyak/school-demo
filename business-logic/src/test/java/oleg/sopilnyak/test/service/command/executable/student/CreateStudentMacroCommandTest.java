@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Deque;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -59,10 +60,10 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileCommand).isNotNull();
         assertThat(studentCommand).isNotNull();
         assertThat(command).isNotNull();
-        assertThat(ReflectionTestUtils.getField(studentCommand, "persistence")).isEqualTo(persistence);
-        assertThat(ReflectionTestUtils.getField(studentCommand, "payloadMapper")).isEqualTo(payloadMapper);
-        assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isEqualTo(persistence);
-        assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isEqualTo(payloadMapper);
+        assertThat(ReflectionTestUtils.getField(studentCommand, "persistence")).isSameAs(persistence);
+        assertThat(ReflectionTestUtils.getField(studentCommand, "payloadMapper")).isSameAs(payloadMapper);
+        assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
+        assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isSameAs(payloadMapper);
     }
 
     @Test
@@ -175,7 +176,68 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(studentCommand).createContext(any(StudentPayload.class));
     }
 
+    @Test
+    void shouldExecuteDoCommand() {
+        Long profileId = 1L;
+        Long studentId = 2L;
+        Student newStudent = makeClearStudent(4);
+        doAnswer(invocation -> {
+            StudentProfilePayload payload = invocation.getArgument(0, StudentProfilePayload.class);
+            payload.setId(profileId);
+            return Optional.of(payload);
+        }).when(persistence).save(any(StudentProfile.class));
+        doAnswer(invocation -> {
+            StudentPayload payload = invocation.getArgument(0, StudentPayload.class);
+            payload.setId(studentId);
+            return Optional.of(payload);
+        }).when(persistence).save(any(Student.class));
+        Context<Optional<Student>> context = command.createContext(newStudent);
+
+        command.doCommand(context);
+
+        MacroCommandParameter<Optional<BaseType>> parameter = context.getRedoParameter();
+        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
+        Context<Optional<BaseType>> studentContext = parameter.getNestedContexts().pop();
+
+        checkContextAfterDoCommand(context);
+        Optional<Student> savedStudent = context.getResult().orElseThrow();
+        assertThat(savedStudent.orElseThrow().getId()).isEqualTo(studentId);
+        assertThat(savedStudent.orElseThrow().getProfileId()).isEqualTo(profileId);
+        assertStudentEquals(savedStudent.orElseThrow(), newStudent, false);
+
+        checkContextAfterDoCommand(profileContext);
+        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
+        assertThat(profileResult.orElseThrow().getId()).isEqualTo(profileId);
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+
+        checkContextAfterDoCommand(studentContext);
+        Optional<BaseType> studentResult = studentContext.getResult().orElseThrow();
+        final Student student = studentResult.map(Student.class::cast).orElseThrow();
+        assertStudentEquals(student, newStudent, false);
+        assertThat(student.getId()).isEqualTo(studentId);
+        assertThat(student.getProfileId()).isEqualTo(profileId);
+        assertThat(studentContext.<Long>getUndoParameter()).isEqualTo(studentId);
+        assertThat(savedStudent.orElseThrow()).isSameAs(student);
+
+        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(profileCommand).executeDo(profileContext);
+        verify(persistence).save(any(StudentProfile.class));
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
+        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
+
+        verify(studentCommand).doAsNestedCommand(eq(command), eq(studentContext), any(Context.StateChangedListener.class));
+        verify(studentCommand).executeDo(studentContext);
+        verify(persistence).save(any(Student.class));
+    }
+
     // private methods
+    private static <T> void checkContextAfterDoCommand(Context<Optional<T>> context) {
+        assertThat(context.isDone()).isTrue();
+        assertThat(context.getResult()).isPresent();
+        assertThat(context.getResult().get()).isPresent();
+    }
+
     private void verifyStudentCommandContext(StudentPayload newStudent) {
         verify(studentCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(studentCommand, newStudent);

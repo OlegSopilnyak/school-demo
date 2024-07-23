@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
+import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
@@ -22,6 +23,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import java.util.Deque;
+import java.util.Optional;
 
 /**
  * Command-Implementation: command to create the student instance
@@ -33,8 +37,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class CreateStudentMacroCommand extends SequentialMacroCommand implements StudentCommand {
-    private final CreateOrUpdateStudentCommand studentCommand;
-    private final CreateOrUpdateStudentProfileCommand profileCommand;
     private final BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
@@ -42,11 +44,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand studentCommand,
                                      final CreateOrUpdateStudentProfileCommand profileCommand,
                                      final BusinessMessagePayloadMapper payloadMapper) {
-        this.studentCommand = studentCommand;
-        this.profileCommand = profileCommand;
+        this.payloadMapper = payloadMapper;
         addToNest(profileCommand);
         addToNest(studentCommand);
-        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -119,6 +119,50 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
                 .build();
         return command.createContext(payload);
     }
+
+// for command do activities as nested command
+    /**
+     * To transfer result from current command to next command context.<BR/>
+     * Send create-profile command result (profile-id) to create-student command input
+     *
+     * @param command successfully executed command
+     * @param result  the result of successful command execution
+     * @param target  next command context to execute command's redo
+     * @see StudentProfileCommand#doCommand(Context)
+     * @see Context#setRedoParameter(Object)
+     * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
+     * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
+     * @see CannotTransferCommandResultException
+     */
+    @Override
+    public <S, T> void transferPreviousExecuteDoResult(StudentProfileCommand command, S result, Context<T> target) {
+        if (result instanceof Optional<?> opt &&
+                opt.orElseThrow() instanceof StudentProfile profile &&
+                StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+            // send create-profile result (profile-id) to create-student input (StudentPayload#setProfileId)
+            transferProfileIdToStudentInput(profile.getId(), target);
+        } else {
+            throw new CannotTransferCommandResultException(command.getId());
+        }
+    }
+
+    /**
+     * To transfer profile-id to create-student command input
+     *
+     * @param profileId the id of profile created before student
+     * @param target    create-student command context
+     * @see Context#getRedoParameter()
+     * @see Context#setRedoParameter(Object)
+     * @see StudentPayload#setProfileId(Long)
+     */
+    public void transferProfileIdToStudentInput(Long profileId, Context<?> target) {
+        final StudentPayload student = target.getRedoParameter();
+        log.debug("Transferring profile id: {} to student: {}", profileId, student);
+        student.setProfileId(profileId);
+        target.setRedoParameter(student);
+    }
+
+// for command activities as nested command
 
     /**
      * To prepare context for nested command using the visitor

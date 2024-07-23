@@ -31,13 +31,13 @@ import java.util.function.UnaryOperator;
 public class CreateOrUpdateCourseCommand
         extends SchoolCommandCache<Course>
         implements CourseCommand {
-    private final CoursesPersistenceFacade persistenceFacade;
+    private final CoursesPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                        final BusinessMessagePayloadMapper payloadMapper) {
         super(Course.class);
-        this.persistenceFacade = persistenceFacade;
+        this.persistence = persistenceFacade;
         this.payloadMapper = payloadMapper;
     }
 
@@ -62,22 +62,25 @@ public class CreateOrUpdateCourseCommand
             check(parameter);
             log.debug("Trying to create or update course {}", parameter);
             final Long id = ((Course) parameter).getId();
-            final boolean isCreateCourse = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateCourse) {
+            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntity) {
                 // previous version of course is storing to context for further rollback (undo)
                 final var entity =
-                        retrieveEntity(id, persistenceFacade::findCourseById, payloadMapper::toPayload,
+                        retrieveEntity(id, persistence::findCourseById, payloadMapper::toPayload,
                                 () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                         );
                 context.setUndoParameter(entity);
             }
-            final Optional<Course> course = persistRedoEntity(context, persistenceFacade::save);
-            // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistenceFacade::save), course, isCreateCourse);
+            // persisting entity trough persistence layer
+            final Optional<Course> persisted = persistRedoEntity(context, persistence::save);
+            // checking command context state after entity persistence
+            afterEntityPersistenceCheck(context,
+                    () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity);
         } catch (Exception e) {
             log.error("Cannot create or update course by ID:{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistenceFacade::save);
+            rollbackCachedEntity(context, persistence::save);
         }
     }
 
@@ -98,7 +101,7 @@ public class CreateOrUpdateCourseCommand
         try {
             log.debug("Trying to undo course changes using: {}", parameter.toString());
 
-            rollbackCachedEntity(context, persistenceFacade::save, persistenceFacade::deleteCourse,
+            rollbackCachedEntity(context, persistence::save, persistence::deleteCourse,
                     () -> new NotExistCourseException("Wrong undo parameter :" + parameter));
 
             context.setState(Context.State.UNDONE);

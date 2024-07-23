@@ -123,7 +123,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     protected Optional<T> persistRedoEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
         final Object parameter = context.getRedoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
-            getLog().info("Storing changed value of {} '{}'", entityName, parameter);
+            getLog().debug("Storing changed value of {} '{}'", entityName, parameter);
             return facadeSave.apply(context.getRedoParameter());
         } else {
             if (nonNull(parameter)) {
@@ -142,7 +142,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      *
      * @param context             command's do context
      * @param rollbackProcess     process to run after persistence fail
-     * @param persistedEntityCopy persisted entity instance
+     * @param persistedEntityCopy persisted entity instance copy
      * @param isCreateEntity      if true there was new entity creation action
      * @see Context
      * @see Context#getRedoParameter()
@@ -151,23 +151,26 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Optional
      * @see Runnable#run()
      */
-    protected void afterPersistCheck(final Context<?> context,
-                                     final Runnable rollbackProcess,
-                                     final Optional<T> persistedEntityCopy,
-                                     final boolean isCreateEntity) {
+    protected void afterEntityPersistenceCheck(final Context<?> context,
+                                               final Runnable rollbackProcess,
+                                               final T persistedEntityCopy,
+                                               final boolean isCreateEntity) {
         // checking execution context state
         if (context.isFailed()) {
             // there was a fail during store entity
-            getLog().error("Cannot save {} {}", entityName, context.getRedoParameter());
+            getLog().error("Couldn't save entity of '{}' value: {}", entityName, context.getRedoParameter());
             rollbackProcess.run();
         } else {
             // store entity operation is done successfully
-            getLog().info("Got stored {} {}\nfrom parameter {}", entityName, persistedEntityCopy, context.getRedoParameter());
-            context.setResult(persistedEntityCopy);
+            getLog().debug(
+                    "Got stored entity of '{}' value {}\nfrom parameter {}",
+                    entityName, persistedEntityCopy, context.getRedoParameter()
+            );
+            context.setResult(Optional.ofNullable(persistedEntityCopy));
 
-            if (persistedEntityCopy.isPresent() && isCreateEntity) {
+            if (nonNull(persistedEntityCopy) && isCreateEntity) {
                 // storing created entity.id for undo operation
-                context.setUndoParameter(persistedEntityCopy.get().getId());
+                context.setUndoParameter(persistedEntityCopy.getId());
             }
         }
     }

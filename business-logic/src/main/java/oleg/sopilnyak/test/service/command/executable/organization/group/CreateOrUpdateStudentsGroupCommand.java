@@ -70,10 +70,12 @@ public class CreateOrUpdateStudentsGroupCommand
                         () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists."));
                 context.setUndoParameter(entity);
             }
-
+            // persisting entity trough persistence layer
             final Optional<StudentsGroup> persisted = persistRedoEntity(context, persistence::save);
-            // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), persisted, isCreateEntity);
+            // checking command context state after entity persistence
+            afterEntityPersistenceCheck(context,
+                    () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity);
         } catch (Exception e) {
             log.error("Cannot create or students group faculty '{}'", parameter, e);
             context.failed(e);

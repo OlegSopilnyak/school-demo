@@ -71,10 +71,12 @@ public class CreateOrUpdateFacultyCommand
                 );
                 context.setUndoParameter(entity);
             }
-
+            // persisting entity trough persistence layer
             final Optional<Faculty> persisted = persistRedoEntity(context, persistence::save);
-            // checking execution context state
-            afterPersistCheck(context, () -> rollbackCachedEntity(context, persistence::save), persisted, isCreateEntity);
+            // checking command context state after entity persistence
+            afterEntityPersistenceCheck(context,
+                    () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity);
         } catch (Exception e) {
             log.error("Cannot create or update faculty '{}'", parameter, e);
             context.failed(e);

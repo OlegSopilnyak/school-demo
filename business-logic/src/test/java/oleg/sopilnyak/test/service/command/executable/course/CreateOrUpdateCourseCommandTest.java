@@ -37,7 +37,7 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
-        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistenceFacade"));
+        assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
     }
 
