@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -27,6 +29,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Deque;
 import java.util.Optional;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -219,19 +223,128 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(studentContext.<Long>getUndoParameter()).isEqualTo(studentId);
         assertThat(savedStudent.orElseThrow()).isSameAs(student);
 
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-        verify(profileCommand).executeDo(profileContext);
-        verify(persistence).save(any(StudentProfile.class));
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
         verify(command).transferProfileIdToStudentInput(profileId, studentContext);
 
-        verify(studentCommand).doAsNestedCommand(eq(command), eq(studentContext), any(Context.StateChangedListener.class));
-        verify(studentCommand).executeDo(studentContext);
-        verify(persistence).save(any(Student.class));
+        verifyStudentDoCommand(studentContext);
+    }
+
+    @Test
+    void shouldNotExecuteDoCommand_DoNestedCommandsThrows() {
+        Student newStudent = makeClearStudent(5);
+        Context<Optional<Student>> context = command.createContext(newStudent);
+        RuntimeException exception = new RuntimeException("Cannot process nested commands");
+        doThrow(exception).when(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getResult()).isEmpty();
+        assertThat(context.getException()).isEqualTo(exception);
+    }
+
+    @Test
+    void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
+        Student newStudent = makeClearStudent(6);
+        Context<Optional<Student>> context = command.createContext(newStudent);
+        RuntimeException exception = new RuntimeException("Cannot process profile nested command");
+        doThrow(exception).when(persistence).save(any(StudentProfile.class));
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getResult()).isEmpty();
+        assertThat(context.getException()).isEqualTo(exception);
+        MacroCommandParameter<Optional<BaseType>> parameter = context.getRedoParameter();
+        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
+        Context<Optional<BaseType>> studentContext = parameter.getNestedContexts().pop();
+        assertThat(profileContext.isFailed()).isTrue();
+        assertThat(profileContext.getResult()).isEmpty();
+        assertThat(profileContext.getException()).isEqualTo(exception);
+
+        assertThat(studentContext.getState()).isEqualTo(CANCEL);
+
+        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(command).doNestedCommand(eq(profileCommand), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(profileCommand).doCommand(profileContext);
+        verify(profileCommand).executeDo(profileContext);
+        verify(persistence).save(any(StudentProfile.class));
+
+        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+
+        verify(studentCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
+        verify(command, never()).doNestedCommand(any(RootCommand.class), any(Context.class), any(Context.StateChangedListener.class));
+    }
+
+    @Test
+    void shouldNotExecuteDoCommand_CreateStudentDoNestedCommandsThrows() {
+        Long profileId = 10L;
+        doAnswer(invocation -> {
+            StudentProfilePayload payload = invocation.getArgument(0, StudentProfilePayload.class);
+            payload.setId(profileId);
+            return Optional.of(payload);
+        }).when(persistence).save(any(StudentProfile.class));
+        RuntimeException exception = new RuntimeException("Cannot process student nested command");
+        doThrow(exception).when(persistence).save(any(Student.class));
+        Student newStudent = makeClearStudent(7);
+        Context<Optional<Student>> context = command.createContext(newStudent);
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getResult()).isEmpty();
+        assertThat(context.getException()).isEqualTo(exception);
+        MacroCommandParameter<Optional<BaseType>> parameter = context.getRedoParameter();
+        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
+        Context<Optional<BaseType>> studentContext = parameter.getNestedContexts().pop();
+
+        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
+        assertThat(profileResult.orElseThrow().getId()).isEqualTo(profileId);
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+        assertThat(profileContext.getState()).isEqualTo(UNDONE);
+        assertThat(profileContext.getResult()).isPresent();
+
+        Student student = studentContext.getRedoParameter();
+        assertStudentEquals(student, newStudent, false);
+        assertThat(student.getProfileId()).isEqualTo(profileId);
+
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
+        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
+
+        verifyStudentDoCommand(studentContext);
+
+        verify(profileCommand).undoAsNestedCommand(command, profileContext);
+        verify(command).undoNestedCommand(profileCommand, profileContext);
+        verify(profileCommand).undoCommand(profileContext);
+        verify(profileCommand).executeUndo(profileContext);
+        verify(persistence).deleteProfileById(profileId);
     }
 
     // private methods
+    private void verifyProfileDoCommand(Context<Optional<BaseType>> nestedContext) {
+        verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).doNestedCommand(eq(profileCommand), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(profileCommand).doCommand(nestedContext);
+        verify(profileCommand).executeDo(nestedContext);
+        verify(persistence).save(any(StudentProfile.class));
+    }
+    private void verifyStudentDoCommand(Context<Optional<BaseType>> nestedContext) {
+        verify(studentCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).doNestedCommand(eq(studentCommand), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(studentCommand).doCommand(nestedContext);
+        verify(studentCommand).executeDo(nestedContext);
+        verify(persistence).save(any(Student.class));
+    }
     private static <T> void checkContextAfterDoCommand(Context<Optional<T>> context) {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
