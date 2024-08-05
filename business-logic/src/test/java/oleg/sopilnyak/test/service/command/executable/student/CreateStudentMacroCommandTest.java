@@ -323,14 +323,27 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
         verifyStudentDoCommand(studentContext);
 
+        // changes' compensation after nested command fail
+        verifyProfileUndoCommand(profileContext, profileId);
+    }
+
+    // private methods
+    private void verifyProfileUndoCommand(Context<Optional<BaseType>> profileContext, Long id) {
         verify(profileCommand).undoAsNestedCommand(command, profileContext);
         verify(command).undoNestedCommand(profileCommand, profileContext);
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
-        verify(persistence).deleteProfileById(profileId);
+        verify(persistence).deleteProfileById(id);
     }
 
-    // private methods
+    private void verifyStudentUndoCommand(Context<Optional<BaseType>> studentContext, Long id) {
+        verify(studentCommand).undoAsNestedCommand(command, studentContext);
+        verify(command).undoNestedCommand(studentCommand, studentContext);
+        verify(studentCommand).undoCommand(studentContext);
+        verify(studentCommand).executeUndo(studentContext);
+        verify(persistence).deleteStudent(id);
+    }
+
     private void verifyProfileDoCommand(Context<Optional<BaseType>> nestedContext) {
         verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(command).doNestedCommand(eq(profileCommand), eq(nestedContext), any(Context.StateChangedListener.class));
@@ -338,6 +351,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(profileCommand).executeDo(nestedContext);
         verify(persistence).save(any(StudentProfile.class));
     }
+
     private void verifyStudentDoCommand(Context<Optional<BaseType>> nestedContext) {
         verify(studentCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(command).doNestedCommand(eq(studentCommand), eq(nestedContext), any(Context.StateChangedListener.class));
@@ -345,6 +359,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(studentCommand).executeDo(nestedContext);
         verify(persistence).save(any(Student.class));
     }
+
     private static <T> void checkContextAfterDoCommand(Context<Optional<T>> context) {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
