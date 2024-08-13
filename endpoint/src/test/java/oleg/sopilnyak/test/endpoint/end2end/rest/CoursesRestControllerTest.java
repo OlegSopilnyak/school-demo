@@ -50,8 +50,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CoursesRestControllerTest extends MysqlTestModelFactory {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
-    private final static String ROOT = RequestMappingRoot.COURSES;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = RequestMappingRoot.COURSES;
 
     @Autowired
     PersistenceFacade database;
