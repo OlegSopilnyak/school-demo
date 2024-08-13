@@ -5,6 +5,9 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
  */
 public abstract class MacroCommand
         implements CompositeCommand, NestedCommandExecutionVisitor {
+    private static final Logger log = LoggerFactory.getLogger(MacroCommand.class);
     // the list of nested commands
     private final List<NestedCommand> netsedCommandsList = new LinkedList<>();
 
@@ -98,12 +102,12 @@ public abstract class MacroCommand
             // after run, done and fail dequeues processing
             afterDoneSetup(doContext, doneContextsDeque.deque, failedContextsDeque.deque, nestedContexts);
         } catch (InterruptedException e) {
-            getLog().error("Cannot wait finished '{}' with input {}", getId(), input, e);
+            getLog().error("Cannot wait do finished '{}' with input {}", getId(), input, e);
             doContext.failed(e);
             // Clean up whatever needs to be handled before interrupting
             Thread.currentThread().interrupt();
         } catch (Exception e) {
-            getLog().error("Cannot do redo of '{}' with input {}", getId(), input, e);
+            getLog().error("Cannot do Do of '{}' with input {}", getId(), input, e);
             doContext.failed(e);
         }
     }
@@ -139,13 +143,10 @@ public abstract class MacroCommand
         final Object parameter = undoContext.getUndoParameter();
         getLog().debug("Do undo for {}", parameter);
         try {
-            final Deque<Context<T>> successfulDoContexts = commandParameter(parameter);
-            // rolling back successful nested commands
-            rollbackDoneContexts(successfulDoContexts);
-            // after rollback process check the contexts' states
-            afterRollbackDoneCheck(successfulDoContexts);
-            // rollback successful
-            undoContext.setState(Context.State.UNDONE);
+            // rolling back successful nested do command contexts
+            rollbackDoneContexts(undoContext.getUndoParameter());
+            // after rollback process, check the contexts' states
+            afterRollbackDoneCheck(undoContext);
         } catch (Exception e) {
             getLog().error("Cannot run undo for command:'{}'", getId(), e);
             undoContext.failed(e);
@@ -155,19 +156,19 @@ public abstract class MacroCommand
     /**
      * To rollback changes for nested successful commands (contexts with state DONE)
      *
-     * @param successfulDoContexts collection of nested contexts with DONE state
-     * @param <T>                  type of command execution result
-     * @see RootCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
+     * @param withDoneContexts collection of nested contexts with DONE state
+     * @param <T>              type of command execution result
+     * @see NestedCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
      * @see MacroCommand#undoNestedCommand(RootCommand, Context)
      * @see Context.State#DONE
      */
-    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> successfulDoContexts) {
-        return successfulDoContexts.stream()
+    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> withDoneContexts) {
+        return withDoneContexts.stream()
+                .filter(Context::isDone)
                 .map(context -> {
-                    final RootCommand nestedCommand = context.getCommand();
-                    return nestedCommand.undoAsNestedCommand(this, context);
-                })
-                .collect(Collectors.toCollection(LinkedList::new));
+                    final NestedCommand command = context.getCommand();
+                    return command.undoAsNestedCommand(this, context);
+                }).collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
@@ -176,7 +177,7 @@ public abstract class MacroCommand
                                     final Deque<Context<T>> failed,
                                     final Deque<Context<T>> nested) {
         // check failed contexts
-        if (failed.isEmpty()) {
+        if (ObjectUtils.isEmpty(failed)) {
             // no failed contexts
             doneContext.setUndoParameter(done);
             doneContext.setResult(nested.getLast().getResult().orElseThrow());
@@ -189,11 +190,27 @@ public abstract class MacroCommand
         }
     }
 
-    private static <T> void afterRollbackDoneCheck(Deque<Context<T>> doneContexts) throws Exception {
-        final Optional<Context<T>> failContext = doneContexts.stream().filter(Context::isFailed).findFirst();
-        if (failContext.isPresent()) {
-            throw failContext.get().getException();
+    private <T> void afterRollbackDoneCheck(Context<T> undoContext) {
+        final Deque<Context<T>> successfulDoContexts = undoContext.getUndoParameter();
+        final Optional<Context<T>> failContext = successfulDoContexts.stream().filter(Context::isFailed).findFirst();
+
+        if (failContext.isEmpty()) {
+            // no errors found
+            undoContext.setState(Context.State.UNDONE);
+            return;
         }
+        // something went wrong during undo nested commands
+        undoContext.failed(failContext.orElseThrow().getException());
+        // rolling back nested undo changes calling nested.doAsNestedCommand(...)
+        final String logTemplate = "Changed state of '{}' from State:{} to :{}";
+        final Context.StateChangedListener<T> stateListener = (c, p, n) -> log.debug(logTemplate, getId(), p, n);
+        // to rollback undone nested contexts
+        successfulDoContexts.stream().filter(Context::isUndone).map(context -> {
+            final NestedCommand command = context.getCommand();
+            context.setState(Context.State.READY);
+            command.doAsNestedCommand(this, context, stateListener);
+            return context;
+        }).toList();
     }
 
     /**

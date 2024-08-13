@@ -366,7 +366,7 @@ class ParallelMacroCommandTest {
         assertThat(macroContext.isFailed()).isTrue();
         nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != doubleCommand)
-                .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
+                .forEach(context -> assertThat(context.getState()).isEqualTo(DONE));
         Context<T> doubleContext = wrapper.getNestedContexts().getFirst();
         assertThat(doubleContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isEqualTo(doubleContext.getException());

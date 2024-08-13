@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 
@@ -63,22 +64,41 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param successfulDoContexts collection of contexts with DONE state
+     * @param withDoneContexts collection of contexts with DONE state
      * @see Deque
      * @see Context.State#DONE
+     * @see AtomicBoolean
+     * @see Collections#reverse(List)
+     * @see SequentialMacroCommand#undoNested(Context, AtomicBoolean)
+     * @see Context.State#UNDONE
      */
     @Override
-    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> successfulDoContexts) {
-        final List<Context<T>> reverted = new ArrayList<>(successfulDoContexts);
+    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> withDoneContexts) {
+        final AtomicBoolean failed = new AtomicBoolean(false);
+        final List<Context<T>> reverted = new ArrayList<>(withDoneContexts);
         // revert the order of undo contexts
         Collections.reverse(reverted);
         // rollback commands' changes
         return reverted.stream()
-                .map(doneContext -> doneContext.getCommand().undoAsNestedCommand(this, doneContext))
+                .map(nestedContext -> undoNested(nestedContext, failed))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
+    private <T> Context<T> undoNested(final Context<T> nestedSuccessfulContext, final AtomicBoolean failed) {
+        if (!failed.get()) {
+            final NestedCommand nested = nestedSuccessfulContext.getCommand();
+            final Context<T> undoContext = nested.undoAsNestedCommand(this, nestedSuccessfulContext);
+            if (undoContext.isFailed()) {
+                // command undo failed
+                failed.compareAndSet(false, true);
+            }
+            return undoContext;
+        } else {
+            return nestedSuccessfulContext;
+        }
+    }
+
     private <S, T> void transferPreviousResultToCurrentContextRedoParameter(
             final Context<S> source, final Context<T> target
     ) {

@@ -849,7 +849,8 @@ class MacroCommandTest {
         nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
         configureNestedUndoStatus(doubleCommand);
         configureNestedUndoStatus(intCommand);
-        doThrow(UnableExecuteCommandException.class).when(booleanCommand).undoCommand(any(Context.class));
+        UnableExecuteCommandException exception = new UnableExecuteCommandException("boolean-command");
+        doThrow(exception).when(booleanCommand).undoCommand(any(Context.class));
         allowRealNestedCommandRollbackBase();
 
         command.undoCommand(macroContext);
@@ -857,13 +858,15 @@ class MacroCommandTest {
         verify(command).executeUndo(macroContext);
         verify(command).rollbackDoneContexts(nestedDoneContexts);
         Context<T> current = nestedDoneContexts.pop();
-        assertThat(current.getState()).isEqualTo(UNDONE);
+        assertThat(current.getState()).isEqualTo(DONE);
+        verify(current.getCommand(), times(2)).doCommand(current);
         current = nestedDoneContexts.pop();
         assertThat(current.isFailed()).isTrue();
         assertThat(macroContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isEqualTo(current.getException());
         current = nestedDoneContexts.pop();
-        assertThat(current.getState()).isEqualTo(UNDONE);
+        verify(current.getCommand(), times(2)).doCommand(current);
+        assertThat(current.getState()).isEqualTo(DONE);
     }
 
     @Test

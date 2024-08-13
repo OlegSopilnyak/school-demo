@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 
@@ -22,7 +23,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StudentPayload extends BasePersonPayload<Student> implements Student {
     private String description;

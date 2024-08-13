@@ -5,8 +5,8 @@ import java.util.Optional;
 /**
  * Type: The context of the command execution
  *
- * @see RootCommand
  * @param <T> type of result
+ * @see RootCommand
  */
 public interface Context<T> {
     /**
@@ -34,8 +34,8 @@ public interface Context<T> {
     /**
      * To get parameter value for command execution
      *
-     * @return the value of parameter
      * @param <R> type of do-parameter
+     * @return the value of parameter
      */
     <R> R getRedoParameter();
 
@@ -49,8 +49,8 @@ public interface Context<T> {
     /**
      * To get parameter value for rollback previous command execution changes
      *
-     * @return the value of parameter
      * @param <U> type of undo-parameter
+     * @return the value of parameter
      */
     <U> U getUndoParameter();
 
@@ -118,14 +118,46 @@ public interface Context<T> {
         return getState() == State.DONE;
     }
 
+    /**
+     * To check is context is undone
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#UNDONE
+     */
+    default boolean isUndone() {
+        return getState() == State.UNDONE;
+    }
+
+    /**
+     * To check is context is ready to do
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#READY
+     */
     default boolean isReady() {
         return getState() == State.READY;
     }
 
+    /**
+     * To check is context is failed after do or undo
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#FAIL
+     */
     default boolean isFailed() {
         return getState() == State.FAIL;
     }
 
+    /**
+     * To check is context is before command-do state
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#WORK
+     */
     default boolean isWorking() {
         return getState() == State.WORK;
     }

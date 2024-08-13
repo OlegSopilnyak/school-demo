@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.base.Person;
 
 /**
@@ -15,6 +16,7 @@ import oleg.sopilnyak.test.school.common.model.base.Person;
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BasePersonPayload<T extends Person> extends BasePayload<T> implements Person {
     private Long profileId;
