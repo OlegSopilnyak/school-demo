@@ -22,7 +22,7 @@ import java.util.Deque;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommandTest.FakeParallelCommand.STUDENT_CONTEXT;
+import static oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommandTest.FakeParallelCommand.overridedStudentContext;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -134,7 +134,7 @@ class ParallelMacroCommandTest {
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        assertThat(STUDENT_CONTEXT).isEqualTo(wrapper.getNestedContexts().getFirst());
+        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
         verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
         verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
         verifyNestedCommandContextPreparation(command, intCommand, parameter);
@@ -155,15 +155,15 @@ class ParallelMacroCommandTest {
         assertThat(macroContext.isDone()).isTrue();
         assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
         wrapper.getNestedContexts().stream()
-                .filter(context -> context != STUDENT_CONTEXT)
+                .filter(context -> context != overridedStudentContext)
                 .forEach(context -> {
                     final var nestedCommand = context.getCommand();
                     verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
                     verify(command).doNestedCommand(eq(nestedCommand), eq(context), any(Context.StateChangedListener.class));
                     verify(nestedCommand).doCommand(context);
                 });
-        verify(studentCommand).doAsNestedCommand(eq(command), eq(STUDENT_CONTEXT), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(eq(studentCommand), eq(STUDENT_CONTEXT), any(Context.StateChangedListener.class));
+        verify(studentCommand).doAsNestedCommand(eq(command), eq(overridedStudentContext), any(Context.StateChangedListener.class));
+        verify(command).doNestedCommand(eq(studentCommand), eq(overridedStudentContext), any(Context.StateChangedListener.class));
         verify(studentCommand, never()).doCommand(any(Context.class));
         macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
         verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
@@ -234,7 +234,7 @@ class ParallelMacroCommandTest {
         allowRealNestedCommandRollbackBase();
         reset(executor);
 
-        Deque<Context<T>> rollbackResults = command.rollbackDoneContexts(nestedUndoneContexts);
+        Deque<Context<T>> rollbackResults = command.undoNestedCommands(nestedUndoneContexts);
 
         assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
         // check contexts states
@@ -274,7 +274,7 @@ class ParallelMacroCommandTest {
         nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
 
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         nestedDoneContexts.forEach(context -> {
             final var nestedCommand = context.getCommand();
             verify(nestedCommand).undoAsNestedCommand(command, context);
@@ -298,7 +298,7 @@ class ParallelMacroCommandTest {
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         assertThat(wrapper.getInput()).isEqualTo(parameter);
         wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        assertThat(STUDENT_CONTEXT).isEqualTo(wrapper.getNestedContexts().getFirst());
+        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
         verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
         verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
         verifyNestedCommandContextPreparation(command, intCommand, parameter);
@@ -322,20 +322,20 @@ class ParallelMacroCommandTest {
 
         assertThat(macroContext.getState()).isEqualTo(UNDONE);
         nestedDoneContexts.stream()
-                .filter(context -> context != STUDENT_CONTEXT)
+                .filter(context -> context != overridedStudentContext)
                 .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
-        verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
         nestedDoneContexts.stream()
-                .filter(context -> context != STUDENT_CONTEXT)
+                .filter(context -> context != overridedStudentContext)
                 .forEach(context -> {
                     final var nestedCommand = context.getCommand();
                     verify(nestedCommand).undoAsNestedCommand(command, context);
                     verify(command).undoNestedCommand(nestedCommand, context);
                     verify(nestedCommand).undoCommand(context);
                 });
-        assertThat(STUDENT_CONTEXT.getState()).isEqualTo(CANCEL);
+        assertThat(overridedStudentContext.getState()).isEqualTo(CANCEL);
         verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
+        verify(command).executeUndo(macroContext);
+        verify(command).undoNestedCommands(macroContext.getUndoParameter());
     }
 
     @Test
@@ -371,7 +371,7 @@ class ParallelMacroCommandTest {
         assertThat(doubleContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isEqualTo(doubleContext.getException());
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         nestedDoneContexts.forEach(context -> {
             final var nestedCommand = context.getCommand();
             verify(nestedCommand).undoAsNestedCommand(command, context);
@@ -383,18 +383,18 @@ class ParallelMacroCommandTest {
 
     // inner classes
     static class FakeParallelCommand extends ParallelMacroCommand {
-        static Context<Double> STUDENT_CONTEXT;
+        static Context<Double> overridedStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
 
         public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand student) {
             super(commandContextExecutor);
-            STUDENT_CONTEXT = CommandContext.<Double>builder().command(student).state(INIT).build();
+            overridedStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }
 
         @Override
         public <T> Context<T> prepareContext(StudentCommand command, Object mainInput) {
-            STUDENT_CONTEXT.setRedoParameter(200);
-            return (Context<T>) STUDENT_CONTEXT;
+            overridedStudentContext.setRedoParameter(200);
+            return (Context<T>) overridedStudentContext;
         }
 
         @Override

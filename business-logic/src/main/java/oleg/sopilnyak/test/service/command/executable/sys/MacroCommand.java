@@ -59,50 +59,32 @@ public abstract class MacroCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
+     * @see MacroCommandParameter#getNestedContexts()
+     * @see MacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
+     * @see CountDownLatch#await()
+     * @see MacroCommand#getDoCommandResult(Deque)
      */
     @Override
     public <T> void executeDo(final Context<T> doContext) {
         final Object input = doContext.getRedoParameter();
         getLog().debug("Do redo for {}", input);
         try {
-            final MacroCommandParameter<T> wrapper = commandParameter(input);
+            final Deque<Context<T>> nested = doContext.<MacroCommandParameter<T>>getRedoParameter().getNestedContexts();
 
-            final ContextDeque<Context<T>> doneContextsDeque = new ContextDeque<>();
-            final ContextDeque<Context<T>> failedContextsDeque = new ContextDeque<>();
+            final ContextDeque<Context<T>> done = new ContextDeque<>();
+            final Deque<Context<T>> successDeque = done.deque;
+            final ContextDeque<Context<T>> failed = new ContextDeque<>();
+            final Deque<Context<T>> failDeque = failed.deque;
+            final CountDownLatch executed = new CountDownLatch(nested.size());
 
-            final Deque<Context<T>> nestedContexts = wrapper.getNestedContexts();
-
-            final CountDownLatch executed = new CountDownLatch(nestedContexts.size());
-            final Context.StateChangedListener<T> stateListener = (context, previous, newOne) -> {
-                final String commandId = context.getCommand().getId();
-                switch (newOne) {
-                    case INIT, READY, WORK, UNDONE ->
-                            getLog().debug("Changed state of '{}' from State:{} to :{}", commandId, previous, newOne);
-                    case CANCEL -> {
-                        getLog().debug("Command '{}' is Canceled from State:{}", commandId, previous);
-                        executed.countDown();
-                    }
-                    case DONE -> {
-                        getLog().debug("Command '{}' is Done from State:{}", commandId, previous);
-                        doneContextsDeque.putToTail(context);
-                        executed.countDown();
-                    }
-                    case FAIL -> {
-                        getLog().debug("Command '{}' is Failed from State:{}", commandId, previous);
-                        failedContextsDeque.putToTail(context);
-                        executed.countDown();
-                    }
-                    default -> throw new IllegalStateException("Unexpected value: " + newOne);
-                }
-            };
             // run redo for nested contexts
-            doNestedCommands(nestedContexts, stateListener);
+            doNestedCommands(nested, new DoCommandStateChangedListener<>(done, failed, executed));
             // wait for all commands finished
             executed.await();
-            // after run, done and fail dequeues processing
-            afterDoneSetup(doContext, doneContextsDeque.deque, failedContextsDeque.deque, nestedContexts);
+            // after run, success and fail dequeues processing
+            afterDoneSetup(doContext, successDeque, failDeque, nested);
         } catch (InterruptedException e) {
-            getLog().error("Cannot wait do finished '{}' with input {}", getId(), input, e);
+            getLog().error("Could not wait do finished '{}' with input {}", getId(), input, e);
             doContext.failed(e);
             // Clean up whatever needs to be handled before interrupting
             Thread.currentThread().interrupt();
@@ -111,6 +93,18 @@ public abstract class MacroCommand
             doContext.failed(e);
         }
     }
+
+    /**
+     * To get main do-command result from nested command-contexts
+     *
+     * @param nested nested command-contexts
+     * @return the command result's value
+     * @param <T> type of do-command result
+     */
+    public <T> T getDoCommandResult(final Deque<Context<T>> nested) {
+        return nested.getLast().getResult().orElseThrow();
+    }
+
 
     /**
      * To run redo for each macro-command's nested context
@@ -144,7 +138,7 @@ public abstract class MacroCommand
         getLog().debug("Do undo for {}", parameter);
         try {
             // rolling back successful nested do command contexts
-            rollbackDoneContexts(undoContext.getUndoParameter());
+            undoNestedCommands(undoContext.getUndoParameter());
             // after rollback process, check the contexts' states
             afterRollbackDoneCheck(undoContext);
         } catch (Exception e) {
@@ -156,19 +150,17 @@ public abstract class MacroCommand
     /**
      * To rollback changes for nested successful commands (contexts with state DONE)
      *
-     * @param withDoneContexts collection of nested contexts with DONE state
-     * @param <T>              type of command execution result
+     * @param doneContexts collection of nested contexts with DONE state
+     * @param <T>          type of command execution result
      * @see NestedCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
      * @see MacroCommand#undoNestedCommand(RootCommand, Context)
      * @see Context.State#DONE
      */
-    protected <T> Deque<Context<T>> rollbackDoneContexts(final Deque<Context<T>> withDoneContexts) {
-        return withDoneContexts.stream()
-                .filter(Context::isDone)
-                .map(context -> {
-                    final NestedCommand command = context.getCommand();
-                    return command.undoAsNestedCommand(this, context);
-                }).collect(Collectors.toCollection(LinkedList::new));
+    public <T> Deque<Context<T>> undoNestedCommands(final Deque<Context<T>> doneContexts) {
+        return doneContexts.stream().filter(Context::isDone).map(context -> {
+            final NestedCommand command = context.getCommand();
+            return command.undoAsNestedCommand(this, context);
+        }).collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
@@ -180,37 +172,38 @@ public abstract class MacroCommand
         if (ObjectUtils.isEmpty(failed)) {
             // no failed contexts
             doneContext.setUndoParameter(done);
-            doneContext.setResult(nested.getLast().getResult().orElseThrow());
+            doneContext.setResult(getDoCommandResult(nested));
         } else {
             // found failed contexts, collect the exception
             doneContext.failed(failed.getFirst().getException());
             // rollback all successful contexts
             getLog().warn("Rolling back all successful commands {}", done);
-            rollbackDoneContexts(done);
+            undoNestedCommands(done);
         }
     }
 
     private <T> void afterRollbackDoneCheck(Context<T> undoContext) {
-        final Deque<Context<T>> successfulDoContexts = undoContext.getUndoParameter();
-        final Optional<Context<T>> failContext = successfulDoContexts.stream().filter(Context::isFailed).findFirst();
+        final Deque<Context<T>> undoneContexts = undoContext.getUndoParameter();
+        final Optional<Context<T>> failContext = undoneContexts.stream().filter(Context::isFailed).findFirst();
 
         if (failContext.isEmpty()) {
             // no errors found
+            log.debug("No errors found after undo is done");
             undoContext.setState(Context.State.UNDONE);
             return;
         }
         // something went wrong during undo nested commands
         undoContext.failed(failContext.orElseThrow().getException());
         // rolling back nested undo changes calling nested.doAsNestedCommand(...)
+        log.debug("Rolling back from undone {} command(s)", undoneContexts.size());
         final String logTemplate = "Changed state of '{}' from State:{} to :{}";
         final Context.StateChangedListener<T> stateListener = (c, p, n) -> log.debug(logTemplate, getId(), p, n);
         // to rollback undone nested contexts
-        successfulDoContexts.stream().filter(Context::isUndone).map(context -> {
+        undoneContexts.stream().filter(Context::isUndone).forEach(context -> {
             final NestedCommand command = context.getCommand();
             context.setState(Context.State.READY);
             command.doAsNestedCommand(this, context, stateListener);
-            return context;
-        }).toList();
+        });
     }
 
     /**
@@ -225,7 +218,7 @@ public abstract class MacroCommand
         private final Deque<T> deque = new LinkedList<>();
         private final Lock locker = new ReentrantLock();
 
-        private void putToTail(final T context) {
+        void putToTail(final T context) {
             locker.lock();
             try {
                 deque.addLast(context);
@@ -234,4 +227,44 @@ public abstract class MacroCommand
             }
         }
     }
+
+    final class DoCommandStateChangedListener<T> implements Context.StateChangedListener<T> {
+        final ContextDeque<Context<T>> doneContextsDeque;
+        final ContextDeque<Context<T>> failedContextsDeque;
+        final CountDownLatch executed;
+
+        private DoCommandStateChangedListener(
+                final ContextDeque<Context<T>> doneContextsDeque,
+                final ContextDeque<Context<T>> failedContextsDeque,
+                final CountDownLatch executed) {
+            this.doneContextsDeque = doneContextsDeque;
+            this.failedContextsDeque = failedContextsDeque;
+            this.executed = executed;
+        }
+
+        @Override
+        public void stateChanged(Context<T> context, Context.State previous, Context.State newOne) {
+            final String commandId = context.getCommand().getId();
+            switch (newOne) {
+                case INIT, READY, WORK, UNDONE ->
+                        getLog().debug("Changed state of '{}' from State:{} to :{}", commandId, previous, newOne);
+                case CANCEL -> {
+                    getLog().debug("Command '{}' is Canceled from State:{}", commandId, previous);
+                    executed.countDown();
+                }
+                case DONE -> {
+                    getLog().debug("Command '{}' is Done from State:{}", commandId, previous);
+                    doneContextsDeque.putToTail(context);
+                    executed.countDown();
+                }
+                case FAIL -> {
+                    getLog().debug("Command '{}' is Failed from State:{}", commandId, previous);
+                    failedContextsDeque.putToTail(context);
+                    executed.countDown();
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + newOne);
+            }
+        }
+    }
+
 }

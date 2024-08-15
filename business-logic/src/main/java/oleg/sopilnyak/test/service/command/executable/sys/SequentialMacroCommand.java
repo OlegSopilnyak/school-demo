@@ -64,7 +64,7 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param withDoneContexts collection of contexts with DONE state
+     * @param doneContexts collection of contexts with DONE state
      * @see Deque
      * @see Context.State#DONE
      * @see AtomicBoolean
@@ -73,9 +73,9 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @see Context.State#UNDONE
      */
     @Override
-    protected <T> Deque<Context<T>> rollbackDoneContexts(Deque<Context<T>> withDoneContexts) {
+    public <T> Deque<Context<T>> undoNestedCommands(Deque<Context<T>> doneContexts) {
         final AtomicBoolean failed = new AtomicBoolean(false);
-        final List<Context<T>> reverted = new ArrayList<>(withDoneContexts);
+        final List<Context<T>> reverted = new ArrayList<>(doneContexts);
         // revert the order of undo contexts
         Collections.reverse(reverted);
         // rollback commands' changes

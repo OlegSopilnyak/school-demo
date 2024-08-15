@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.MacroCommandTest.FakeMacroCommand.CONTEXT;
+import static oleg.sopilnyak.test.service.command.executable.sys.MacroCommandTest.FakeMacroCommand.overridedStudentContext;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -113,9 +113,9 @@ class MacroCommandTest {
                     verify(nestedCommand).createContext(parameter);
                 });
         // check studentCommand context
-        assertThat(wrapper.getNestedContexts().getFirst()).isEqualTo(CONTEXT);
-        assertThat(CONTEXT.getCommand()).isEqualTo(studentCommand);
-        assertThat(CONTEXT.<Object>getRedoParameter()).isEqualTo(200);
+        assertThat(wrapper.getNestedContexts().getFirst()).isEqualTo(overridedStudentContext);
+        assertThat(overridedStudentContext.getCommand()).isEqualTo(studentCommand);
+        assertThat(overridedStudentContext.<Object>getRedoParameter()).isEqualTo(200);
         verify(studentCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(studentCommand, parameter);
         verify(studentCommand, never()).createContext(any());
@@ -212,9 +212,9 @@ class MacroCommandTest {
                     verify(nestedCommand).createContext(parameter);
                 });
         // check studentCommand context
-        assertThat(wrapper.getNestedContexts().getFirst()).isEqualTo(CONTEXT);
-        assertThat(CONTEXT.getCommand()).isEqualTo(studentCommand);
-        assertThat(CONTEXT.<Object>getRedoParameter()).isEqualTo(200);
+        assertThat(wrapper.getNestedContexts().getFirst()).isEqualTo(overridedStudentContext);
+        assertThat(overridedStudentContext.getCommand()).isEqualTo(studentCommand);
+        assertThat(overridedStudentContext.<Object>getRedoParameter()).isEqualTo(200);
         verify(studentCommand).acceptPreparedContext(command, parameter);
         verify(command).prepareContext(studentCommand, parameter);
         verify(studentCommand, never()).createContext(any());
@@ -373,9 +373,9 @@ class MacroCommandTest {
         IntStream.range(0, nested.length).forEach(i -> assertCommandResult(nested[i], wrapper, parameters[i]));
         assertThat(macroContext.getResult().orElseThrow())
                 .isEqualTo(wrapper.getNestedContexts().getLast().getResult().orElseThrow());
-        verify(studentCommand, never()).doCommand(CONTEXT);
-        assertCommandResult(studentCommand, wrapper, CONTEXT.getResult().orElseThrow());
-        assertThat(wrapper.getNestedContexts().pop()).isEqualTo(CONTEXT);
+        verify(studentCommand, never()).doCommand(overridedStudentContext);
+        assertCommandResult(studentCommand, wrapper, overridedStudentContext.getResult().orElseThrow());
+        assertThat(wrapper.getNestedContexts().pop()).isEqualTo(overridedStudentContext);
     }
 
     @Test
@@ -461,8 +461,8 @@ class MacroCommandTest {
                 .isEqualTo(wrapper.getNestedContexts().getLast().getResult().orElseThrow());
         // student-command behavior when did doAsNestedCommand(...) method
         verify(studentCommand, never()).doCommand(any(Context.class));
-        assertCommandResult(studentCommand, wrapper, CONTEXT.getResult().orElseThrow());
-        assertThat(wrapper.getNestedContexts().pop()).isEqualTo(CONTEXT);
+        assertCommandResult(studentCommand, wrapper, overridedStudentContext.getResult().orElseThrow());
+        assertThat(wrapper.getNestedContexts().pop()).isEqualTo(overridedStudentContext);
         // check nested macro-command execution results
         Context<T> macroCommandContext = wrapper.getNestedContexts().getLast();
         MacroCommandParameter<T> nestedWrapper = macroCommandContext.getRedoParameter();
@@ -565,7 +565,7 @@ class MacroCommandTest {
         assertThat(macroContext.getException()).isEqualTo(intContext.getException());
         verifyNestedCommandDoExecution(doubleCommand, doubleContext);
         verifyNestedCommandDoExecution(intCommand, intContext);
-        verify(command).rollbackDoneContexts(any(Deque.class));
+        verify(command).undoNestedCommands(any(Deque.class));
         verify(doubleCommand).undoCommand(wrapper.getNestedContexts().pop());
         verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
     }
@@ -599,7 +599,7 @@ class MacroCommandTest {
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
         verifyNestedCommandDoExecution(doubleCommand, doubleContext);
         verifyNestedCommandDoExecution(intCommand, intContext);
-        verify(command).rollbackDoneContexts(any(Deque.class));
+        verify(command).undoNestedCommands(any(Deque.class));
         wrapper.getNestedContexts().pop();
         verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
         verify(intCommand).undoCommand(wrapper.getNestedContexts().pop());
@@ -631,7 +631,7 @@ class MacroCommandTest {
         nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
 
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         nestedDoneContexts.forEach(ctx -> verify(ctx.getCommand()).undoCommand(ctx));
     }
 
@@ -673,7 +673,7 @@ class MacroCommandTest {
                 .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
 
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -768,7 +768,7 @@ class MacroCommandTest {
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -828,7 +828,7 @@ class MacroCommandTest {
 
         assertThat(exception).isInstanceOf(UnableExecuteCommandException.class);
         verify(command).executeUndo(macroContext);
-        verify(command, never()).rollbackDoneContexts(nestedDoneContexts);
+        verify(command, never()).undoNestedCommands(nestedDoneContexts);
     }
 
     @Test
@@ -856,7 +856,7 @@ class MacroCommandTest {
         command.undoCommand(macroContext);
 
         verify(command).executeUndo(macroContext);
-        verify(command).rollbackDoneContexts(nestedDoneContexts);
+        verify(command).undoNestedCommands(nestedDoneContexts);
         Context<T> current = nestedDoneContexts.pop();
         assertThat(current.getState()).isEqualTo(DONE);
         verify(current.getCommand(), times(2)).doCommand(current);
@@ -1027,11 +1027,11 @@ class MacroCommandTest {
     }
 
     static class FakeMacroCommand extends MacroCommand {
-        static Context<?> CONTEXT;
+        static Context<?> overridedStudentContext;
         Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
         public FakeMacroCommand(StudentCommand student) {
-            CONTEXT = CommandContext.<Double>builder().command(student).state(INIT).build();
+            overridedStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }
 
         @Override
@@ -1040,8 +1040,8 @@ class MacroCommandTest {
         }
 
         <T> Context<T> prepareStudentContext() {
-            CONTEXT.setRedoParameter(200);
-            return (Context<T>) CONTEXT;
+            overridedStudentContext.setRedoParameter(200);
+            return (Context<T>) overridedStudentContext;
         }
 
         @Override

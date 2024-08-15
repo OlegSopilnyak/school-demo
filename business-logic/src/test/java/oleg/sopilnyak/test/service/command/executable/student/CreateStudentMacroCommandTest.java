@@ -239,6 +239,50 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
     }
 
     @Test
+    void shouldNotExecuteDoCommand_getCommandResultThrows() {
+        Long profileId = 21L;
+        Long studentId = 32L;
+        adjustStudentProfileSaving(profileId);
+        adjustStudentSaving(studentId);
+        Student newStudent = makeClearStudent(15);
+        Context<Optional<Student>> context = command.createContext(newStudent);
+        RuntimeException exception = new RuntimeException("Cannot get command result");
+        doThrow(exception).when(command).getDoCommandResult(any(Deque.class));
+
+        command.doCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getResult()).isEmpty();
+        assertThat(context.getException()).isEqualTo(exception);
+        MacroCommandParameter<Optional<BaseType>> parameter = context.getRedoParameter();
+        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
+        Context<Optional<BaseType>> studentContext = parameter.getNestedContexts().pop();
+
+        checkContextAfterDoCommand(profileContext);
+        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
+        assertThat(profileResult.orElseThrow().getId()).isEqualTo(profileId);
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+
+        checkContextAfterDoCommand(studentContext);
+        Optional<BaseType> studentResult = studentContext.getResult().orElseThrow();
+        final Student student = studentResult.map(Student.class::cast).orElseThrow();
+        assertStudentEquals(student, newStudent, false);
+        assertThat(student.getId()).isEqualTo(studentId);
+        assertThat(student.getProfileId()).isEqualTo(profileId);
+        assertThat(studentContext.<Long>getUndoParameter()).isEqualTo(studentId);
+
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
+        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
+
+        verifyStudentDoCommand(studentContext);
+    }
+
+    @Test
     void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
         Student newStudent = makeClearStudent(6);
         Context<Optional<Student>> context = command.createContext(newStudent);
@@ -338,6 +382,29 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
         // nested commands order
         checkUndoNestedCommandsOrder(profileContext, studentContext, studentId, profileId);
+    }
+
+    @Test
+    void shouldNotExecuteUndoCommand_UndoNestedCommandsThrowsException() {
+        Long profileId = 5L;
+        Long studentId = 6L;
+        Student newStudent = makeClearStudent(11);
+        adjustStudentProfileSaving(profileId);
+        adjustStudentSaving(studentId);
+        Context<Optional<Student>> context = command.createContext(newStudent);
+        RuntimeException exception = new RuntimeException("Cannot process student undo command");
+        doThrow(exception).when(command).undoNestedCommands(any(Deque.class));
+
+        command.doCommand(context);
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isEqualTo(exception);
+
+        verify(command).executeUndo(context);
+        verify(command).undoNestedCommands(any(Deque.class));
+        verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
     @Test
