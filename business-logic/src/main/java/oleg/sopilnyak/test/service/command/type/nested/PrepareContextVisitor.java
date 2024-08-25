@@ -30,6 +30,7 @@ public interface PrepareContextVisitor {
     default <T> Context<T> prepareContext(final NestedCommand command, final Object mainInput) {
         return prepareContext((RootCommand) command, mainInput);
     }
+
     /**
      * To prepare context for particular type of the nested command
      *

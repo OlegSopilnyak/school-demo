@@ -44,9 +44,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand studentCommand,
                                      final CreateOrUpdateStudentProfileCommand profileCommand,
                                      final BusinessMessagePayloadMapper payloadMapper) {
-        this.payloadMapper = payloadMapper;
         addToNest(profileCommand);
         addToNest(studentCommand);
+        this.payloadMapper = payloadMapper;
     }
 
     /**
@@ -61,26 +61,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(StudentCommand command, Object mainInput) {
+    public <T> Context<T> prepareContext(final StudentCommand command, final Object mainInput) {
         return mainInput instanceof Student student && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createStudentContext(command, student) : cannotCreateNestedContextFor(command);
-    }
-
-    /**
-     * To create context for create-or-update student command
-     *
-     * @param command   create-or-update student command instance
-     * @param parameter input parameter of student to create
-     * @param <T>       type of create-or-update student command result
-     * @return built context of the command for input student
-     * @see BusinessMessagePayloadMapper#toPayload(Student)
-     * @see StudentPayload
-     */
-    public <T> Context<T> createStudentContext(StudentCommand command, Student parameter) {
-        final StudentPayload payload = parameter instanceof StudentPayload studentPayload ?
-                studentPayload : payloadMapper.toPayload(parameter);
-        payload.setId(null);
-        return command.createContext(payload);
     }
 
     /**
@@ -102,6 +85,23 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     }
 
     /**
+     * To create context for create-or-update student command
+     *
+     * @param command   create-or-update student command instance
+     * @param parameter input parameter of student to create
+     * @param <T>       type of create-or-update student command result
+     * @return built context of the command for input student
+     * @see BusinessMessagePayloadMapper#toPayload(Student)
+     * @see StudentPayload
+     */
+    public <T> Context<T> createStudentContext(final StudentCommand command, final Student parameter) {
+        final StudentPayload payload = parameter instanceof StudentPayload studentPayload ?
+                studentPayload : payloadMapper.toPayload(parameter);
+        payload.setId(null);
+        return command.createContext(payload);
+    }
+
+    /**
      * To create context for create-or-update student profile command
      *
      * @param command   create-or-update student profile command instance
@@ -110,7 +110,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @return built context of the command for input parameter
      * @see StudentProfilePayload
      */
-    public <T> Context<T> createStudentProfileContext(StudentProfileCommand command, Student parameter) {
+    public <T> Context<T> createStudentProfileContext(final StudentProfileCommand command, final Student parameter) {
         final String emailPrefix = parameter.getFirstName().toLowerCase() + "." + parameter.getLastName().toLowerCase();
         final StudentProfilePayload payload = StudentProfilePayload.builder()
                 .id(null)
@@ -121,6 +121,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     }
 
 // for command do activities as nested command
+
     /**
      * To transfer result from current command to next command context.<BR/>
      * Send create-profile command result (profile-id) to create-student command input
@@ -135,7 +136,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(StudentProfileCommand command, S result, Context<T> target) {
+    public <S, T> void transferPreviousExecuteDoResult(final StudentProfileCommand command, final S result, final Context<T> target) {
         if (result instanceof Optional<?> opt &&
                 opt.orElseThrow() instanceof StudentProfile profile &&
                 StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
@@ -155,7 +156,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @see Context#setRedoParameter(Object)
      * @see StudentPayload#setProfileId(Long)
      */
-    public void transferProfileIdToStudentInput(Long profileId, Context<?> target) {
+    public void transferProfileIdToStudentInput(final Long profileId, final Context<?> target) {
         final StudentPayload student = target.getRedoParameter();
         log.debug("Transferring profile id: {} to student: {}", profileId, student);
         student.setProfileId(profileId);
