@@ -4,18 +4,21 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ChainedNestedCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
+import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
@@ -181,24 +184,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         return super.acceptPreparedContext(visitor, input);
     }
 
-
-    /**
-     * To transfer command execution result to next command context
-     *
-     * @param visitor     visitor for transfer result
-     * @param resultValue result of command execution
-     * @param target      command context for next execution
-     * @param <S>         type of current command execution result
-     * @param <T>         type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(CompositeCommand, Object, Context)
-     * @see Context#setRedoParameter(Object)
-     */
-    @Override
-    public <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                        final S resultValue, final Context<T> target) {
-        super.transferResultTo(visitor, resultValue, target);
-    }
-
     /**
      * To execute command Do as a nested command
      *
@@ -252,9 +237,120 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         return CREATE_NEW;
     }
 
+    /**
+     * To prepare command for sequential macro-command
+     *
+     * @param command nested command to wrap
+     * @return wrapped nested command
+     * @see SequentialMacroCommand#addToNest(NestedCommand)
+     */
+    @Override
+    public NestedCommand wrap(NestedCommand command) {
+        if (command instanceof StudentCommand studentCommand) {
+            return wrap(studentCommand);
+        } else if (command instanceof StudentProfileCommand studentProfileCommand) {
+            return wrap(studentProfileCommand);
+        }
+        throw new UnableExecuteCommandException(((RootCommand) command).getId());
+    }
+
+    private NestedCommand wrap(StudentCommand command) {
+        return new StudentInSequenceCommand(command);
+    }
+
+    private NestedCommand wrap(StudentProfileCommand command) {
+        return new StudentProfileInSequenceCommand(command);
+    }
+
 // private methods
 
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
         throw new CannotCreateCommandContextException(command.getId());
+    }
+
+    private static class StudentInSequenceCommand implements ChainedNestedCommand<StudentCommand>, StudentCommand {
+        private final StudentCommand command;
+
+        private StudentInSequenceCommand(StudentCommand command) {
+            this.command = command;
+        }
+
+        @Override
+        public StudentCommand unWrap() {
+            return command;
+        }
+
+        @Override
+        public Logger getLog() {
+            return command.getLog();
+        }
+
+        @Override
+        public String getId() {
+            return command.getId();
+        }
+
+        @Override
+        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                          final Context<T> context,
+                                          final Context.StateChangedListener<T> stateListener) {
+            command.doAsNestedCommand(visitor, context, stateListener);
+        }
+
+        @Override
+        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                                  final Context<T> context) {
+            return command.undoAsNestedCommand(visitor, context);
+        }
+
+        @Override
+        public <S, T> void transferResultTo(final TransferResultVisitor visitor,
+                                            final S resultValue,
+                                            final Context<T> target) {
+            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+    }
+
+    private static class StudentProfileInSequenceCommand implements ChainedNestedCommand<StudentProfileCommand>, StudentProfileCommand {
+        private final StudentProfileCommand command;
+
+        private StudentProfileInSequenceCommand(StudentProfileCommand command) {
+            this.command = command;
+        }
+
+        @Override
+        public StudentProfileCommand unWrap() {
+            return command;
+        }
+
+        @Override
+        public Logger getLog() {
+            return command.getLog();
+        }
+
+        @Override
+        public String getId() {
+            return command.getId();
+        }
+
+        @Override
+        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                          final Context<T> context,
+                                          final Context.StateChangedListener<T> stateListener) {
+            command.doAsNestedCommand(visitor, context, stateListener);
+        }
+
+        @Override
+        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                                  final Context<T> context) {
+            return command.undoAsNestedCommand(visitor, context);
+        }
+
+        @Override
+        public <S, T> void transferResultTo(final TransferResultVisitor visitor,
+                                            final S resultValue,
+                                            final Context<T> target) {
+            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
     }
 }

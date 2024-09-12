@@ -34,10 +34,9 @@ public interface NestedCommand {
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    <T> void doAsNestedCommand(
-            NestedCommandExecutionVisitor visitor,
-            Context<T> context, Context.StateChangedListener<T> stateListener
-    );
+    <T> void doAsNestedCommand(NestedCommandExecutionVisitor visitor,
+                               Context<T> context,
+                               Context.StateChangedListener<T> stateListener);
 
     /**
      * To execute command Undo as a nested command
@@ -48,18 +47,28 @@ public interface NestedCommand {
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */
-    <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context);
+    <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor,
+                                       Context<T> context);
 
     /**
-     * To transfer command execution result to next command context
+     * For nested command in the sequential macro-command
      *
-     * @param visitor     visitor for transfer result
-     * @param resultValue result of command execution
-     * @param target      command context for next execution
-     * @param <S>         type of current command execution result
-     * @param <T>         type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-     * @see Context#setRedoParameter(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
      */
-    <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target);
+    interface InSequence {
+        /**
+         * To transfer command execution result to next command context
+         *
+         * @param visitor     visitor for transfer result
+         * @param resultValue result of command execution
+         * @param target      command context for next execution
+         * @param <S>         type of current command execution result
+         * @param <T>         type of next command execution result
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see Context#setRedoParameter(Object)
+         */
+        <S, T> void transferResultTo(TransferResultVisitor visitor,
+                                     S resultValue,
+                                     Context<T> target);
+    }
 }

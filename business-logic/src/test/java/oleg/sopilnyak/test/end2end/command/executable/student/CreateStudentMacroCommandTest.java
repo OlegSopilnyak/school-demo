@@ -11,8 +11,10 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUp
 import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -20,6 +22,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -59,13 +62,22 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateStudentMacroCommand command;
-    @SpyBean
-    @Autowired
     CreateOrUpdateStudentProfileCommand profileCommand;
     @SpyBean
     @Autowired
     CreateOrUpdateStudentCommand studentCommand;
+
+    CreateStudentMacroCommand command;
+
+    @BeforeEach
+    void setUp() {
+        command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper){
+            @Override
+            public NestedCommand wrap(NestedCommand command) {
+                return spy(super.wrap(command));
+            }
+        });
+    }
 
     @AfterEach
     void tearDown() {
@@ -88,6 +100,9 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     void shouldCreateMacroCommandContexts() {
         StudentPayload newStudent = payloadMapper.toPayload(makeClearStudent(1));
         reset(payloadMapper);
+        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
+        StudentProfileCommand nestedProfileCommand = (StudentProfileCommand) nestedCommands.pop();
+        StudentCommand nestedStudentCommand = (StudentCommand) nestedCommands.pop();
 
         Context<Student> context = command.createContext(newStudent);
 
@@ -103,7 +118,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(studentContext).isNotNull();
         assertThat(studentContext.isReady()).isTrue();
-        assertThat(studentContext.getCommand()).isSameAs(studentCommand);
+        assertThat(studentContext.getCommand()).isSameAs(nestedStudentCommand);
         Student student = studentContext.getRedoParameter();
         assertThat(student).isNotNull();
         assertThat(student.getId()).isNull();
@@ -112,22 +127,25 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(profileContext).isNotNull();
         assertThat(profileContext.isReady()).isTrue();
-        assertThat(profileContext.getCommand()).isSameAs(profileCommand);
+        assertThat(profileContext.getCommand()).isSameAs(nestedProfileCommand);
         StudentProfile profile = profileContext.getRedoParameter();
         assertThat(profile).isNotNull();
         assertThat(profile.getId()).isNull();
         assertThat(profile.getEmail()).startsWith(emailPrefix);
         assertThat(profile.getPhone()).isNotEmpty();
 
-        verifyProfileCommandContext(newStudent);
+        verifyProfileCommandContext(newStudent, nestedProfileCommand);
 
-        verifyStudentCommandContext(newStudent);
+        verifyStudentCommandContext(newStudent, nestedStudentCommand);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
+        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
+        StudentProfileCommand nestedProfileCommand = (StudentProfileCommand) nestedCommands.pop();
+        StudentCommand nestedStudentCommand = (StudentCommand) nestedCommands.pop();
 
         Context<Student> context = command.createContext(wrongTypeInput);
 
@@ -137,22 +155,25 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.CREATE_OR_UPDATE);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(profileCommand).acceptPreparedContext(command, wrongTypeInput);
-        verify(command).prepareContext(profileCommand, wrongTypeInput);
-        verify(command, never()).createStudentProfileContext(eq(profileCommand), any());
+        verify(nestedProfileCommand).acceptPreparedContext(command, wrongTypeInput);
+        verify(command).prepareContext(nestedProfileCommand, wrongTypeInput);
+        verify(command, never()).createStudentProfileContext(eq(nestedProfileCommand), any());
 
-        verify(studentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(studentCommand), any());
-        verify(command, never()).createStudentContext(eq(studentCommand), any());
+        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
+        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
+        verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreateStudentProfileContextThrows() {
         String errorMessage = "Cannot create nested profile context";
-        Student newStudent = makeClearStudent(2);
         RuntimeException exception = new RuntimeException(errorMessage);
-        when(profileCommand.createContext(any(StudentProfilePayload.class))).thenThrow(exception);
+        Student newStudent = makeClearStudent(2);
+        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
+        StudentProfileCommand nestedProfileCommand = (StudentProfileCommand) nestedCommands.pop();
+        StudentCommand nestedStudentCommand = (StudentCommand) nestedCommands.pop();
+        when(nestedProfileCommand.createContext(any(StudentProfilePayload.class))).thenThrow(exception);
 
         Context<Student> context = command.createContext(newStudent);
 
@@ -161,23 +182,26 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(profileCommand).acceptPreparedContext(command, newStudent);
-        verify(command).prepareContext(profileCommand, newStudent);
-        verify(command).createStudentProfileContext(profileCommand, newStudent);
-        verify(profileCommand).createContext(any(StudentProfilePayload.class));
+        verify(nestedProfileCommand).acceptPreparedContext(command, newStudent);
+        verify(command).prepareContext(nestedProfileCommand, newStudent);
+        verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
+        verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
-        verify(studentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(studentCommand), any());
-        verify(command, never()).createStudentContext(eq(studentCommand), any());
+        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
+        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
+        verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreateStudentContextThrows() {
         String errorMessage = "Cannot create nested student context";
-        Student newStudent = makeClearStudent(3);
         RuntimeException exception = new RuntimeException(errorMessage);
-        when(studentCommand.createContext(any(StudentPayload.class))).thenThrow(exception);
+        Student newStudent = makeClearStudent(3);
+        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
+        StudentProfileCommand nestedProfileCommand = (StudentProfileCommand) nestedCommands.pop();
+        StudentCommand nestedStudentCommand = (StudentCommand) nestedCommands.pop();
+        when(nestedStudentCommand.createContext(any(StudentPayload.class))).thenThrow(exception);
 
         Context<Student> context = command.createContext(newStudent);
 
@@ -186,15 +210,15 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(profileCommand).acceptPreparedContext(command, newStudent);
-        verify(command).prepareContext(profileCommand, newStudent);
-        verify(command).createStudentProfileContext(profileCommand, newStudent);
-        verify(profileCommand).createContext(any(StudentProfilePayload.class));
+        verify(nestedProfileCommand).acceptPreparedContext(command, newStudent);
+        verify(command).prepareContext(nestedProfileCommand, newStudent);
+        verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
+        verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
-        verify(studentCommand).acceptPreparedContext(command, newStudent);
-        verify(command).prepareContext(studentCommand, newStudent);
-        verify(command).createStudentContext(studentCommand, newStudent);
-        verify(studentCommand).createContext(any(StudentPayload.class));
+        verify(nestedStudentCommand).acceptPreparedContext(command, newStudent);
+        verify(command).prepareContext(nestedStudentCommand, newStudent);
+        verify(command).createStudentContext(nestedStudentCommand, newStudent);
+        verify(nestedStudentCommand).createContext(any(StudentPayload.class));
     }
 
     @Test
@@ -586,14 +610,14 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getResult().get()).isPresent();
     }
 
-    private void verifyStudentCommandContext(StudentPayload newStudent) {
+    private void verifyStudentCommandContext(StudentPayload newStudent, StudentCommand studentCommand) {
         verify(studentCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(studentCommand, newStudent);
         verify(command).createStudentContext(studentCommand, newStudent);
         verify(studentCommand).createContext(any(StudentPayload.class));
     }
 
-    private void verifyProfileCommandContext(StudentPayload newStudent) {
+    private void verifyProfileCommandContext(StudentPayload newStudent, StudentProfileCommand profileCommand) {
         verify(profileCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(profileCommand, newStudent);
         verify(command).createStudentProfileContext(profileCommand, newStudent);

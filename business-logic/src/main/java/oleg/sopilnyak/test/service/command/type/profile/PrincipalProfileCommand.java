@@ -4,7 +4,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import org.springframework.lang.NonNull;
 
@@ -44,23 +43,6 @@ public interface PrincipalProfileCommand extends ProfileCommand {
     @Override
     default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
-    }
-
-    /**
-     * To transfer command execution result to next command context
-     *
-     * @param visitor visitor for transfer result
-     * @param resultValue  result of command execution
-     * @param target  command context for next execution
-     * @param <S>     type of current command execution result
-     * @param <T>     type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(PrincipalProfileCommand, Object, Context)
-     * @see Context#setRedoParameter(Object)
-     */
-    @Override
-    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S resultValue, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
     }
 
     /**

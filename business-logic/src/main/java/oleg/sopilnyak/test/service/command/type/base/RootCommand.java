@@ -4,9 +4,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.slf4j.Logger;
-import org.springframework.lang.NonNull;
 
 import static java.util.Objects.isNull;
 
@@ -138,25 +136,9 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor,
+                                                 final Object input) {
         return visitor.prepareContext(this, input);
-    }
-
-    /**
-     * To transfer command execution result to next command context
-     *
-     * @param visitor     visitor for transfer result
-     * @param resultValue result of command execution
-     * @param target      command context for next execution
-     * @param <S>         type of current command execution result
-     * @param <T>         type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-     * @see Context#setRedoParameter(Object)
-     */
-    @Override
-    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S resultValue, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
     }
 
     /**
@@ -173,8 +155,9 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
+    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                       final Context<T> context,
+                                       final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
     }
 
@@ -188,7 +171,7 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see RootCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {
         return visitor.undoNestedCommand(this, context);
     }

@@ -4,7 +4,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import org.springframework.lang.NonNull;
 
 /**
@@ -44,6 +43,10 @@ public interface StudentCommand extends RootCommand {
      * ID of student's delete command
      */
     String DELETE = "student.delete";
+    /**
+     * ID of student's delete macro-command
+     */
+    String DELETE_ALL = "student.delete.macro";
 
 // For commands playing Nested Command Role
 
@@ -63,23 +66,6 @@ public interface StudentCommand extends RootCommand {
     }
 
     /**
-     * To transfer command execution result to next command context
-     *
-     * @param visitor     visitor for transfer result
-     * @param resultValue result of command execution
-     * @param target      command context for next execution
-     * @param <S>         type of current command execution result
-     * @param <T>         type of next command execution result
-     * @see TransferResultVisitor#transferPreviousExecuteDoResult(StudentCommand, Object, Context)
-     * @see Context#setRedoParameter(Object)
-     */
-    @Override
-    default <S, T> void transferResultTo(@NonNull final TransferResultVisitor visitor,
-                                         final S resultValue, final Context<T> target) {
-        visitor.transferPreviousExecuteDoResult(this, resultValue, target);
-    }
-
-    /**
      * To execute command Do as a nested command
      *
      * @param visitor       visitor to do nested command execution
@@ -93,8 +79,9 @@ public interface StudentCommand extends RootCommand {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
+    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                       final Context<T> context,
+                                       final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
     }
 
@@ -108,8 +95,7 @@ public interface StudentCommand extends RootCommand {
      * @see StudentCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
+    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<T> context) {
         return visitor.undoNestedCommand(this, context);
     }
 }

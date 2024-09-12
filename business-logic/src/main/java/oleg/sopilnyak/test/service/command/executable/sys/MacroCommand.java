@@ -75,12 +75,12 @@ public abstract class MacroCommand
             final Deque<Context<T>> successDeque = done.deque;
             final ContextDeque<Context<T>> failed = new ContextDeque<>();
             final Deque<Context<T>> failDeque = failed.deque;
-            final CountDownLatch executed = new CountDownLatch(nested.size());
+            final CountDownLatch nestedCommandsExecuted = new CountDownLatch(nested.size());
 
-            // run redo for nested contexts
-            doNestedCommands(nested, new DoCommandStateChangedListener<>(done, failed, executed));
+            // run command's do for nested contexts
+            doNestedCommands(nested, new DoCommandStateChangedListener<>(done, failed, nestedCommandsExecuted));
             // wait for all commands finished
-            executed.await();
+            nestedCommandsExecuted.await();
             // after run, success and fail dequeues processing
             afterDoneSetup(doContext, successDeque, failDeque, nested);
         } catch (InterruptedException e) {
