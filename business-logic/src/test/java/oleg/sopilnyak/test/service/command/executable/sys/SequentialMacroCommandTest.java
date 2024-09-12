@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.junit.jupiter.api.BeforeEach;
@@ -282,16 +281,16 @@ class SequentialMacroCommandTest {
         assertThat(macroContext.isDone()).isTrue();
         MacroCommandParameter<T> wrapper = macroContext.getRedoParameter();
         AtomicBoolean firstTime = new AtomicBoolean(true);
-        RootCommand unWrappedInt = ((ChainedNestedCommand)intCommand).unWrap();
-        RootCommand unWrappedStudent = ((ChainedNestedCommand)studentCommand).unWrap();
-        RootCommand unWrappedCourse = ((ChainedNestedCommand)courseCommand).unWrap();
+        RootCommand unWrappedInt = ((ChainedNestedCommand) intCommand).unWrap();
+        RootCommand unWrappedStudent = ((ChainedNestedCommand) studentCommand).unWrap();
+        RootCommand unWrappedCourse = ((ChainedNestedCommand) courseCommand).unWrap();
         wrapper.getNestedContexts().forEach(context -> {
             var current = context.getCommand();
-            RootCommand unWrappedCurrent = ((ChainedNestedCommand)current).unWrap();
+            RootCommand unWrappedCurrent = ((ChainedNestedCommand) current).unWrap();
             verify(current).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
             verify(unWrappedCurrent).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
             if (unWrappedCurrent != unWrappedInt) {
-                verify((ChainedNestedCommand)current).transferResultTo(eq(command), any(), any(Context.class));
+                verify((ChainedNestedCommand) current).transferResultTo(eq(command), any(), any(Context.class));
             }
             if (firstTime.get()) {
                 firstTime.compareAndSet(false, true);
@@ -572,136 +571,6 @@ class SequentialMacroCommandTest {
         }
     }
 
-    private static class RootInSequenceCommand implements ChainedNestedCommand<RootCommand>, RootCommand {
-        private final RootCommand command;
-
-        private RootInSequenceCommand(NestedCommand command) {
-            this.command = (RootCommand) command;
-        }
-
-        @Override
-        public RootCommand unWrap() {
-            return command;
-        }
-
-        @Override
-        public Logger getLog() {
-            return command.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return command.getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context, Context.StateChangedListener<T> stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
-
-        @Override
-        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
-        }
-    }
-
-    private static class StudentInSequenceCommand implements ChainedNestedCommand<StudentCommand>, StudentCommand {
-        private final StudentCommand command;
-
-        private StudentInSequenceCommand(StudentCommand command) {
-            this.command = command;
-        }
-
-        @Override
-        public StudentCommand unWrap() {
-            return command;
-        }
-
-        @Override
-        public Logger getLog() {
-            return command.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return command.getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context, Context.StateChangedListener<T> stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
-
-        @Override
-        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
-        }
-    }
-
-    private static class CourseInSequenceCommand implements ChainedNestedCommand<CourseCommand>, CourseCommand {
-        private final CourseCommand command;
-
-        private CourseInSequenceCommand(CourseCommand command) {
-            this.command = command;
-        }
-
-        @Override
-        public CourseCommand unWrap() {
-            return command;
-        }
-
-        @Override
-        public Logger getLog() {
-            return command.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return command.getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context, Context.StateChangedListener<T> stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<T> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
-
-        @Override
-        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
-        }
-    }
-
-    static class ContextStateChangedListener<T> implements Context.StateChangedListener<T> {
-        private final AtomicInteger counter;
-
-        ContextStateChangedListener(AtomicInteger counter) {
-            this.counter = counter;
-        }
-
-        @Override
-        public void stateChanged(Context<T> context, Context.State previous, Context.State newOne) {
-            if (newOne == DONE) {
-                counter.incrementAndGet();
-            }
-        }
-
-    }
-
     // private methods
     private static void checkNestedCommandResultTransfer() {
         Double studentResult = overridedStudentContext.getResult().orElseThrow() + 1000;
@@ -861,6 +730,77 @@ class SequentialMacroCommandTest {
         doubleCommand = (RootCommand) commands.pop();
         booleanCommand = (RootCommand) commands.pop();
         intCommand = (RootCommand) commands.pop();
+    }
+
+    // inner classes
+    private static class RootInSequenceCommand extends ChainedNestedCommand<RootCommand> implements RootCommand {
+        private final RootCommand command;
+
+        private RootInSequenceCommand(NestedCommand command) {
+            this.command = (RootCommand) command;
+        }
+
+        @Override
+        public RootCommand unWrap() {
+            return command;
+        }
+
+        @Override
+        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
+            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+    }
+
+    private static class StudentInSequenceCommand extends ChainedNestedCommand<StudentCommand> implements StudentCommand {
+        private final StudentCommand command;
+
+        private StudentInSequenceCommand(StudentCommand command) {
+            this.command = command;
+        }
+
+        @Override
+        public StudentCommand unWrap() {
+            return command;
+        }
+
+        @Override
+        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
+            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+    }
+
+    private static class CourseInSequenceCommand extends ChainedNestedCommand<CourseCommand> implements CourseCommand {
+        private final CourseCommand command;
+
+        private CourseInSequenceCommand(CourseCommand command) {
+            this.command = command;
+        }
+
+        @Override
+        public CourseCommand unWrap() {
+            return command;
+        }
+
+        @Override
+        public <S, T> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<T> target) {
+            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+    }
+
+    static class ContextStateChangedListener<T> implements Context.StateChangedListener<T> {
+        private final AtomicInteger counter;
+
+        ContextStateChangedListener(AtomicInteger counter) {
+            this.counter = counter;
+        }
+
+        @Override
+        public void stateChanged(Context<T> context, Context.State previous, Context.State newOne) {
+            if (newOne == DONE) {
+                counter.incrementAndGet();
+            }
+        }
+
     }
 
 }

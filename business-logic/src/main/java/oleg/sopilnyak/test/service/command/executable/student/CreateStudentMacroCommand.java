@@ -255,8 +255,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         throw new UnableExecuteCommandException(((RootCommand) command).getId());
     }
 
-// private methods
-
+    // private methods
     private NestedCommand wrap(final StudentCommand command) {
         return new StudentInSequenceCommand(command);
     }
@@ -269,7 +268,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         throw new CannotCreateCommandContextException(command.getId());
     }
 
-    private static class StudentInSequenceCommand implements ChainedNestedCommand<StudentCommand>, StudentCommand {
+    // inner classes
+    private static class StudentInSequenceCommand extends ChainedNestedCommand<StudentCommand> implements StudentCommand {
         private final StudentCommand command;
 
         private StudentInSequenceCommand(StudentCommand command) {
@@ -282,29 +282,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         }
 
         @Override
-        public Logger getLog() {
-            return command.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return command.getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                          final Context<T> context,
-                                          final Context.StateChangedListener<T> stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                                  final Context<T> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
-
-        @Override
         public <S, T> void transferResultTo(final TransferResultVisitor visitor,
                                             final S resultValue,
                                             final Context<T> target) {
@@ -312,7 +289,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         }
     }
 
-    private static class StudentProfileInSequenceCommand implements ChainedNestedCommand<StudentProfileCommand>, StudentProfileCommand {
+    private static class StudentProfileInSequenceCommand extends ChainedNestedCommand<StudentProfileCommand> implements StudentProfileCommand {
         private final StudentProfileCommand command;
 
         private StudentProfileInSequenceCommand(StudentProfileCommand command) {
@@ -325,33 +302,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         }
 
         @Override
-        public Logger getLog() {
-            return command.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return command.getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                          final Context<T> context,
-                                          final Context.StateChangedListener<T> stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                                  final Context<T> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
-
-        @Override
         public <S, T> void transferResultTo(final TransferResultVisitor visitor,
                                             final S resultValue,
                                             final Context<T> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
         }
     }
+
 }
