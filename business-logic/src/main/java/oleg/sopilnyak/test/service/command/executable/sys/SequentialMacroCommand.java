@@ -37,7 +37,7 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @return wrapped nested command
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
-    public abstract NestedCommand wrap(NestedCommand command);
+    public abstract NestedCommand wrap(final NestedCommand command);
 
     /**
      * To run macro-command's nested contexts<BR/>
