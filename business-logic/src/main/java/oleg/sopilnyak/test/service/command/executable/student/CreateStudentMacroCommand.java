@@ -246,6 +246,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
     @Override
+    @NonNull
     public NestedCommand wrap(final NestedCommand command) {
         if (command instanceof StudentCommand studentCommand) {
             return wrap(studentCommand);
@@ -257,11 +258,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
 
 // private methods
 
-    private NestedCommand wrap(StudentCommand command) {
+    private NestedCommand wrap(final StudentCommand command) {
         return new StudentInSequenceCommand(command);
     }
 
-    private NestedCommand wrap(StudentProfileCommand command) {
+    private NestedCommand wrap(final StudentProfileCommand command) {
         return new StudentProfileInSequenceCommand(command);
     }
 
