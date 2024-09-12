@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
-import org.springframework.lang.NonNull;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -38,7 +37,6 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @return wrapped nested command
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
-    @NonNull
     public abstract NestedCommand wrap(final NestedCommand command);
 
     /**
