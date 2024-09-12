@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
+import org.slf4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
@@ -26,7 +27,7 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @see RootCommand
      */
     @Override
-    public void addToNest(NestedCommand command) {
+    public void addToNest(final NestedCommand command) {
         super.addToNest(wrap(command));
     }
 
@@ -139,7 +140,7 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
         final String currentCmdId = current.getCommand().getId();
         getLog().debug("Transferring from '{}' to '{}' value:[{}]", sourceCmdId, currentCmdId, resultValue);
         // transferring result to current context
-        if (sourceCommand instanceof NestedCommand.InSequence commandInSequence) {
+        if (sourceCommand instanceof SequentialMacroCommand.Chained<?> commandInSequence) {
             commandInSequence.transferResultTo(this, resultValue, current);
             getLog().debug("Transferred from '{}' to '{}' value:[{}] successfully", sourceCmdId, currentCmdId, resultValue);
         } else {
@@ -147,4 +148,39 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
         }
     }
 
+    // inner class-wrapper for nested command
+    /**
+     * class-wrapper for chained nested commands in sequence
+     */
+    public abstract static class Chained<C extends RootCommand> implements NestedCommand.InSequence, RootCommand {
+        /**
+         * To unwrap nested command
+         *
+         * @return unwrapped instance of the command
+         */
+        public abstract C unWrap();
+
+        @Override
+        public Logger getLog() {
+            return unWrap().getLog();
+        }
+
+        @Override
+        public String getId() {
+            return unWrap().getId();
+        }
+
+        @Override
+        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                          final Context<T> context,
+                                          final Context.StateChangedListener<T> stateListener) {
+            unWrap().doAsNestedCommand(visitor, context, stateListener);
+        }
+
+        @Override
+        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                                  final Context<T> context) {
+            return unWrap().undoAsNestedCommand(visitor, context);
+        }
+    }
 }

@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ChainedNestedCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
@@ -269,7 +268,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     }
 
     // inner classes
-    private static class StudentInSequenceCommand extends ChainedNestedCommand<StudentCommand> implements StudentCommand {
+    private static class StudentInSequenceCommand extends SequentialMacroCommand.Chained<StudentCommand> implements StudentCommand {
         private final StudentCommand command;
 
         private StudentInSequenceCommand(StudentCommand command) {
@@ -289,7 +288,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         }
     }
 
-    private static class StudentProfileInSequenceCommand extends ChainedNestedCommand<StudentProfileCommand> implements StudentProfileCommand {
+    private static class StudentProfileInSequenceCommand extends SequentialMacroCommand.Chained<StudentProfileCommand> implements StudentProfileCommand {
         private final StudentProfileCommand command;
 
         private StudentProfileInSequenceCommand(StudentProfileCommand command) {

@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ChainedNestedCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -27,7 +27,9 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
@@ -52,7 +54,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper){
+        command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper) {
             @Override
             public NestedCommand wrap(NestedCommand command) {
                 return spy(super.wrap(command));
@@ -76,13 +78,13 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isSameAs(payloadMapper);
         Deque<NestedCommand> nested = new LinkedList<>(command.fromNest());
         NestedCommand nestedProfileCommand = nested.pop();
-        if (nestedProfileCommand instanceof ChainedNestedCommand chained) {
+        if (nestedProfileCommand instanceof SequentialMacroCommand.Chained<?> chained) {
             assertThat(chained.unWrap()).isSameAs(profileCommand);
         } else {
             fail("nested profile command is not a chained command");
         }
         NestedCommand nestedStudentCommand = nested.pop();
-        if (nestedStudentCommand instanceof ChainedNestedCommand chained) {
+        if (nestedStudentCommand instanceof SequentialMacroCommand.Chained<?> chained) {
             assertThat(chained.unWrap()).isSameAs(studentCommand);
         } else {
             fail("nested student command is not a chained command");
