@@ -385,9 +385,10 @@ class ParallelMacroCommandTest {
     static class FakeParallelCommand extends ParallelMacroCommand {
         static Context<Double> overridedStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
+        private final SchedulingTaskExecutor commandContextExecutor;
 
         public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand student) {
-            super(commandContextExecutor);
+            this.commandContextExecutor = commandContextExecutor;
             overridedStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }
 
@@ -419,6 +420,16 @@ class ParallelMacroCommandTest {
         @Override
         public String getId() {
             return "parallel-fake-command";
+        }
+
+        /**
+         * To get access to command's command-context executor
+         *
+         * @return instance of executor
+         */
+        @Override
+        public SchedulingTaskExecutor getExecutor() {
+            return commandContextExecutor;
         }
     }
 

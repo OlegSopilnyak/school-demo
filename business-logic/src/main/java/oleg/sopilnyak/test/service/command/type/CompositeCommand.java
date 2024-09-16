@@ -9,11 +9,8 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import org.springframework.lang.NonNull;
 
-import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * Type: Command to execute the couple of commands
@@ -47,17 +44,22 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      */
     @Override
     default <T> Context<T> createContext(Object input) {
+        final List<Context<Object>> nested = fromNest().stream()
+                .map(nestedCommand -> {
+                    try {
+                        return nestedCommand.acceptPreparedContext(this, input);
+                    } catch (Exception e) {
+                        return prepareFailedContext(nestedCommand, input, e);
+                    }
+                }).toList();
+        final Deque<Context<Object>> nestedContexts = new LinkedList<>(nested);
+
+        final Optional<Context<Object>> failed = nestedContexts.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst();
         final Context<T> macroCommandContext = createContext();
-        final Deque<Context<T>> nestedContexts = new LinkedList<>();
-        try {
-            for (final NestedCommand nestedCommand : fromNest()) {
-                final Context<T> nestedContext = nestedCommand.acceptPreparedContext(this, input);
-                nestedContexts.add(nestedContext);
-            }
+        if (failed.isPresent()) {
+            macroCommandContext.failed(failed.get().getException());
+        } else {
             macroCommandContext.setRedoParameter(new MacroCommandParameter<>(input, nestedContexts));
-        } catch (Exception e) {
-            getLog().error("Cannot create macro command context for {}", input, e);
-            macroCommandContext.failed(e);
         }
         return macroCommandContext;
     }
@@ -76,7 +78,7 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
@@ -94,7 +96,7 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                        final Context<T> context, final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
     }
@@ -109,8 +111,15 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {
         return visitor.undoNestedCommand(this, context);
     }
+
+    // private methods
+    private Context<Object> prepareFailedContext(NestedCommand nestedCommand, Object input, Exception e) {
+        getLog().error("Cannot prepare nested command context '{}' for value {}", nestedCommand, input, e);
+        return nestedCommand.createContextInit().failed(e);
+    }
+
 }

@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
-import org.slf4j.Logger;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 
 import java.util.Deque;
@@ -20,10 +19,15 @@ import java.util.concurrent.Future;
  */
 @AllArgsConstructor
 public abstract class ParallelMacroCommand extends MacroCommand {
-    protected final SchedulingTaskExecutor commandContextExecutor;
+    /**
+     * To get access to command's command-context executor
+     *
+     * @return instance of executor
+     */
+    public abstract SchedulingTaskExecutor getExecutor();
 
     /**
-     * To run macro-command's nested contexts<BR/>
+     * To run do of macro-command's nested contexts<BR/>
      * Executing collection of nested command contexts
      *
      * @param doContexts    nested command contexts collection
@@ -40,30 +44,12 @@ public abstract class ParallelMacroCommand extends MacroCommand {
                                      final Context.StateChangedListener<T> stateListener) {
         final CountDownLatch latch = new CountDownLatch(doContexts.size());
         // parallel walking through contexts set
-        doContexts.forEach(context -> {
-            getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
-            final Future<Context<T>> future =
-                    commandContextExecutor.submit(new DoCommandRunner<>(context, stateListener, latch));
-
-            // To test is doRunner starting well in commandContextExecutor
-            if (future.isCancelled()) {
-                getLog().warn("Canceled executing of command: '{}' with context:{}", context.getCommand().getId(), context);
-                context.addStateListener(stateListener);
-                context.setState(Context.State.CANCEL);
-                context.removeStateListener(stateListener);
-                latch.countDown();
-            }
-        });
-
+        doContexts.forEach(context -> kickOffDoRunner(context, stateListener, latch));
         // waiting for CountDownLatch latch
         try {
             latch.await();
         } catch (InterruptedException e) {
-            final Logger log = getLog();
-            log.error("CountDownLatch is interrupted", e);
-            // Clean up whatever needs to be handled before interrupting
-            Thread.currentThread().interrupt();
-            throw new CountDownLatchInterruptedException(latch.getCount(), e);
+            processInterruptedException(e, latch);
         }
     }
 
@@ -88,17 +74,39 @@ public abstract class ParallelMacroCommand extends MacroCommand {
         try {
             latch.await();
         } catch (InterruptedException e) {
-            getLog().error("CountDownLatch is interrupted", e);
-            // Clean up whatever needs to be handled before interrupting
-            Thread.currentThread().interrupt();
-            throw new CountDownLatchInterruptedException(latch.getCount(), e);
+            processInterruptedException(e, latch);
         }
         return doneContexts;
     }
 
-    private <T> void kickOffUndoRunner(Context<T> context, CountDownLatch latch) {
+    // private methods
+    private void processInterruptedException(InterruptedException e, CountDownLatch latch) {
+        getLog().error("CountDownLatch is interrupted", e);
+        // Clean up whatever needs to be handled before interrupting
+        Thread.currentThread().interrupt();
+        throw new CountDownLatchInterruptedException(latch.getCount(), e);
+    }
+
+    private <T> void kickOffDoRunner(final Context<T> context,
+                                     final Context.StateChangedListener<T> stateListener,
+                                     final CountDownLatch latch) {
+        getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
+        final Future<Context<T>> future = getExecutor().submit(new DoCommandRunner<>(context, stateListener, latch));
+
+        // To test is doRunner starting well in commandContextExecutor
+        if (future.isCancelled()) {
+            getLog().warn("Canceled executing of command: '{}' with context:{}", context.getCommand().getId(), context);
+            context.addStateListener(stateListener);
+            context.setState(Context.State.CANCEL);
+            context.removeStateListener(stateListener);
+            latch.countDown();
+        }
+    }
+
+    private <T> void kickOffUndoRunner(final Context<T> context,
+                                       final CountDownLatch latch) {
         getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
-        final Future<Context<T>> future = commandContextExecutor.submit(new UndoCommandRunner<>(context, latch));
+        final Future<Context<T>> future = getExecutor().submit(new UndoCommandRunner<>(context, latch));
 
         // To test is undoRunner starting well in commandContextExecutor
         if (future.isCancelled()) {

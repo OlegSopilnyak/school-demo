@@ -97,14 +97,16 @@ public interface Context<T> {
      * Mark context as failed
      *
      * @param exception cause of failure
+     * @return failed context instance
      * @see Exception
      * @see this#setState(State)
      * @see Context.State#FAIL
      * @see this#setException(Exception)
      */
-    default void failed(Exception exception) {
+    default Context<T> failed(Exception exception) {
         setState(State.FAIL);
         setException(exception);
+        return this;
     }
 
     /**

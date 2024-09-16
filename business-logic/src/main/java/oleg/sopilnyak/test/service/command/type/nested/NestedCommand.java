@@ -51,6 +51,14 @@ public interface NestedCommand {
                                        Context<T> context);
 
     /**
+     * To create initial context fo the nested-command
+     *
+     * @return instance of initial command-context
+     * @param <T> type of command's result
+     */
+    <T> Context<T> createContextInit();
+
+    /**
      * For nested command in the sequential macro-command
      *
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand

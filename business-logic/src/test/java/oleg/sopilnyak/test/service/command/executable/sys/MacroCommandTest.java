@@ -262,7 +262,11 @@ class MacroCommandTest {
     @Test
     void shouldNotCreateMacroContext_DoubleContextExceptionThrown() {
         int parameter = 103;
+        allowRealPrepareContext(intCommand, parameter);
+        allowRealPrepareContext(booleanCommand, parameter);
         allowRealAcceptPrepareContext(doubleCommand, parameter);
+        doCallRealMethod().when(doubleCommand).createContextInit();
+        doCallRealMethod().when(doubleCommand).createContext();
         doThrow(new CannotCreateCommandContextException("double")).when(doubleCommand).createContext(parameter);
 
         Context<Integer> macroContext = command.createContext(parameter);
@@ -275,8 +279,8 @@ class MacroCommandTest {
         verify(command).prepareContext(doubleCommand, parameter);
         verify(doubleCommand).createContext(parameter);
         // check other commands
-        verify(booleanCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(intCommand, never()).acceptPreparedContext(eq(command), any());
+        verify(booleanCommand).acceptPreparedContext(eq(command), any());
+        verify(intCommand).acceptPreparedContext(eq(command), any());
     }
 
     @Test
@@ -285,6 +289,8 @@ class MacroCommandTest {
         allowRealPrepareContext(doubleCommand, parameter);
         allowRealPrepareContext(booleanCommand, parameter);
         allowRealAcceptPrepareContext(intCommand, parameter);
+        doCallRealMethod().when(intCommand).createContextInit();
+        doCallRealMethod().when(intCommand).createContext();
         doThrow(new CannotCreateCommandContextException("int")).when(intCommand).createContext(parameter);
 
         Context<Integer> macroContext = command.createContext(parameter);

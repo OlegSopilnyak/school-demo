@@ -44,7 +44,8 @@ class StudentCommandsFactorySpringTest {
                 "student.findNotEnrolled",
                 "student.createOrUpdate",
                 "student.create.macro",
-                "student.delete"
+                "student.delete",
+                "student.delete.macro"
         );
     }
 

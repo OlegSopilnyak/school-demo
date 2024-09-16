@@ -158,10 +158,12 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongTypeInput);
         verify(command).prepareContext(nestedProfileCommand, wrongTypeInput);
         verify(command, never()).createStudentProfileContext(eq(nestedProfileCommand), any());
+        verify(nestedProfileCommand, never()).createContext(any(StudentProfilePayload.class));
 
-        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
+        verify(nestedStudentCommand).acceptPreparedContext(command, wrongTypeInput);
+        verify(command).prepareContext(nestedStudentCommand, wrongTypeInput);
         verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
+        verify(nestedStudentCommand, never()).createContext(any(StudentPayload.class));
     }
 
     @Test
@@ -187,9 +189,10 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
         verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
-        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
-        verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
+        verify(nestedStudentCommand).acceptPreparedContext(command, newStudent);
+        verify(command).prepareContext(nestedStudentCommand, newStudent);
+        verify(command).createStudentContext(nestedStudentCommand, newStudent);
+        verify(nestedStudentCommand).createContext(any(StudentPayload.class));
     }
 
     @Test

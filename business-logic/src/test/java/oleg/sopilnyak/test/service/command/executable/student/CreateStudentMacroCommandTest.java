@@ -153,8 +153,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(command).prepareContext(nestedProfileCommand, wrongTypeInput);
         verify(command, never()).createStudentProfileContext(eq(nestedProfileCommand), any());
 
-        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
+        verify(nestedStudentCommand).acceptPreparedContext(command, wrongTypeInput);
+        verify(command).prepareContext(nestedStudentCommand, wrongTypeInput);
         verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
     }
 
@@ -180,9 +180,9 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
         verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
-        verify(nestedStudentCommand, never()).acceptPreparedContext(eq(command), any());
-        verify(command, never()).prepareContext(eq(nestedStudentCommand), any());
-        verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
+        verify(nestedStudentCommand).acceptPreparedContext(eq(command), any());
+        verify(command).prepareContext(eq(nestedStudentCommand), any());
+        verify(command).createStudentContext(eq(nestedStudentCommand), any());
     }
 
     @Test

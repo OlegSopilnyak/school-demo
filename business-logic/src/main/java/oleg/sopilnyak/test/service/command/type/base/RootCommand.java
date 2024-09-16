@@ -85,6 +85,16 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
     }
 
     /**
+     * To create initial context fo the nested-command
+     *
+     * @return instance of initial command-context
+     */
+    @Override
+    default <T> Context<T> createContextInit() {
+        return createContext();
+    }
+
+    /**
      * To execute command logic with context
      *
      * @param context context of redo execution
