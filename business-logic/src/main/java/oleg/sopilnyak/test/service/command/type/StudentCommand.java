@@ -4,7 +4,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import org.springframework.lang.NonNull;
 
 /**
  * Type for school-student command
@@ -61,7 +60,7 @@ public interface StudentCommand extends RootCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
