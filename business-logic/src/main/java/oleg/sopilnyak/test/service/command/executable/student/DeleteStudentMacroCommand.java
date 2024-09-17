@@ -44,16 +44,16 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand implements S
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     private final int maxPoolSize;
     // persistence facade for get instance of student by student-id
-    private final StudentsPersistenceFacade persistenceFacade;
+    private final StudentsPersistenceFacade persistence;
 
     public DeleteStudentMacroCommand(
             final DeleteStudentCommand deleteStudentCommand,
             final DeleteStudentProfileCommand deleteStudentProfileCommand,
-            final StudentsPersistenceFacade persistenceFacade,
+            final StudentsPersistenceFacade persistence,
             @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
     ) {
         this.maxPoolSize = maxPoolSize;
-        this.persistenceFacade = persistenceFacade;
+        this.persistence = persistence;
         addToNest(deleteStudentCommand);
         addToNest(deleteStudentProfileCommand);
     }
@@ -140,7 +140,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand implements S
      * @see StudentsPersistenceFacade#findStudentById(Long)
      */
     public <T> Context<T> createStudentProfileContext(StudentProfileCommand command, Long studentId) {
-        final Long profileId = persistenceFacade.findStudentById(studentId)
+        final Long profileId = persistence.findStudentById(studentId)
                 .orElseThrow(() -> new NotExistStudentException("Not exists student with ID: " + studentId))
                 .getProfileId();
         return command.createContext(profileId);

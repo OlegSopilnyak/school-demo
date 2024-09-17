@@ -45,21 +45,17 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
     @Override
     default <T> Context<T> createContext(Object input) {
         final List<Context<Object>> nested = fromNest().stream()
-                .map(nestedCommand -> {
-                    try {
-                        return nestedCommand.acceptPreparedContext(this, input);
-                    } catch (Exception e) {
-                        return prepareFailedContext(nestedCommand, input, e);
-                    }
-                }).toList();
-        final Deque<Context<Object>> nestedContexts = new LinkedList<>(nested);
-
-        final Optional<Context<Object>> failed = nestedContexts.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst();
+                .map(nestedCommand -> prepareNestedContext(nestedCommand, input))
+                .toList();
+        final Optional<Context<Object>> failed = nested.stream()
+                .filter(Objects::nonNull)
+                .filter(Context::isFailed)
+                .findFirst();
         final Context<T> macroCommandContext = createContext();
         if (failed.isPresent()) {
             macroCommandContext.failed(failed.get().getException());
         } else {
-            macroCommandContext.setRedoParameter(new MacroCommandParameter<>(input, nestedContexts));
+            macroCommandContext.setRedoParameter(new MacroCommandParameter<>(input, new LinkedList<>(nested)));
         }
         return macroCommandContext;
     }
@@ -117,9 +113,12 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
     }
 
     // private methods
-    private Context<Object> prepareFailedContext(NestedCommand nestedCommand, Object input, Exception e) {
-        getLog().error("Cannot prepare nested command context '{}' for value {}", nestedCommand, input, e);
-        return nestedCommand.createContextInit().failed(e);
+    private Context<Object> prepareNestedContext(NestedCommand command, Object input) {
+        try {
+            return command.acceptPreparedContext(this, input);
+        } catch (Exception e) {
+            getLog().error("Cannot prepare nested command context '{}' for value {}", command, input, e);
+            return command.createContextInit().failed(e);
+        }
     }
-
 }
