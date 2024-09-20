@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,7 +127,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
-        PrincipalProfile profile = persistPrincipalProfile();
+        PrincipalProfilePayload profile = persistPrincipalProfile();
         long id = profile.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
         Context<Boolean> context = command.createContext(id);
@@ -138,7 +139,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(profile.getOriginal());
         verify(persistence).deleteProfileById(id);
     }
 
@@ -206,11 +207,11 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private PrincipalProfile persistPrincipalProfile() {
+    private PrincipalProfilePayload persistPrincipalProfile() {
         return persistPrincipalProfile(0);
     }
 
-    private PrincipalProfile persistPrincipalProfile(int order) {
+    private PrincipalProfilePayload persistPrincipalProfile(int order) {
         try {
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {

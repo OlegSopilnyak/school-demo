@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -126,7 +127,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
-        StudentProfile profile = persistStudentProfile();
+        StudentProfilePayload profile = persistStudentProfile();
         long id = profile.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
         Context<Boolean> context = command.createContext(id);
@@ -138,7 +139,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(persistence).toEntity(profile);
+        verify(persistence).toEntity(profile.getOriginal());
         verify(persistence).deleteProfileById(id);
     }
 
@@ -206,11 +207,11 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private StudentProfile persistStudentProfile() {
+    private StudentProfilePayload persistStudentProfile() {
         return persistStudentProfile(0);
     }
 
-    private StudentProfile persistStudentProfile(int order) {
+    private StudentProfilePayload persistStudentProfile(int order) {
         try {
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {
