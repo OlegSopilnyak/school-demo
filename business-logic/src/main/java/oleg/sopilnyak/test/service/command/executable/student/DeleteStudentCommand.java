@@ -68,9 +68,10 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
             }
 
+            // removing student instance by ID from the database
+            persistence.deleteStudent(inputId);
             // cached student is storing to context for further rollback (undo)
             context.setUndoParameter(entity);
-            persistence.deleteStudent(inputId);
             context.setResult(true);
         } catch (Exception e) {
             rollbackCachedEntity(context, persistence::save);

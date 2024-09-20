@@ -228,7 +228,7 @@ public abstract class MacroCommand
         }
     }
 
-    final class DoCommandStateChangedListener<T> implements Context.StateChangedListener<T> {
+    class DoCommandStateChangedListener<T> implements Context.StateChangedListener<T> {
         final ContextDeque<Context<T>> doneContextsDeque;
         final ContextDeque<Context<T>> failedContextsDeque;
         final CountDownLatch executed;

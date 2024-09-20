@@ -53,7 +53,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
         getLog().info("Getting entity of {} for ID:{}", entityName, inputId);
         final T existsEntity = findEntityById.apply(inputId).orElseThrow(exceptionSupplier);
-        getLog().info("Got entity of {} '{}'", entityName, existsEntity);
+        getLog().info("Got entity of {} '{}' by ID:{}", entityName, existsEntity, inputId);
 
         // return copy of exists entity for undo operation
         getLog().info("Adopting Entity to Payload '{}'", existsEntity);

@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * MapStruct Mapper: To convert model types to Payloads
@@ -147,10 +148,7 @@ public interface BusinessMessagePayloadMapper {
 
     @Named("toProfileExtras")
     default BaseProfilePayload.Extra[] toProfileExtras(PersonProfile profile) {
-        return Arrays.stream(profile.getExtraKeys())
-                .filter(key -> profile.getExtra(key).isPresent())
-                .map(key -> new BaseProfilePayload.Extra(key, profile.getExtra(key).orElse(null)))
-                .toList().toArray(BaseProfilePayload.Extra[]::new);
+        return isEmpty(profile.getExtraKeys()) ? emptyExtraKeys() : copyExtraKeys(profile);
     }
 
     @Named("toCoursePayloads")
@@ -166,5 +164,17 @@ public interface BusinessMessagePayloadMapper {
     @Named("toFacultyPayloads")
     default List<Faculty> toFacultyPayload(List<Faculty> faculties) {
         return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toPayloadShort(faculty)).toList();
+    }
+
+    // private methods
+    private BaseProfilePayload.Extra[] emptyExtraKeys() {
+        return new BaseProfilePayload.Extra[0];
+    }
+
+    private BaseProfilePayload.Extra[] copyExtraKeys(PersonProfile profile) {
+        return Arrays.stream(profile.getExtraKeys())
+                .filter(key -> profile.getExtra(key).isPresent())
+                .map(key -> new BaseProfilePayload.Extra(key, profile.getExtra(key).orElse(null)))
+                .toList().toArray(BaseProfilePayload.Extra[]::new);
     }
 }

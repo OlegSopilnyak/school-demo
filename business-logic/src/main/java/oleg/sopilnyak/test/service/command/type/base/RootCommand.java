@@ -103,13 +103,13 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      */
     @Override
     default <T> void doCommand(Context<T> context) {
-        if (!context.isReady()) {
-            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        } else {
+        if (context.isReady()) {
             // start redo with correct context state
             context.setState(Context.State.WORK);
             executeDo(context);
+        } else {
+            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
         }
     }
 

@@ -89,9 +89,10 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
             }
             // previous profile is storing to context for further rollback (undo)
             final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> notFoundException);
-            context.setUndoParameter(entity);
-            // deleting profile by id
+            // removing profile instance by ID from the database
             persistence.deleteProfileById(id);
+            // cached profile is storing to context for further rollback (undo)
+            context.setUndoParameter(entity);
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);
         } catch (Exception e) {
