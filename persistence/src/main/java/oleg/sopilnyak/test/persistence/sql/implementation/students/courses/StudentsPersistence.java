@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.persistence.sql.repository.StudentRepository;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public interface StudentsPersistence extends StudentsPersistenceFacade {
      * @see Optional#empty()
      */
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
     default Optional<Student> findStudentById(Long id) {
         getLog().debug("Looking for Student with ID:{}", id);
         return getStudentRepository().findById(id).map(Student.class::cast);
@@ -74,6 +76,7 @@ public interface StudentsPersistence extends StudentsPersistenceFacade {
      * @return true if there is no student in database
      */
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
     default boolean isNoStudents() {
         return getStudentRepository().count() == 0L;
     }

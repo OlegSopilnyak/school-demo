@@ -125,7 +125,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public boolean delete(Long id) throws NotExistStudentException, StudentWithCoursesException {
         log.debug("Delete student with ID:{}", id);
-        final String commandId = DELETE;
+        final String commandId = DELETE_ALL;
         final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 

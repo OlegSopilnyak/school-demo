@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -16,6 +18,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +48,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
-    private static final String STUDENT_DELETE = "student.delete";
+    private static final String STUDENT_DELETE = "student.delete.macro";
 
     @Autowired
     PersistenceFacade database;
@@ -56,12 +59,29 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     StudentsFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
+    CreateOrUpdateStudentCommand createStudentCommand;
+    CreateOrUpdateStudentProfileCommand createProfileCommand;
+    DeleteStudentCommand deleteStudentCommand;
+    DeleteStudentProfileCommand deleteProfileCommand;
+    DeleteStudentMacroCommand deleteStudentMacroCommand;
+
     @BeforeEach
     void setUp() {
         payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
+        createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
+        createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
+        deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
+        deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, 10));
+        deleteStudentMacroCommand.runThreadPoolExecutor();
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+    }
+
+    @AfterEach
+    void tearDown() {
+        deleteStudentMacroCommand.stopThreadPoolExecutor();
     }
 
     @Test
@@ -238,7 +258,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
         }
-        Long studentId = getPersistentStudent(newStudent).getId();
+        StudentPayload created = createStudent(newStudent);
+        Long studentId = created.getId();
         assertThat(database.findStudentById(studentId)).isPresent();
 
         facade.delete(studentId);
@@ -282,7 +303,11 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private StudentPayload createStudent(Student newStudent){
+        return (StudentPayload) facade.create(newStudent).orElseThrow();
+    }
     private Student getPersistentStudent(Student newStudent) {
+        Optional<Student>  created = facade.create(newStudent);
         Optional<Student> saved = database.save(newStudent);
         assertThat(saved).isPresent();
         return saved.get();
@@ -295,13 +320,16 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private CommandsFactory<StudentCommand> buildFactory(PersistenceFacade persistenceFacade) {
-        return new StudentCommandsFactory(
-                Set.of(
-                        spy(new FindStudentCommand(persistenceFacade)),
-                        spy(new FindEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper)),
-                        spy(new DeleteStudentCommand(persistenceFacade, payloadMapper))
+        return spy(new StudentCommandsFactory(
+                        Set.of(
+                                spy(new FindStudentCommand(persistenceFacade)),
+                                spy(new FindEnrolledStudentsCommand(persistenceFacade)),
+                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
+                                createStudentCommand,
+                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper)),
+                                deleteStudentCommand,
+                                deleteStudentMacroCommand
+                        )
                 )
         );
     }

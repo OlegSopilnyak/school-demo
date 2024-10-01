@@ -4,7 +4,10 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -13,11 +16,11 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
+import oleg.sopilnyak.test.service.message.StudentProfilePayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -34,21 +37,40 @@ class StudentsFacadeImplTest {
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
-    private static final String STUDENT_DELETE = "student.delete";
+    private static final String STUDENT_DELETE_ALL = "student.delete.macro";
 
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
-    @Spy
-    CommandsFactory<StudentCommand> factory = buildFactory();
 
-    @Spy
-    @InjectMocks
     StudentsFacadeImpl facade;
 
     @Mock
     Student mockedStudent;
     @Mock
     StudentPayload mockedStudentPayload;
+    @Mock
+    StudentProfile mockedProfile;
+    StudentProfilePayload mockedStudentProfilePayload;
+
+    CreateOrUpdateStudentCommand createStudentCommand;
+    CreateOrUpdateStudentProfileCommand createProfileCommand;
+    DeleteStudentCommand deleteStudentCommand;
+    DeleteStudentProfileCommand deleteProfileCommand;
+    DeleteStudentMacroCommand deleteStudentMacroCommand;
+
+    CommandsFactory<StudentCommand> factory;
+
+    @BeforeEach
+    void setUp() {
+        createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
+        createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
+        deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
+        deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, 10));
+        deleteStudentMacroCommand.runThreadPoolExecutor();
+        factory = buildFactory();
+        facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+    }
 
     @Test
     void shouldNotFindById() {
@@ -168,17 +190,26 @@ class StudentsFacadeImplTest {
     @Test
     void shouldDelete() throws StudentWithCoursesException, NotExistStudentException {
         Long studentId = 101L;
+        Long profileId = 1001L;
+        when(mockedStudent.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(mockedProfile));
+        when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
 
         facade.delete(studentId);
 
-        verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
-        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
-        verify(persistenceFacade).findStudentById(studentId);
+        verify(factory).command(STUDENT_DELETE_ALL);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
+        verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
+        verify(persistenceFacade).findStudentProfileById(profileId);
+        verify(persistenceFacade).toEntity(mockedProfile);
         verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedProfile);
         verify(persistenceFacade).deleteStudent(studentId);
+        verify(persistenceFacade).deleteProfileById(profileId);
     }
 
     @Test
@@ -187,10 +218,10 @@ class StudentsFacadeImplTest {
 
         NotExistStudentException exception = assertThrows(NotExistStudentException.class, () -> facade.delete(studentId));
 
-        assertThat(exception.getMessage()).isEqualTo("Student with ID:102 is not exists.");
-        verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
-        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
+        assertThat(exception.getMessage()).isEqualTo("Not exists student with ID: 102");
+        verify(factory).command(STUDENT_DELETE_ALL);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(payloadMapper, never()).toPayload(any(Student.class));
         verify(persistenceFacade, never()).deleteStudent(studentId);
@@ -199,29 +230,37 @@ class StudentsFacadeImplTest {
     @Test
     void shouldNotDelete_StudentWithCourses() {
         Long studentId = 103L;
+        Long profileId = 1003L;
+        when(mockedStudent.getProfileId()).thenReturn(profileId);
         when(mockedStudentPayload.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(mockedProfile));
+        when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
-        verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
-        verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
-        verify(persistenceFacade).findStudentById(studentId);
+        verify(factory).command(STUDENT_DELETE_ALL);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
+        verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
     private CommandsFactory<StudentCommand> buildFactory() {
-        return new StudentCommandsFactory(
-                Set.of(
-                        spy(new FindStudentCommand(persistenceFacade)),
-                        spy(new FindEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
-                        spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper)),
-                        spy(new DeleteStudentCommand(persistenceFacade, payloadMapper))
+        return spy(new StudentCommandsFactory(
+                        Set.of(
+                                spy(new FindStudentCommand(persistenceFacade)),
+                                spy(new FindEnrolledStudentsCommand(persistenceFacade)),
+                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
+                                createStudentCommand,
+                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper)),
+                                deleteStudentCommand,
+                                deleteStudentMacroCommand
+                        )
                 )
         );
     }
