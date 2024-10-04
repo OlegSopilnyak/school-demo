@@ -97,5 +97,5 @@ public interface ProfilePersistenceFacade {
      * @param profile instance to convert
      * @return instance ready to use in the repository
      */
-    <T extends PersonProfile> T toEntity(T profile);
+    PersonProfile toEntity(PersonProfile profile);
 }
