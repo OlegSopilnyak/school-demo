@@ -94,10 +94,12 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
         final Object parameter = context.getUndoParameter();
         try {
             log.debug("Trying to undo student deletion using: {}", parameter.toString());
-            final Student student = rollbackCachedEntity(context, persistence::save)
+            final Student entity = rollbackCachedEntity(context, persistence::save)
                     .orElseThrow(() -> new NotExistStudentException("Wrong undo parameter :" + parameter));
 
-            log.debug("Updated in database: '{}'", student);
+            log.debug("Updated in database: '{}'", entity);
+            // change student-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);

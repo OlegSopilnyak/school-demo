@@ -218,7 +218,7 @@ class StudentsFacadeImplTest {
 
         NotExistStudentException exception = assertThrows(NotExistStudentException.class, () -> facade.delete(studentId));
 
-        assertThat(exception.getMessage()).isEqualTo("Not exists student with ID: 102");
+        assertThat(exception.getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         verify(factory).command(STUDENT_DELETE_ALL);
         verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
         verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));

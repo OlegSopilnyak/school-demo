@@ -260,16 +260,23 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         }
         StudentPayload created = createStudent(newStudent);
         Long studentId = created.getId();
+        Long profileId = created.getProfileId();
         assertThat(database.findStudentById(studentId)).isPresent();
+        assertThat(database.findStudentProfileById(profileId)).isPresent();
 
         facade.delete(studentId);
 
         assertThat(database.findStudentById(studentId)).isEmpty();
+        assertThat(database.findStudentProfileById(profileId)).isEmpty();
         verify(factory).command(STUDENT_DELETE);
         verify(factory.command(STUDENT_DELETE)).createContext(studentId);
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).deleteStudent(studentId);
-        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).deleteProfileById(profileId);
+        // 1. building context for delete
+        // 2. deleting student
+        verify(persistenceFacade, times(2)).findStudentById(studentId);
+        verify(persistenceFacade).findStudentProfileById(profileId);
     }
 
     @Test
@@ -298,16 +305,18 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         verify(factory).command(STUDENT_DELETE);
         verify(factory.command(STUDENT_DELETE)).createContext(studentId);
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
-        verify(persistenceFacade).findStudentById(studentId);
+        // 1. building context for delete
+        // 2. deleting student
+        verify(persistenceFacade, times(2)).findStudentById(studentId);
         verify(persistenceFacade, never()).deleteStudent(anyLong());
     }
 
     // private methods
-    private StudentPayload createStudent(Student newStudent){
+    private StudentPayload createStudent(Student newStudent) {
         return (StudentPayload) facade.create(newStudent).orElseThrow();
     }
+
     private Student getPersistentStudent(Student newStudent) {
-        Optional<Student>  created = facade.create(newStudent);
         Optional<Student> saved = database.save(newStudent);
         assertThat(saved).isPresent();
         return saved.get();

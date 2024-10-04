@@ -6,19 +6,19 @@ import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Persistence facade implementation for person-profile entities
@@ -40,9 +40,10 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
     default Optional<PersonProfile> findProfileById(Long id) {
         getLog().debug("Looking for PersonProfile with ID:{}", id);
-        return getPersonProfileRepository().findById(id).map(PersonProfile.class::cast);
+        return findPersonProfileById(id).map(PersonProfile.class::cast);
     }
 
     /**
@@ -59,22 +60,32 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     default Optional<PersonProfile> saveProfile(PersonProfile profile) {
         getLog().debug("Saving PersonProfile '{}'", profile);
         final PersonProfileEntity entity = profile instanceof PersonProfileEntity e ? e : toEntity(profile);
+
+        getLog().debug("Checking PersonProfileEntity transformation...");
         if (isNull(entity)) {
-            getLog().warn("Cannot transform to entity {}", profile);
+            getLog().warn("Cannot transform to PersonProfileEntity {}", profile);
             return Optional.empty();
         }
+
         final Long profileId = entity.getId();
-        final PersonProfileEntity saved = getPersonProfileRepository().saveAndFlush(entity);
-        final Long savedId = saved.getId();
-        if (PersistenceFacadeUtilities.isInvalidId(profileId) || Objects.equals(profileId, savedId)) {
-            getLog().debug("Saved PersonProfile '{}'", saved);
-            return Optional.of(saved);
-        } else {
-            getPersonProfileRepository().deleteById(savedId);
-            getPersonProfileRepository().flush();
-            getLog().debug("Deleted wrong PersonProfile '{}'", saved);
-            return Optional.empty();
+        if (nonNull(profileId)) {
+            getLog().debug("Checking PersonProfileEntity type in the database...");
+            final Optional<PersonProfileEntity> foundEntity = findPersonProfileById(profileId);
+            if (foundEntity.isPresent()) {
+                if (profile instanceof PrincipalProfile && !(foundEntity.get() instanceof PrincipalProfile)) {
+                    getLog().warn("Found entity with ID:{} but with not PrincipalProfile type", profileId);
+                    return Optional.empty();
+                } else if (profile instanceof StudentProfile && !(foundEntity.get() instanceof StudentProfile)) {
+                    getLog().warn("Found entity with ID:{} but with not StudentProfile type", profileId);
+                    return Optional.empty();
+                }
+            }
         }
+
+        getLog().debug("Saving entity to the database. Entity to save:{}", entity);
+        final PersonProfileEntity saved = getPersonProfileRepository().saveAndFlush(entity);
+        getLog().debug("Saved PersonProfile '{}'", saved);
+        return Optional.of(saved);
     }
 
     /**
@@ -86,7 +97,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     @Transactional(propagation = Propagation.REQUIRED)
     default void deleteProfileById(Long id) {
         getLog().debug("Deleting PersonProfile with ID:{}", id);
-        if (getPersonProfileRepository().findById(id).isPresent()) {
+        if (findPersonProfileById(id).isPresent()) {
             getPersonProfileRepository().deleteById(id);
             getPersonProfileRepository().flush();
             getLog().debug("Deleted PersonProfile with ID:{}", id);
@@ -109,6 +120,11 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
         } else if (profile instanceof PrincipalProfile principal) {
             return toEntity(principal);
         } else return null;
+    }
+
+    // private methods
+    private Optional<PersonProfileEntity> findPersonProfileById(final Long id) {
+        return getPersonProfileRepository().findById(id);
     }
 
     private StudentProfileEntity toEntity(StudentProfile profile) {

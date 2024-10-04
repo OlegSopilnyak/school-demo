@@ -141,7 +141,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand implements S
      */
     public <T> Context<T> createStudentProfileContext(StudentProfileCommand command, Long studentId) {
         final Long profileId = persistence.findStudentById(studentId)
-                .orElseThrow(() -> new NotExistStudentException("Not exists student with ID: " + studentId))
+                .orElseThrow(() -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."))
                 .getProfileId();
         return command.createContext(profileId);
     }

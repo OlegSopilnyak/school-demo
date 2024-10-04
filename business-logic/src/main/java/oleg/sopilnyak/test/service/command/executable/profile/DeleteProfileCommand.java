@@ -117,10 +117,12 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            getLog().debug("Trying to undo person profile deletion using: {}", parameter);
+            getLog().debug("Trying to undo person's profile deletion using: {}", parameter);
+            final E entity = rollbackCachedEntity(context, functionSave()).orElseThrow();
 
-            rollbackCachedEntity(context, functionSave());
-
+            getLog().debug("Updated in database: '{}'", entity);
+            // change profile-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             getLog().error("Cannot undo profile deletion {}", parameter, e);
