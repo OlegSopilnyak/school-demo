@@ -51,30 +51,30 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to delete student by ID: {}", parameter.toString());
-            final Long inputId = commandParameter(parameter);
+            final Long id = commandParameter(parameter);
             final var notFoundException =
-                    new NotExistStudentException(STUDENT_WITH_ID_PREFIX + inputId + " is not exists.");
-            if (PersistenceFacadeUtilities.isInvalidId(inputId)) {
-                log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", inputId);
+                    new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.");
+            if (PersistenceFacadeUtilities.isInvalidId(id)) {
+                log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", id);
                 throw notFoundException;
             }
 
             // previous student is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(inputId, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException);
+            final var entity = retrieveEntity(id, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException);
 
             if (!ObjectUtils.isEmpty(entity.getCourses())) {
-                log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", inputId);
-                throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + inputId + " has registered courses.");
+                log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", id);
+                throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses.");
             }
-
             // removing student instance by ID from the database
-            persistence.deleteStudent(inputId);
+            persistence.deleteStudent(id);
             // cached student is storing to context for further rollback (undo)
             context.setUndoParameter(entity);
             context.setResult(true);
+            log.debug("Deleted student with ID: {} successfully.", id);
         } catch (Exception e) {
-            rollbackCachedEntity(context, persistence::save);
             log.error("Cannot delete the student by Id: {}", parameter, e);
             context.failed(e);
         }
@@ -87,15 +87,15 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             log.debug("Trying to undo student deletion using: {}", parameter.toString());
-            final Student entity = rollbackCachedEntity(context, persistence::save)
-                    .orElseThrow(() -> new NotExistStudentException("Wrong undo parameter :" + parameter));
+            final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
             log.debug("Updated in database: '{}'", entity);
             // change student-id value for further do command action

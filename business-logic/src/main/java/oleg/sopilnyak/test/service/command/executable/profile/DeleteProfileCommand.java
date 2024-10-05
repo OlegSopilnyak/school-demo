@@ -5,8 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
@@ -88,7 +88,9 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
                 throw notFoundException;
             }
             // previous profile is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> notFoundException);
+            final var entity = retrieveEntity(
+                    id, functionFindById(), functionAdoptEntity(), () -> notFoundException
+            );
             // removing profile instance by ID from the database
             persistence.deleteProfileById(id);
             // cached profile is storing to context for further rollback (undo)
@@ -98,7 +100,6 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
         } catch (Exception e) {
             getLog().error("Cannot delete profile with :{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, functionSave());
         }
     }
 
@@ -111,12 +112,13 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
-     * @see this#functionSave()
+     * @see DeleteProfileCommand#functionSave()
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             getLog().debug("Trying to undo person's profile deletion using: {}", parameter);
             final E entity = rollbackCachedEntity(context, functionSave()).orElseThrow();
 

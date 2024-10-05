@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -169,7 +170,8 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(PrincipalProfile.class));
     }
@@ -183,7 +185,8 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(PrincipalProfile.class));
     }
@@ -195,12 +198,15 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(profile);
-        doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
+        String errorMessage = "Could not execute undo command";
+        Exception exception = new UnsupportedOperationException(errorMessage);
+        doThrow(exception).when(persistence).saveProfile(profile);
 
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
+        assertThat(context.getException()).isEqualTo(exception);
+        assertThat(context.getException().getMessage()).isEqualTo(errorMessage);
         verify(command).executeUndo(context);
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);

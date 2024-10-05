@@ -55,31 +55,32 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to delete course by ID: {}", parameter.toString());
-            final Long inputId = commandParameter(parameter);
+            check(parameter);
+            log.debug("Trying to delete course by ID: {}", parameter);
+            final Long id = commandParameter(parameter);
             final EntityNotExistException notFoundException =
-                    new NotExistCourseException(COURSE_WITH_ID_PREFIX + inputId + " is not exists.");
-            if (PersistenceFacadeUtilities.isInvalidId(inputId)) {
+                    new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
+            if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-
-            final var entity = retrieveEntity(inputId,
-                    persistenceFacade::findCourseById, payloadMapper::toPayload, () -> notFoundException
+            // getting from the database current version of the course
+            final var entity = retrieveEntity(
+                    id, persistenceFacade::findCourseById, payloadMapper::toPayload, () -> notFoundException
             );
 
             if (!ObjectUtils.isEmpty(entity.getStudents())) {
-                log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", inputId);
-                throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + inputId + " has enrolled students.");
+                log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", id);
+                throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + id + " has enrolled students.");
             }
-
+            // removing course instance by ID from the database
+            persistenceFacade.deleteCourse(id);
             // cached course is storing to context for further rollback (undo)
             context.setUndoParameter(entity);
-            persistenceFacade.deleteCourse(inputId);
             context.setResult(Boolean.TRUE);
+            getLog().debug("Deleted course with ID: {}", id);
         } catch (Exception e) {
             log.error("Cannot delete the course by Id: {}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistenceFacade::save);
         }
     }
 
@@ -96,14 +97,17 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            log.debug("Trying to undo course deletion using: {}", parameter.toString());
-            final Course course = rollbackCachedEntity(context, persistenceFacade::save)
-                    .orElseThrow(() -> new NotExistCourseException("Wrong undo parameter :" + parameter));
-            log.debug("Updated in database: '{}'", course);
+            check(parameter);
+            log.debug("Trying to undo course deletion using: {}", parameter);
 
+            final Course entity = rollbackCachedEntity(context, persistenceFacade::save).orElseThrow();
+
+            log.debug("Updated in database: '{}'", entity);
+            // change course-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
-            log.error("Cannot undo student deletion {}", parameter, e);
+            log.error("Cannot undo course deletion {}", parameter, e);
             context.failed(e);
         }
     }

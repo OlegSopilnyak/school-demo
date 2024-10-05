@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.function.*;
 
+import static java.util.Objects.nonNull;
+
 
 /**
  * Command-Implementation: command to create or update the student instance
@@ -57,7 +59,7 @@ public class CreateOrUpdateStudentCommand
         final Object parameter = context.getRedoParameter();
         try {
             check(parameter);
-            log.debug("Trying to change student using: {}", parameter.toString());
+            log.debug("Trying to change student using: {}", parameter);
             final Long id = ((Student) parameter).getId();
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
@@ -76,7 +78,9 @@ public class CreateOrUpdateStudentCommand
         } catch (Exception e) {
             log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
+            if (nonNull(context.getUndoParameter())) {
+                rollbackCachedEntity(context, persistence::save);
+            }
         }
     }
 
@@ -87,18 +91,19 @@ public class CreateOrUpdateStudentCommand
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
      * @see StudentsPersistenceFacade#save(Student)
      * @see StudentsPersistenceFacade#deleteStudent(Long)
-     * @see NotExistStudentException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            log.debug("Trying to undo student changes using: {}", parameter.toString());
-            rollbackCachedEntity(context, persistence::save, persistence::deleteStudent,
-                    () -> new NotExistStudentException("Wrong undo parameter :" + parameter));
+            check(parameter);
+            log.debug("Trying to undo student changes using: {}", parameter);
+
+            rollbackCachedEntity(context, persistence::save, persistence::deleteStudent);
+
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student change {}", parameter, e);

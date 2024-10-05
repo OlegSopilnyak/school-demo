@@ -3,12 +3,12 @@ package oleg.sopilnyak.test.end2end.command.executable.student;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -129,14 +129,16 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CreateExceptionThrown() {
         Student student = makeClearStudent(1);
-        RuntimeException cannotExecute = new RuntimeException("Cannot create");
+        String errorMessage = "Cannot create";
+        RuntimeException cannotExecute = new RuntimeException(errorMessage);
         doThrow(cannotExecute).when(persistence).save(student);
         Context<Optional<Student>> context = command.createContext(student);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isEqualTo(cannotExecute);
+        assertThat(context.getException()).isSameAs(cannotExecute);
+        assertThat(context.getException().getMessage()).isSameAs(errorMessage);
         verify(command).executeDo(context);
         verify(persistence).save(student);
     }
@@ -155,7 +157,6 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.<Object>getUndoParameter()).isEqualTo(student);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-//        verify(persistence).toEntity(student);
         verify(persistence, times(2)).save(student);
     }
 
@@ -201,7 +202,8 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[instance]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentEntity.class));
     }

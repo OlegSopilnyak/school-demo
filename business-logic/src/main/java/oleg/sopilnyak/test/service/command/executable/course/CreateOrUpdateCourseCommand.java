@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
@@ -13,10 +14,9 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
+
+import static java.util.Objects.nonNull;
 
 /**
  * Command-Implementation: command to create or update the course
@@ -65,22 +65,25 @@ public class CreateOrUpdateCourseCommand
             final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntity) {
                 // previous version of course is storing to context for further rollback (undo)
+                final Supplier<? extends EntityNotExistException> exceptionSupplier =
+                        () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
                 final var entity =
-                        retrieveEntity(id, persistence::findCourseById, payloadMapper::toPayload,
-                                () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
-                        );
+                        retrieveEntity(id, persistence::findCourseById, payloadMapper::toPayload, exceptionSupplier);
                 context.setUndoParameter(entity);
             }
             // persisting entity trough persistence layer
             final Optional<Course> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
-            afterEntityPersistenceCheck(context,
-                    () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntity);
+            afterEntityPersistenceCheck(
+                    context, () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity
+            );
         } catch (Exception e) {
             log.error("Cannot create or update course by ID:{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
+            if (nonNull(context.getUndoParameter())) {
+                rollbackCachedEntity(context, persistence::save);
+            }
         }
     }
 
@@ -93,16 +96,17 @@ public class CreateOrUpdateCourseCommand
      * @see Context#getUndoParameter()
      * @see CoursesPersistenceFacade#save(Course)
      * @see CoursesPersistenceFacade#deleteCourse(Long)
-     * @see NotExistCourseException
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
+     * @see oleg.sopilnyak.test.service.exception.InvalidParameterTypeException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            log.debug("Trying to undo course changes using: {}", parameter.toString());
+            check(parameter);
+            log.debug("Trying to undo course changes using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save, persistence::deleteCourse,
-                    () -> new NotExistCourseException("Wrong undo parameter :" + parameter));
+            rollbackCachedEntity(context, persistence::save, persistence::deleteCourse);
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

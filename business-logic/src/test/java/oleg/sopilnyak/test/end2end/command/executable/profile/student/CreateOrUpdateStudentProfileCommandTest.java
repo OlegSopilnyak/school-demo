@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -285,8 +286,8 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
     }
 
@@ -300,9 +301,9 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.FAIL);
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 

@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupP
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -113,8 +114,8 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
-        assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeDo(context);
         verify(persistence, never()).findStudentsGroupById(anyLong());
     }
@@ -162,8 +163,9 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'StudentsGroup' value:[group]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }
@@ -177,8 +179,9 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }

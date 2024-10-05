@@ -58,30 +58,30 @@ public class DeleteAuthorityPersonCommand
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to delete authority person using: {}", parameter);
             final Long id = commandParameter(parameter);
             final var notFoundException = new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-
-            final var entity = retrieveEntity(id,
-                    persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> notFoundException
+            // getting from the database current version of the authority person
+            final var entity = retrieveEntity(
+                    id, persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> notFoundException
             );
 
             if (!entity.getFaculties().isEmpty()) {
                 throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
             }
+            // removing authority person instance by ID from the database
+            persistence.deleteAuthorityPerson(id);
             // cached authority person is storing to context for further rollback (undo)
             context.setUndoParameter(entity);
-            // deleting entity
-            persistence.deleteAuthorityPerson(id);
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);
         } catch (Exception e) {
             log.error("Cannot delete authority person with :{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
         }
     }
 
@@ -99,10 +99,13 @@ public class DeleteAuthorityPersonCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             log.debug("Trying to undo authority person deletion using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save);
+            final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
+            // change authority-person-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo authority person deletion {}", parameter, e);

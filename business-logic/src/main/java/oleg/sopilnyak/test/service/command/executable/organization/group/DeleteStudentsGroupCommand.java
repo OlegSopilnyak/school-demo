@@ -60,6 +60,7 @@ public class DeleteStudentsGroupCommand
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to delete students group with ID: {}", parameter);
             final Long id = commandParameter(parameter);
             final var notFoundException = new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
@@ -71,17 +72,15 @@ public class DeleteStudentsGroupCommand
             if (!entity.getStudents().isEmpty()) {
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
             }
-
-            // cached faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
-            // deleting entity
+            // removing students group instance by ID from the database
             persistence.deleteStudentsGroup(id);
+            // cached students group is storing to context for further rollback (undo)
+            context.setUndoParameter(entity);
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);
         } catch (Exception e) {
             log.error("Cannot delete students group with :{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
         }
     }
 
@@ -100,13 +99,17 @@ public class DeleteStudentsGroupCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            log.debug("Trying to undo faculty deletion using: {}", parameter);
+            check(parameter);
+            log.debug("Trying to undo students group deletion using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save);
+            final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
+            log.debug("Updated in database: '{}'", entity);
+            // change students-group-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
-            log.error("Cannot undo faculty deletion {}", parameter, e);
+            log.error("Cannot undo students group deletion {}", parameter, e);
             context.failed(e);
         }
     }

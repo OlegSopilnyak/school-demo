@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPerso
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -114,8 +115,8 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
-        assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeDo(context);
         verify(persistence, never()).findAuthorityPersonById(anyLong());
     }
@@ -166,8 +167,9 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'AuthorityPerson' value:[person]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(AuthorityPerson.class));
     }
@@ -181,8 +183,9 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(AuthorityPerson.class));
     }

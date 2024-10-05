@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -169,7 +170,9 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'StudentProfile' value:[input]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentProfile.class));
     }
@@ -183,7 +186,9 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentProfile.class));
     }

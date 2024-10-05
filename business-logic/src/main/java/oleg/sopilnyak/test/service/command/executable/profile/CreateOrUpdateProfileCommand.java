@@ -15,6 +15,8 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Command-Base-Implementation: command to update person profile instance
  *
@@ -81,26 +83,32 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
         try {
             check(parameter);
             final E profile = commandParameter(parameter);
-            getLog().debug("Trying to change profile using: {}", profile);
             final Long id = profile.getId();
-            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateEntity) {
+            final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntityMode) {
+                getLog().debug("Trying to update profile using: {}", profile);
                 // previous version of profile is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(),
+                final var entity = retrieveEntity(
+                        id, functionFindById(), functionAdoptEntity(),
                         () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 context.setUndoParameter(entity);
+            } else {
+                getLog().debug("Trying to create profile using: {}", profile);
             }
             // persisting entity trough persistence layer
             final Optional<E> persisted = persistRedoEntity(context, functionSave());
             // checking command context state after entity persistence
-            afterEntityPersistenceCheck(context,
-                    () -> rollbackCachedEntity(context, functionSave()),
-                    persisted.orElse(null), isCreateEntity);
+            afterEntityPersistenceCheck(
+                    context, () -> rollbackCachedEntity(context, functionSave()),
+                    persisted.orElse(null), isCreateEntityMode
+            );
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, functionSave());
+            if (nonNull(context.getUndoParameter())) {
+                rollbackCachedEntity(context, functionSave());
+            }
         }
     }
 
@@ -114,16 +122,16 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see Context.State#UNDONE
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see ProfilePersistenceFacade#deleteProfileById(Long)
-     * @see this#functionSave()
+     * @see CreateOrUpdateProfileCommand#functionSave()
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             getLog().debug("Trying to undo person profile changes using: {}", parameter);
 
-            rollbackCachedEntity(context, functionSave(), persistence::deleteProfileById,
-                    () -> new NotExistProfileException("Wrong undo parameter :" + parameter));
+            rollbackCachedEntity(context, functionSave(), persistence::deleteProfileById);
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

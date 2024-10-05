@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupP
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -103,7 +104,7 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_EntityNotFound() {
+    void shouldNotDoCommand_StudentsGroupNotFound() {
         Long id = 501L;
         StudentsGroup entity = makeTestStudentsGroup(id);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
@@ -157,13 +158,16 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         StudentsGroup entity = persist();
         Long id = entity.getId();
-        doThrow(RuntimeException.class).when(persistence).save(any(StudentsGroup.class));
+        String errorMessage = "Cannot save students group";
+        Exception expectedException = new RuntimeException(errorMessage);
+        doThrow(expectedException).when(persistence).save(entity);
         Context<Optional<StudentsGroup>> context = command.createContext(entity);
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        assertThat(context.getException()).isSameAs(expectedException);
+        assertThat(context.getException().getMessage()).isSameAs(errorMessage);
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));
@@ -264,8 +268,8 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeUndo(context);
     }
 
@@ -280,8 +284,8 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 

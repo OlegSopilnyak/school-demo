@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersist
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -112,8 +113,8 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistFacultyException.class);
-        assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeDo(context);
         verify(persistence, never()).findFacultyById(anyLong());
     }
@@ -157,12 +158,13 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
-        context.setUndoParameter("person");
+        context.setUndoParameter("faculty");
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Faculty' value:[faculty]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Faculty.class));
     }
@@ -172,12 +174,12 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Faculty.class));
     }

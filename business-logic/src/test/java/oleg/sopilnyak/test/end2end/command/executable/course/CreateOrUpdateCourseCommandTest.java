@@ -3,12 +3,12 @@ package oleg.sopilnyak.test.end2end.command.executable.course;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -203,8 +203,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[id]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());
@@ -220,7 +220,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Cannot invoke \"Object.toString()\" because \"parameter\" is null");
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());

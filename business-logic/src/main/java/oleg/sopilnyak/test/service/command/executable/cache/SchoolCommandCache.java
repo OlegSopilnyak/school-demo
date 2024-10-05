@@ -5,12 +5,14 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 
 import java.util.Optional;
 import java.util.function.*;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 /**
@@ -48,15 +50,18 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see BusinessMessagePayloadMapper#toPayload(BaseType)
      */
     protected T retrieveEntity(final Long inputId,
-                               final LongFunction<Optional<T>> findEntityById, final UnaryOperator<T> adoptEntity,
+                               final LongFunction<Optional<T>> findEntityById,
+                               final UnaryOperator<T> adoptEntity,
                                final Supplier<? extends EntityNotExistException> exceptionSupplier) {
 
-        getLog().info("Getting entity of {} for ID:{}", entityName, inputId);
+        getLog().debug("Getting entity of {} for ID:{}", entityName, inputId);
+
         final T existsEntity = findEntityById.apply(inputId).orElseThrow(exceptionSupplier);
-        getLog().info("Got entity of {} '{}' by ID:{}", entityName, existsEntity, inputId);
+
+        getLog().debug("Got entity of {} '{}' by ID:{}", entityName, existsEntity, inputId);
 
         // return copy of exists entity for undo operation
-        getLog().info("Adopting Entity to Payload '{}'", existsEntity);
+        getLog().debug("Adopting Entity to Payload '{}'", existsEntity);
         return adoptEntity.apply(existsEntity);
     }
 
@@ -70,19 +75,18 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Function#apply(Object)
      * @see LongFunction#apply(long)
      * @see Supplier#get()
-     * @see this#rollbackCachedEntity(Context, Function, LongConsumer, Supplier)
+     * @see this#rollbackCachedEntity(Context, Function, LongConsumer)
      */
     protected Optional<T> rollbackCachedEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
-        return rollbackCachedEntity(context, facadeSave, null, null);
+        return rollbackCachedEntity(context, facadeSave, null);
     }
 
     /**
      * To restore in database the entity from cache(context)
      *
-     * @param context           command execution context
-     * @param facadeSave        function for saving the undo entity
-     * @param facadeDeleteById  function for delete created entity
-     * @param exceptionSupplier function-source of entity-not-found exception
+     * @param context          command execution context
+     * @param facadeSave       function for saving the undo entity
+     * @param facadeDeleteById function for delete created entity
      * @return restored in the database cached entity
      * @see Context#getUndoParameter()
      * @see Function#apply(Object)
@@ -92,23 +96,23 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      */
     protected Optional<T> rollbackCachedEntity(final Context<?> context,
                                                final Function<T, Optional<T>> facadeSave,
-                                               final LongConsumer facadeDeleteById,
-                                               final Supplier<? extends EntityNotExistException> exceptionSupplier) {
+                                               final LongConsumer facadeDeleteById) {
         final Object parameter = context.getUndoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
-            getLog().info("Restoring changed value of {}\n'{}'", entityName, parameter);
+            getLog().debug("Restoring changed value of {}\n'{}'", entityName, parameter);
             return facadeSave.apply(context.getUndoParameter());
-        } else if (nonNull(facadeDeleteById)) {
-            getLog().info("Deleting created value of {} with ID:{}", entityName, parameter);
-            if (parameter instanceof Long id) {
-                facadeDeleteById.accept(id);
-                getLog().info("Got deleted {} with ID:{} successfully", entityName, id);
-            } else {
-                getLog().info("Cannot delete {} with ID:{} because '{}'", entityName, parameter, exceptionSupplier.get().getMessage());
-                throw exceptionSupplier.get();
-            }
+        } else if (isNull(facadeDeleteById)) {
+            throw new InvalidParameterTypeException(entityName, parameter);
         }
-        return Optional.empty();
+        getLog().info("Deleting created value of {} with ID:{}", entityName, parameter);
+        if (parameter instanceof Long id) {
+            facadeDeleteById.accept(id);
+            getLog().debug("Got deleted {} with ID:{} successfully", entityName, id);
+            return Optional.empty();
+        } else {
+            getLog().info("Cannot delete {} with ID:{} because of wrong parameter type", entityName, parameter);
+            throw new InvalidParameterTypeException("Long", parameter);
+        }
     }
 
     /**
@@ -125,16 +129,9 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().debug("Storing changed value of {} '{}'", entityName, parameter);
             return facadeSave.apply(context.getRedoParameter());
-        } else {
-            if (nonNull(parameter)) {
-                final String message = "Wrong type of " + entityName + ":" + parameter.getClass().getName();
-                final Exception saveError = new EntityNotExistException(message);
-                saveError.fillInStackTrace();
-                getLog().error(message, saveError);
-                context.failed(saveError);
-            }
-            return Optional.empty();
         }
+        getLog().warn("Invalid redo parameter type (expected '{}' for [{}])", entityName, parameter);
+        throw new InvalidParameterTypeException(entityName, parameter);
     }
 
     /**

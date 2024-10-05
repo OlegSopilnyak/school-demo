@@ -18,6 +18,8 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Command-Implementation: command to update the authority person
  *
@@ -75,13 +77,16 @@ public class CreateOrUpdateAuthorityPersonCommand
             // persisting entity trough persistence layer
             final Optional<AuthorityPerson> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
-            afterEntityPersistenceCheck(context,
-                    () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntity);
+            afterEntityPersistenceCheck(
+                    context, () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntity
+            );
         } catch (Exception e) {
             log.error("Cannot create or update authority person '{}'", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
+            if (nonNull(context.getUndoParameter())) {
+                rollbackCachedEntity(context, persistence::save);
+            }
         }
     }
 
@@ -102,10 +107,10 @@ public class CreateOrUpdateAuthorityPersonCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             log.debug("Trying to undo authority person changes using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save, persistence::deleteAuthorityPerson,
-                    () -> new NotExistAuthorityPersonException("Wrong undo parameter :" + parameter));
+            rollbackCachedEntity(context, persistence::save, persistence::deleteAuthorityPerson);
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {

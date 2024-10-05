@@ -10,7 +10,10 @@ import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenc
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CoursePayload;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +74,6 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence).toEntity(any(Student.class));
         verify(persistence).deleteStudent(id);
     }
 
@@ -89,7 +91,6 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence).toEntity(any(Student.class));
         verify(persistence).deleteStudent(id);
     }
 
@@ -106,7 +107,6 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:112 is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-//        verify(persistence, never()).toEntity(any(Student.class));
         verify(persistence, never()).deleteStudent(id);
     }
 
@@ -163,8 +163,8 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Student' value:[instance]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Student.class));
     }
@@ -179,13 +179,13 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Cannot invoke \"Object.toString()\" because \"parameter\" is null");
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Student.class));
     }
 
     // private methods
-    private Student persistStudent() {
+    private StudentPayload persistStudent() {
         try {
             Student student = makeStudent(0);
             Student entity = persistence.save(student).orElse(null);
@@ -200,7 +200,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         }
     }
 
-    private Course persistCourse() {
+    private CoursePayload persistCourse() {
         try {
             Course course = makeCourse(0);
             Course entity = persistence.save(course).orElse(null);

@@ -58,30 +58,30 @@ public class DeleteFacultyCommand
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            check(parameter);
             log.debug("Trying to delete faculty with ID: {}", parameter);
             final Long id = commandParameter(parameter);
             final var notFoundException = new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 throw notFoundException;
             }
-
             // getting from the database current version of the faculty
-            final var entity = retrieveEntity(id, persistence::findFacultyById, payloadMapper::toPayload, () -> notFoundException);
+            final var entity = retrieveEntity(
+                    id, persistence::findFacultyById, payloadMapper::toPayload, () -> notFoundException
+            );
 
             if (!entity.getCourses().isEmpty()) {
                 throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");
             }
-
+            // removing faculty instance by ID from the database
+            persistence.deleteFaculty(id);
             // previous version of faculty is storing to context for further rollback (undo)
             context.setUndoParameter(entity);
-            // deleting entity
-            persistence.deleteFaculty(id);
             context.setResult(true);
             log.debug("Deleted faculty with ID: {} successfully.", id);
         } catch (Exception e) {
             log.error("Cannot delete faculty with :{}", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
         }
     }
 
@@ -100,10 +100,13 @@ public class DeleteFacultyCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             log.debug("Trying to undo faculty deletion using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save);
+            final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
+            // change faculty-id value for further do command action
+            context.setRedoParameter(entity.getId());
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo faculty deletion {}", parameter, e);

@@ -18,6 +18,8 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Command-Implementation: command to update the students group of the school
  *
@@ -63,8 +65,8 @@ public class CreateOrUpdateStudentsGroupCommand
             check(parameter);
             log.debug("Trying to create or update students group {}", parameter);
             final Long id = ((StudentsGroup) parameter).getId();
-            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateEntity) {
+            final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntityMode) {
                 // cached students group is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(id, persistence::findStudentsGroupById, payloadMapper::toPayload,
                         () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists."));
@@ -73,13 +75,16 @@ public class CreateOrUpdateStudentsGroupCommand
             // persisting entity trough persistence layer
             final Optional<StudentsGroup> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
-            afterEntityPersistenceCheck(context,
-                    () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntity);
+            afterEntityPersistenceCheck(
+                    context, () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntityMode
+            );
         } catch (Exception e) {
             log.error("Cannot create or students group faculty '{}'", parameter, e);
             context.failed(e);
-            rollbackCachedEntity(context, persistence::save);
+            if (nonNull(context.getUndoParameter())) {
+                rollbackCachedEntity(context, persistence::save);
+            }
         }
     }
 
@@ -100,10 +105,10 @@ public class CreateOrUpdateStudentsGroupCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
+            check(parameter);
             log.debug("Trying to undo students group changes using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save, persistence::deleteStudentsGroup,
-                    () -> new NotExistStudentsGroupException("Wrong undo parameter :" + parameter));
+            rollbackCachedEntity(context, persistence::save, persistence::deleteStudentsGroup);
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
