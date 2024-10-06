@@ -29,8 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
@@ -84,17 +83,11 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         StudentProfile profile = makeStudentProfile(id);
         assertThat(persistence.save(profile)).isEmpty();
 
-        Optional<StudentProfile> student = persistence.findStudentProfileById(id);
-
-        assertThat(student).isEmpty();
+        assertThat(persistence.findStudentProfileById(id)).isEmpty();
 
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(StudentProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
-
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(personProfileRepository, times(2)).findById(id);
     }
 
     @Test
@@ -124,17 +117,11 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         PrincipalProfile profile = makePrincipalProfile(id);
         assertThat(persistence.save(profile)).isEmpty();
 
-        Optional<PrincipalProfile> principal = persistence.findPrincipalProfileById(id);
-
-        assertThat(principal).isEmpty();
+        assertThat(persistence.findPrincipalProfileById(id)).isEmpty();
 
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(PrincipalProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
-
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(personProfileRepository, times(2)).findById(id);
     }
 
     @Test
@@ -168,12 +155,9 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(person).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(StudentProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
-
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(personProfileRepository, times(2)).findById(id);
+        verify(personProfileRepository, never()).saveAndFlush(any(StudentProfileEntity.class));
     }
 
     @Test
@@ -199,9 +183,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(StudentProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
+        verify(personProfileRepository).findById(id);
+        verify(personProfileRepository, never()).saveAndFlush(any(PersonProfileEntity.class));
     }
 
     @Test
@@ -227,9 +210,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(PrincipalProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
+        verify(personProfileRepository).findById(id);
+        verify(personProfileRepository, never()).saveAndFlush(any(PersonProfileEntity.class));
     }
 
     @Test
@@ -253,9 +235,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         Optional<? extends PersonProfile> person = persistence.saveProfile(profile);
 
         assertThat(person).isEmpty();
-        verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
+        verify(persistence).saveProfile(profile);
+        verify(personProfileRepository).findById(id);
     }
 
     @Test

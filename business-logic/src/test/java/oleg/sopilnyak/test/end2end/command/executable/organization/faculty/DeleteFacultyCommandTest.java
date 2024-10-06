@@ -68,7 +68,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertFacultyEquals(entity, context.getUndoParameter());
+        assertFacultyEquals(entity, context.getUndoParameter(), false);
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
         verify(payloadMapper).toPayload(any(FacultyEntity.class));

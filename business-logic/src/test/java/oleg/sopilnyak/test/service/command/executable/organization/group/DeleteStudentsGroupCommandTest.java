@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupExceptio
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
 import org.junit.jupiter.api.Test;
@@ -94,8 +95,8 @@ class DeleteStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
-        assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeDo(context);
         verify(persistence, never()).findStudentsGroupById(anyLong());
     }
@@ -123,6 +124,7 @@ class DeleteStudentsGroupCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(entity);
+        when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
 
@@ -133,29 +135,31 @@ class DeleteStudentsGroupCommandTest {
     }
 
     @Test
-    void shouldUndoCommand_UndoParameterWrongType() {
+    void shouldNotUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter("person");
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'StudentsGroup' value:[person]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }
 
     @Test
-    void shouldUndoCommand_UndoParameterIsNull() {
+    void shouldNotUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(null);
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

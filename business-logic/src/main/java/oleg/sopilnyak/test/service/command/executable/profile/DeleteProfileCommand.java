@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.Getter;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
@@ -83,18 +84,16 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
             check(parameter);
             getLog().debug("Trying to delete profile using: {}", parameter);
             final Long id = commandParameter(parameter);
-            final var notFoundException = new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                throw notFoundException;
+                throw exceptionFor(id);
             }
             // previous profile is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(
-                    id, functionFindById(), functionAdoptEntity(), () -> notFoundException
-            );
+            final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> exceptionFor(id));
             // removing profile instance by ID from the database
             persistence.deleteProfileById(id);
-            // cached profile is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            // successful delete entity operation
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);
         } catch (Exception e) {
@@ -131,4 +130,10 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
             context.failed(e);
         }
     }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
+    }
+
 }

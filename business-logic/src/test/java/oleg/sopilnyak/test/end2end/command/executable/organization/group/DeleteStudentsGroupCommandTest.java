@@ -69,7 +69,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertStudentsGroupEquals(entity, context.getUndoParameter());
+        assertStudentsGroupEquals(entity, context.getUndoParameter(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));

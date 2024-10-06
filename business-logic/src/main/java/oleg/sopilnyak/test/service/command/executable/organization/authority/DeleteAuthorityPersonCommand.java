@@ -75,8 +75,9 @@ public class DeleteAuthorityPersonCommand
             }
             // removing authority person instance by ID from the database
             persistence.deleteAuthorityPerson(id);
-            // cached authority person is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> notFoundException);
+            // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);
         } catch (Exception e) {

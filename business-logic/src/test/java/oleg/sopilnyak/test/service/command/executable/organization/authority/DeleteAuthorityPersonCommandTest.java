@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
@@ -94,8 +95,8 @@ class DeleteAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
-        assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeDo(context);
         verify(persistence, never()).findAuthorityPersonById(anyLong());
     }
@@ -122,6 +123,7 @@ class DeleteAuthorityPersonCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(entity);
+        when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
 
@@ -139,8 +141,9 @@ class DeleteAuthorityPersonCommandTest {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'AuthorityPerson' value:[person]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }
@@ -153,8 +156,9 @@ class DeleteAuthorityPersonCommandTest {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(context.getException()).isNull();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

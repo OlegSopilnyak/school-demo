@@ -69,7 +69,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(entity);
+        assertAuthorityPersonEquals(entity, context.getUndoParameter(), false);
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(any(AuthorityPersonEntity.class));

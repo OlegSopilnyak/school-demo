@@ -50,6 +50,7 @@ class StudentsFacadeImplTest {
     StudentPayload mockedStudentPayload;
     @Mock
     StudentProfile mockedProfile;
+    @Mock
     StudentProfilePayload mockedStudentProfilePayload;
 
     CreateOrUpdateStudentCommand createStudentCommand;

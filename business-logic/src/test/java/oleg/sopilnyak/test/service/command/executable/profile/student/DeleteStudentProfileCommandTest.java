@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.Test;
@@ -150,6 +151,7 @@ class DeleteStudentProfileCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(profile);
+        when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
 
         command.undoCommand(context);
 
@@ -161,27 +163,31 @@ class DeleteStudentProfileCommandTest {
     }
 
     @Test
-    void shouldUndoCommand_WrongUndoCommandParameterType() {
+    void shouldNotUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter("input");
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'StudentProfile' value:[input]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(profile);
     }
 
     @Test
-    void shouldUndoCommand_NullUndoCommandParameter() {
+    void shouldNotUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         context.setUndoParameter(null);
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(profile);
     }

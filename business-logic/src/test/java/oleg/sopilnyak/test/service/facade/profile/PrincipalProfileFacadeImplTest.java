@@ -85,9 +85,9 @@ class PrincipalProfileFacadeImplTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(mock(StudentProfile.class)));
 
-        Optional<PrincipalProfile> profile = facade.findPrincipalProfileById(id);
+        Optional<PrincipalProfile> profileFromDb = facade.findPrincipalProfileById(id);
 
-        assertThat(profile).isEmpty();
+        assertThat(profileFromDb).isEmpty();
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
@@ -131,6 +131,7 @@ class PrincipalProfileFacadeImplTest {
         Long id = 602L;
         when(persistence.findPrincipalProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
         facade.deleteById(id);
 
@@ -176,6 +177,7 @@ class PrincipalProfileFacadeImplTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
         facade.delete(profile);
 

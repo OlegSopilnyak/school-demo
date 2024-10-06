@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPe
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BasePayload;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -140,7 +141,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param context             command's do context
      * @param rollbackProcess     process to run after persistence fail
      * @param persistedEntityCopy persisted entity instance copy
-     * @param isCreateEntity      if true there was new entity creation action
+     * @param isCreateEntityMode  if true there was new entity creation action
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
@@ -148,27 +149,40 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Optional
      * @see Runnable#run()
      */
-    protected void afterEntityPersistenceCheck(final Context<?> context,
-                                               final Runnable rollbackProcess,
-                                               final T persistedEntityCopy,
-                                               final boolean isCreateEntity) {
+    protected <E> void afterEntityPersistenceCheck(final Context<E> context,
+                                                   final Runnable rollbackProcess,
+                                                   final T persistedEntityCopy,
+                                                   final boolean isCreateEntityMode) {
         // checking execution context state
         if (context.isFailed()) {
-            // there was a fail during store entity
+            // there was a fail during store entity operation
             getLog().error("Couldn't save entity of '{}' value: {}", entityName, context.getRedoParameter());
             rollbackProcess.run();
         } else {
-            // store entity operation is done successfully
+            // store entity operation if it is done successfully
             getLog().debug(
                     "Got stored entity of '{}' value {}\nfrom parameter {}",
                     entityName, persistedEntityCopy, context.getRedoParameter()
             );
             context.setResult(Optional.ofNullable(persistedEntityCopy));
 
-            if (nonNull(persistedEntityCopy) && isCreateEntity) {
+            if (nonNull(persistedEntityCopy) && isCreateEntityMode) {
                 // storing created entity.id for undo operation
                 context.setUndoParameter(persistedEntityCopy.getId());
             }
         }
+    }
+
+    protected <E> void setupUndoParameter(final Context<E> context,
+                                          final T entity,
+                                          final Supplier<? extends EntityNotExistException> exceptionSupplier) {
+        // clear id of the deleted entity
+        if (entity instanceof BasePayload<?> payload) {
+            payload.setId(null);
+        } else {
+            throw exceptionSupplier.get();
+        }
+        // cached profile is storing to context for further rollback (undo)
+        context.setUndoParameter(entity);
     }
 }

@@ -75,8 +75,9 @@ public class DeleteFacultyCommand
             }
             // removing faculty instance by ID from the database
             persistence.deleteFaculty(id);
-            // previous version of faculty is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> notFoundException);
+            // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted faculty with ID: {} successfully.", id);
         } catch (Exception e) {

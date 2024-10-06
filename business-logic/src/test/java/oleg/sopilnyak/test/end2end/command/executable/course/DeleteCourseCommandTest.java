@@ -69,7 +69,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertCourseEquals(course, context.getUndoParameter());
+        assertCourseEquals(course, context.getUndoParameter(), false);
         assertThat(context.getResult()).isPresent();
         assertThat(context.getResult().get()).isTrue();
         verify(command).executeDo(context);

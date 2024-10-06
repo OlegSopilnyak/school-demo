@@ -21,7 +21,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Deque;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -341,7 +339,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).deleteStudent(studentId);
 
         verifyStudentUndoCommand(studentContext);
-        verify(persistence).save(studentPayload);
+        verify(persistence).save(any(StudentPayload.class));
         Long savedStudentId = studentContext.getRedoParameter();
         assertThat(persistence.findStudentById(savedStudentId)).isPresent();
 
@@ -532,7 +530,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(command).undoNestedCommands(any(Deque.class));
 
         verifyStudentUndoCommand(studentContext);
-        verify(persistence).save(studentPayload);
+        verify(persistence).save(any(StudentPayload.class));
 
         verifyProfileUndoCommand(profileContext);
         verify(persistence).save(profileContext.<StudentProfile>getUndoParameter());
@@ -584,10 +582,10 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(command).undoNestedCommands(any(Deque.class));
 
         verifyStudentUndoCommand(studentContext);
-        verify(persistence).save(studentPayload);
+        verify(persistence).save(any(StudentPayload.class));
 
         verifyProfileUndoCommand(profileContext);
-        verify(persistence).save(payloadMapper.toPayload(profile));
+        verify(persistence).save(any(StudentProfilePayload.class));
 
         verifyProfileDoCommand(profileContext, 2);
         Long newProfileId = profileContext.getRedoParameter();

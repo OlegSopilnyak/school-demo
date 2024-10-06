@@ -62,7 +62,9 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             }
 
             // previous student is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(id, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException);
+            final var entity = retrieveEntity(
+                    id, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException
+            );
 
             if (!ObjectUtils.isEmpty(entity.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", id);
@@ -70,8 +72,9 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             }
             // removing student instance by ID from the database
             persistence.deleteStudent(id);
-            // cached student is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> notFoundException);
+            // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted student with ID: {} successfully.", id);
         } catch (Exception e) {

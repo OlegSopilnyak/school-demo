@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.Test;
@@ -139,10 +139,8 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getResult()).isEmpty();
-        assertThat(context.getException()).isInstanceOf(EntityNotExistException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong type of PrincipalProfile:");
-
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'PrincipalProfile' value:");
         verify(command).executeDo(context);
         verify(persistence, never()).saveProfile(any());
     }
@@ -298,8 +296,8 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
         verify(command).executeUndo(context);
     }
 
@@ -313,8 +311,8 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong undo parameter :");
+        assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 

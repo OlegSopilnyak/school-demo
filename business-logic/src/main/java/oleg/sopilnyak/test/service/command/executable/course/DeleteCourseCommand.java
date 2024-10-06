@@ -74,8 +74,9 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             }
             // removing course instance by ID from the database
             persistenceFacade.deleteCourse(id);
-            // cached course is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> notFoundException);
+            // successful delete entity operation
             context.setResult(Boolean.TRUE);
             getLog().debug("Deleted course with ID: {}", id);
         } catch (Exception e) {

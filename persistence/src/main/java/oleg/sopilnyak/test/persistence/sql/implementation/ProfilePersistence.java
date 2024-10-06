@@ -57,7 +57,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default Optional<PersonProfile> saveProfile(PersonProfile profile) {
+    default Optional<PersonProfile> saveProfile(final PersonProfile profile) {
         getLog().debug("Saving PersonProfile '{}'", profile);
         final PersonProfileEntity entity = profile instanceof PersonProfileEntity e ? e : toEntity(profile);
 
@@ -68,17 +68,21 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
         }
 
         final Long profileId = entity.getId();
+
         if (nonNull(profileId)) {
-            getLog().debug("Checking PersonProfileEntity type in the database...");
-            final Optional<PersonProfileEntity> foundEntity = findPersonProfileById(profileId);
-            if (foundEntity.isPresent()) {
-                if (profile instanceof PrincipalProfile && !(foundEntity.get() instanceof PrincipalProfile)) {
+            final Optional<PersonProfileEntity> existsEntity = findPersonProfileById(profileId);
+            getLog().debug("Checking PersonProfileEntity entity state in the database...");
+            if (existsEntity.isPresent()) {
+                if (profile instanceof PrincipalProfile && !(existsEntity.get() instanceof PrincipalProfile)) {
                     getLog().warn("Found entity with ID:{} but with not PrincipalProfile type", profileId);
                     return Optional.empty();
-                } else if (profile instanceof StudentProfile && !(foundEntity.get() instanceof StudentProfile)) {
+                } else if (profile instanceof StudentProfile && !(existsEntity.get() instanceof StudentProfile)) {
                     getLog().warn("Found entity with ID:{} but with not StudentProfile type", profileId);
                     return Optional.empty();
                 }
+            } else {
+                getLog().warn("Not found PersonProfileEntity with ID:{}", profileId);
+                return Optional.empty();
             }
         }
 

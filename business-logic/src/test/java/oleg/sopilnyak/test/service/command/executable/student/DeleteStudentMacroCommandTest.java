@@ -265,6 +265,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteDoCommand_ProfileNotFound() {
         Long profileId = 12L;
         Long studentId = 11L;
+        when(student.getId()).thenReturn(studentId);
         when(student.getProfileId()).thenReturn(profileId);
         when(persistence.findStudentById(studentId)).thenReturn(Optional.of(student));
         when(persistence.save(any(Student.class))).thenReturn(Optional.of(student));
@@ -301,6 +302,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteDoCommand_DeleteStudentThrows() {
         Long profileId = 14L;
         Long studentId = 13L;
+        when(student.getId()).thenReturn(studentId);
+        when(profile.getId()).thenReturn(profileId);
         when(student.getProfileId()).thenReturn(profileId);
         when(persistence.findStudentById(studentId)).thenReturn(Optional.of(student));
         when(persistence.findStudentProfileById(profileId)).thenReturn(Optional.of(profile));
@@ -342,6 +345,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
         Long profileId = 16L;
         Long studentId = 15L;
+        when(student.getId()).thenReturn(studentId);
         when(student.getProfileId()).thenReturn(profileId);
         when(persistence.findStudentById(studentId)).thenReturn(Optional.of(student));
         when(persistence.save(any(Student.class))).thenReturn(Optional.of(student));
@@ -366,15 +370,17 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
         Context<Boolean> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
-        assertThat(profileContext.getException()).isInstanceOf(RuntimeException.class);
+        assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.getException().getMessage()).isEqualTo(errorMessage);
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter()).isNull();
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
         verifyStudentDoCommand(studentContext);
         verifyProfileDoCommand(profileContext);
+
         verifyStudentUndoCommand(studentContext);
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
@@ -411,6 +417,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
         Long profileId = 20L;
         Long studentId = 19L;
+        when(student.getId()).thenReturn(studentId);
+        when(student.getProfileId()).thenReturn(profileId);
         Context<Boolean> context = createStudentAndProfileFor(profileId, studentId);
         when(persistence.save(any(Student.class))).thenReturn(Optional.of(student));
         String errorMessage = "Cannot restore profile";
@@ -444,6 +452,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteUndoCommand_SaveStudentThrows() {
         Long profileId = 22L;
         Long studentId = 21L;
+        when(profile.getId()).thenReturn(profileId);
         Context<Boolean> context = createStudentAndProfileFor(profileId, studentId);
         when(persistence.save(any(StudentProfile.class))).thenReturn(Optional.of(profile));
         String errorMessage = "Cannot restore student";
@@ -476,7 +485,9 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     // private methods
     private @NotNull Context<Boolean> createStudentAndProfileFor(Long profileId, Long studentId) {
+        when(student.getId()).thenReturn(studentId);
         when(student.getProfileId()).thenReturn(profileId);
+        when(profile.getId()).thenReturn(profileId);
         when(persistence.findStudentById(studentId)).thenReturn(Optional.of(student));
         when(persistence.findStudentProfileById(profileId)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);

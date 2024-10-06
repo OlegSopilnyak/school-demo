@@ -40,8 +40,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,8 +51,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsRestControllerTest extends MysqlTestModelFactory {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
-    private final static String ROOT = RequestMappingRoot.STUDENTS;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = RequestMappingRoot.STUDENTS;
 
     @Autowired
     PersistenceFacade database;
@@ -252,7 +251,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentValidId() throws Exception {
-        Student student = getPersistent(makeClearStudent(0));
+        Student student = createStudent(makeClearStudent(0));
         Long id = student.getId();
         assertThat(database.findStudentById(id)).isPresent();
         String requestPath = ROOT + "/" + id;
@@ -322,6 +321,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
+    private Student createStudent(Student newInstance) {
+        Optional<Student> saved = facade.create(newInstance);
+        assertThat(saved).isNotEmpty();
+        return saved.get();
+    }
     private Student getPersistent(Student newInstance) {
         Optional<Student> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();

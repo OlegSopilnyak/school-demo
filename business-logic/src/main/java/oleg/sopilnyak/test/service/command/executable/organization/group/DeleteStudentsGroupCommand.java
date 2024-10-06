@@ -74,8 +74,9 @@ public class DeleteStudentsGroupCommand
             }
             // removing students group instance by ID from the database
             persistence.deleteStudentsGroup(id);
-            // cached students group is storing to context for further rollback (undo)
-            context.setUndoParameter(entity);
+            // setup undo parameter for deleted entity
+            setupUndoParameter(context, entity, () -> notFoundException);
+            // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);
         } catch (Exception e) {
