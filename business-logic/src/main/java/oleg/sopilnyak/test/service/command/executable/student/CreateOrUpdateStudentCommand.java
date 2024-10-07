@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.function.*;
 
-import static java.util.Objects.nonNull;
-
 
 /**
  * Command-Implementation: command to create or update the student instance
@@ -50,6 +48,7 @@ public class CreateOrUpdateStudentCommand
      * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see StudentsPersistenceFacade#save(Student)
      * @see NotExistStudentException
@@ -61,26 +60,29 @@ public class CreateOrUpdateStudentCommand
             check(parameter);
             log.debug("Trying to change student using: {}", parameter);
             final Long id = ((Student) parameter).getId();
-            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateEntity) {
-                // previous version of student is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(id, persistence::findStudentById, payloadMapper::toPayload,
+            final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntityMode) {
+                // previous version of student is getting and storing to context for further rollback (undo)
+                final Student entity = retrieveEntity(
+                        id, persistence::findStudentById, payloadMapper::toPayload,
                         () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
+            } else {
+                log.debug("Trying to create student using: {}", parameter);
             }
             // persisting entity trough persistence layer
             final Optional<Student> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
-            afterEntityPersistenceCheck(context,
-                    () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntity);
+            afterEntityPersistenceCheck(
+                    context, () -> rollbackCachedEntity(context, persistence::save),
+                    persisted.orElse(null), isCreateEntityMode
+            );
         } catch (Exception e) {
             log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);
-            if (nonNull(context.getUndoParameter())) {
-                rollbackCachedEntity(context, persistence::save);
-            }
+            restoreInitialCommandState(context, persistence::save);
         }
     }
 

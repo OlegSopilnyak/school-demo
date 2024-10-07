@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
 import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -54,18 +55,15 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             check(parameter);
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long id = commandParameter(parameter);
-            final var notFoundException =
-                    new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                log.warn(STUDENT_WITH_ID_PREFIX + "{} is not exists.", id);
-                throw notFoundException;
+                log.warn("Invalid id {}", id);
+                throw exceptionFor(id);
             }
 
             // previous student is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(
-                    id, persistence::findStudentById, payloadMapper::toPayload, () -> notFoundException
+            final Student entity = retrieveEntity(
+                    id, persistence::findStudentById, payloadMapper::toPayload, () -> exceptionFor(id)
             );
-
             if (!ObjectUtils.isEmpty(entity.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", id);
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses.");
@@ -73,7 +71,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             // removing student instance by ID from the database
             persistence.deleteStudent(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> notFoundException);
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted student with ID: {} successfully.", id);
@@ -128,5 +126,10 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

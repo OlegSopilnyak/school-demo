@@ -18,8 +18,6 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import static java.util.Objects.nonNull;
-
 /**
  * Command-Implementation: command to update the authority person
  *
@@ -51,9 +49,10 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
-     * @see this#persistRedoEntity(Context, Function)
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
+     * @see SchoolCommandCache#persistRedoEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#save(AuthorityPerson)
      * @see NotExistAuthorityPersonException
@@ -65,28 +64,29 @@ public class CreateOrUpdateAuthorityPersonCommand
             check(parameter);
             log.debug("Trying to create or update authority person {}", parameter);
             final Long id = ((AuthorityPerson) parameter).getId();
-            final boolean isCreateEntity = PersistenceFacadeUtilities.isInvalidId(id);
-            if (!isCreateEntity) {
+            final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
+            if (!isCreateEntityMode) {
                 // previous version of authority person is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(id,
-                        persistence::findAuthorityPersonById, payloadMapper::toPayload,
+                final AuthorityPerson entity = retrieveEntity(
+                        id, persistence::findAuthorityPersonById, payloadMapper::toPayload,
                         () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
+            } else {
+                log.debug("Trying to create authority person using: {}", parameter);
             }
             // persisting entity trough persistence layer
             final Optional<AuthorityPerson> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
             afterEntityPersistenceCheck(
                     context, () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntity
+                    persisted.orElse(null), isCreateEntityMode
             );
         } catch (Exception e) {
             log.error("Cannot create or update authority person '{}'", parameter, e);
             context.failed(e);
-            if (nonNull(context.getUndoParameter())) {
-                rollbackCachedEntity(context, persistence::save);
-            }
+            restoreInitialCommandState(context, persistence::save);
         }
     }
 

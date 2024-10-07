@@ -18,8 +18,6 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import static java.util.Objects.nonNull;
-
 /**
  * Command-Implementation: command to update the students group of the school
  *
@@ -54,6 +52,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      * @see NotExistStudentsGroupException
@@ -68,9 +67,14 @@ public class CreateOrUpdateStudentsGroupCommand
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
                 // cached students group is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(id, persistence::findStudentsGroupById, payloadMapper::toPayload,
-                        () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists."));
+                final var entity = retrieveEntity(
+                        id, persistence::findStudentsGroupById, payloadMapper::toPayload,
+                        () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
+                );
+                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
+            } else {
+                log.debug("Trying to create students group using: {}", parameter);
             }
             // persisting entity trough persistence layer
             final Optional<StudentsGroup> persisted = persistRedoEntity(context, persistence::save);
@@ -82,9 +86,7 @@ public class CreateOrUpdateStudentsGroupCommand
         } catch (Exception e) {
             log.error("Cannot create or students group faculty '{}'", parameter, e);
             context.failed(e);
-            if (nonNull(context.getUndoParameter())) {
-                rollbackCachedEntity(context, persistence::save);
-            }
+            restoreInitialCommandState(context, persistence::save);
         }
     }
 

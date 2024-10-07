@@ -18,8 +18,6 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import static java.util.Objects.nonNull;
-
 /**
  * Command-Implementation: command to create or update the faculty of the school
  *
@@ -54,6 +52,7 @@ public class CreateOrUpdateFacultyCommand
      * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see FacultyPersistenceFacade#save(Faculty)
      * @see NotExistFacultyException
@@ -68,10 +67,14 @@ public class CreateOrUpdateFacultyCommand
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
                 // previous version of faculty is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(id, persistence::findFacultyById, payloadMapper::toPayload,
+                final var entity = retrieveEntity(
+                        id, persistence::findFacultyById, payloadMapper::toPayload,
                         () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
+            } else {
+                log.debug("Trying to create faculty using: {}", parameter);
             }
             // persisting entity trough persistence layer
             final Optional<Faculty> persisted = persistRedoEntity(context, persistence::save);
@@ -83,9 +86,7 @@ public class CreateOrUpdateFacultyCommand
         } catch (Exception e) {
             log.error("Cannot create or update faculty '{}'", parameter, e);
             context.failed(e);
-            if (nonNull(context.getUndoParameter())) {
-                rollbackCachedEntity(context, persistence::save);
-            }
+            restoreInitialCommandState(context, persistence::save);
         }
     }
 

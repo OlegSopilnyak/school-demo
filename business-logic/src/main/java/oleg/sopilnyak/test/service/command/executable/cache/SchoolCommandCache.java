@@ -117,6 +117,23 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     }
 
     /**
+     * To restore initial data state of the command before command's do
+     *
+     * @param context    command's do context
+     * @param facadeSave function for saving the entity
+     * @param <E>        type of command's do result
+     * @see Context#getUndoParameter()
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     */
+    protected <E> void restoreInitialCommandState(final Context<E> context,
+                                                  final Function<T, Optional<T>> facadeSave) {
+        if (nonNull(context.getUndoParameter())) {
+            getLog().debug("Restoring state of command '{}' after fail using: {}", context.getCommand().getId(), context.getUndoParameter());
+            rollbackCachedEntity(context, facadeSave);
+        }
+    }
+
+    /**
      * To persist entity
      *
      * @param context    command's do context
@@ -173,6 +190,18 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         }
     }
 
+    /**
+     * Setup context's undo parameter after entity removing
+     *
+     * @param context           command's do context
+     * @param entity            removed from database entity
+     * @param exceptionSupplier function-source of entity-not-found exception
+     * @param <E>               type of command result
+     * @see BasePayload
+     * @see BasePayload#setId(Long)
+     * @see Context#setUndoParameter(Object)\
+     * @see Supplier#get()
+     */
     protected <E> void setupUndoParameter(final Context<E> context,
                                           final T entity,
                                           final Supplier<? extends EntityNotExistException> exceptionSupplier) {

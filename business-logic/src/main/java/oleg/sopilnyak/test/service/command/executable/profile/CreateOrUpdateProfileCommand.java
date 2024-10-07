@@ -15,8 +15,6 @@ import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-import static java.util.Objects.nonNull;
-
 /**
  * Command-Base-Implementation: command to update person profile instance
  *
@@ -72,6 +70,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see CreateOrUpdateProfileCommand#functionFindById()
      * @see CreateOrUpdateProfileCommand#functionAdoptEntity()
      * @see CreateOrUpdateProfileCommand#functionSave()
@@ -88,10 +87,11 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
             if (!isCreateEntityMode) {
                 getLog().debug("Trying to update profile using: {}", profile);
                 // previous version of profile is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(
+                final PersonProfile entity = retrieveEntity(
                         id, functionFindById(), functionAdoptEntity(),
                         () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
                 context.setUndoParameter(entity);
             } else {
                 getLog().debug("Trying to create profile using: {}", profile);
@@ -106,9 +106,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);
             context.failed(e);
-            if (nonNull(context.getUndoParameter())) {
-                rollbackCachedEntity(context, functionSave());
-            }
+            restoreInitialCommandState(context, functionSave());
         }
     }
 

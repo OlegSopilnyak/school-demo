@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -61,22 +62,23 @@ public class DeleteFacultyCommand
             check(parameter);
             log.debug("Trying to delete faculty with ID: {}", parameter);
             final Long id = commandParameter(parameter);
-            final var notFoundException = new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                throw notFoundException;
+                log.warn("Invalid id {}", id);
+                throw exceptionFor(id);
             }
             // getting from the database current version of the faculty
             final var entity = retrieveEntity(
-                    id, persistence::findFacultyById, payloadMapper::toPayload, () -> notFoundException
+                    id, persistence::findFacultyById, payloadMapper::toPayload, () -> exceptionFor(id)
             );
 
             if (!entity.getCourses().isEmpty()) {
+                log.warn(FACULTY_WITH_ID_PREFIX + "{} has courses.", id);
                 throw new FacultyIsNotEmptyException(FACULTY_WITH_ID_PREFIX + id + " has courses.");
             }
             // removing faculty instance by ID from the database
             persistence.deleteFaculty(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> notFoundException);
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted faculty with ID: {} successfully.", id);
@@ -133,5 +135,10 @@ public class DeleteFacultyCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

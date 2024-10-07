@@ -85,10 +85,11 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
             getLog().debug("Trying to delete profile using: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
+                getLog().warn("Invalid id {}", id);
                 throw exceptionFor(id);
             }
             // previous profile is storing to context for further rollback (undo)
-            final var entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> exceptionFor(id));
+            final E entity = retrieveEntity(id, functionFindById(), functionAdoptEntity(), () -> exceptionFor(id));
             // removing profile instance by ID from the database
             persistence.deleteProfileById(id);
             // setup undo parameter for deleted entity
@@ -135,5 +136,4 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
     private EntityNotExistException exceptionFor(final Long id) {
         return new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
     }
-
 }

@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
 import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -63,19 +64,21 @@ public class DeleteStudentsGroupCommand
             check(parameter);
             log.debug("Trying to delete students group with ID: {}", parameter);
             final Long id = commandParameter(parameter);
-            final var notFoundException = new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                throw notFoundException;
+                log.warn("Invalid id {}", id);
+                throw exceptionFor(id);
             }
-            final var entity = retrieveEntity(id, persistence::findStudentsGroupById, payloadMapper::toPayload, () -> notFoundException);
-
+            final StudentsGroup entity = retrieveEntity(
+                    id, persistence::findStudentsGroupById, payloadMapper::toPayload, () -> exceptionFor(id)
+            );
             if (!entity.getStudents().isEmpty()) {
+                log.warn(GROUP_WITH_ID_PREFIX + "{} has students.", id);
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
             }
             // removing students group instance by ID from the database
             persistence.deleteStudentsGroup(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> notFoundException);
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);
@@ -133,5 +136,10 @@ public class DeleteStudentsGroupCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

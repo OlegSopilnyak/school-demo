@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
 import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -53,6 +54,7 @@ public class DeleteAuthorityPersonCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
+     * @see NotExistAuthorityPersonException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -61,22 +63,22 @@ public class DeleteAuthorityPersonCommand
             check(parameter);
             log.debug("Trying to delete authority person using: {}", parameter);
             final Long id = commandParameter(parameter);
-            final var notFoundException = new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                throw notFoundException;
+                log.warn("Invalid id {}", id);
+                throw exceptionFor(id);
             }
             // getting from the database current version of the authority person
-            final var entity = retrieveEntity(
-                    id, persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> notFoundException
+            final AuthorityPerson entity = retrieveEntity(
+                    id, persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> exceptionFor(id)
             );
-
             if (!entity.getFaculties().isEmpty()) {
+                log.warn(PERSON_WITH_ID_PREFIX + "{} is managing faculties.", id);
                 throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
             }
             // removing authority person instance by ID from the database
             persistence.deleteAuthorityPerson(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> notFoundException);
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);
@@ -132,5 +134,10 @@ public class DeleteAuthorityPersonCommand
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

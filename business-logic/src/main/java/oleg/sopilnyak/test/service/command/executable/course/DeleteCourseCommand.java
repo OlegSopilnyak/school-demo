@@ -58,16 +58,14 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             check(parameter);
             log.debug("Trying to delete course by ID: {}", parameter);
             final Long id = commandParameter(parameter);
-            final EntityNotExistException notFoundException =
-                    new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
-                throw notFoundException;
+                log.warn("Invalid id {}", id);
+                throw exceptionFor(id);
             }
             // getting from the database current version of the course
-            final var entity = retrieveEntity(
-                    id, persistenceFacade::findCourseById, payloadMapper::toPayload, () -> notFoundException
+            final Course entity = retrieveEntity(
+                    id, persistenceFacade::findCourseById, payloadMapper::toPayload, () -> exceptionFor(id)
             );
-
             if (!ObjectUtils.isEmpty(entity.getStudents())) {
                 log.warn(COURSE_WITH_ID_PREFIX + "{} has enrolled students.", id);
                 throw new CourseWithStudentsException(COURSE_WITH_ID_PREFIX + id + " has enrolled students.");
@@ -75,7 +73,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             // removing course instance by ID from the database
             persistenceFacade.deleteCourse(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> notFoundException);
+            setupUndoParameter(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(Boolean.TRUE);
             getLog().debug("Deleted course with ID: {}", id);
@@ -131,5 +129,10 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     @Override
     public Logger getLog() {
         return log;
+    }
+
+    // private methods
+    private EntityNotExistException exceptionFor(final Long id) {
+        return new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
     }
 }
