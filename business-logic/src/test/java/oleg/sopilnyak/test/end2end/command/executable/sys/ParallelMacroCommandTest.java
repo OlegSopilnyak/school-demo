@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStud
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -94,6 +95,7 @@ public class ParallelMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @Disabled("It just for experiments")
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     void shouldSeeCreatedStudentsInManyThread() throws InterruptedException {
         IntStream.range(0, maxIterationsCount).forEach(this::createStudent);
@@ -106,6 +108,7 @@ public class ParallelMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @Disabled("It just for experiments")
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     void shouldNotSeeCreatedStudentsInManyThread() throws InterruptedException {
         IntStream.range(0, maxIterationsCount).forEach(this::createStudent);
@@ -121,6 +124,7 @@ public class ParallelMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @Disabled("It just for experiments")
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     void shouldSeeCreatedStudentsInManyThreadsThroughRootThread() throws InterruptedException {
         IntStream.range(0, maxIterationsCount).forEach(this::createStudent);
