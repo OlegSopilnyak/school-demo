@@ -55,6 +55,7 @@ class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
                 "organization.authority.person.findAll",
                 "organization.authority.person.findById",
                 "organization.authority.person.createOrUpdate",
+                "organization.authority.person.create.macro",
                 "organization.authority.person.delete"
         );
     }
