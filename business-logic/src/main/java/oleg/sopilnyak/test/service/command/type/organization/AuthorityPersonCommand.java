@@ -32,6 +32,10 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      */
     String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     /**
+     * Command-ID: for create authority person entity with related profile
+     */
+    String CREATE_NEW = "organization.authority.person.create.macro";
+    /**
      * Command-ID: for delete authority person entity
      */
     String DELETE = "organization.authority.person.delete";
@@ -67,7 +71,7 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                        final Context<T> context, final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
     }
@@ -82,7 +86,7 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      * @see AuthorityPersonCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {
         return visitor.undoNestedCommand(this, context);
     }

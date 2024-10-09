@@ -21,7 +21,6 @@ import java.util.function.UnaryOperator;
  * @see PrincipalProfileCommand
  * @see PrincipalProfile
  * @see ProfilePersistenceFacade
- * @see oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity
  * @see CreateOrUpdateProfileCommand
  */
 @Slf4j

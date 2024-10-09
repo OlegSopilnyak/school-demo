@@ -1,26 +1,26 @@
-package oleg.sopilnyak.test.service.command.executable.student;
+package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
-import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.StudentPayload;
-import oleg.sopilnyak.test.service.message.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
@@ -30,23 +30,23 @@ import java.util.Deque;
 import java.util.Optional;
 
 /**
- * Command-Implementation: command to create the student-person instance with related profile
+ * Command-Implementation: command to create the authority person instance with related profile
  *
- * @see Student
- * @see StudentProfile
+ * @see AuthorityPerson
+ * @see PrincipalProfile
  * @see SequentialMacroCommand
- * @see StudentCommand
+ * @see AuthorityPersonCommand
  */
 @Slf4j
 @Component
-public class CreateStudentMacroCommand extends SequentialMacroCommand implements StudentCommand {
+public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand implements AuthorityPersonCommand {
     private final BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
 
-    public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand personCommand,
-                                     final CreateOrUpdateStudentProfileCommand profileCommand,
-                                     final BusinessMessagePayloadMapper payloadMapper) {
+    public CreateAuthorityPersonMacroCommand(final CreateOrUpdateAuthorityPersonCommand personCommand,
+                                             final CreateOrUpdatePrincipalProfileCommand profileCommand,
+                                             final BusinessMessagePayloadMapper payloadMapper) {
         addToNest(profileCommand);
         addToNest(personCommand);
         this.payloadMapper = payloadMapper;
@@ -78,30 +78,30 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @param command   nested command instance
      * @param mainInput macro-command input parameter
      * @return built context of the command for input parameter
-     * @see Student
-     * @see StudentCommand
-     * @see CreateStudentMacroCommand#createPersonContext(StudentCommand, Student)
+     * @see AuthorityPerson
+     * @see AuthorityPersonCommand
+     * @see CreateAuthorityPersonMacroCommand#createPersonContext(AuthorityPersonCommand, AuthorityPerson)
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(@NonNull final StudentCommand command, final Object mainInput) {
-        return mainInput instanceof Student person && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <T> Context<T> prepareContext(@NonNull final AuthorityPersonCommand command, final Object mainInput) {
+        return mainInput instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createPersonContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
     /**
-     * To create context for create-or-update person command
+     * To create context for create-or-update per command
      *
-     * @param command   create-or-update person command instance
-     * @param person input parameter of person to create
-     * @param <T>       type of create-or-update person command result
+     * @param command create-or-update person command instance
+     * @param person  input parameter of person to create
+     * @param <T>     type of create-or-update person command result
      * @return built context of the command for input person
-     * @see BusinessMessagePayloadMapper#toPayload(Student)
-     * @see StudentPayload
+     * @see BusinessMessagePayloadMapper#toPayload(AuthorityPerson)
+     * @see AuthorityPersonPayload
      */
-    public <T> Context<T> createPersonContext(@NonNull final StudentCommand command, final Student person) {
-        final StudentPayload payload =
-                person instanceof StudentPayload personPayload ? personPayload : payloadMapper.toPayload(person);
+    public <T> Context<T> createPersonContext(@NonNull final AuthorityPersonCommand command, final AuthorityPerson person) {
+        final AuthorityPersonPayload payload =
+                person instanceof AuthorityPersonPayload personPayload ? personPayload : payloadMapper.toPayload(person);
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
@@ -115,33 +115,52 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @param mainInput macro-command input parameter
      * @param <T>       type of create-or-update person profile command result
      * @return built context of the command for input parameter
-     * @see Student
-     * @see StudentProfileCommand
-     * @see CreateStudentMacroCommand#createProfileContext(StudentProfileCommand, Student)
+     * @see AuthorityPerson
+     * @see AuthorityPersonCommand
+     * @see CreateAuthorityPersonMacroCommand#createProfileContext(PrincipalProfileCommand, AuthorityPerson)
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(@NonNull final StudentProfileCommand command, final Object mainInput) {
-        return mainInput instanceof Student person && StudentProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <T> Context<T> prepareContext(@NonNull final PrincipalProfileCommand command, final Object mainInput) {
+        return mainInput instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createProfileContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
     /**
      * To create context for create-or-update person profile command
      *
-     * @param command   create-or-update person profile command instance
-     * @param person input parameter of person to create
-     * @param <T>       type of create-or-update person profile command result
+     * @param command create-or-update person profile command instance
+     * @param person  input parameter of person to create
+     * @param <T>     type of create-or-update person profile command result
      * @return built context of the command for input parameter
-     * @see StudentProfilePayload
+     * @see PrincipalProfilePayload
      */
-    public <T> Context<T> createProfileContext(final StudentProfileCommand command, final Student person) {
+    public <T> Context<T> createProfileContext(final PrincipalProfileCommand command, final AuthorityPerson person) {
         final String emailPrefix = person.getFirstName().trim().toLowerCase() + "." + person.getLastName().trim().toLowerCase();
-        final StudentProfilePayload payload = StudentProfilePayload.builder()
+        final PrincipalProfilePayload payload = PrincipalProfilePayload.builder()
                 .id(null).phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
+                .login(emailPrefix)
+                .signature(emailPrefix + " ")
                 .build();
         // create command-context with created parameter by default
         return command.createContext(payload);
+    }
+
+    /**
+     * To prepare command for sequential macro-command
+     *
+     * @param command nested command to wrap
+     * @return wrapped nested command
+     * @see SequentialMacroCommand#addToNest(NestedCommand)
+     */
+    @Override
+    public NestedCommand wrap(final NestedCommand command) {
+        if (command instanceof AuthorityPersonCommand personCommand) {
+            return wrap(personCommand);
+        } else if (command instanceof PrincipalProfileCommand profileCommand) {
+            return wrap(profileCommand);
+        }
+        throw new UnableExecuteCommandException(((RootCommand) command).getId());
     }
 
 // for command do activities as nested command
@@ -153,20 +172,20 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @param command successfully executed command
      * @param result  the result of successful command execution
      * @param target  next command context to execute command's redo
-     * @see StudentProfileCommand#doCommand(Context)
+     * @see PrincipalProfileCommand#doCommand(Context)
      * @see Context#setRedoParameter(Object)
      * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
-     * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
+     * @see CreateAuthorityPersonMacroCommand#transferProfileIdToStudentInput(Long, Context)
+     * @see AuthorityPersonPayload#setProfileId(Long)
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(@NonNull final StudentProfileCommand command,
+    public <S, T> void transferPreviousExecuteDoResult(@NonNull final PrincipalProfileCommand command,
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
-        if (result instanceof Optional<?> opt &&
-                opt.orElseThrow() instanceof StudentProfile profile &&
-                StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
-            // send create-profile result (profile-id) to create-person input (StudentPayload#setProfileId)
+        if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
+                && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+            // send create-profile result (profile-id) to create-person input (AuthorityPersonPayload#setProfileId)
             transferProfileIdToStudentInput(profile.getId(), target);
         } else {
             throw new CannotTransferCommandResultException(command.getId());
@@ -180,10 +199,10 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
      * @param target    create-person command context
      * @see Context#getRedoParameter()
      * @see Context#setRedoParameter(Object)
-     * @see StudentPayload#setProfileId(Long)
+     * @see AuthorityPersonPayload#setProfileId(Long)
      */
     public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {
-        final StudentPayload personPayload = target.getRedoParameter();
+        final AuthorityPersonPayload personPayload = target.getRedoParameter();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
         target.setRedoParameter(personPayload);
@@ -239,29 +258,12 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         return super.undoAsNestedCommand(visitor, context);
     }
 
-    /**
-     * To prepare command for sequential macro-command
-     *
-     * @param command nested command to wrap
-     * @return wrapped nested command
-     * @see SequentialMacroCommand#addToNest(NestedCommand)
-     */
-    @Override
-    public NestedCommand wrap(final NestedCommand command) {
-        if (command instanceof StudentCommand personCommand) {
-            return wrap(personCommand);
-        } else if (command instanceof StudentProfileCommand profileCommand) {
-            return wrap(profileCommand);
-        }
-        throw new UnableExecuteCommandException(((RootCommand) command).getId());
-    }
-
     // private methods
-    private NestedCommand wrap(final StudentCommand command) {
+    private NestedCommand wrap(final AuthorityPersonCommand command) {
         return new PersonInSequenceCommand(command);
     }
 
-    private NestedCommand wrap(final StudentProfileCommand command) {
+    private NestedCommand wrap(final PrincipalProfileCommand command) {
         return new ProfileInSequenceCommand(command);
     }
 
@@ -270,15 +272,15 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
     }
 
     // inner classes
-    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<StudentCommand> implements StudentCommand {
-        private final StudentCommand command;
+    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand> implements AuthorityPersonCommand {
+        private final AuthorityPersonCommand command;
 
-        private PersonInSequenceCommand(StudentCommand command) {
+        private PersonInSequenceCommand(AuthorityPersonCommand command) {
             this.command = command;
         }
 
         @Override
-        public StudentCommand unWrap() {
+        public AuthorityPersonCommand unWrap() {
             return command;
         }
 
@@ -290,15 +292,15 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand implements
         }
     }
 
-    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<StudentProfileCommand> implements StudentProfileCommand {
-        private final StudentProfileCommand command;
+    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand> implements PrincipalProfileCommand {
+        private final PrincipalProfileCommand command;
 
-        private ProfileInSequenceCommand(StudentProfileCommand command) {
+        private ProfileInSequenceCommand(PrincipalProfileCommand command) {
             this.command = command;
         }
 
         @Override
-        public StudentProfileCommand unWrap() {
+        public PrincipalProfileCommand unWrap() {
             return command;
         }
 

@@ -157,18 +157,18 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongTypeInput);
         verify(command).prepareContext(nestedProfileCommand, wrongTypeInput);
-        verify(command, never()).createStudentProfileContext(eq(nestedProfileCommand), any());
+        verify(command, never()).createProfileContext(eq(nestedProfileCommand), any());
         verify(nestedProfileCommand, never()).createContext(any(StudentProfilePayload.class));
 
         verify(nestedStudentCommand).acceptPreparedContext(command, wrongTypeInput);
         verify(command).prepareContext(nestedStudentCommand, wrongTypeInput);
-        verify(command, never()).createStudentContext(eq(nestedStudentCommand), any());
+        verify(command, never()).createPersonContext(eq(nestedStudentCommand), any());
         verify(nestedStudentCommand, never()).createContext(any(StudentPayload.class));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotCreateMacroCommandContext_CreateStudentProfileContextThrows() {
+    void shouldNotCreateMacroCommandContext_CreateProfileContextThrows() {
         String errorMessage = "Cannot create nested profile context";
         RuntimeException exception = new RuntimeException(errorMessage);
         Student newStudent = makeClearStudent(2);
@@ -186,18 +186,18 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(nestedProfileCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(nestedProfileCommand, newStudent);
-        verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
+        verify(command).createProfileContext(nestedProfileCommand, newStudent);
         verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
         verify(nestedStudentCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(nestedStudentCommand, newStudent);
-        verify(command).createStudentContext(nestedStudentCommand, newStudent);
+        verify(command).createPersonContext(nestedStudentCommand, newStudent);
         verify(nestedStudentCommand).createContext(any(StudentPayload.class));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotCreateMacroCommandContext_CreateStudentContextThrows() {
+    void shouldNotCreateMacroCommandContext_CreatePersonContextThrows() {
         String errorMessage = "Cannot create nested student context";
         RuntimeException exception = new RuntimeException(errorMessage);
         Student newStudent = makeClearStudent(3);
@@ -215,12 +215,12 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(nestedProfileCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(nestedProfileCommand, newStudent);
-        verify(command).createStudentProfileContext(nestedProfileCommand, newStudent);
+        verify(command).createProfileContext(nestedProfileCommand, newStudent);
         verify(nestedProfileCommand).createContext(any(StudentProfilePayload.class));
 
         verify(nestedStudentCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(nestedStudentCommand, newStudent);
-        verify(command).createStudentContext(nestedStudentCommand, newStudent);
+        verify(command).createPersonContext(nestedStudentCommand, newStudent);
         verify(nestedStudentCommand).createContext(any(StudentPayload.class));
     }
 
@@ -616,14 +616,14 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     private void verifyStudentCommandContext(StudentPayload newStudent, StudentCommand studentCommand) {
         verify(studentCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(studentCommand, newStudent);
-        verify(command).createStudentContext(studentCommand, newStudent);
+        verify(command).createPersonContext(studentCommand, newStudent);
         verify(studentCommand).createContext(any(StudentPayload.class));
     }
 
     private void verifyProfileCommandContext(StudentPayload newStudent, StudentProfileCommand profileCommand) {
         verify(profileCommand).acceptPreparedContext(command, newStudent);
         verify(command).prepareContext(profileCommand, newStudent);
-        verify(command).createStudentProfileContext(profileCommand, newStudent);
+        verify(command).createProfileContext(profileCommand, newStudent);
         verify(profileCommand).createContext(any(StudentProfilePayload.class));
     }
 }

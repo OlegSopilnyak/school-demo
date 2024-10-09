@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
-import org.springframework.lang.NonNull;
 
 /**
  * Type for school-principal-profile commands
@@ -41,7 +40,7 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
@@ -59,7 +58,7 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                        final Context<T> context, final Context.StateChangedListener<T> stateListener) {
         visitor.doNestedCommand(this, context, stateListener);
     }
@@ -74,7 +73,7 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @see PrincipalProfileCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
+    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                                final Context<T> context) {
         return visitor.undoNestedCommand(this, context);
     }
