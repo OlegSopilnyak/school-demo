@@ -43,7 +43,9 @@ class AuthorityPersonCommandsFactorySpringTest {
                 "organization.authority.person.findById",
                 "organization.authority.person.createOrUpdate",
                 "organization.authority.person.create.macro",
-                "organization.authority.person.delete"
+                "organization.authority.person.delete",
+                "organization.authority.person.delete.macro"
+
         );
     }
 

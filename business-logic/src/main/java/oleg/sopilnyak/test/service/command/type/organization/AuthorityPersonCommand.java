@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
-import org.springframework.lang.NonNull;
 
 /**
  * Type for school-organization authority persons management command
@@ -39,6 +38,10 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      * Command-ID: for delete authority person entity
      */
     String DELETE = "organization.authority.person.delete";
+    /**
+     * Command-ID: for delete authority person entity with assigned profile
+     */
+    String DELETE_ALL = "organization.authority.person.delete.macro";
 
 // For commands playing Nested Command Role
 
@@ -53,7 +56,7 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, input);
     }
 
