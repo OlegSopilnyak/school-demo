@@ -97,6 +97,23 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     /**
+     * To create person instance + it's profile
+     *
+     * @param instance person should be created
+     * @return person instance or empty() if it cannot do
+     * @see AuthorityPerson
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<AuthorityPerson> create(AuthorityPerson instance) {
+        log.debug("Create authority person with new profile {}", instance);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_NEW, convert.apply(instance), factory);
+        log.debug("Created authority person {}", result);
+        return result.map(convert);
+    }
+
+    /**
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete

@@ -48,16 +48,16 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor               visitor of prepared contexts
+     * @param commandInputParameter Macro-Command call's input parameter
+     * @param <T>                   type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(AuthorityPersonCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
-        return visitor.prepareContext(this, input);
+    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
+        return visitor.prepareContext(this, commandInputParameter);
     }
 
     /**

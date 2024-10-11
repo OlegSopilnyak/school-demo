@@ -151,17 +151,17 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor               visitor of prepared contexts
+     * @param commandInputParameter Macro-Command call's input parameter
+     * @param <T>                   type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
      * @see MacroCommand#createContext(Object)
      */
     @Override
-    public <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
-        return super.acceptPreparedContext(visitor, input);
+    public <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
+        return super.acceptPreparedContext(visitor, commandInputParameter);
     }
 
     /**

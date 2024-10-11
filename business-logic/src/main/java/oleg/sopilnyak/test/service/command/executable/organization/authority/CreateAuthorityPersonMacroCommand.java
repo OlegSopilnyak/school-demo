@@ -211,17 +211,17 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor               visitor of prepared contexts
+     * @param commandInputParameter Macro-Command call's input parameter
+     * @param <T>                   type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    public <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
-        return super.acceptPreparedContext(visitor, input);
+    public <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
+        return super.acceptPreparedContext(visitor, commandInputParameter);
     }
 
     /**
@@ -237,9 +237,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    public <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                      @NonNull final Context<T> context,
-                                      @NonNull final Context.StateChangedListener<T> stateListener) {
+    public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                      final Context<T> context,
+                                      final Context.StateChangedListener<T> stateListener) {
         super.doAsNestedCommand(visitor, context, stateListener);
     }
 
@@ -253,8 +253,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    public <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                              @NonNull final Context<T> context) {
+    public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                              final Context<T> context) {
         return super.undoAsNestedCommand(visitor, context);
     }
 
