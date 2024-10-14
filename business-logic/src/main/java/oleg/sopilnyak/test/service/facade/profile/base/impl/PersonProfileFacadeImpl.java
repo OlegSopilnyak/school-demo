@@ -23,6 +23,9 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  */
 @Slf4j
 public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
+    protected static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
+    protected static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
+    protected static final String SOMETHING_WENT_WRONG = "Something went wrong";
     private final CommandsFactory<P> factory;
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
@@ -108,15 +111,19 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
 
         // fail processing
         final Exception deleteException = context.getException();
-        log.warn("Something went wrong with profile deletion", deleteException);
+        log.warn(SOMETHING_WENT_WRONG + " with profile deletion", deleteException);
         if (deleteException instanceof NotExistProfileException profileException) {
             throw profileException;
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
-            log.error("For command-id:'{}' there is not exception after wrong command execution.", commandId);
-            throwFor(commandId, new NullPointerException("Exception was not stored!!!"));
+            wrongCommandExecution(commandId);
         }
     }
 
+    // private methods
+    private static void wrongCommandExecution(String commandId) {
+        log.error(WRONG_COMMAND_EXECUTION, commandId);
+        throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+    }
 }

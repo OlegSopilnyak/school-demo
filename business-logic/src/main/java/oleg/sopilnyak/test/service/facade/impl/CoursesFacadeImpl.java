@@ -131,8 +131,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
-            log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
+            wrongCommandExecution(commandId);
         }
     }
 
@@ -177,8 +176,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         } else if (nonNull(registerException)) {
             throwFor(commandId, registerException);
         } else {
-            log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
+            wrongCommandExecution(commandId);
         }
     }
 
@@ -215,8 +213,13 @@ public class CoursesFacadeImpl implements CoursesFacade {
         } else if (nonNull(unregisterException)) {
             throwFor(commandId, unregisterException);
         } else {
-            log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
+            wrongCommandExecution(commandId);
         }
+    }
+
+    // private methods
+    private static void wrongCommandExecution(String commandId) {
+        log.error(WRONG_COMMAND_EXECUTION, commandId);
+        throwFor(commandId, new NullPointerException(EXCEPTION_WAS_NOT_STORED));
     }
 }

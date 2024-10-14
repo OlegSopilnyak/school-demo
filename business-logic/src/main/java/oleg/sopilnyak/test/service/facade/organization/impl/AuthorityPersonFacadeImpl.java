@@ -145,8 +145,13 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
-            log.error(WRONG_COMMAND_EXECUTION, commandId);
-            throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+            wrongCommandExecution();
         }
+    }
+
+    // private methods
+    private static void wrongCommandExecution() {
+        log.error(WRONG_COMMAND_EXECUTION, DELETE_ALL);
+        throwFor(DELETE_ALL, new NullPointerException(EXCEPTION_IS_NOT_STORED));
     }
 }
