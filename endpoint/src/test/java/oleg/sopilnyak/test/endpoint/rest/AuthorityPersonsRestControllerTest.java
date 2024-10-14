@@ -113,7 +113,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
             assertThat(received.getId()).isNull();
             assertAuthorityPersonEquals(person, received);
             return Optional.of(person);
-        }).when(facade).createOrUpdateAuthorityPerson(any(AuthorityPerson.class));
+        }).when(facade).create(any(AuthorityPerson.class));
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
@@ -127,7 +127,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).createPerson(any(AuthorityPersonDto.class));
-        verify(facade).createOrUpdateAuthorityPerson(any(AuthorityPerson.class));
+        verify(facade).create(any(AuthorityPerson.class));
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 
@@ -249,7 +249,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -303L;
+        long id = -303L;
         String requestPath = RequestMappingRoot.AUTHORITIES + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -259,7 +259,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).deletePerson(Long.toString(id));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 

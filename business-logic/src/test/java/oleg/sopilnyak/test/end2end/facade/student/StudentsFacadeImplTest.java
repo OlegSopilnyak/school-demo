@@ -48,6 +48,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
+    private static final String STUDENT_CREATE_NEW = "student.create.macro";
     private static final String STUDENT_DELETE = "student.delete.macro";
 
     @Autowired
@@ -220,13 +221,12 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     void shouldCreateOrUpdate_Create() {
         Student student = makeClearTestStudent();
 
-        Optional<Student> result = facade.createOrUpdate(student);
+        Optional<Student> result = facade.create(student);
 
-        assertThat(result).isNotEmpty();
-        assertStudentEquals(student, result.get(), false);
-        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(any(StudentPayload.class));
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        assertStudentEquals(student, result.orElseThrow(), false);
+        verify(factory).command(STUDENT_CREATE_NEW);
+        verify(factory.command(STUDENT_CREATE_NEW)).createContext(any(StudentPayload.class));
+        verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(any(StudentPayload.class));
     }
 

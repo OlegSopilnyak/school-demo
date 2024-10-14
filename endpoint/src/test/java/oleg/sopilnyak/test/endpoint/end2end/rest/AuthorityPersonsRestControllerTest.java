@@ -9,8 +9,8 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
 import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -217,10 +217,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteAuthorityPerson() throws Exception {
-        AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(202));
-        if (person instanceof AuthorityPersonEntity ape) {
-            ape.setFaculties(List.of());
-            database.save(ape);
+        AuthorityPerson person = create(makeCleanAuthorityPerson(202));
+        if (person instanceof AuthorityPersonEntity entity) {
+            entity.setFaculties(List.of());
+            database.save(entity);
         }
         Long id = person.getId();
         assertThat(database.findAuthorityPersonById(id)).isPresent();
@@ -260,7 +260,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -303L;
+        long id = -303L;
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -270,7 +270,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).deletePerson(Long.toString(id));
         String responseString = result.getResponse().getContentAsString();
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(responseString, RestResponseEntityExceptionHandler.RestErrorMessage.class);
 
@@ -281,7 +281,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
-        Long id = 304L;
+        long id = 304L;
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -291,7 +291,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).deletePerson(Long.toString(id));
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
@@ -330,6 +330,12 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     private AuthorityPerson getPersistent(AuthorityPerson newInstance) {
         Optional<AuthorityPerson> saved = database.save(newInstance);
+        assertThat(saved).isNotEmpty();
+        return saved.get();
+    }
+
+    private AuthorityPerson create(AuthorityPerson newInstance) {
+        Optional<AuthorityPerson> saved = facade.create(newInstance);
         assertThat(saved).isNotEmpty();
         return saved.get();
     }

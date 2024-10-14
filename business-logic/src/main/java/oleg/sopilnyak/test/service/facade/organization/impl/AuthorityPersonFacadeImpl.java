@@ -123,7 +123,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
         log.debug("Delete authority person with ID:{}", id);
-        final String commandId = DELETE;
+        final String commandId = DELETE_ALL;
         final RootCommand command = takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 

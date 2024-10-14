@@ -37,6 +37,7 @@ class StudentsFacadeImplTest {
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
     private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
     private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
+    private static final String STUDENT_CREATE_NEW = "student.create.macro";
     private static final String STUDENT_DELETE_ALL = "student.delete.macro";
 
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
@@ -172,14 +173,34 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldCreateOrUpdate() {
+    void shouldCreateNewStudent() {
+        when(mockedStudentPayload.getFirstName()).thenReturn("John");
+        when(mockedStudentPayload.getLastName()).thenReturn("Doe");
+        when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
+        when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
+        when(persistenceFacade.save(any(StudentProfilePayload.class))).thenReturn(Optional.of(mockedStudentProfilePayload));
+
+        Optional<Student> result = facade.create(mockedStudent);
+
+        assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
+        verify(factory).command(STUDENT_CREATE_NEW);
+        verify(factory.command(STUDENT_CREATE_NEW)).createContext(mockedStudentPayload);
+        verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(persistenceFacade).save(mockedStudentPayload);
+        verify(payloadMapper, never()).toPayload(mockedStudentPayload);
+    }
+
+    @Test
+    void shouldCreateOrUpdateStudent() {
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
 
-        assertThat(result).isPresent();
+        assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(mockedStudentPayload);
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));

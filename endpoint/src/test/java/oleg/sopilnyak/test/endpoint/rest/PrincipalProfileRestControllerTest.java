@@ -76,7 +76,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotFoundPrincipalProfile_NotExists() throws Exception {
-        Long id = -402L;
+        long id = -402L;
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -87,7 +87,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).findById(id.toString());
+        verify(controller).findById(Long.toString(id));
         RestResponseEntityExceptionHandler.RestErrorMessage error = MAPPER.readValue(
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
@@ -120,7 +120,6 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldCreatePrincipalProfile() throws Exception {
         Long id = 405L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isNull();
@@ -130,7 +129,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
+                                MockMvcRequestBuilders.post(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -150,12 +149,13 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldNotCreatePrincipalProfile() throws Exception {
         Long id = 405L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
-        when(facade.createOrUpdateProfile(any(PrincipalProfile.class))).thenThrow(new RuntimeException());
+        String message = "Cannot create principal profile: '405!'";
+        Exception exception = new RuntimeException(message);
+        doThrow(exception).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
+                                MockMvcRequestBuilders.post(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -170,14 +170,13 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
-        assertThat(error.getErrorMessage()).startsWith("Cannot create new principal-profile");
+        assertThat(error.getErrorMessage()).isEqualTo(message);
     }
 
     @Test
     void shouldUpdatePrincipalProfile() throws Exception {
         Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
@@ -187,7 +186,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -205,13 +204,11 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotUpdatePrincipalProfile_NullId() throws Exception {
-        Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(null);
-        String requestPath = ROOT;
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -233,11 +230,10 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldNotUpdatePrincipalProfile_NegativeId() throws Exception {
         Long id = -406L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -259,13 +255,14 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldNotUpdatePrincipalProfile_ExceptionThrown() throws Exception {
         Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
-        when(facade.createOrUpdateProfile(any(PrincipalProfile.class))).thenThrow(new RuntimeException());
+        String message = "Cannot update principal profile: '406!'";
+        Exception exception = new RuntimeException(message);
+        doThrow(exception).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -280,14 +277,13 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(error.getErrorMessage()).startsWith("Cannot update principal-profile Principal");
+        assertThat(error.getErrorMessage()).isEqualTo(message);
     }
 
     @Test
     void shouldDeletePrincipalProfile() throws Exception {
         Long id = 408L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         doAnswer(invocation -> {
             PrincipalProfile received = invocation.getArgument(0);
             assertThat(received.getId()).isEqualTo(id);
@@ -296,7 +292,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         }).when(facade).delete(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
+                        MockMvcRequestBuilders.delete(ROOT)
                                 .content(jsonContent)
                                 .contentType(APPLICATION_JSON)
                 )
@@ -312,12 +308,11 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldDeletePrincipalProfile_ProfileNotExistsExceptionThrown() throws Exception {
         Long id = 408L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         doThrow(new NotExistProfileException("")).when(facade).delete(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
+                                MockMvcRequestBuilders.delete(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -339,12 +334,11 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldDeletePrincipalProfile_RuntimeExceptionThrown() throws Exception {
         Long id = 408L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        String requestPath = ROOT;
         doThrow(new RuntimeException("")).when(facade).delete(any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
+                                MockMvcRequestBuilders.delete(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )

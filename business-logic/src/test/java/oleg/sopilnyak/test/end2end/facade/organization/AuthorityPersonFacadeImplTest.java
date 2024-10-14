@@ -6,12 +6,10 @@ import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyE
 import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
+import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -48,13 +46,14 @@ import static org.mockito.Mockito.*;
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE = "organization.authority.person.delete";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
 
     @Autowired
     PersistenceFacade database;
 
-    AuthorityPersonPersistenceFacade persistence;
+    PersistenceFacade persistence;
     CommandsFactory<AuthorityPersonCommand> factory;
     AuthorityPersonFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
@@ -138,13 +137,13 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void shouldCreateOrUpdateAuthorityPerson_Create() {
         AuthorityPerson authorityPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
 
-        Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(authorityPerson);
+        Optional<AuthorityPerson> person = facade.create(authorityPerson);
 
         assertThat(person).isPresent();
         assertAuthorityPersonEquals(authorityPerson, person.get(), false);
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(authorityPerson);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(authorityPerson);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistence).save(authorityPerson);
     }
 
@@ -191,16 +190,15 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
-        AuthorityPerson authorityPerson = persistAuthorityPerson();
+        AuthorityPerson authorityPerson = createAuthorityPerson();
         Long id = authorityPerson.getId();
 
         facade.deleteAuthorityPersonById(id);
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).createContext(id);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).doCommand(any(Context.class));
-        verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence).toEntity(authorityPerson);
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
+        verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
@@ -214,9 +212,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).isEqualTo("AuthorityPerson with ID:303 is not exists.");
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).createContext(id);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
@@ -236,20 +234,34 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(AuthorityPersonManageFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is managing faculties.");
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).createContext(id);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE)).doCommand(any(Context.class));
-        verify(persistence).findAuthorityPersonById(id);
-//        verify(persistence).toEntity(any(AuthorityPerson.class));
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
+        verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
 
     // private methods
-    private CommandsFactory<AuthorityPersonCommand> buildFactory(AuthorityPersonPersistenceFacade persistenceFacade) {
+    private CommandsFactory<AuthorityPersonCommand> buildFactory(PersistenceFacade persistenceFacade) {
+        CreateOrUpdateAuthorityPersonCommand createOrUpdateAuthorityPersonCommand =
+                spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        CreateOrUpdatePrincipalProfileCommand createOrUpdatePrincipalProfileCommand =
+                spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
+        CreateAuthorityPersonMacroCommand createAuthorityPersonMacroCommand =
+                spy(new CreateAuthorityPersonMacroCommand(createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper));
+        DeleteAuthorityPersonCommand deleteAuthorityPersonCommand =
+                spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        DeletePrincipalProfileCommand deletePrincipalProfileCommand =
+                spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
+        DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
+                spy(new DeleteAuthorityPersonMacroCommand(deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, 10));
+        deleteAuthorityPersonMacroCommand.runThreadPoolExecutor();
         return new AuthorityPersonCommandsFactory(
                 Set.of(
-                        spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper)),
-                        spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper)),
+                        createOrUpdateAuthorityPersonCommand,
+                        createAuthorityPersonMacroCommand,
+                        deleteAuthorityPersonCommand,
+                        deleteAuthorityPersonMacroCommand,
                         spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
                         spy(new FindAuthorityPersonCommand(persistenceFacade))
                 )
@@ -264,6 +276,20 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
         assertThat(dbAuthorityPerson).contains(entity);
 //        return database.toEntity(entity);
+        return entity;
+    }
+
+    private AuthorityPerson createAuthorityPerson() {
+        AuthorityPerson authorityPerson = makeCleanAuthorityPerson(11);
+        AuthorityPerson entity = facade.create(authorityPerson).orElse(null);
+        assertThat(entity).isNotNull();
+        Optional<AuthorityPerson> dbAuthorityPerson = database.findAuthorityPersonById(entity.getId());
+        assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
+        if (entity instanceof AuthorityPersonPayload payload) {
+            assertThat(dbAuthorityPerson).contains(payload.getOriginal());
+        } else {
+            assertThat(dbAuthorityPerson).contains(entity);
+        }
         return entity;
     }
 }

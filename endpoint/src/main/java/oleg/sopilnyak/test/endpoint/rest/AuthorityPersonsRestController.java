@@ -61,8 +61,7 @@ public class AuthorityPersonsRestController {
     public ResponseEntity<AuthorityPersonDto> createPerson(@RequestBody AuthorityPersonDto personDto) {
         log.debug("Trying to create the authority person {}", personDto);
         try {
-            personDto.setId(null);
-            return ResponseEntity.ok(resultToDto(facade.createOrUpdateAuthorityPerson(personDto)));
+            return ResponseEntity.ok(resultToDto(facade.create(personDto)));
         } catch (Exception e) {
             throw new CannotDoRestCallException("Cannot create new authority person " + personDto.toString(), e);
         }

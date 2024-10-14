@@ -28,7 +28,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.never;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -147,14 +146,16 @@ class StudentProfileRestControllerTest extends TestModelFactory {
         verify(facade).createOrUpdateProfile(any(StudentProfile.class));
 
         StudentProfileDto profileDto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
-        assertProfilesEquals(profileDto, profile,  false);
+        assertProfilesEquals(profileDto, profile, false);
     }
 
     @Test
     void shouldNotCreateStudentProfile() throws Exception {
         Long id = 403L;
         StudentProfile profile = makeStudentProfile(id);
-        when(facade.createOrUpdateProfile(any(StudentProfile.class))).thenThrow(new RuntimeException());
+        String message = "Cannot create student profile: '403!'";
+        Exception exception = new RuntimeException(message);
+        doThrow(exception).when(facade).createOrUpdateProfile(any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
@@ -173,7 +174,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
-        assertThat(error.getErrorMessage()).startsWith("Cannot create new student-profile");
+        assertThat(error.getErrorMessage()).isEqualTo(message);
     }
 
     @Test
@@ -206,7 +207,6 @@ class StudentProfileRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotUpdateStudentProfile_NullId() throws Exception {
-        Long id = 404L;
         StudentProfile profile = makeStudentProfile(null);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
@@ -259,7 +259,9 @@ class StudentProfileRestControllerTest extends TestModelFactory {
         Long id = 404L;
         StudentProfile profile = makeStudentProfile(id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
-        when(facade.createOrUpdateProfile(any(StudentProfile.class))).thenThrow(new RuntimeException());
+        String message = "Cannot update student profile: '404!'";
+        Exception exception = new RuntimeException(message);
+        doThrow(exception).when(facade).createOrUpdateProfile(any(StudentProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -278,7 +280,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                 result.getResponse().getContentAsString(),
                 RestResponseEntityExceptionHandler.RestErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
-        assertThat(error.getErrorMessage()).startsWith("Cannot update student-profile");
+        assertThat(error.getErrorMessage()).isEqualTo(message);
     }
 
     @Test
@@ -464,7 +466,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
         assertThat(error.getErrorMessage()).isEqualTo("Cannot delete student-profile for id = 409");
     }
 
-    private static String rootWithId(Long id){
+    private static String rootWithId(Long id) {
         return ROOT + "/" + id;
     }
 }
