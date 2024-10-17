@@ -1,8 +1,14 @@
 package oleg.sopilnyak.test.service.message;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import org.springframework.util.ObjectUtils;
+
+import java.security.NoSuchAlgorithmException;
 
 
 /**
@@ -21,4 +27,23 @@ public class PrincipalProfilePayload extends BaseProfilePayload<PrincipalProfile
     private String login;
     // signature for login + password string
     private String signature;
+
+    /**
+     * To check is it the correct password for login
+     *
+     * @param password password to check
+     * @return true if password is correct
+     */
+    @Override
+    public boolean isPassword(String password) {
+        if (ObjectUtils.isEmpty(signature) || ObjectUtils.isEmpty(login)) {
+            return false;
+        } else {
+            try {
+                return signature.equals(makeSignatureFor(password));
+            } catch (NoSuchAlgorithmException e) {
+                return false;
+            }
+        }
+    }
 }

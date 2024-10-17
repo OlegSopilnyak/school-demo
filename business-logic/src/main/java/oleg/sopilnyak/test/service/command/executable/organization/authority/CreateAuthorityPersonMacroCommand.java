@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Deque;
 import java.util.Optional;
 
@@ -140,8 +141,13 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
         final PrincipalProfilePayload payload = PrincipalProfilePayload.builder()
                 .id(null).phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
                 .login(emailPrefix)
-                .signature(emailPrefix + " ")
                 .build();
+        try {
+            payload.setSignature(payload.makeSignatureFor(""));
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Cannot make the signature for '{}'",command.getId(), e);
+            throw new CannotCreateCommandContextException(command.getId(), e);
+        }
         // create command-context with created parameter by default
         return command.createContext(payload);
     }

@@ -1,6 +1,8 @@
 include 'common'
+include 'persistence'
 
 project(':common').projectDir = "$rootDir/../common" as File
+project(':persistence').projectDir = "$rootDir/../persistence" as File
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

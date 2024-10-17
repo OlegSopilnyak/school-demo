@@ -16,6 +16,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +42,21 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
+    }
+
+    @Test
+    void shouldGenerateCorrectSignature() throws NoSuchAlgorithmException {
+        String login = "login";
+        String password = "password";
+        PrincipalProfilePayload secure = new PrincipalProfilePayload();
+        secure.setLogin(login);
+        String signature = secure.makeSignatureFor(password);
+        assertThat(signature).isNotEmpty();
+        assertThat(secure.isPassword(password)).isFalse();
+        PrincipalProfilePayload profilePayload =
+                PrincipalProfilePayload.builder().login(login).signature(signature).build();
+        assertThat(profilePayload.isPassword(password)).isTrue();
+        assertThat(profilePayload.isPassword("")).isFalse();
     }
 
     @Test
