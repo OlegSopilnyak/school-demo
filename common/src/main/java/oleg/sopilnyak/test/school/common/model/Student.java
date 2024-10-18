@@ -10,8 +10,6 @@ import java.util.List;
  * @see Person
  */
 public interface Student extends Person {
-    String TITLE = "student";
-
     /**
      * To get description of the student
      *
@@ -25,16 +23,6 @@ public interface Student extends Person {
      * @return list of courses
      */
     List<Course> getCourses();
-
-    /**
-     * To get the title of the authority person
-     *
-     * @return person's title value
-     */
-    @Override
-    default String getTitle() {
-        return TITLE;
-    }
 
     /**
      * To get full-name of the student

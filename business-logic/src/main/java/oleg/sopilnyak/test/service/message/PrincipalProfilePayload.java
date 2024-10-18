@@ -38,12 +38,11 @@ public class PrincipalProfilePayload extends BaseProfilePayload<PrincipalProfile
     public boolean isPassword(String password) {
         if (ObjectUtils.isEmpty(signature) || ObjectUtils.isEmpty(login)) {
             return false;
-        } else {
-            try {
-                return signature.equals(makeSignatureFor(password));
-            } catch (NoSuchAlgorithmException e) {
-                return false;
-            }
+        }
+        try {
+            return signature.equals(makeSignatureFor(password));
+        } catch (NoSuchAlgorithmException e) {
+            return false;
         }
     }
 }

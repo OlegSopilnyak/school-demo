@@ -1,9 +1,6 @@
 package oleg.sopilnyak.test.school.common.test;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
@@ -545,5 +542,16 @@ public class TestModelFactory {
     @SuperBuilder
     protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
         private String login;
+
+        /**
+         * To check is it the correct password for login
+         *
+         * @param password password to check
+         * @return true if password is correct
+         */
+        @Override
+        public boolean isPassword(String password) {
+            return false;
+        }
     }
 }

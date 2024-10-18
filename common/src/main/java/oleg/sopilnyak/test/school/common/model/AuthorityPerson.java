@@ -11,6 +11,13 @@ import java.util.List;
  */
 public interface AuthorityPerson extends Person {
     /**
+     * To get the title of the authority person
+     *
+     * @return person's title value
+     */
+    String getTitle();
+
+    /**
      * To get the list of faculties where person is a dean
      *
      * @return list of faculties

@@ -17,15 +17,9 @@ public interface Person extends BaseType {
      * @return the value
      * @see PersonProfile
      */
-    default Long getProfileId(){
+    default Long getProfileId() {
         return -1L;
     }
-    /**
-     * To get the title of the authority person
-     *
-     * @return person's title value
-     */
-    String getTitle();
 
     /**
      * To get first-name of the student
