@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
@@ -116,7 +116,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(profile.getId());
@@ -137,7 +137,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
@@ -309,7 +309,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileIsNotFoundException {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
         Context<Optional<StudentProfile>> context = spy(command.createContext());

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -104,7 +104,7 @@ class DeleteStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
@@ -115,7 +115,7 @@ class DeleteStudentProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_WrongParameterType() throws NotExistProfileException {
+    void shouldNotDoCommand_WrongParameterType() throws ProfileIsNotFoundException {
         Context<Boolean> context = command.createContext("id");
 
         command.doCommand(context);
@@ -127,7 +127,7 @@ class DeleteStudentProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
+    void shouldNotDoCommand_ExceptionThrown() throws ProfileIsNotFoundException {
         long id = 416L;
         when(persistence.toEntity(profile)).thenReturn(profile);
         doCallRealMethod().when(persistence).findStudentProfileById(id);

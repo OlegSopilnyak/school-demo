@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.facade.profile;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -171,7 +171,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(PROFILE_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(NotExistProfileException.class);
+        assertThat(cause).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(facade).createOrUpdate(profileSource);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
@@ -221,11 +221,11 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteProfile_ProfileNotExists() throws NotExistProfileException {
+    void shouldNotDeleteProfile_ProfileNotExists() throws ProfileIsNotFoundException {
         Long id = 615L;
         PrincipalProfile profile = makePrincipalProfile(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         verify(facade).deleteById(id);
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:615 is not exists.");
@@ -242,7 +242,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteProfileById_ProfileNotExists() {
         Long id = 603L;
-        NotExistProfileException thrown = assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
+        ProfileIsNotFoundException thrown = assertThrows(ProfileIsNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:603 is not exists.");
         verify(factory).command(PROFILE_DELETE);
@@ -260,7 +260,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         Long id = -716L;
         PrincipalProfile profile = makePrincipalProfile(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
@@ -272,7 +272,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteProfileInstance_NullId() {
         PrincipalProfile profile = makePrincipalProfile(null);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());

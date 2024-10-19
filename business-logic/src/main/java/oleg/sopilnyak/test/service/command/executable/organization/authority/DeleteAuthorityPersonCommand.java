@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -54,7 +54,7 @@ public class DeleteAuthorityPersonCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
-     * @see NotExistAuthorityPersonException
+     * @see AuthorityPersonIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -73,7 +73,7 @@ public class DeleteAuthorityPersonCommand
             );
             if (!entity.getFaculties().isEmpty()) {
                 log.warn(PERSON_WITH_ID_PREFIX + "{} is managing faculties.", id);
-                throw new AuthorityPersonManageFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
+                throw new AuthorityPersonManagesFacultyException(PERSON_WITH_ID_PREFIX + id + " is managing faculties.");
             }
             // removing authority person instance by ID from the database
             persistence.deleteAuthorityPerson(id);
@@ -137,7 +137,7 @@ public class DeleteAuthorityPersonCommand
     }
 
     // private methods
-    private EntityNotExistException exceptionFor(final Long id) {
-        return new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityIsNotFoundException exceptionFor(final Long id) {
+        return new AuthorityPersonIsNotFoundException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

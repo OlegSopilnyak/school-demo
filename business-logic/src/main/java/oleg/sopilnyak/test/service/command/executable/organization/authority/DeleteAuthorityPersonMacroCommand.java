@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -141,7 +141,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      */
     public <T> Context<T> createPrincipalProfileContext(PrincipalProfileCommand command, Long personId) {
         final Long profileId = persistence.findAuthorityPersonById(personId)
-                .orElseThrow(() -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + personId + " is not exists."))
+                .orElseThrow(() -> new AuthorityPersonIsNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists."))
                 .getProfileId();
         return command.createContext(profileId);
     }

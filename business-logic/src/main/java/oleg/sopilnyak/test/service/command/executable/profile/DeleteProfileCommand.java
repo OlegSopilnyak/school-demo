@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.Getter;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -75,7 +75,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see DeleteProfileCommand#functionFindById()
      * @see DeleteProfileCommand#functionAdoptEntity()
      * @see DeleteProfileCommand#functionSave()
-     * @see NotExistProfileException
+     * @see ProfileIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -133,7 +133,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
     }
 
     // private methods
-    private EntityNotExistException exceptionFor(final Long id) {
-        return new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityIsNotFoundException exceptionFor(final Long id) {
+        return new ProfileIsNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

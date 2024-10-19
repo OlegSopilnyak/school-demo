@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -120,7 +120,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
 
@@ -256,7 +256,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
         verify(command, never()).executeDo(any(Context.class));
@@ -276,7 +276,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         MacroCommandParameter<Boolean> parameter = context.getRedoParameter();
 
@@ -287,7 +287,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         Context<Boolean> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
-        assertThat(profileContext.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(profileContext.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(profileContext.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter()).isNull();
         assertThat(profileContext.getResult()).isEmpty();

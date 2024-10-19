@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
-import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -183,7 +183,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(NotExistFacultyException.class);
+        assertThat(cause).isInstanceOf(FacultyIsNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
@@ -195,7 +195,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteFacultyById() throws NotExistFacultyException, FacultyIsNotEmptyException {
+    void shouldDeleteFacultyById() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
         Faculty facultySource = persistFaculty();
         Long id = facultySource.getId();
 
@@ -205,7 +205,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-//        verify(persistence).toEntity(facultySource);
         verify(persistence).deleteFaculty(id);
         assertThat(persistence.findFacultyById(id)).isEmpty();
     }
@@ -215,7 +214,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     void shouldNoDeleteFacultyById_FacultyNotExists() {
         Long id = 403L;
 
-        NotExistFacultyException thrown = assertThrows(NotExistFacultyException.class, () -> facade.deleteFacultyById(id));
+        FacultyIsNotFoundException thrown = assertThrows(FacultyIsNotFoundException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
@@ -243,7 +242,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-//        verify(persistence).toEntity(faculty.get());
         verify(persistence, never()).deleteFaculty(id);
     }
 
@@ -266,7 +264,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         Optional<Faculty> dbAuthorityPerson = database.findFacultyById(entity.getId());
         assertFacultyEquals(dbAuthorityPerson.orElseThrow(), faculty, false);
         assertThat(dbAuthorityPerson).contains(entity);
-//        return database.toEntity(entity);
         return entity;
     }
 }

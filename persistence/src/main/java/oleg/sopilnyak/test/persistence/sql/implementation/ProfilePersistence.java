@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
@@ -107,7 +107,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
             getLog().debug("Deleted PersonProfile with ID:{}", id);
         } else {
             getLog().warn("PersonProfile with ID:{} is not exists.", id);
-            throw new NotExistProfileException("PersonProfile with ID:" + id + " is not exists.");
+            throw new ProfileIsNotFoundException("PersonProfile with ID:" + id + " is not exists.");
         }
     }
 

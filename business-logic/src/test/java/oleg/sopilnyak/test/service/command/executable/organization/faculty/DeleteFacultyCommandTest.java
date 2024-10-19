@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -68,7 +68,7 @@ class DeleteFacultyCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistFacultyException.class);
+        assertThat(context.getException()).isInstanceOf(FacultyIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
@@ -102,7 +102,7 @@ class DeleteFacultyCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_DeleteExceptionThrown() throws NotExistProfileException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
         long id = 316L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);

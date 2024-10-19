@@ -1,12 +1,14 @@
-package oleg.sopilnyak.test.school.common.exception;
+package oleg.sopilnyak.test.school.common.exception.profile;
+
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
 
 /**
  * Exception: throws when you want to delete or update profile which is not created before
  *
- * @see EntityNotExistException
+ * @see EntityIsNotFoundException
  * @see oleg.sopilnyak.test.school.common.model.base.PersonProfile
  */
-public class NotExistProfileException extends EntityNotExistException {
+public class ProfileIsNotFoundException extends EntityIsNotFoundException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -15,7 +17,7 @@ public class NotExistProfileException extends EntityNotExistException {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public NotExistProfileException(String message) {
+    public ProfileIsNotFoundException(String message) {
         super(message);
     }
 }

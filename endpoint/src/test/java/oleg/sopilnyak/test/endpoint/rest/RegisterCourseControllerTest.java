@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.endpoint.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
-import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 class RegisterCourseControllerTest {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
     CoursesFacade facade;
@@ -64,7 +64,7 @@ class RegisterCourseControllerTest {
         Long studentId = 102L;
         Long courseId = 202L;
         String requestPath = "/register/" + studentId + "/to/" + courseId;
-        doThrow(new NoRoomInTheCourseException("No room for student")).when(facade).register(studentId, courseId);
+        doThrow(new CourseHasNoRoomException("No room for student")).when(facade).register(studentId, courseId);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(requestPath)

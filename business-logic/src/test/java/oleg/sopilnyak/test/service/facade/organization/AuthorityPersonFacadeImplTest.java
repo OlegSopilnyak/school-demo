@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -185,7 +185,7 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         Long id = 302L;
         Long profileId = 402L;
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -209,11 +209,11 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         Long id = 303L;
 
-        NotExistAuthorityPersonException thrown =
-                assertThrows(NotExistAuthorityPersonException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonIsNotFoundException thrown =
+                assertThrows(AuthorityPersonIsNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
 
@@ -225,7 +225,7 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         Long id = 304L;
         Long profileId = 404L;
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -237,8 +237,8 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(mockPersonPayload.getFaculties()).thenReturn(List.of(mockFaculty));
 
-        AuthorityPersonManageFacultyException thrown =
-                assertThrows(AuthorityPersonManageFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonManagesFacultyException thrown =
+                assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:304 is managing faculties.", thrown.getMessage());
 

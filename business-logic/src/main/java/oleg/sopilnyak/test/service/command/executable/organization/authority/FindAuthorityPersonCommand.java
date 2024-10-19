@@ -22,7 +22,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @Component
 public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
-    private final AuthorityPersonPersistenceFacade persistenceFacade;
+    private final AuthorityPersonPersistenceFacade persistence;
 
     /**
      * DO: To find authority person by id<BR/>
@@ -42,7 +42,7 @@ public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
             log.debug("Trying to find authority person by ID:{}", parameter);
             final Long id = commandParameter(parameter);
 
-            final Optional<AuthorityPerson> person = persistenceFacade.findAuthorityPersonById(id);
+            final Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
 
             log.debug("Got authority person {} by ID:{}", person, id);
             context.setResult(person);

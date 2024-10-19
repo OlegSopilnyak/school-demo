@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.facade.organization.impl;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
-import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -93,11 +93,11 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
      * To delete students group instance from the school
      *
      * @param id system-id of the students group to delete
-     * @throws NotExistStudentsGroupException    throws when students group is not exists
+     * @throws StudentsGroupIsNotFoundException    throws when students group is not exists
      * @throws StudentGroupWithStudentsException throws when students group has students
      */
     @Override
-    public void deleteStudentsGroupById(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
+    public void deleteStudentsGroupById(Long id) throws StudentsGroupIsNotFoundException, StudentGroupWithStudentsException {
         log.debug("Delete students group with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -114,7 +114,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         // fail processing
         final Exception doException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, doException);
-        if (doException instanceof NotExistStudentsGroupException noGroupException) {
+        if (doException instanceof StudentsGroupIsNotFoundException noGroupException) {
             throw noGroupException;
         } else if (doException instanceof StudentGroupWithStudentsException exception) {
             throw exception;

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.organization;
 
-import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 
@@ -50,18 +50,18 @@ public interface FacultyFacade extends OrganizationFacade {
      * To delete faculty from the school
      *
      * @param id system-id of the faculty to delete
-     * @throws NotExistFacultyException  throws when faculty is not exists
+     * @throws FacultyIsNotFoundException  throws when faculty is not exists
      * @throws FacultyIsNotEmptyException throws when faculty has courses
      */
     void deleteFacultyById(Long id)
-            throws NotExistFacultyException,
+            throws FacultyIsNotFoundException,
             FacultyIsNotEmptyException;
 
     default void deleteFaculty(Faculty instance)
-            throws NotExistFacultyException,
+            throws FacultyIsNotFoundException,
             FacultyIsNotEmptyException {
         if (isInvalid(instance)) {
-            throw new NotExistFacultyException("Wrong " + instance + " to delete");
+            throw new FacultyIsNotFoundException("Wrong " + instance + " to delete");
         }
         deleteFacultyById(instance.getId());
     }

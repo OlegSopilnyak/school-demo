@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -55,7 +55,7 @@ public class CreateOrUpdateFacultyCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      * @see FacultyPersistenceFacade#save(Faculty)
-     * @see NotExistFacultyException
+     * @see FacultyIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -69,7 +69,7 @@ public class CreateOrUpdateFacultyCommand
                 // previous version of faculty is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(
                         id, persistence::findFacultyById, payloadMapper::toPayload,
-                        () -> new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new FacultyIsNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -101,7 +101,7 @@ public class CreateOrUpdateFacultyCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see FacultyPersistenceFacade#save(Faculty)
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
-     * @see NotExistFacultyException
+     * @see FacultyIsNotFoundException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {

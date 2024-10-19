@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 class AuthorityPersonsRestControllerTest extends TestModelFactory {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
     AuthorityPersonFacade facade;
@@ -271,7 +271,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
         Long id = 304L;
         String requestPath = RequestMappingRoot.AUTHORITIES + "/" + id;
-        doThrow(new NotExistAuthorityPersonException("Cannot delete not exists authority-person"))
+        doThrow(new AuthorityPersonIsNotFoundException("Cannot delete not exists authority-person"))
                 .when(facade).deleteAuthorityPersonById(id);
         MvcResult result =
                 mockMvc.perform(
@@ -294,7 +294,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
         Long id = 305L;
         String requestPath = RequestMappingRoot.AUTHORITIES + "/" + id;
-        doThrow(new AuthorityPersonManageFacultyException("Cannot delete not free authority-person"))
+        doThrow(new AuthorityPersonManagesFacultyException("Cannot delete not free authority-person"))
                 .when(facade).deleteAuthorityPersonById(id);
         MvcResult result =
                 mockMvc.perform(

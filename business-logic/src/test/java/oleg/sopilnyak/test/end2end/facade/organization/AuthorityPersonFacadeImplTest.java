@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -178,7 +178,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(cause).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(authorityPersonSource);
@@ -189,7 +189,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         AuthorityPerson authorityPerson = createAuthorityPerson();
         Long id = authorityPerson.getId();
 
@@ -207,8 +207,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() {
         Long id = 303L;
 
-        NotExistAuthorityPersonException thrown =
-                assertThrows(NotExistAuthorityPersonException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonIsNotFoundException thrown =
+                assertThrows(AuthorityPersonIsNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("AuthorityPerson with ID:303 is not exists.");
 
@@ -221,7 +221,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         AuthorityPerson authorityPersonSource = makeCleanAuthorityPerson(2);
         if (authorityPersonSource instanceof FakeAuthorityPerson person) {
             person.setFaculties(List.of(makeCleanFacultyNoDean(2)));
@@ -230,8 +230,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(authorityPerson).isPresent();
         Long id = authorityPerson.get().getId();
 
-        AuthorityPersonManageFacultyException thrown =
-                assertThrows(AuthorityPersonManageFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonManagesFacultyException thrown =
+                assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is managing faculties.");
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
@@ -275,7 +275,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Optional<AuthorityPerson> dbAuthorityPerson = database.findAuthorityPersonById(entity.getId());
         assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
         assertThat(dbAuthorityPerson).contains(entity);
-//        return database.toEntity(entity);
         return entity;
     }
 

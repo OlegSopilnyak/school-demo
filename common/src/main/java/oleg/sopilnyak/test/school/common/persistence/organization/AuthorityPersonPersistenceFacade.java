@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.persistence.organization;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
 import java.util.Optional;
@@ -47,12 +47,12 @@ public interface AuthorityPersonPersistenceFacade {
      * To delete authority person by id
      *
      * @param id system-id of the authority person
-     * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
+     * @throws AuthorityPersonManagesFacultyException throws when you want to delete authority person who is the dean of a faculty now
+     * @throws AuthorityPersonIsNotFoundException   throws when you want to delete authority person who is not created before
      * @return true if success
      * @see AuthorityPerson
      */
     boolean deleteAuthorityPerson(Long id) throws
-            AuthorityPersonManageFacultyException,
-            NotExistAuthorityPersonException;
+            AuthorityPersonManagesFacultyException,
+            AuthorityPersonIsNotFoundException;
 }

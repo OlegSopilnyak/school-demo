@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.faculty;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -111,7 +111,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistFacultyException.class);
+        assertThat(context.getException()).isInstanceOf(FacultyIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
@@ -282,7 +282,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
         Faculty entity = persist();
         Long id = entity.getId();
         Context<Optional<Faculty>> context = command.createContext();

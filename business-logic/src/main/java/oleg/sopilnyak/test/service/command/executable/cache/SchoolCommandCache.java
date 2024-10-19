@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.cache;
 
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -43,7 +43,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param adoptEntity       function for transform entity to payload
      * @param exceptionSupplier function-source of entity-not-found exception
      * @return copy of exists entity
-     * @throws NotExistStudentException if student is not exist
+     * @throws StudentIsNotFoundException if student is not exist
      * @see StudentsPersistenceFacade
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see Context
@@ -53,7 +53,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     protected T retrieveEntity(final Long inputId,
                                final LongFunction<Optional<T>> findEntityById,
                                final UnaryOperator<T> adoptEntity,
-                               final Supplier<? extends EntityNotExistException> exceptionSupplier) {
+                               final Supplier<? extends EntityIsNotFoundException> exceptionSupplier) {
 
         getLog().debug("Getting entity of {} for ID:{}", entityName, inputId);
 
@@ -140,7 +140,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param facadeSave function for saving the entity
      * @return saved instance or empty
      * @see Optional#empty()
-     * @see NotExistStudentException
+     * @see StudentIsNotFoundException
      */
     protected Optional<T> persistRedoEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
         final Object parameter = context.getRedoParameter();
@@ -204,7 +204,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      */
     protected <E> void setupUndoParameter(final Context<E> context,
                                           final T entity,
-                                          final Supplier<? extends EntityNotExistException> exceptionSupplier) {
+                                          final Supplier<? extends EntityIsNotFoundException> exceptionSupplier) {
         // clear id of the deleted entity
         if (entity instanceof BasePayload<?> payload) {
             payload.setId(null);

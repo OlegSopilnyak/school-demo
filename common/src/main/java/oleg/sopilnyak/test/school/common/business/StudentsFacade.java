@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.business;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
@@ -79,20 +79,20 @@ public interface StudentsFacade {
      *
      * @param studentId system-id of the student
      * @return true if success
-     * @throws NotExistStudentException    throws when student it not exists
+     * @throws StudentIsNotFoundException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
-    boolean delete(Long studentId) throws NotExistStudentException, StudentWithCoursesException;
+    boolean delete(Long studentId) throws StudentIsNotFoundException, StudentWithCoursesException;
 
     /**
      * To delete student from the school
      *
      * @param student student instance
      * @return true if success
-     * @throws NotExistStudentException    throws when student it not exists
+     * @throws StudentIsNotFoundException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
-    default boolean delete(Student student) throws NotExistStudentException, StudentWithCoursesException {
+    default boolean delete(Student student) throws StudentIsNotFoundException, StudentWithCoursesException {
         return !isInvalid(student) && delete(student.getId());
     }
 

@@ -1,12 +1,9 @@
-package oleg.sopilnyak.test.school.common.exception;
+package oleg.sopilnyak.test.school.common.exception.organization;
 
 /**
- * Exception: throws when you want to delete or update course which is not created before
- *
- * @see EntityNotExistException
- * @see oleg.sopilnyak.test.school.common.model.Course
+ * Exception: throws when you want to delete faculty which has courses
  */
-public class NotExistCourseException extends EntityNotExistException {
+public class FacultyIsNotEmptyException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -15,7 +12,7 @@ public class NotExistCourseException extends EntityNotExistException {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public NotExistCourseException(String message) {
+    public FacultyIsNotEmptyException(String message) {
         super(message);
     }
 }

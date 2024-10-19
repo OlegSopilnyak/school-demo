@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -50,7 +50,7 @@ public class CreateOrUpdateCourseCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see CoursesPersistenceFacade#findCourseById(Long)
      * @see CoursesPersistenceFacade#save(Course)
-     * @see NotExistCourseException
+     * @see CourseIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -64,7 +64,7 @@ public class CreateOrUpdateCourseCommand
                 // previous version of course is storing to context for further rollback (undo)
                 final Course entity = retrieveEntity(
                         id, persistence::findCourseById, payloadMapper::toPayload,
-                        () -> new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
@@ -141,7 +141,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand implements S
      */
     public <T> Context<T> createStudentProfileContext(StudentProfileCommand command, Long studentId) {
         final Long profileId = persistence.findStudentById(studentId)
-                .orElseThrow(() -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."))
+                .orElseThrow(() -> new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."))
                 .getProfileId();
         return command.createContext(profileId);
     }

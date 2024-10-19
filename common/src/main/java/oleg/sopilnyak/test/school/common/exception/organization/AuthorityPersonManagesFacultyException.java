@@ -1,9 +1,9 @@
-package oleg.sopilnyak.test.school.common.exception;
+package oleg.sopilnyak.test.school.common.exception.organization;
 
 /**
- * Exception: throws when you want to register student to the course where there is no free slots for student
+ * Exception: throws when you want to delete authority person who is the dean of a faculty now
  */
-public class NoRoomInTheCourseException extends Exception {
+public class AuthorityPersonManagesFacultyException extends RuntimeException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -12,7 +12,7 @@ public class NoRoomInTheCourseException extends Exception {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public NoRoomInTheCourseException(String message) {
+    public AuthorityPersonManagesFacultyException(String message) {
         super(message);
     }
 }

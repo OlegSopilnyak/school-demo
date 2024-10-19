@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -138,7 +138,7 @@ public class DeleteFacultyCommand
     }
 
     // private methods
-    private EntityNotExistException exceptionFor(final Long id) {
-        return new NotExistFacultyException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityIsNotFoundException exceptionFor(final Long id) {
+        return new FacultyIsNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -132,7 +132,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     }
 
     // private methods
-    private EntityNotExistException exceptionFor(final Long id) {
-        return new NotExistCourseException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityIsNotFoundException exceptionFor(final Long id) {
+        return new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

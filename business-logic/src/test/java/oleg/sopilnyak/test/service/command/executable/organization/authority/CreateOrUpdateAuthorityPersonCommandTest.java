@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -91,7 +91,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(entity).getId();
@@ -253,7 +253,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);

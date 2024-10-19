@@ -1,12 +1,14 @@
-package oleg.sopilnyak.test.school.common.exception;
+package oleg.sopilnyak.test.school.common.exception.organization;
+
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
 
 /**
  * Exception: throws when you want to delete or update authority person which is not created before
  *
- * @see EntityNotExistException
+ * @see EntityIsNotFoundException
  * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
-public class NotExistAuthorityPersonException extends EntityNotExistException {
+public class AuthorityPersonIsNotFoundException extends EntityIsNotFoundException {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -15,7 +17,7 @@ public class NotExistAuthorityPersonException extends EntityNotExistException {
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public NotExistAuthorityPersonException(String message) {
+    public AuthorityPersonIsNotFoundException(String message) {
         super(message);
     }
 }

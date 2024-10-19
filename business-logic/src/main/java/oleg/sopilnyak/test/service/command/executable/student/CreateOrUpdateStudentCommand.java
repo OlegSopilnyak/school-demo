@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -51,7 +51,7 @@ public class CreateOrUpdateStudentCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see StudentsPersistenceFacade#save(Student)
-     * @see NotExistStudentException
+     * @see StudentIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -65,7 +65,7 @@ public class CreateOrUpdateStudentCommand
                 // previous version of student is getting and storing to context for further rollback (undo)
                 final Student entity = retrieveEntity(
                         id, persistence::findStudentById, payloadMapper::toPayload,
-                        () -> new NotExistStudentException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);

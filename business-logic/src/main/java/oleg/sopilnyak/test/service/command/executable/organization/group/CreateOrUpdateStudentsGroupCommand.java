@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -55,7 +55,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
-     * @see NotExistStudentsGroupException
+     * @see StudentsGroupIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -69,7 +69,7 @@ public class CreateOrUpdateStudentsGroupCommand
                 // cached students group is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(
                         id, persistence::findStudentsGroupById, payloadMapper::toPayload,
-                        () -> new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new StudentsGroupIsNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -101,7 +101,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
-     * @see NotExistStudentsGroupException
+     * @see StudentsGroupIsNotFoundException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {

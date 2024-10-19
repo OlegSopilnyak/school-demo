@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.facade.organization.impl;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -42,6 +42,36 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         super(factory);
         this.mapper = mapper;
         this.convert = person -> person instanceof AuthorityPersonPayload ? person : this.mapper.toPayload(person);
+    }
+
+    /**
+     * To log in AuthorityPerson by it valid login and password
+     *
+     * @param username the value of person's username (login)
+     * @param password the value of person's password
+     * @return logged in person's instance or exception will be thrown
+     * @see AuthorityPersonCommand#LOGIN
+     */
+    @Override
+    public Optional<AuthorityPerson> login(String username, String password) {
+        log.debug("Try to login: username={}", username);
+        final String[] permissions = new String[]{username, password};
+        final Optional<AuthorityPerson> loggedIn = doSimpleCommand(LOGIN, permissions, factory);
+        log.debug("Person is logged in: {}", loggedIn);
+        return loggedIn;
+    }
+
+    /**
+     * To log out the AuthorityPerson
+     *
+     * @param token logged in person's authorization token (see Authorization: Bearer <token>)
+     * @see AuthorityPersonCommand#LOGIN
+     */
+    @Override
+    public void logout(String token) {
+        log.debug("Logout for token: {}", token);
+        final boolean loggedOut = doSimpleCommand(LOGOUT, token, factory);
+        log.debug("Person is logged out: {}", loggedOut);
     }
 
     /**
@@ -117,11 +147,11 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws NotExistAuthorityPersonException      throws when authorityPerson is not exists
-     * @throws AuthorityPersonManageFacultyException throws when authorityPerson takes place in a faculty as a dean
+     * @throws AuthorityPersonIsNotFoundException      throws when authorityPerson is not exists
+     * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     @Override
-    public void deleteAuthorityPersonById(Long id) throws NotExistAuthorityPersonException, AuthorityPersonManageFacultyException {
+    public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotFoundException, AuthorityPersonManagesFacultyException {
         log.debug("Delete authority person with ID:{}", id);
         final String commandId = DELETE_ALL;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -138,9 +168,9 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         // fail processing
         final Exception deleteException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, deleteException);
-        if (deleteException instanceof NotExistAuthorityPersonException noPersonException) {
+        if (deleteException instanceof AuthorityPersonIsNotFoundException noPersonException) {
             throw noPersonException;
-        } else if (deleteException instanceof AuthorityPersonManageFacultyException exception) {
+        } else if (deleteException instanceof AuthorityPersonManagesFacultyException exception) {
             throw exception;
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);

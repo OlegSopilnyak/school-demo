@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,9 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 class StudentProfileRestControllerTest extends TestModelFactory {
-    private final static String ROOT = "/profiles/students";
-    private final static ObjectMapper MAPPER = new ObjectMapper();
-    private final static EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
+    private static final String ROOT = "/profiles/students";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
     @Mock
     StudentProfileFacade facade;
     @Spy
@@ -310,7 +310,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentProfile_ProfileNotExistsExceptionThrown() throws Exception {
         StudentProfile profile = makeStudentProfile(null);
-        doThrow(new NotExistProfileException("")).when(facade).delete(any(StudentProfile.class));
+        doThrow(new ProfileIsNotFoundException("")).when(facade).delete(any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(

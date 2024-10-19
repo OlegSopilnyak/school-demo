@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.persistence.sql;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.*;
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.organization.*;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -289,7 +289,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPerson() throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    void shouldDeleteAuthorityPerson() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         AuthorityPerson person = makeTestAuthorityPerson(null);
         Optional<AuthorityPerson> saved = facade.save(person);
         assertThat(saved).isNotEmpty();
@@ -356,7 +356,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteFaculty() throws NotExistFacultyException, FacultyIsNotEmptyException {
+    void shouldDeleteFaculty() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
         Faculty faculty = makeTestFaculty(null);
         Optional<Faculty> saved = facade.save(faculty);
         assertThat(saved).isNotEmpty();
@@ -427,7 +427,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteStudentsGroup() throws StudentGroupWithStudentsException, NotExistStudentsGroupException {
+    void shouldDeleteStudentsGroup() throws StudentGroupWithStudentsException, StudentsGroupIsNotFoundException {
         StudentsGroup group = makeTestStudentsGroup(null);
         Optional<StudentsGroup> saved = facade.save(group);
         assertThat(saved).isNotEmpty();

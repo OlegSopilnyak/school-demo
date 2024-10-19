@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 class CoursesRestControllerTest extends TestModelFactory {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
     CoursesFacade facade;
@@ -262,7 +262,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldDeleteCourseValidId_CourseNotExistsException() throws Exception {
         Long id = 103L;
         String requestPath = "/courses/" + id;
-        doThrow(new NotExistCourseException("Wrong course")).when(facade).delete(id);
+        doThrow(new CourseIsNotFoundException("Wrong course")).when(facade).delete(id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)

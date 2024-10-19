@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
@@ -54,12 +54,12 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                throw new NotExistStudentException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX);
+                throw new StudentIsNotFoundException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX);
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                throw new NotExistCourseException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX);
+                throw new CourseIsNotFoundException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX);
             }
 
             final Student existingStudent = student.get();

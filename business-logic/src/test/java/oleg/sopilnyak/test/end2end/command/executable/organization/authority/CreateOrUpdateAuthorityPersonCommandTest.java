@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -108,7 +108,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(entity, atLeastOnce()).getId();
@@ -292,7 +292,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);

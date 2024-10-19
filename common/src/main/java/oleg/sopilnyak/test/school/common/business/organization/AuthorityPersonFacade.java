@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.school.common.business.organization;
 
 import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.school.common.exception.AuthorityPersonManageFacultyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
 import java.util.Collection;
@@ -15,6 +15,22 @@ import java.util.Optional;
  * @see AuthorityPerson
  */
 public interface AuthorityPersonFacade extends OrganizationFacade {
+    /**
+     * To log in AuthorityPerson by it valid login and password
+     *
+     * @param username the value of person's username (login)
+     * @param password the value of person's password
+     * @return logged in person's instance or exception will be thrown
+     */
+    Optional<AuthorityPerson> login(String username, String password);
+
+    /**
+     * To log out the person
+     *
+     * @param token logged in person's authorization token (see Authorization: Bearer <token>)
+     */
+    void logout(String token);
+
     /**
      * To get all authorityPerson
      *
@@ -60,18 +76,18 @@ public interface AuthorityPersonFacade extends OrganizationFacade {
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws NotExistAuthorityPersonException      throws when authorityPerson is not exists
-     * @throws AuthorityPersonManageFacultyException throws when authorityPerson takes place in a faculty as a dean
+     * @throws AuthorityPersonIsNotFoundException      throws when authorityPerson is not exists
+     * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     void deleteAuthorityPersonById(Long id)
-            throws NotExistAuthorityPersonException,
-            AuthorityPersonManageFacultyException;
+            throws AuthorityPersonIsNotFoundException,
+            AuthorityPersonManagesFacultyException;
 
     default void deleteAuthorityPerson(AuthorityPerson instance)
-            throws NotExistAuthorityPersonException,
-            AuthorityPersonManageFacultyException {
+            throws AuthorityPersonIsNotFoundException,
+            AuthorityPersonManagesFacultyException {
         if (isInvalid(instance)) {
-            throw new NotExistAuthorityPersonException("Wrong " + instance + " to delete");
+            throw new AuthorityPersonIsNotFoundException("Wrong " + instance + " to delete");
         }
         deleteAuthorityPersonById(instance.getId());
     }

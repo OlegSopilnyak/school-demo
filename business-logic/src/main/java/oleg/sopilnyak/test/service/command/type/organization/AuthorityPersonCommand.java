@@ -19,6 +19,14 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      */
     String FACTORY_BEAN_NAME = "authorityCommandsFactory";
     /**
+     * Command-ID: for log in person by login/password
+     */
+    String LOGIN = "organization.authority.person.login";
+    /**
+     * Command-ID: for log out person by auth token
+     */
+    String LOGOUT = "organization.authority.person.logout";
+    /**
      * Command-ID: for find all authority persons
      */
     String FIND_ALL = "organization.authority.person.findAll";

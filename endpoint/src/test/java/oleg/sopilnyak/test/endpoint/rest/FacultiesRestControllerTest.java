@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 class FacultiesRestControllerTest extends TestModelFactory {
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Mock
     FacultyFacade facade;
@@ -324,7 +324,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
         String requestPath = RequestMappingRoot.FACULTIES;
-        doThrow(new NotExistFacultyException("Faculty '" + id + "' not exists."))
+        doThrow(new FacultyIsNotFoundException("Faculty '" + id + "' not exists."))
                 .when(facade).deleteFaculty(any(FacultyDto.class));
         MvcResult result =
                 mockMvc.perform(

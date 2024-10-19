@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
@@ -156,7 +156,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(profile).getId();
@@ -318,7 +318,7 @@ class CreateOrUpdateStudentProfileCommandTest {
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileIsNotFoundException {
         Long id = 703L;
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);

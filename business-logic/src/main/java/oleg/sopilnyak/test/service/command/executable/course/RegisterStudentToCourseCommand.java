@@ -3,10 +3,10 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
@@ -77,12 +77,12 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
             final Optional<Student> student = persistenceFacade.findStudentById(studentId);
             if (student.isEmpty()) {
                 log.debug("No such student with id:{}", studentId);
-                throw new NotExistStudentException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX);
+                throw new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX);
             }
             final Optional<Course> course = persistenceFacade.findCourseById(courseId);
             if (course.isEmpty()) {
                 log.debug("No such course with id:{}", courseId);
-                throw new NotExistCourseException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX);
+                throw new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX);
             }
 
             final Student existingStudent = student.get();
@@ -95,7 +95,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
             }
             if (existingCourse.getStudents().size() >= maximumRooms) {
                 log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
-                throw new NoRoomInTheCourseException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
+                throw new CourseHasNoRoomException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
             }
             if (existingStudent.getCourses().size() >= coursesExceed) {
                 log.debug("Student with id:{} has more than {} courses", studentId, coursesExceed);

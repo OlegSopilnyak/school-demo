@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
@@ -144,10 +144,10 @@ class PrincipalProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteProfile_ProfileNotExists() throws NotExistProfileException {
+    void shouldNotDeleteProfile_ProfileNotExists() throws ProfileIsNotFoundException {
         Long id = 615L;
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:615 is not exists.");
         verify(factory).command(PROFILE_DELETE);
@@ -160,7 +160,7 @@ class PrincipalProfileFacadeImplTest {
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
         Long id = 603L;
-        NotExistProfileException thrown = assertThrows(NotExistProfileException.class, () -> facade.deleteById(id));
+        ProfileIsNotFoundException thrown = assertThrows(ProfileIsNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:603 is not exists.");
         verify(factory).command(PROFILE_DELETE);
@@ -171,7 +171,7 @@ class PrincipalProfileFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteProfileInstance() throws NotExistProfileException {
+    void shouldDeleteProfileInstance() throws ProfileIsNotFoundException {
         Long id = 614L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
@@ -191,11 +191,11 @@ class PrincipalProfileFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteProfileInstance_ProfileNotExists() throws NotExistProfileException {
+    void shouldNotDeleteProfileInstance_ProfileNotExists() throws ProfileIsNotFoundException {
         Long id = 716L;
         when(profile.getId()).thenReturn(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
         verify(facade).deleteById(id);
@@ -211,7 +211,7 @@ class PrincipalProfileFacadeImplTest {
         Long id = -716L;
         when(profile.getId()).thenReturn(id);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
@@ -222,7 +222,7 @@ class PrincipalProfileFacadeImplTest {
     void shouldNotDeleteProfileInstance_NullId() {
         when(profile.getId()).thenReturn(null);
 
-        NotExistProfileException exception = assertThrows(NotExistProfileException.class, () -> facade.delete(profile));
+        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());

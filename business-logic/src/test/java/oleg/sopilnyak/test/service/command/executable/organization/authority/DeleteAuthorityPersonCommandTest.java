@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -68,7 +68,7 @@ class DeleteAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistAuthorityPersonException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
@@ -102,7 +102,7 @@ class DeleteAuthorityPersonCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_DeleteExceptionThrown() throws NotExistProfileException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
         long id = 316L;
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);

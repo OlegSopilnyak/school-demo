@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.StudentsFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -119,11 +119,11 @@ public class StudentsFacadeImpl implements StudentsFacade {
      *
      * @param id system-id of the student
      * @return true if success
-     * @throws NotExistStudentException    throws when student it not exists
+     * @throws StudentIsNotFoundException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
      */
     @Override
-    public boolean delete(Long id) throws NotExistStudentException, StudentWithCoursesException {
+    public boolean delete(Long id) throws StudentIsNotFoundException, StudentWithCoursesException {
         log.debug("Delete student with ID:{}", id);
         final String commandId = DELETE_ALL;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -140,7 +140,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
         // fail processing
         final Exception deleteException = context.getException();
         log.warn("Something went wrong", deleteException);
-        if (deleteException instanceof NotExistStudentException noStudentException) {
+        if (deleteException instanceof StudentIsNotFoundException noStudentException) {
             throw noStudentException;
         } else if (deleteException instanceof StudentWithCoursesException studentWithCoursesException) {
             throw studentWithCoursesException;

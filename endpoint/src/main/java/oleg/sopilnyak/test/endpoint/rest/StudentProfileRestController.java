@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.business.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -84,7 +84,7 @@ public class StudentProfileRestController {
             facade.delete(profileDto);
 
             return ResponseEntity.ok().build();
-        } catch (NotExistProfileException e) {
+        } catch (ProfileIsNotFoundException e) {
             log.error("Wrong student-profile to delete {}", profileDto);
             throw new ResourceNotFoundException("Wrong student-profile to delete " + profileDto);
         } catch (Exception e) {
@@ -106,7 +106,7 @@ public class StudentProfileRestController {
             facade.deleteById(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | NotExistProfileException e) {
+        } catch (NumberFormatException | ProfileIsNotFoundException e) {
             log.error("Wrong student profile-id: '{}'", profileId);
             throw new ResourceNotFoundException(WRONG_STUDENT_PROFILE_ID + profileId + "'");
         } catch (Exception e) {

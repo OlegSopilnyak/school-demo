@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.end2end.command.executable.profile.principal;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -89,7 +89,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
@@ -113,7 +113,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_NullParameter() throws NotExistProfileException {
+    void shouldNotDoCommand_NullParameter() throws ProfileIsNotFoundException {
         Context<Boolean> context = command.createContext(null);
 
         command.doCommand(context);
@@ -127,7 +127,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_ExceptionThrown() throws NotExistProfileException {
+    void shouldNotDoCommand_ExceptionThrown() throws ProfileIsNotFoundException {
         PrincipalProfilePayload profile = persistPrincipalProfile();
         long id = profile.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);

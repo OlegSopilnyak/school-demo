@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityNotExistException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
-import oleg.sopilnyak.test.school.common.exception.StudentGroupWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -55,7 +55,7 @@ public class DeleteStudentsGroupCommand
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
-     * @see NotExistStudentsGroupException
+     * @see StudentsGroupIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -139,7 +139,7 @@ public class DeleteStudentsGroupCommand
     }
 
     // private methods
-    private EntityNotExistException exceptionFor(final Long id) {
-        return new NotExistStudentsGroupException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityIsNotFoundException exceptionFor(final Long id) {
+        return new StudentsGroupIsNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

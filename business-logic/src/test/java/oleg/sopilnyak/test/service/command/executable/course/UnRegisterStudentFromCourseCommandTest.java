@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
@@ -82,7 +82,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(persistence, never()).findCourseById(id);
@@ -99,7 +99,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
+        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);

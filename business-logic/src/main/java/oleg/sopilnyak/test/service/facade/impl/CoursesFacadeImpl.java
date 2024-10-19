@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -103,11 +103,11 @@ public class CoursesFacadeImpl implements CoursesFacade {
      * To delete course from the school
      *
      * @param id system-id of the course to delete
-     * @throws NotExistCourseException     throws when course it not exists
+     * @throws CourseIsNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
     @Override
-    public void delete(Long id) throws NotExistCourseException, CourseWithStudentsException {
+    public void delete(Long id) throws CourseIsNotFoundException, CourseWithStudentsException {
         log.debug("Delete course with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -124,7 +124,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         // fail processing
         final Exception deleteException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, deleteException);
-        if (deleteException instanceof NotExistCourseException noCourseException) {
+        if (deleteException instanceof CourseIsNotFoundException noCourseException) {
             throw noCourseException;
         } else if (deleteException instanceof CourseWithStudentsException exception) {
             throw exception;
@@ -140,15 +140,15 @@ public class CoursesFacadeImpl implements CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws NotExistStudentException      throws when student is not exists
-     * @throws NotExistCourseException       throws if course is not exists
-     * @throws NoRoomInTheCourseException    throws when there is no free slots for student
+     * @throws StudentIsNotFoundException      throws when student is not exists
+     * @throws CourseIsNotFoundException       throws if course is not exists
+     * @throws CourseHasNoRoomException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     @Override
     public void register(Long studentId, Long courseId)
-            throws NotExistStudentException, NotExistCourseException,
-            NoRoomInTheCourseException, StudentCoursesExceedException {
+            throws StudentIsNotFoundException, CourseIsNotFoundException,
+            CourseHasNoRoomException, StudentCoursesExceedException {
         log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
         final String commandId = REGISTER;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -165,11 +165,11 @@ public class CoursesFacadeImpl implements CoursesFacade {
         // fail processing
         final Exception registerException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, registerException);
-        if (registerException instanceof NotExistStudentException noStudentException) {
+        if (registerException instanceof StudentIsNotFoundException noStudentException) {
             throw noStudentException;
-        } else if (registerException instanceof NotExistCourseException noCourseException) {
+        } else if (registerException instanceof CourseIsNotFoundException noCourseException) {
             throw noCourseException;
-        } else if (registerException instanceof NoRoomInTheCourseException noRoomException) {
+        } else if (registerException instanceof CourseHasNoRoomException noRoomException) {
             throw noRoomException;
         } else if (registerException instanceof StudentCoursesExceedException coursesExceedException) {
             throw coursesExceedException;
@@ -185,11 +185,11 @@ public class CoursesFacadeImpl implements CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws NotExistStudentException throws when student is not exists
-     * @throws NotExistCourseException  throws if course is not exists
+     * @throws StudentIsNotFoundException throws when student is not exists
+     * @throws CourseIsNotFoundException  throws if course is not exists
      */
     @Override
-    public void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException {
+    public void unRegister(Long studentId, Long courseId) throws StudentIsNotFoundException, CourseIsNotFoundException {
         log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
         final String commandId = UN_REGISTER;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -206,9 +206,9 @@ public class CoursesFacadeImpl implements CoursesFacade {
         // fail processing
         final Exception unregisterException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, unregisterException);
-        if (unregisterException instanceof NotExistStudentException noStudentException) {
+        if (unregisterException instanceof StudentIsNotFoundException noStudentException) {
             throw noStudentException;
-        } else if (unregisterException instanceof NotExistCourseException noCourseException) {
+        } else if (unregisterException instanceof CourseIsNotFoundException noCourseException) {
             throw noCourseException;
         } else if (nonNull(unregisterException)) {
             throwFor(commandId, unregisterException);

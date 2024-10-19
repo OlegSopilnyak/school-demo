@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
 import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -96,7 +96,7 @@ public class AuthorityPersonsRestController {
             facade.deleteAuthorityPersonById(id);
 
             return ResponseEntity.ok().build();
-        } catch (NumberFormatException | NotExistAuthorityPersonException e) {
+        } catch (NumberFormatException | AuthorityPersonIsNotFoundException e) {
             log.error("Wrong authority-person-id: '{}'", personId);
             throw new ResourceNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (Exception e) {

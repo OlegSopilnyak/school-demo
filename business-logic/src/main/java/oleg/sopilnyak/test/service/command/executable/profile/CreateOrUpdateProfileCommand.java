@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -74,7 +74,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see CreateOrUpdateProfileCommand#functionFindById()
      * @see CreateOrUpdateProfileCommand#functionAdoptEntity()
      * @see CreateOrUpdateProfileCommand#functionSave()
-     * @see NotExistProfileException
+     * @see ProfileIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -89,7 +89,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
                 // previous version of profile is storing to context for further rollback (undo)
                 final PersonProfile entity = retrieveEntity(
                         id, functionFindById(), functionAdoptEntity(),
-                        () -> new NotExistProfileException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new ProfileIsNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
                 context.setUndoParameter(entity);

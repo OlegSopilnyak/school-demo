@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business;
 
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.base.BaseType;
@@ -68,21 +68,21 @@ public interface CoursesFacade {
      * To delete course from the school
      *
      * @param courseId system-id of the course to delete
-     * @throws NotExistCourseException     throws when course it not exists
+     * @throws CourseIsNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
-    void delete(Long courseId) throws NotExistCourseException, CourseWithStudentsException;
+    void delete(Long courseId) throws CourseIsNotFoundException, CourseWithStudentsException;
 
     /**
      * To delete course from the school
      *
      * @param course course instance to delete
-     * @throws NotExistCourseException     throws when course it not exists
+     * @throws CourseIsNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
      */
-    default void delete(Course course) throws NotExistCourseException, CourseWithStudentsException {
+    default void delete(Course course) throws CourseIsNotFoundException, CourseWithStudentsException {
         if (isInvalid(course)) {
-            throw new NotExistCourseException("Wrong " + course + " to delete.");
+            throw new CourseIsNotFoundException("Wrong " + course + " to delete.");
         }
         delete(course.getId());
     }
@@ -92,32 +92,32 @@ public interface CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws NotExistStudentException      throws when student is not exists
-     * @throws NotExistCourseException       throws if course is not exists
-     * @throws NoRoomInTheCourseException    throws when there is no free slots for student
+     * @throws StudentIsNotFoundException      throws when student is not exists
+     * @throws CourseIsNotFoundException       throws if course is not exists
+     * @throws CourseHasNoRoomException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     void register(Long studentId, Long courseId) throws
-            NotExistStudentException, NotExistCourseException,
-            NoRoomInTheCourseException, StudentCoursesExceedException;
+            StudentIsNotFoundException, CourseIsNotFoundException,
+            CourseHasNoRoomException, StudentCoursesExceedException;
 
     /**
      * To register the student to the school course
      *
      * @param student student instance
      * @param course  course instance
-     * @throws NotExistStudentException      throws when student is not exists
-     * @throws NotExistCourseException       throws if course is not exists
-     * @throws NoRoomInTheCourseException    throws when there is no free slots for student
+     * @throws StudentIsNotFoundException      throws when student is not exists
+     * @throws CourseIsNotFoundException       throws if course is not exists
+     * @throws CourseHasNoRoomException    throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     default void register(Student student, Course course) throws
-            NotExistStudentException, NotExistCourseException,
-            NoRoomInTheCourseException, StudentCoursesExceedException {
+            StudentIsNotFoundException, CourseIsNotFoundException,
+            CourseHasNoRoomException, StudentCoursesExceedException {
         if (isInvalid(student)) {
-            throw new NotExistStudentException("Wrong student " + student + " for registration.");
+            throw new StudentIsNotFoundException("Wrong student " + student + " for registration.");
         } else if (isInvalid(course)) {
-            throw new NotExistCourseException("Wrong course " + course + " for registration.");
+            throw new CourseIsNotFoundException("Wrong course " + course + " for registration.");
         }
         register(student.getId(), course.getId());
     }
@@ -127,24 +127,24 @@ public interface CoursesFacade {
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
-     * @throws NotExistStudentException throws when student is not exists
-     * @throws NotExistCourseException  throws if course is not exists
+     * @throws StudentIsNotFoundException throws when student is not exists
+     * @throws CourseIsNotFoundException  throws if course is not exists
      */
-    void unRegister(Long studentId, Long courseId) throws NotExistStudentException, NotExistCourseException;
+    void unRegister(Long studentId, Long courseId) throws StudentIsNotFoundException, CourseIsNotFoundException;
 
     /**
      * To un-register the student from the school course
      *
      * @param student student instance
      * @param course  course instance
-     * @throws NotExistStudentException throws when student is not exists
-     * @throws NotExistCourseException  throws if course is not exists
+     * @throws StudentIsNotFoundException throws when student is not exists
+     * @throws CourseIsNotFoundException  throws if course is not exists
      */
-    default void unRegister(Student student, Course course) throws NotExistStudentException, NotExistCourseException {
+    default void unRegister(Student student, Course course) throws StudentIsNotFoundException, CourseIsNotFoundException {
         if (isInvalid(student)) {
-            throw new NotExistStudentException("Wrong student " + student + " for un-registration.");
+            throw new StudentIsNotFoundException("Wrong student " + student + " for un-registration.");
         } else if (isInvalid(course)) {
-            throw new NotExistCourseException("Wrong course " + course + " for un-registration.");
+            throw new CourseIsNotFoundException("Wrong course " + course + " for un-registration.");
         }
         unRegister(student.getId(), course.getId());
     }

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.persistence.organization;
 
-import oleg.sopilnyak.test.school.common.exception.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.NotExistFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 
 import java.util.Optional;
@@ -47,11 +47,11 @@ public interface FacultyPersistenceFacade {
      * To delete faculty by id
      *
      * @param id system-id of the faculty
-     * @throws NotExistFacultyException  throws when you want to delete faculty which is not created before
+     * @throws FacultyIsNotFoundException  throws when you want to delete faculty which is not created before
      * @throws FacultyIsNotEmptyException throws when you want to delete faculty which has courses
      * @see Faculty
      */
     void deleteFaculty(Long id) throws
-            NotExistFacultyException,
+            FacultyIsNotFoundException,
             FacultyIsNotEmptyException;
 }

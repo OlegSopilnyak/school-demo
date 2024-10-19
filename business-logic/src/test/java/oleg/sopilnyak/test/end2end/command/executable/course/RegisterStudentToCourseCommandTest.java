@@ -2,10 +2,10 @@ package oleg.sopilnyak.test.end2end.command.executable.course;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.NoRoomInTheCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistCourseException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.exception.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
@@ -123,7 +123,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Student with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
@@ -140,7 +140,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistCourseException.class);
+        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
@@ -164,7 +164,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NoRoomInTheCourseException.class);
+        assertThat(context.getException()).isInstanceOf(CourseHasNoRoomException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").contains(" does not have enough rooms.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);

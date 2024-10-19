@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.end2end.command.executable.student;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
-import oleg.sopilnyak.test.school.common.exception.StudentWithCoursesException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
@@ -103,7 +103,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:112 is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);

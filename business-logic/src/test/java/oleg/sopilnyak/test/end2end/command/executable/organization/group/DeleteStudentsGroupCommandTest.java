@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.group;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -85,7 +85,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
+        assertThat(context.getException()).isInstanceOf(StudentsGroupIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
@@ -122,7 +122,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_DeleteExceptionThrown() throws NotExistProfileException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteStudentsGroup(id);

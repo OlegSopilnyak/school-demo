@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.end2end.facade;
 
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.organization.*;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
@@ -114,12 +114,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete authority person by id
      *
      * @param id system-id of the authority person
-     * @throws AuthorityPersonManageFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws NotExistAuthorityPersonException   throws when you want to delete authority person who is not created before
+     * @throws AuthorityPersonManagesFacultyException throws when you want to delete authority person who is the dean of a faculty now
+     * @throws AuthorityPersonIsNotFoundException   throws when you want to delete authority person who is not created before
      * @see AuthorityPerson
      */
     @Override
-    public boolean deleteAuthorityPerson(Long id) throws AuthorityPersonManageFacultyException, NotExistAuthorityPersonException {
+    public boolean deleteAuthorityPerson(Long id) throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
         return delegator.deleteAuthorityPerson(id);
     }
 
@@ -167,12 +167,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete faculty by id
      *
      * @param id system-id of the faculty
-     * @throws NotExistFacultyException  throws when you want to delete faculty which is not created before
+     * @throws FacultyIsNotFoundException  throws when you want to delete faculty which is not created before
      * @throws FacultyIsNotEmptyException throws when you want to delete faculty which has courses
      * @see Faculty
      */
     @Override
-    public void deleteFaculty(Long id) throws NotExistFacultyException, FacultyIsNotEmptyException {
+    public void deleteFaculty(Long id) throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
         delegator.deleteFaculty(id);
     }
 
@@ -219,12 +219,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws NotExistStudentsGroupException   throws when you want to delete students group which is not created before
+     * @throws StudentsGroupIsNotFoundException   throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     @Override
-    public void deleteStudentsGroup(Long id) throws NotExistStudentsGroupException, StudentGroupWithStudentsException {
+    public void deleteStudentsGroup(Long id) throws StudentsGroupIsNotFoundException, StudentGroupWithStudentsException {
         delegator.deleteStudentsGroup(id);
     }
 

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.NotExistAuthorityPersonException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -55,7 +55,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#save(AuthorityPerson)
-     * @see NotExistAuthorityPersonException
+     * @see AuthorityPersonIsNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
@@ -69,7 +69,7 @@ public class CreateOrUpdateAuthorityPersonCommand
                 // previous version of authority person is storing to context for further rollback (undo)
                 final AuthorityPerson entity = retrieveEntity(
                         id, persistence::findAuthorityPersonById, payloadMapper::toPayload,
-                        () -> new NotExistAuthorityPersonException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new AuthorityPersonIsNotFoundException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -101,7 +101,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see this#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#save(AuthorityPerson)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
-     * @see NotExistAuthorityPersonException
+     * @see AuthorityPersonIsNotFoundException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {

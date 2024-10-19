@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.end2end.command.executable.student;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -145,7 +145,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
 
@@ -293,7 +293,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentException.class);
+        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
         verify(command, never()).executeDo(any(Context.class));
@@ -315,7 +315,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         MacroCommandParameter<Boolean> parameter = context.getRedoParameter();
 
@@ -326,7 +326,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
-        assertThat(profileContext.getException()).isInstanceOf(NotExistProfileException.class);
+        assertThat(profileContext.getException()).isInstanceOf(ProfileIsNotFoundException.class);
         assertThat(profileContext.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter()).isNull();
         assertThat(profileContext.getResult()).isEmpty();

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
-import oleg.sopilnyak.test.school.common.exception.NotExistStudentsGroupException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -92,7 +92,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(NotExistStudentsGroupException.class);
+        assertThat(context.getException()).isInstanceOf(StudentsGroupIsNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(entity).getId();
@@ -254,7 +254,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws NotExistProfileException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
         Long id = 505L;
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);

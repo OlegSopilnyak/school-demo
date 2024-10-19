@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.profile.base;
 
-import oleg.sopilnyak.test.school.common.exception.NotExistProfileException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 
@@ -37,20 +37,20 @@ public interface PersonProfileFacade {
      * To delete profile by system-id
      *
      * @param id value of system-id
-     * @throws NotExistProfileException throws if profile with id does not exist
+     * @throws ProfileIsNotFoundException throws if profile with id does not exist
      */
-    void deleteById(Long id) throws NotExistProfileException;
+    void deleteById(Long id) throws ProfileIsNotFoundException;
 
     /**
      * To delete the profile
      *
      * @param profile instance to delete
-     * @throws NotExistProfileException throws if profile with id does not exist
+     * @throws ProfileIsNotFoundException throws if profile with id does not exist
      * @see PersonProfile
      */
-    default void delete(PersonProfile profile) throws NotExistProfileException {
+    default void delete(PersonProfile profile) throws ProfileIsNotFoundException {
         if (PersistenceFacadeUtilities.isInvalid(profile)) {
-            throw new NotExistProfileException("Wrong " + profile + " to delete");
+            throw new ProfileIsNotFoundException("Wrong " + profile + " to delete");
         }
         deleteById(profile.getId());
     }

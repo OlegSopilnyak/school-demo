@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.course;
 
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -170,7 +170,7 @@ class CoursesFacadeImplTest {
     }
 
     @Test
-    void shouldDelete() throws NotExistCourseException, CourseWithStudentsException {
+    void shouldDelete() throws CourseIsNotFoundException, CourseWithStudentsException {
         Long courseId = 202L;
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
@@ -189,7 +189,7 @@ class CoursesFacadeImplTest {
     void shouldNotDelete_CourseNotExists() {
         Long courseId = 203L;
 
-        NotExistCourseException exception = assertThrows(NotExistCourseException.class, () -> facade.delete(courseId));
+        CourseIsNotFoundException exception = assertThrows(CourseIsNotFoundException.class, () -> facade.delete(courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:203 is not exists.");
         verify(factory).command(COURSE_DELETE);
@@ -220,8 +220,8 @@ class CoursesFacadeImplTest {
 
     @Test
     void shouldRegister() throws
-            NotExistCourseException, NoRoomInTheCourseException,
-            StudentCoursesExceedException, NotExistStudentException {
+            CourseIsNotFoundException, CourseHasNoRoomException,
+            StudentCoursesExceedException, StudentIsNotFoundException {
         Long studentId = 102L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         Long courseId = 205L;
@@ -245,7 +245,7 @@ class CoursesFacadeImplTest {
         Long studentId = 103L;
         Long courseId = 206L;
 
-        Exception exception = assertThrows(NotExistStudentException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(StudentIsNotFoundException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 is not exists.");
         verify(factory).command(COURSE_REGISTER);
@@ -264,7 +264,7 @@ class CoursesFacadeImplTest {
         Long courseId = 207L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Exception exception = assertThrows(NotExistCourseException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(CourseIsNotFoundException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:207 is not exists.");
         verify(factory).command(COURSE_REGISTER);
@@ -306,7 +306,7 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(mockedCourse.getStudents()).thenReturn(IntStream.range(1, 51).mapToObj(i -> mockedStudent).toList());
 
-        Exception exception = assertThrows(NoRoomInTheCourseException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(CourseHasNoRoomException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:209 does not have enough rooms.");
         verify(factory).command(COURSE_REGISTER);
@@ -320,7 +320,7 @@ class CoursesFacadeImplTest {
     }
 
     @Test
-    void shouldUnRegister() throws NotExistCourseException, NotExistStudentException {
+    void shouldUnRegister() throws CourseIsNotFoundException, StudentIsNotFoundException {
         Long studentId = 107L;
         Long courseId = 210L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -343,7 +343,7 @@ class CoursesFacadeImplTest {
         Long studentId = 108L;
         Long courseId = 211L;
 
-        Exception exception = assertThrows(NotExistStudentException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(StudentIsNotFoundException.class, () -> facade.unRegister(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:108 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);
@@ -362,7 +362,7 @@ class CoursesFacadeImplTest {
         Long courseId = 212L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Exception exception = assertThrows(NotExistCourseException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(CourseIsNotFoundException.class, () -> facade.unRegister(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:212 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);

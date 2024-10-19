@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.facade.course;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.business.CoursesFacade;
-import oleg.sopilnyak.test.school.common.exception.*;
+import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -183,7 +183,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDelete() throws NotExistCourseException, CourseWithStudentsException {
+    void shouldDelete() throws CourseIsNotFoundException, CourseWithStudentsException {
         Course newCourse = makeClearCourse(0);
         Long courseId = getPersistent(newCourse).getId();
         assertThat(database.findCourseById(courseId)).isPresent();
@@ -203,7 +203,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDelete_CourseNotExists() {
         Long courseId = 101L;
 
-        NotExistCourseException exception = assertThrows(NotExistCourseException.class, () -> facade.delete(courseId));
+        CourseIsNotFoundException exception = assertThrows(CourseIsNotFoundException.class, () -> facade.delete(courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:101 is not exists.");
         verify(factory).command(COURSE_DELETE);
@@ -232,7 +232,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldRegister() throws NotExistCourseException, NoRoomInTheCourseException, StudentCoursesExceedException, NotExistStudentException {
+    void shouldRegister() throws CourseIsNotFoundException, CourseHasNoRoomException, StudentCoursesExceedException, StudentIsNotFoundException {
         Student student = makeClearStudent(0);
         Long studentId = getPersistent(student).getId();
         Course course = makeClearCourse(0);
@@ -259,7 +259,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldRegister_AlreadyLinked() throws NotExistCourseException, NoRoomInTheCourseException, StudentCoursesExceedException, NotExistStudentException {
+    void shouldRegister_AlreadyLinked() throws CourseIsNotFoundException, CourseHasNoRoomException, StudentCoursesExceedException, StudentIsNotFoundException {
         Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
         Course course = getPersistent(makeClearCourse(0));
@@ -291,7 +291,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Long studentId = 202L;
         Long courseId = 102L;
 
-        Exception exception = assertThrows(NotExistStudentException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(StudentIsNotFoundException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:202 is not exists.");
         verify(factory).command(COURSE_REGISTER);
@@ -310,7 +310,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Course course = makeClearTestCourse();
         Long courseId = getPersistent(course).getId();
 
-        NoRoomInTheCourseException exception = assertThrows(NoRoomInTheCourseException.class, () -> facade.register(studentId, courseId));
+        CourseHasNoRoomException exception = assertThrows(CourseHasNoRoomException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:" + courseId + " does not have enough rooms.");
         verify(factory).command(COURSE_REGISTER);
@@ -348,7 +348,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Long studentId = getPersistent(student).getId();
         Long courseId = 102L;
 
-        NotExistCourseException exception = assertThrows(NotExistCourseException.class, () -> facade.register(studentId, courseId));
+        CourseIsNotFoundException exception = assertThrows(CourseIsNotFoundException.class, () -> facade.register(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:102 is not exists.");
         verify(factory).command(COURSE_REGISTER);
@@ -361,7 +361,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUnRegister_NotLinked() throws NotExistCourseException, NotExistStudentException {
+    void shouldUnRegister_NotLinked() throws CourseIsNotFoundException, StudentIsNotFoundException {
         Long studentId = getPersistent(makeClearStudent(0)).getId();
         Long courseId = getPersistent(makeClearCourse(0)).getId();
 
@@ -385,7 +385,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldUnRegister_Linked() throws NotExistCourseException, NotExistStudentException {
+    void shouldUnRegister_Linked() throws CourseIsNotFoundException, StudentIsNotFoundException {
         Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
         Course course = getPersistent(makeClearCourse(0));
@@ -424,7 +424,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Long studentId = 203L;
         Long courseId = 103L;
 
-        Exception exception = assertThrows(NotExistStudentException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(StudentIsNotFoundException.class, () -> facade.unRegister(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:203 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);
@@ -441,7 +441,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Long studentId = getPersistent(makeClearStudent(0)).getId();
         Long courseId = 103L;
 
-        Exception exception = assertThrows(NotExistCourseException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(CourseIsNotFoundException.class, () -> facade.unRegister(studentId, courseId));
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:103 is not exists.");
         verify(factory).command(COURSE_UN_REGISTER);
