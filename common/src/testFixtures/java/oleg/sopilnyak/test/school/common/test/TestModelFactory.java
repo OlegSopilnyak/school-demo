@@ -1,6 +1,9 @@
 package oleg.sopilnyak.test.school.common.test;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
@@ -160,7 +163,11 @@ public class TestModelFactory {
     }
 
     protected List<Student> makeClearStudents(int count) {
-        return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1))
+        return makeClearStudents(count, 0);
+    }
+
+    protected List<Student> makeClearStudents(int count, int startFrom) {
+        return IntStream.range(0, count).mapToObj(i -> makeClearStudent(i + 1 + startFrom))
                 .sorted(Comparator.comparing(Student::getFullName)).toList();
     }
 
@@ -198,7 +205,7 @@ public class TestModelFactory {
 
     protected Student makeClearStudent(int i) {
         return FakeStudent.builder()
-                .id(null).firstName("firstName-" + i).lastName("lastName-" + i)
+                .id(null).profileId((long) i).firstName("firstName-" + i).lastName("lastName-" + i)
                 .gender("gender-" + i).description("description-" + i)
                 .courses(Collections.emptyList())
                 .build();
@@ -421,7 +428,7 @@ public class TestModelFactory {
     }
 
     protected StudentsGroup makeCleanStudentsGroup(int i) {
-        List<Student> students = makeClearStudents(5);
+        List<Student> students = makeClearStudents(5, i * 5);
         return FakeStudentsGroup.builder()
                 .id(null).name("students-group-" + i)
                 .leader(students.get(0))
@@ -464,6 +471,7 @@ public class TestModelFactory {
     @Builder
     protected static class FakeStudent implements Student {
         private Long id;
+        private Long profileId;
         private String firstName;
         private String lastName;
         private String gender;
@@ -485,6 +493,7 @@ public class TestModelFactory {
     @Builder
     protected static class FakeAuthorityPerson implements AuthorityPerson {
         private Long id;
+        private Long profileId;
         private String title;
         private String firstName;
         private String lastName;

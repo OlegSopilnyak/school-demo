@@ -26,21 +26,13 @@ import java.security.NoSuchAlgorithmException;
 
 @Entity
 @DiscriminatorValue("0")
-@Table(indexes = @Index(name = "principal_login", columnList = "login", unique = true))
+@Table(indexes = {
+        @Index(name = "principal_login", columnList = "login", unique = true)
+})
 public class PrincipalProfileEntity extends PersonProfileEntity implements PrincipalProfile {
     private String login;
     @Getter(AccessLevel.NONE)
     private String signature;
-
-    /**
-     * To get user-name for principal person's login
-     *
-     * @return value of user-name
-     */
-    @Override
-    public String getLogin() {
-        return login;
-    }
 
     /**
      * To check is it the correct password for login

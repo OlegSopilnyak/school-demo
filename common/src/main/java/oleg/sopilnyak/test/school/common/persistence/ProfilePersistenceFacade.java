@@ -11,6 +11,30 @@ import java.util.Optional;
  */
 public interface ProfilePersistenceFacade {
     /**
+     * To get principal-profile instance by login
+     *
+     * @param login the value of profile login to get
+     * @return profile instance or empty() if not exists
+     * @see PrincipalProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    default Optional<PrincipalProfile> findPrincipalProfileByLogin(String login){
+        return findPersonProfileByLogin(login).map(p -> p instanceof PrincipalProfile profile ? profile : null);
+    }
+
+    /**
+     * To get person-profile instance by login value
+     *
+     * @param login system-id of the profile
+     * @return profile instance or empty() if not exists
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<PersonProfile> findPersonProfileByLogin(String login);
+
+    /**
      * To get student-profile instance by id
      *
      * @param id system-id of the profile
@@ -39,7 +63,7 @@ public interface ProfilePersistenceFacade {
     /**
      * To get person-profile instance by id
      *
-     * @param id system-id of the course
+     * @param id system-id of the profile
      * @return profile instance or empty() if not exists
      * @see PersonProfile
      * @see Optional

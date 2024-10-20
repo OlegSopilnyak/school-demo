@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;

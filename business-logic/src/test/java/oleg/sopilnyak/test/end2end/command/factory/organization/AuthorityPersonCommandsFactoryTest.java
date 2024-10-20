@@ -52,6 +52,7 @@ class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
+                "organization.authority.person.login",
                 "organization.authority.person.findAll",
                 "organization.authority.person.findById",
                 "organization.authority.person.createOrUpdate",

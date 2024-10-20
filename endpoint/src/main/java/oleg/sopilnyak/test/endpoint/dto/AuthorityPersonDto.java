@@ -18,6 +18,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthorityPersonDto implements AuthorityPerson {
     private Long id;
+    private Long profileId;
     private String title;
     private String firstName;
     private String lastName;

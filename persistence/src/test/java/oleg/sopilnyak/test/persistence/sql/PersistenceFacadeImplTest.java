@@ -528,7 +528,9 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     private void clearId(AuthorityPerson instance) {
         if (instance instanceof FakeAuthorityPerson person) {
+            Long id = instance.getId();
             person.setId(null);
+            person.setProfileId(id);
             person.getFaculties().forEach(this::clearId);
         }
     }
@@ -557,7 +559,9 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
     private void clearId(Student instance) {
         if (instance instanceof FakeStudent student) {
+            Long id = instance.getId();
             student.setId(null);
+            student.setProfileId(id);
             student.getCourses().forEach(this::clearId);
         }
     }

@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundEx
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
@@ -42,7 +44,7 @@ import static org.mockito.Mockito.*;
 class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
-    StudentCourseLinkPersistenceFacade persistence;
+    PersistenceFacade persistence;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -303,7 +305,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
 
     private Student persistStudent(int order) {
         try {
+            StudentProfile profile = persistence.save(makeStudentProfile(null)).orElse(null);
+            assertThat(profile).isNotNull();
             Student student = makeStudent(order);
+            if (student instanceof FakeStudent fakeStudent) {
+                fakeStudent.setProfileId(profile.getId());
+            }
             Student entity = persistence.save(student).orElse(null);
             assertThat(entity).isNotNull();
             long id = entity.getId();

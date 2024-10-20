@@ -33,6 +33,17 @@ public interface AuthorityPersonPersistenceFacade {
     Optional<AuthorityPerson> findAuthorityPersonById(Long id);
 
     /**
+     * To find authority person by profile-id
+     *
+     * @param id system-id of the profile of the authority person
+     * @return authority person instance or empty() if not exists
+     * @see AuthorityPerson
+     * @see Optional
+     * @see Optional#empty()
+     */
+    Optional<AuthorityPerson> findAuthorityPersonByProfileId(Long id);
+
+    /**
      * Create or update authority person
      *
      * @param person authority person instance to store

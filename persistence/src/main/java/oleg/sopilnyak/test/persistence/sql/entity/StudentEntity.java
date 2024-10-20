@@ -23,7 +23,9 @@ import static java.util.Objects.isNull;
 @ToString(exclude = {"courseSet", "group"})
 
 @Entity
-@Table(name = "students")
+@Table(name = "students", indexes = {
+        @Index(name = "student_profile_id", columnList = "profileId", unique = true)
+})
 public class StudentEntity implements Student {
     private static SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
 

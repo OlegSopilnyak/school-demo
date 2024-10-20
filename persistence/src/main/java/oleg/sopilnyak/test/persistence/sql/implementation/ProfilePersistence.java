@@ -47,6 +47,22 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     }
 
     /**
+     * To get principal-profile instance by login
+     *
+     * @param login the value of profile login to get
+     * @return profile instance or empty() if not exists
+     * @see PrincipalProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
+    default Optional<PersonProfile> findPersonProfileByLogin(String login) {
+        getLog().debug("Looking for PersonProfile with login:{}", login);
+        return getPersonProfileRepository().findByLogin(login).map(PersonProfile.class::cast);
+    }
+
+    /**
      * To save principal-profile instance
      *
      * @param profile instance to save
@@ -120,9 +136,9 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     @Override
     default PersonProfileEntity toEntity(PersonProfile profile) {
         if (profile instanceof StudentProfile student) {
-            return toEntity(student);
+            return student instanceof StudentProfileEntity studentProfile ? studentProfile : toEntity(student);
         } else if (profile instanceof PrincipalProfile principal) {
-            return toEntity(principal);
+            return principal instanceof PrincipalProfileEntity principalProfile ? principalProfile : toEntity(principal);
         } else return null;
     }
 

@@ -4,9 +4,9 @@ import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
-import oleg.sopilnyak.test.persistence.sql.repository.AuthorityPersonRepository;
-import oleg.sopilnyak.test.persistence.sql.repository.FacultyRepository;
-import oleg.sopilnyak.test.persistence.sql.repository.StudentsGroupRepository;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyRepository;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
 import oleg.sopilnyak.test.school.common.exception.organization.*;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -48,6 +48,21 @@ public interface OrganizationPersistenceFacadeImplementation extends Organizatio
         getLog().debug("Looking for all AuthorityPersons");
         return getAuthorityPersonRepository().findAll().stream().map(AuthorityPerson.class::cast)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * To find authority person by id
+     *
+     * @param id system-id of the authority person
+     * @return authority person instance or empty() if not exists
+     * @see AuthorityPerson
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    default Optional<AuthorityPerson> findAuthorityPersonByProfileId(Long id) {
+        getLog().debug("Looking for AuthorityPerson with profile-id:{}", id);
+        return getAuthorityPersonRepository().findByProfileId(id).map(AuthorityPerson.class::cast);
     }
 
     /**

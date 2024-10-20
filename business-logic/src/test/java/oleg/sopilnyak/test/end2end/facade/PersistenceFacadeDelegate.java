@@ -97,6 +97,20 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * To find authority person by profile-id
+     *
+     * @param id system-id of the profile of the authority person
+     * @return authority person instance or empty() if not exists
+     * @see AuthorityPerson
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<AuthorityPerson> findAuthorityPersonByProfileId(Long id) {
+        return Optional.empty();
+    }
+
+    /**
      * Create or update authority person
      *
      * @param person authority person instance to store
@@ -341,6 +355,20 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     @Override
     public boolean isNoStudents() {
         return delegator.isNoStudents();
+    }
+
+    /**
+     * To get person-profile instance by login value
+     *
+     * @param login system-id of the profile
+     * @return profile instance or empty() if not exists
+     * @see PersonProfile
+     * @see Optional
+     * @see Optional#empty()
+     */
+    @Override
+    public Optional<PersonProfile> findPersonProfileByLogin(String login) {
+        return delegator.findPersonProfileByLogin(login);
     }
 
     /**

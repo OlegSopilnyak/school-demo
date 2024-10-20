@@ -18,7 +18,9 @@ import static java.util.Objects.isNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "authorities")
+@Table(name = "authorities", indexes = {
+        @Index(name = "person_profile_id", columnList = "profileId", unique = true)
+})
 public class AuthorityPersonEntity implements AuthorityPerson {
     private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
     @Id

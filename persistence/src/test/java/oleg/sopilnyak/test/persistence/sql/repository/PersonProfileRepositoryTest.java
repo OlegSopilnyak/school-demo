@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.persistence.sql.repository;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,6 +132,18 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
 
         Optional<PrincipalProfileEntity> entity = repository.findById(profile.getId());
         assertThat(entity).contains(profile);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldGetPrincipalProfileByLogin() {
+        PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
+                .login("login").photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .extras(Map.of("key1", "1", "key2", "2")).build();
+        repository.saveAndFlush(profile);
+        assertThat(repository.findById(profile.getId())).contains(profile);
+
+        assertThat(repository.findByLogin("login")).contains(profile);
     }
 
     @Test
