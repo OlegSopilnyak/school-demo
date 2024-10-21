@@ -22,7 +22,9 @@ public interface SchoolAccess {
      * @param password password to check
      * @return true if password is correct
      */
-    boolean isPassword(String password);
+    default boolean isPassword(String password) {
+        return false;
+    }
 
     /**
      * To make the signature for password

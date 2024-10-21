@@ -5,11 +5,14 @@ import oleg.sopilnyak.test.school.common.model.base.BaseType;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.message.*;
 import org.mapstruct.*;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Objects.nonNull;
 import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import static org.springframework.util.ObjectUtils.isEmpty;
@@ -143,6 +146,7 @@ public interface BusinessMessagePayloadMapper {
      * @return Payload instance
      */
     @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
+    @Mapping(source = "profile", target = "signature", qualifiedByName = "toSignature")
     @Mapping(target = "original", expression = "java(profile)")
     PrincipalProfilePayload toPayload(PrincipalProfile profile);
 
@@ -164,6 +168,15 @@ public interface BusinessMessagePayloadMapper {
     @Named("toFacultyPayloads")
     default List<Faculty> toFacultyPayload(List<Faculty> faculties) {
         return faculties == null ? Collections.emptyList() : faculties.stream().map(faculty -> (Faculty) toPayloadShort(faculty)).toList();
+    }
+
+    @Named("toSignature")
+    default String toSignature(PersonProfile profile) {
+        final Method getSignature = ReflectionUtils.findMethod(profile.getClass(), "getSignature");
+        if (nonNull(getSignature)) {
+            return (String) ReflectionUtils.invokeMethod(getSignature, profile);
+        }
+        return null;
     }
 
     // private methods

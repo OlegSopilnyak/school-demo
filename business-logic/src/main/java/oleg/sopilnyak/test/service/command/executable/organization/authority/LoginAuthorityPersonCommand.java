@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,8 @@ import java.util.Optional;
 @Component
 public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
     private final PersistenceFacade persistence;
+    private final BusinessMessagePayloadMapper payloadMapper;
+
 
     /**
      * DO: To login authority person by credentials<BR/>
@@ -49,6 +52,7 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
 
             log.debug("Trying to get principal-profile by username:{}", userName);
             final PrincipalProfile profile = persistence.findPrincipalProfileByLogin(userName)
+                    .map(payloadMapper::toPayload)
                     .orElseThrow(() -> new ProfileIsNotFoundException("Profile with login:'" + userName + "', is not found"));
 
             log.debug("Checking the password for principal-profile by username:{}", userName);
@@ -62,7 +66,7 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
             final Optional<AuthorityPerson> person = persistence.findAuthorityPersonByProfileId(id);
 
             log.debug("Got authority person with login:'{}' {}", person, userName);
-            context.setResult(person);
+            context.setResult(person.isEmpty() ? person : person.map(payloadMapper::toPayload));
         } catch (Exception e) {
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);

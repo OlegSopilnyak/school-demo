@@ -2,9 +2,11 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
@@ -18,6 +20,7 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,12 +33,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -44,6 +49,7 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
@@ -74,6 +80,49 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(persistence).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldLoginAuthorityPerson() {
+        String username = "test-login";
+        String password = "test-password";
+        AuthorityPersonPayload person = createAuthorityPerson();
+        assertThat(database.findAuthorityPersonById(person.getId())).contains(person.getOriginal());
+        assertThat(database.findAuthorityPersonByProfileId(person.getProfileId())).contains(person.getOriginal());
+        setPersonPermissions(person, username, password);
+
+        Optional<AuthorityPerson> loggedIn = facade.login(username, password);
+
+        assertThat(loggedIn).isPresent().contains(person);
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, password});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verify(persistence).findPrincipalProfileByLogin(username);
+        verify(persistence).findAuthorityPersonByProfileId(person.getProfileId());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotLoginAuthorityPerson_WrongPassword() {
+        String username = "test-login";
+        String password = "test-password";
+        AuthorityPersonPayload person = createAuthorityPerson();
+        assertThat(database.findAuthorityPersonById(person.getId())).contains(person.getOriginal());
+        assertThat(database.findAuthorityPersonByProfileId(person.getProfileId())).contains(person.getOriginal());
+        setPersonPermissions(person, username, password);
+
+        UnableExecuteCommandException thrown =
+                assertThrows(UnableExecuteCommandException.class, () -> facade.login(username, "password"));
+
+        assertThat(thrown.getCause()).isInstanceOf(SchoolAccessIsDeniedException.class);
+        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:"+username);
+
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verify(persistence).findPrincipalProfileByLogin(username);
+        verify(persistence, never()).findAuthorityPersonByProfileId(person.getProfileId());
     }
 
     @Test
@@ -226,9 +275,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         if (authorityPersonSource instanceof FakeAuthorityPerson person) {
             person.setFaculties(List.of(makeCleanFacultyNoDean(2)));
         }
-        Optional<AuthorityPerson> authorityPerson = database.save(authorityPersonSource);
+        Optional<AuthorityPerson> authorityPerson = facade.create(authorityPersonSource);
         assertThat(authorityPerson).isPresent();
-        Long id = authorityPerson.get().getId();
+        Long id = authorityPerson.orElseThrow().getId();
 
         AuthorityPersonManagesFacultyException thrown =
                 assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
@@ -258,6 +307,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         deleteAuthorityPersonMacroCommand.runThreadPoolExecutor();
         return new AuthorityPersonCommandsFactory(
                 Set.of(
+                        spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                         createOrUpdateAuthorityPersonCommand,
                         createAuthorityPersonMacroCommand,
                         deleteAuthorityPersonCommand,
@@ -278,7 +328,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         return entity;
     }
 
-    private AuthorityPerson createAuthorityPerson() {
+    private AuthorityPersonPayload createAuthorityPerson() {
         AuthorityPerson authorityPerson = makeCleanAuthorityPerson(11);
         AuthorityPerson entity = facade.create(authorityPerson).orElse(null);
         assertThat(entity).isNotNull();
@@ -286,9 +336,28 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
         if (entity instanceof AuthorityPersonPayload payload) {
             assertThat(dbAuthorityPerson).contains(payload.getOriginal());
+            return payload;
         } else {
             assertThat(dbAuthorityPerson).contains(entity);
         }
-        return entity;
+        fail("Entity is not payload");
+        return null;
+    }
+
+    private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
+        try {
+            PrincipalProfile profile = persistence.findPrincipalProfileById(person.getProfileId()).orElse(null);
+            assertThat(profile).isNotNull();
+
+            PrincipalProfilePayload payload = payloadMapper.toPayload(profile);
+            payload.setLogin(username);
+            payload.setSignature(payload.makeSignatureFor(password));
+            Optional<PrincipalProfile> saved = persistence.save(payload);
+            assertThat(saved).isPresent();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } finally {
+            reset(persistence, payloadMapper);
+        }
     }
 }

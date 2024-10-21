@@ -1,7 +1,8 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -13,6 +14,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorityPersonFacadeImplTest {
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
@@ -76,6 +79,46 @@ class AuthorityPersonFacadeImplTest {
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
     }
 
+    @Test
+    void shouldLoginAuthorityPerson() {
+        Long id = 341L;
+        String username = "test-login";
+        String password = "test-password";
+        when(mockProfilePayload.getId()).thenReturn(id);
+        when(mockProfilePayload.isPassword(password)).thenReturn(true);
+        when(persistenceFacade.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(mockProfile));
+        when(persistenceFacade.findAuthorityPersonByProfileId(id)).thenReturn(Optional.of(mockPerson));
+        when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
+        when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
+
+        Optional<AuthorityPerson> loggedIn = facade.login(username, password);
+
+        assertThat(loggedIn).isPresent();
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, password});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
+        verify(persistenceFacade).findAuthorityPersonByProfileId(id);
+    }
+
+    @Test
+    void shouldNotLoginAuthorityPerson_WrongPassword() {
+        String username = "test-login";
+        when(persistenceFacade.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(mockProfile));
+        when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
+
+        UnableExecuteCommandException thrown =
+                assertThrows(UnableExecuteCommandException.class, () -> facade.login(username, "password"));
+
+        assertThat(thrown.getCause()).isInstanceOf(SchoolAccessIsDeniedException.class);
+        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
+
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
+        verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());
+    }
 
     @Test
     void shouldFindAllAuthorityPersons_Empty() {
@@ -252,6 +295,7 @@ class AuthorityPersonFacadeImplTest {
     private CommandsFactory<AuthorityPersonCommand> buildFactory() {
         return spy(new AuthorityPersonCommandsFactory(
                         Set.of(
+                                spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
                                 spy(new FindAuthorityPersonCommand(persistenceFacade)),
                                 createPersonCommand,

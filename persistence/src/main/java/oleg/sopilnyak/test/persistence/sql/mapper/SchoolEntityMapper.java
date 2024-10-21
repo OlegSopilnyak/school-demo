@@ -4,7 +4,9 @@ import oleg.sopilnyak.test.persistence.sql.entity.*;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import org.mapstruct.*;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
@@ -98,6 +101,7 @@ public interface SchoolEntityMapper {
      * @return Entity instance
      */
     @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtraMap")
+    @Mapping(source = "profile", target = "signature", qualifiedByName = "toSignature")
     PrincipalProfileEntity toEntity(PrincipalProfile profile);
 
     @Named("toCourseEntities")
@@ -134,5 +138,13 @@ public interface SchoolEntityMapper {
                 ));
     }
 
+    @Named("toSignature")
+    default String toSignature(PersonProfile profile){
+        final Method getSignature = ReflectionUtils.findMethod(profile.getClass(), "getSignature");
+        if (nonNull(getSignature)) {
+            return (String) ReflectionUtils.invokeMethod(getSignature, profile);
+        }
+        return null;
+    }
 }
 

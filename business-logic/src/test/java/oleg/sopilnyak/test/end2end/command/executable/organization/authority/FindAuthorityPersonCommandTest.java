@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,13 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     FindAuthorityPersonCommand command;
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldBeValidCommand() {
+        assertThat(command).isNotNull();
+        assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
+    }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)

@@ -107,7 +107,7 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      */
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonByProfileId(Long id) {
-        return Optional.empty();
+        return delegator.findAuthorityPersonByProfileId(id);
     }
 
     /**
