@@ -12,7 +12,6 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Log
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
-import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,7 +24,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
@@ -233,18 +231,9 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
         try {
-            PrincipalProfile profile = persistence.findPrincipalProfileById(person.getProfileId()).orElse(null);
-            assertThat(profile).isNotNull();
-
-            PrincipalProfilePayload payload = payloadMapper.toPayload(profile);
-            payload.setLogin(username);
-            payload.setSignature(payload.makeSignatureFor(password));
-            Optional<PrincipalProfile> saved = persistence.save(payload);
-            assertThat(saved).isPresent();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            assertThat(persistence.updateAuthorityPersonAccess(person, username, password)).isTrue();
         } finally {
-            reset(persistence, payloadMapper);
+            reset(persistence);
         }
     }
 }

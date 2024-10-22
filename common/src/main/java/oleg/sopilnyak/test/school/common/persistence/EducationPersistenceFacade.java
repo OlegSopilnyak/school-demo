@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPe
 /**
  * Persistence facade for students-course entities linking
  */
-public interface StudentCourseLinkPersistenceFacade extends
+public interface EducationPersistenceFacade extends
         CoursesPersistenceFacade,
         StudentsPersistenceFacade,
         RegisterPersistenceFacade {

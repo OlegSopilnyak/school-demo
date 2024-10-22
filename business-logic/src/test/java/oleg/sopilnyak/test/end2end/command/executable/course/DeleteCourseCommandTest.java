@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsE
 import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.DeleteCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 class DeleteCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
-    StudentCourseLinkPersistenceFacade persistence;
+    EducationPersistenceFacade persistence;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean

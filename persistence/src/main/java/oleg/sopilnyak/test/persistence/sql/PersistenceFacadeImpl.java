@@ -8,10 +8,10 @@ import oleg.sopilnyak.test.persistence.sql.implementation.OrganizationPersistenc
 import oleg.sopilnyak.test.persistence.sql.implementation.ProfilePersistence;
 import oleg.sopilnyak.test.persistence.sql.implementation.StudentCourseLinkPersistenceFacadeImplementation;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
-import oleg.sopilnyak.test.persistence.sql.repository.*;
+import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
+import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
-import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.security.NoSuchAlgorithmException;
+
+import static java.util.Objects.isNull;
 
 /**
  * Service-Facade-Implementation: Service for manage persistence layer of the school
@@ -164,6 +167,46 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
         delegate.save(group);
     }
 
+    /**
+     * To update authority person's access parameters
+     *
+     * @param personId system-id of authority person
+     * @param username new value of login's username
+     * @param password new value of login's password
+     * @return true if changes applied
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean updateAuthorityPersonAccess(Long personId, String username, String password) {
+        log.debug("Updating authority person access...");
+        log.debug("Looking for authority person with id: {}", personId);
+        final AuthorityPersonEntity person = authorityPersonRepository.findById(personId).orElse(null);
+        if (isNull(person)) {
+            log.warn("Authority person with id {} is not found.", personId);
+            return false;
+        }
+        final Long profileId = person.getProfileId();
+
+        log.debug("Looking for principal profile with profileId: {}", profileId);
+        final PrincipalProfileEntity profile = personProfileRepository.findById(profileId)
+                .map(PrincipalProfileEntity.class::cast)
+                .orElse(null);
+        if (isNull(profile)) {
+            log.warn("Principal profile with ID: {} is not found.", username);
+            return false;
+        }
+
+        log.debug("Updating authority person profile...");
+        try {
+            profile.setLogin(username);
+            profile.setSignature(profile.makeSignatureFor(password));
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Cannot make signature", e);
+            return false;
+        }
+
+        return username.equals(personProfileRepository.saveAndFlush(profile).getLogin());
+    }
 
     // private methods
     private boolean studentExists(StudentEntity pupil) {

@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
@@ -20,7 +19,6 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
-import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +31,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -116,7 +113,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(UnableExecuteCommandException.class, () -> facade.login(username, "password"));
 
         assertThat(thrown.getCause()).isInstanceOf(SchoolAccessIsDeniedException.class);
-        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:"+username);
+        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
@@ -346,18 +343,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
         try {
-            PrincipalProfile profile = persistence.findPrincipalProfileById(person.getProfileId()).orElse(null);
-            assertThat(profile).isNotNull();
-
-            PrincipalProfilePayload payload = payloadMapper.toPayload(profile);
-            payload.setLogin(username);
-            payload.setSignature(payload.makeSignatureFor(password));
-            Optional<PrincipalProfile> saved = persistence.save(payload);
-            assertThat(saved).isPresent();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            assertThat(persistence.updateAuthorityPersonAccess(person, username, password)).isTrue();
         } finally {
-            reset(persistence, payloadMapper);
+            reset(persistence);
         }
     }
 }

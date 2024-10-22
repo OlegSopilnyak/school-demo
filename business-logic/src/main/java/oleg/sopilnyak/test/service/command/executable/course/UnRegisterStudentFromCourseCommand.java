@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundExc
 import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -25,7 +25,7 @@ import static java.util.Objects.isNull;
 @Component
 public class UnRegisterStudentFromCourseCommand implements CourseCommand {
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
-    private final StudentCourseLinkPersistenceFacade persistenceFacade;
+    private final EducationPersistenceFacade persistenceFacade;
     private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -33,11 +33,11 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see StudentCourseLinkPersistenceFacade#findStudentById(Long)
-     * @see StudentCourseLinkPersistenceFacade#findCourseById(Long)
+     * @see EducationPersistenceFacade#findStudentById(Long)
+     * @see EducationPersistenceFacade#findCourseById(Long)
      * @see BusinessMessagePayloadMapper#toPayload(Student)
      * @see BusinessMessagePayloadMapper#toPayload(Course)
-     * @see StudentCourseLinkPersistenceFacade#unLink(Student, Course)
+     * @see EducationPersistenceFacade#unLink(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
      * @see Context#setResult(Object)
@@ -91,7 +91,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
-     * @see StudentCourseLinkPersistenceFacade#link(Student, Course)
+     * @see EducationPersistenceFacade#link(Student, Course)
      * @see Context
      * @see Context#getUndoParameter()
      */

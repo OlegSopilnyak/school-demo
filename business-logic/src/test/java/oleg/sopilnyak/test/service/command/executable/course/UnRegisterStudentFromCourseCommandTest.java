@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundExc
 import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
@@ -34,7 +34,7 @@ class UnRegisterStudentFromCourseCommandTest {
     @Mock
     StudentPayload studentPayload;
     @Mock
-    StudentCourseLinkPersistenceFacade persistence;
+    EducationPersistenceFacade persistence;
     @Mock
     BusinessMessagePayloadMapper payloadMapper;
     @Spy

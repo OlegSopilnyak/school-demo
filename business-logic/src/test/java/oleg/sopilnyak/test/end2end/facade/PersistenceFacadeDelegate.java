@@ -24,6 +24,19 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
     }
 
     /**
+     * To update authority person's access parameters
+     *
+     * @param personId system-id of authority person
+     * @param username new value of login's username
+     * @param password new value of login's password
+     * @return true if changes applied
+     */
+    @Override
+    public boolean updateAuthorityPersonAccess(Long personId, String username, String password) {
+        return delegator.updateAuthorityPersonAccess(personId, username, password);
+    }
+
+    /**
      * To find course by id
      *
      * @param id system-id of the course

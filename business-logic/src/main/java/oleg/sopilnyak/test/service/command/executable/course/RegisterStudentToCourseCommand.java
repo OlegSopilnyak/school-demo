@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundEx
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.StudentCourseLinkPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -35,13 +35,13 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     @Getter(AccessLevel.NONE)
-    private final StudentCourseLinkPersistenceFacade persistenceFacade;
+    private final EducationPersistenceFacade persistenceFacade;
     @Getter(AccessLevel.NONE)
     private final BusinessMessagePayloadMapper payloadMapper;
     private final int maximumRooms;
     private final int coursesExceed;
 
-    public RegisterStudentToCourseCommand(final StudentCourseLinkPersistenceFacade persistenceFacade,
+    public RegisterStudentToCourseCommand(final EducationPersistenceFacade persistenceFacade,
                                           final BusinessMessagePayloadMapper payloadMapper,
                                           @Value("${school.courses.maximum.rooms:50}") int maximumRooms,
                                           @Value("${school.students.maximum.courses:5}") int coursesExceed) {
@@ -56,11 +56,11 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see StudentCourseLinkPersistenceFacade#findStudentById(Long)
-     * @see StudentCourseLinkPersistenceFacade#findCourseById(Long)
+     * @see EducationPersistenceFacade#findStudentById(Long)
+     * @see EducationPersistenceFacade#findCourseById(Long)
      * @see BusinessMessagePayloadMapper#toPayload(Student)
      * @see BusinessMessagePayloadMapper#toPayload(Course)
-     * @see StudentCourseLinkPersistenceFacade#link(Student, Course)
+     * @see EducationPersistenceFacade#link(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
      * @see Context#setResult(Object)
@@ -128,7 +128,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
-     * @see StudentCourseLinkPersistenceFacade#unLink(Student, Course)
+     * @see EducationPersistenceFacade#unLink(Student, Course)
      * @see Context
      * @see Context#getUndoParameter()
      */
