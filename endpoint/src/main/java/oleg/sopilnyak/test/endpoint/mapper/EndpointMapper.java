@@ -1,6 +1,13 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
-import oleg.sopilnyak.test.endpoint.dto.*;
+import oleg.sopilnyak.test.endpoint.dto.education.CourseDto;
+import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto;
+import oleg.sopilnyak.test.endpoint.dto.profile.PersonProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.profile.PrincipalProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import org.mapstruct.*;
@@ -128,7 +135,7 @@ public interface EndpointMapper {
     default PersonProfileDto.Extra[] toProfileExtras(PersonProfile profile) {
         return Arrays.stream(profile.getExtraKeys())
                 .filter(key -> profile.getExtra(key).isPresent())
-                .map(key -> new PersonProfileDto.Extra(key, profile.getExtra(key).get()))
+                .map(key -> new PersonProfileDto.Extra(key, profile.getExtra(key).orElseThrow()))
                 .toList().toArray(new PersonProfileDto.Extra[0]);
     }
 

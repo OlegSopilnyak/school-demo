@@ -1,10 +1,10 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -95,11 +95,11 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
      * To delete faculty from the school
      *
      * @param id system-id of the faculty to delete
-     * @throws FacultyIsNotFoundException   throws when faculty is not exists
+     * @throws FacultyNotFoundException   throws when faculty is not exists
      * @throws FacultyIsNotEmptyException throws when faculty has courses
      */
     @Override
-    public void deleteFacultyById(Long id) throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    public void deleteFacultyById(Long id) throws FacultyNotFoundException, FacultyIsNotEmptyException {
         log.debug("Delete faculty with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -116,7 +116,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
         // fail processing
         final Exception deleteException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, deleteException);
-        if (deleteException instanceof FacultyIsNotFoundException noFacultyException) {
+        if (deleteException instanceof FacultyNotFoundException noFacultyException) {
             throw noFacultyException;
         } else if (deleteException instanceof FacultyIsNotEmptyException exception) {
             throw exception;

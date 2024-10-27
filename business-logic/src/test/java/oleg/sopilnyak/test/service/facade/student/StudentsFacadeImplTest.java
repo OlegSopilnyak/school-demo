@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.student;
 
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -210,7 +210,7 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldDelete() throws StudentWithCoursesException, StudentIsNotFoundException {
+    void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
         Long studentId = 101L;
         Long profileId = 1001L;
         when(mockedStudent.getProfileId()).thenReturn(profileId);
@@ -238,7 +238,7 @@ class StudentsFacadeImplTest {
     void shouldNotDelete_StudentNotExists() {
         Long studentId = 102L;
 
-        StudentIsNotFoundException exception = assertThrows(StudentIsNotFoundException.class, () -> facade.delete(studentId));
+        StudentNotFoundException exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         verify(factory).command(STUDENT_DELETE_ALL);

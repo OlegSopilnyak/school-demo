@@ -1,10 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
 import org.junit.jupiter.api.Test;
@@ -104,7 +104,7 @@ class DeletePrincipalProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
@@ -115,7 +115,7 @@ class DeletePrincipalProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_WrongParameterType() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_WrongParameterType() throws ProfileNotFoundException {
         Context<Boolean> context = command.createContext("id");
 
         command.doCommand(context);
@@ -127,7 +127,7 @@ class DeletePrincipalProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_NullParameter() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_NullParameter() throws ProfileNotFoundException {
         Context<Boolean> context = command.createContext(null);
 
         command.doCommand(context);
@@ -140,7 +140,7 @@ class DeletePrincipalProfileCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_ExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_ExceptionThrown() throws ProfileNotFoundException {
         long id = 416L;
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
@@ -188,7 +188,7 @@ class DeletePrincipalProfileCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'PrincipalProfile' value:[input]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'PrincipalProfile' value:[input]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(profile);
     }

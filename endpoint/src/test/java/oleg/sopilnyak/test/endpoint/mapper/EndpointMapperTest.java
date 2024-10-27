@@ -1,6 +1,12 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
-import oleg.sopilnyak.test.endpoint.dto.*;
+import oleg.sopilnyak.test.endpoint.dto.education.CourseDto;
+import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto;
+import oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto;
+import oleg.sopilnyak.test.endpoint.dto.profile.PrincipalProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;

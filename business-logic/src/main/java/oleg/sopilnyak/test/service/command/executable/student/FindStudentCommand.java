@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;

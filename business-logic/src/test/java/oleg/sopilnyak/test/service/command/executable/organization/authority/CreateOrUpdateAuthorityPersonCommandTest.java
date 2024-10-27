@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
@@ -91,7 +91,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(entity).getId();
@@ -248,12 +248,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[param]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileNotFoundException {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);

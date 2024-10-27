@@ -3,14 +3,14 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.group;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentsGroupIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(StudentsGroupNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
@@ -122,7 +122,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileNotFoundException {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteStudentsGroup(id);
@@ -165,7 +165,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'StudentsGroup' value:[group]");
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a 'StudentsGroup' value:[group]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }

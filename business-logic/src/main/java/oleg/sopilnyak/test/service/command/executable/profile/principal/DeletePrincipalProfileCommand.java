@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -20,7 +20,6 @@ import java.util.function.UnaryOperator;
  * @see PrincipalProfileCommand
  * @see PrincipalProfile
  * @see ProfilePersistenceFacade
- * @see oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity
  */
 @Slf4j
 @Component

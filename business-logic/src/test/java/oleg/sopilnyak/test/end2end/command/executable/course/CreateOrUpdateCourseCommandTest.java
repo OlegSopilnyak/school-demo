@@ -4,11 +4,11 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -204,7 +204,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[id]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Long' value:[id]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());

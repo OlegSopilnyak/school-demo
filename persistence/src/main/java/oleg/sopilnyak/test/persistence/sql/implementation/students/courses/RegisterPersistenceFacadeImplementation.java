@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.slf4j.Logger;
@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 /**
  * Persistence facade implementation for student-course entities relations
@@ -61,8 +63,8 @@ public interface RegisterPersistenceFacadeImplementation extends RegisterPersist
     @Override
     default Set<Course> findCoursesRegisteredForStudent(Long id) {
         getLog().debug("Looking for Courses Registered to Student ID:{}", id);
-        return getCourseRepository().findCourseEntitiesByStudentSetId(id).stream().map(Course.class::cast)
-                .collect(Collectors.toSet());
+        return getCourseRepository().findCourseEntitiesByStudentSetId(id).stream()
+                .map(Course.class::cast).collect(Collectors.toSet());
     }
 
     /**
@@ -88,24 +90,29 @@ public interface RegisterPersistenceFacadeImplementation extends RegisterPersist
     @Transactional(propagation = Propagation.REQUIRED)
     default boolean link(Student student, Course course) {
         getLog().debug("Linking the Student '{}'\n to the Course '{}'", student, course);
-        final Optional<StudentEntity> studentEntity = getStudentRepository().findById(student.getId());
-        if (studentEntity.isEmpty()) {
+//        final Optional<StudentEntity> studentEntity = getStudentRepository().findById(student.getId());
+        final StudentEntity studentEntity = getStudentRepository().findById(student.getId()).orElse(null);
+        if (isNull(studentEntity)) {
+            getLog().warn("Student '{}' does not exist", student);
             return false;
         }
 
-        final Optional<CourseEntity> courseEntity = getCourseRepository().findById(course.getId());
-        if (courseEntity.isEmpty()) {
+        final CourseEntity courseEntity = getCourseRepository().findById(course.getId()).orElse(null);
+//        final Optional<CourseEntity> courseEntity = getCourseRepository().findById(course.getId());
+        if (isNull(courseEntity)) {
+            getLog().warn("Course '{}' does not exist", course);
             return false;
         }
 
-        final StudentEntity studentPureEntity = studentEntity.get();
-        final CourseEntity coursePureEntity = courseEntity.get();
-
-        if (!studentPureEntity.add(coursePureEntity)) {
+//        final StudentEntity studentPureEntity = studentEntity.get();
+//        final CourseEntity coursePureEntity = courseEntity.get();
+//
+        if (!studentEntity.add(courseEntity)) {
+            getLog().warn("Course '{}' already exists", course);
             return false;
         }
 
-        getStudentRepository().saveAndFlush(studentPureEntity);
+        getStudentRepository().saveAndFlush(studentEntity);
         return true;
     }
 

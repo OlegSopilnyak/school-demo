@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
@@ -55,13 +55,13 @@ public class DeleteStudentsGroupCommand
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
-     * @see StudentsGroupIsNotFoundException
+     * @see StudentsGroupNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to delete students group with ID: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -103,7 +103,7 @@ public class DeleteStudentsGroupCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo students group deletion using: {}", parameter);
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
@@ -139,7 +139,7 @@ public class DeleteStudentsGroupCommand
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new StudentsGroupIsNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new StudentsGroupNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

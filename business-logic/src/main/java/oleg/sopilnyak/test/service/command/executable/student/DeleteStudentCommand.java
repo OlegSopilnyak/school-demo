@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -52,7 +52,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to delete student by ID: {}", parameter.toString());
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -94,7 +94,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo student deletion using: {}", parameter.toString());
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
@@ -129,7 +129,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

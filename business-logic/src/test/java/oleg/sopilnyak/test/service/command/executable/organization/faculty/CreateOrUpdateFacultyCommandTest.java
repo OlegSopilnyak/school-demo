@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.FacultyPayload;
 import org.junit.jupiter.api.Test;
@@ -92,7 +92,7 @@ class CreateOrUpdateFacultyCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(FacultyIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(FacultyNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(entity).getId();
@@ -249,12 +249,12 @@ class CreateOrUpdateFacultyCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'Long' value:[param]");
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a 'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileNotFoundException {
         Long id = 405L;
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);

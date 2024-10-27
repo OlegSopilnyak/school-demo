@@ -1,9 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -50,13 +51,13 @@ public class CreateOrUpdateCourseCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see CoursesPersistenceFacade#findCourseById(Long)
      * @see CoursesPersistenceFacade#save(Course)
-     * @see CourseIsNotFoundException
+     * @see CourseNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to create or update course {}", parameter);
             final Long id = ((Course) parameter).getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
@@ -64,7 +65,7 @@ public class CreateOrUpdateCourseCommand
                 // previous version of course is storing to context for further rollback (undo)
                 final Course entity = retrieveEntity(
                         id, persistence::findCourseById, payloadMapper::toPayload,
-                        () -> new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -95,13 +96,13 @@ public class CreateOrUpdateCourseCommand
      * @see CoursesPersistenceFacade#save(Course)
      * @see CoursesPersistenceFacade#deleteCourse(Long)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
-     * @see oleg.sopilnyak.test.service.exception.InvalidParameterTypeException
+     * @see InvalidParameterTypeException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo course changes using: {}", parameter);
 
             rollbackCachedEntity(context, persistence::save, persistence::deleteCourse);

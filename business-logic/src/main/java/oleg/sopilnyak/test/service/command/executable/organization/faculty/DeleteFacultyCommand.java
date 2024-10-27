@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -59,7 +59,7 @@ public class DeleteFacultyCommand
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to delete faculty with ID: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -103,7 +103,7 @@ public class DeleteFacultyCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo faculty deletion using: {}", parameter);
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
@@ -138,7 +138,7 @@ public class DeleteFacultyCommand
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new FacultyIsNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new FacultyNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

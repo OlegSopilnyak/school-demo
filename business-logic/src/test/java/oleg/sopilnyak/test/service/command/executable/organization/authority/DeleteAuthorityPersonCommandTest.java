@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ class DeleteAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
@@ -102,7 +102,7 @@ class DeleteAuthorityPersonCommandTest {
     }
 
     @Test
-    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileNotFoundException {
         long id = 316L;
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
@@ -143,7 +143,7 @@ class DeleteAuthorityPersonCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'AuthorityPerson' value:[person]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'AuthorityPerson' value:[person]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

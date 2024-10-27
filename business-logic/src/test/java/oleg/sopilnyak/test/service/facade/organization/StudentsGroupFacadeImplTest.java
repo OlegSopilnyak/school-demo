@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -120,7 +120,7 @@ class StudentsGroupFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, StudentsGroupIsNotFoundException {
+    void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
         Long id = 502L;
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
@@ -135,10 +135,10 @@ class StudentsGroupFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteStudentsGroupById_GroupNotExists() throws StudentGroupWithStudentsException, StudentsGroupIsNotFoundException {
+    void shouldNotDeleteStudentsGroupById_GroupNotExists() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
         Long id = 503L;
-        StudentsGroupIsNotFoundException thrown =
-                assertThrows(StudentsGroupIsNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
+        StudentsGroupNotFoundException thrown =
+                assertThrows(StudentsGroupNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:503 is not exists.");
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
@@ -149,7 +149,7 @@ class StudentsGroupFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupIsNotFoundException {
+    void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
         Long id = 504L;
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(mockGroupPayload.getStudents()).thenReturn(List.of(mock(Student.class)));

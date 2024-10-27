@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,7 +74,7 @@ class FindStudentProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Long id = 816L;
+        long id = 816L;
         Context<Optional<StudentProfile>> context = command.createContext("" + id);
 
         command.doCommand(context);

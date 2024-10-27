@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +73,7 @@ class FindPrincipalProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Long id = 406L;
+        long id = 406L;
         Context<Optional<PrincipalProfile>> context = command.createContext("" + id);
 
         command.doCommand(context);

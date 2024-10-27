@@ -4,12 +4,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -18,9 +18,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Objects;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 
@@ -70,45 +71,32 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
+            checkNullParameter(parameter);
             log.debug("Trying to register student to course: {}", parameter);
             final Long[] ids = commandParameter(parameter);
             final Long studentId = ids[0];
             final Long courseId = ids[1];
-            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
-            if (student.isEmpty()) {
-                log.debug("No such student with id:{}", studentId);
-                throw new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX);
-            }
-            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
-            if (course.isEmpty()) {
-                log.debug("No such course with id:{}", courseId);
-                throw new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX);
-            }
+            final Student student = persistenceFacade.findStudentById(studentId).map(payloadMapper::toPayload)
+                    .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX));
+            final Course course = persistenceFacade.findCourseById(courseId).map(payloadMapper::toPayload)
+                    .orElseThrow(() -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX));
 
-            final Student existingStudent = student.get();
-            final Course existingCourse = course.get();
-
-            if (isLinked(existingStudent, existingCourse)) {
+            if (isLinked(student, course)) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
                 context.setResult(true);
                 return;
-            }
-            if (existingCourse.getStudents().size() >= maximumRooms) {
-                log.debug("Course with id:{} has students more than {}", courseId, maximumRooms);
+            } else if (course.getStudents().size() >= maximumRooms) {
+                log.error("Course with id:{} has students more than {}", courseId, maximumRooms);
                 throw new CourseHasNoRoomException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
-            }
-            if (existingStudent.getCourses().size() >= coursesExceed) {
-                log.debug("Student with id:{} has more than {} courses", studentId, coursesExceed);
+            } else if (student.getCourses().size() >= coursesExceed) {
+                log.error("Student with id:{} has more than {} courses", studentId, coursesExceed);
                 throw new StudentCoursesExceedException(STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses.");
             }
 
             log.debug("Linking student:{} to course:{}", studentId, courseId);
 
-            final StudentToCourseLink undoLink = StudentToCourseLink.builder()
-                    .student(payloadMapper.toPayload(existingStudent))
-                    .course(payloadMapper.toPayload(existingCourse))
-                    .build();
-            final boolean linked = persistenceFacade.link(existingStudent, existingCourse);
+            final var undoLink = StudentToCourseLink.builder().student(student).course(course).build();
+            final boolean linked = persistenceFacade.link(student, course);
             if (linked) {
                 context.setUndoParameter(undoLink);
                 context.setResult(true);
@@ -175,10 +163,8 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
     }
 
     private static boolean isLinked(final Student student, final Course course) {
-        return studentsHaveCourse(course.getStudents(), course.getId())
-                &&
-                coursesHaveStudent(student.getCourses(), student.getId())
-                ;
+        return studentsHaveCourse(course.getStudents(), course.getId()) &&
+                coursesHaveStudent(student.getCourses(), student.getId());
     }
 
     private static boolean studentsHaveCourse(final Collection<Student> students, final Long courseId) {
@@ -187,7 +173,8 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
     }
 
     private static boolean studentHasCourse(final Student student, final Long courseId) {
-        return student.getCourses().stream().anyMatch(course -> courseId.equals(course.getId()));
+        return nonNull(student) && !isEmpty(student.getCourses())
+                && student.getCourses().stream().anyMatch(course -> Objects.equals(courseId, course.getId()));
     }
 
     private static boolean coursesHaveStudent(final Collection<Course> courses, final Long studentId) {
@@ -196,10 +183,11 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
     }
 
     private static boolean courseHasStudent(final Course course, final Long studentId) {
-        return course.getStudents().stream().anyMatch(student -> studentId.equals(student.getId()));
+        return nonNull(course) && !isEmpty(course.getStudents())
+                && course.getStudents().stream().anyMatch(student -> Objects.equals(studentId, student.getId()));
     }
 
     private static boolean isValid(final Long id) {
-        return !isNull(id) && id > 0L;
+        return nonNull(id) && id > 0L;
     }
 }

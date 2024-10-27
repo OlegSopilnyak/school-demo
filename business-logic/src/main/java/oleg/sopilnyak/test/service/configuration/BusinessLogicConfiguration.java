@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.configuration;
 
-import oleg.sopilnyak.test.school.common.business.CoursesFacade;
-import oleg.sopilnyak.test.school.common.business.StudentsFacade;
-import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.business.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.business.organization.StudentsGroupFacade;
-import oleg.sopilnyak.test.school.common.business.profile.PrincipalProfileFacade;
-import oleg.sopilnyak.test.school.common.business.profile.StudentProfileFacade;
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;

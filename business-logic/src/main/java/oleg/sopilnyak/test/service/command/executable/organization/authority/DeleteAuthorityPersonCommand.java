@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -54,13 +54,13 @@ public class DeleteAuthorityPersonCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
-     * @see AuthorityPersonIsNotFoundException
+     * @see AuthorityPersonNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to delete authority person using: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -102,7 +102,7 @@ public class DeleteAuthorityPersonCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo authority person deletion using: {}", parameter);
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
@@ -137,7 +137,7 @@ public class DeleteAuthorityPersonCommand
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new AuthorityPersonIsNotFoundException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

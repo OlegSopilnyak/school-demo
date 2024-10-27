@@ -2,10 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -55,7 +55,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to delete course by ID: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -96,7 +96,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo course deletion using: {}", parameter);
 
             final Course entity = rollbackCachedEntity(context, persistenceFacade::save).orElseThrow();
@@ -132,7 +132,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new CourseIsNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new CourseNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

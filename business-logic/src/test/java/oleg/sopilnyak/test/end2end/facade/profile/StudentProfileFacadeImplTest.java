@@ -3,11 +3,11 @@ package oleg.sopilnyak.test.end2end.facade.profile;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
@@ -172,7 +172,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(PROFILE_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(cause).isInstanceOf(ProfileNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(profileSource);
@@ -227,7 +227,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         Long id = 715L;
         StudentProfile profile = makeStudentProfile(id);
 
-        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
 
         verify(facade).deleteById(id);
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
@@ -244,7 +244,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteProfileById_ProfileNotExists() {
         Long id = 703L;
 
-        ProfileIsNotFoundException thrown = assertThrows(ProfileIsNotFoundException.class, () -> facade.deleteById(id));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
         verify(factory).command(PROFILE_DELETE);
@@ -261,7 +261,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         Long id = -716L;
         StudentProfile profile = makeStudentProfile(id);
 
-        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
@@ -272,7 +272,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteProfileInstance_NullId() {
         StudentProfile profile = makeStudentProfile(null);
 
-        ProfileIsNotFoundException exception = assertThrows(ProfileIsNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());

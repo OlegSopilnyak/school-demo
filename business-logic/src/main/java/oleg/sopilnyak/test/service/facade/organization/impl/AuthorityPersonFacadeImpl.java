@@ -1,10 +1,12 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.business.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -54,11 +56,34 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      */
     @Override
     public Optional<AuthorityPerson> login(String username, String password) {
-        log.debug("Try to login: username={}", username);
+        log.debug("Try to login using: '{}'", username);
         final String[] permissions = new String[]{username, password};
-        final Optional<AuthorityPerson> loggedIn = doSimpleCommand(LOGIN, permissions, factory);
-        log.debug("Person is logged in: {}", loggedIn);
-        return loggedIn;
+        final String commandId = LOGIN;
+        final RootCommand command = takeValidCommand(commandId, factory);
+        final Context<Optional<AuthorityPerson>> context = command.createContext(permissions);
+
+        command.doCommand(context);
+
+        if (context.isDone()) {
+            // success processing
+            log.debug("Logged in authority person with login: '{}' successfully.", username);
+            final Optional<AuthorityPerson> loggedIn = context.getResult().orElseThrow(createThrowFor(command.getId()));
+            log.debug("Person is logged in: {}", loggedIn);
+            return loggedIn;
+        }
+        // fail processing
+        final Exception loginException = context.getException();
+        log.warn(SOMETHING_WENT_WRONG, loginException);
+        if (loginException instanceof ProfileNotFoundException notFoundException) {
+            throw notFoundException;
+        } else if (loginException instanceof SchoolAccessDeniedException accessIsDeniedException) {
+            throw accessIsDeniedException;
+        } else if (nonNull(loginException)) {
+            throwFor(commandId, loginException);
+        } else {
+            wrongCommandExecution(LOGIN);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -147,11 +172,11 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonIsNotFoundException      throws when authorityPerson is not exists
+     * @throws AuthorityPersonNotFoundException      throws when authorityPerson is not exists
      * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     @Override
-    public void deleteAuthorityPersonById(Long id) throws AuthorityPersonIsNotFoundException, AuthorityPersonManagesFacultyException {
+    public void deleteAuthorityPersonById(Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         log.debug("Delete authority person with ID:{}", id);
         final String commandId = DELETE_ALL;
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -168,20 +193,20 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         // fail processing
         final Exception deleteException = context.getException();
         log.warn(SOMETHING_WENT_WRONG, deleteException);
-        if (deleteException instanceof AuthorityPersonIsNotFoundException noPersonException) {
+        if (deleteException instanceof AuthorityPersonNotFoundException noPersonException) {
             throw noPersonException;
         } else if (deleteException instanceof AuthorityPersonManagesFacultyException exception) {
             throw exception;
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
-            wrongCommandExecution();
+            wrongCommandExecution(DELETE_ALL);
         }
     }
 
     // private methods
-    private static void wrongCommandExecution() {
-        log.error(WRONG_COMMAND_EXECUTION, DELETE_ALL);
-        throwFor(DELETE_ALL, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+    private static void wrongCommandExecution(String commandId) {
+        log.error(WRONG_COMMAND_EXECUTION, commandId);
+        throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
     }
 }

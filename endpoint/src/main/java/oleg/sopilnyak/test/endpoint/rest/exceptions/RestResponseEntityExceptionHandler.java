@@ -1,14 +1,11 @@
 package oleg.sopilnyak.test.endpoint.rest.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.endpoint.exception.CannotDeleteResourceException;
-import oleg.sopilnyak.test.endpoint.exception.CannotDoRestCallException;
-import oleg.sopilnyak.test.endpoint.exception.CannotRegisterToCourseException;
-import oleg.sopilnyak.test.endpoint.exception.ResourceNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityUnableProcessException;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
+import oleg.sopilnyak.test.school.common.exception.core.GeneralCannotDeleteException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,65 +20,72 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class RestResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = {RuntimeException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public RestErrorMessage unknownException(Throwable ex, WebRequest req) {
-        return errorMessageFor(HttpStatus.INTERNAL_SERVER_ERROR, ex, req);
-    }
-
-
-    @ExceptionHandler(value = {CannotDoRestCallException.class})
-    public ResponseEntity<RestErrorMessage> onException(CannotDoRestCallException ex, WebRequest req) {
-        log.error("Cannot do rest call", ex);
-        final RestErrorMessage response;
+    @ExceptionHandler(value = {CannotProcessActionException.class})
+    public ResponseEntity<ActionErrorMessage> onException(CannotProcessActionException ex, WebRequest req) {
+        log.error("Cannot do facade's action", ex);
+        final ActionErrorMessage response;
         final Throwable cause = ex.getCause();
-        if (cause instanceof CannotRegisterToCourseException cannotRegisterToCourseException) {
-            response = onException(cannotRegisterToCourseException, req);
-        } else if (cause instanceof ResourceNotFoundException resourceNotFoundException) {
-            response = onException(resourceNotFoundException, req);
-        } else if (cause instanceof CannotDeleteResourceException cannotDeleteResourceException) {
-            response = onException(cannotDeleteResourceException, req);
+        if (cause instanceof SchoolAccessDeniedException accessDeniedException) {
+            response = onException(accessDeniedException, req);
+        } else if (cause instanceof EntityNotFoundException notFoundException) {
+            response = onException(notFoundException, req);
+        } else if (cause instanceof EntityUnableProcessException unableProcessException) {
+            response = onException(unableProcessException, req);
         } else {
             response = unknownException(cause, req);
         }
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
     }
 
-    @ExceptionHandler(value = {ResourceNotFoundException.class})
+    @ExceptionHandler(value = {SchoolAccessDeniedException.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ActionErrorMessage onException(SchoolAccessDeniedException ex, WebRequest req) {
+        log.error("Access denied", ex);
+        return errorMessageFor(HttpStatus.FORBIDDEN, ex, req);
+    }
+
+    @ExceptionHandler(value = {EntityNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public RestErrorMessage onException(ResourceNotFoundException ex, WebRequest req) {
+    public ActionErrorMessage onException(EntityNotFoundException ex, WebRequest req) {
+        log.error("Entity not found", ex);
         return errorMessageFor(HttpStatus.NOT_FOUND, ex, req);
     }
 
-    @ExceptionHandler(value = {CannotDeleteResourceException.class})
+    @ExceptionHandler(value = {EntityUnableProcessException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public RestErrorMessage onException(CannotDeleteResourceException ex, WebRequest req) {
+    public ActionErrorMessage onException(EntityUnableProcessException ex, WebRequest req) {
+        log.error("Entity unable processed", ex);
         return errorMessageFor(HttpStatus.CONFLICT, ex, req);
     }
 
-    @ExceptionHandler(value = {CannotRegisterToCourseException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public RestErrorMessage onException(CannotRegisterToCourseException ex, WebRequest req) {
-        return errorMessageFor(HttpStatus.CONFLICT, ex, req);
+    @ExceptionHandler(value = {GeneralCannotDeleteException.class})
+    public ResponseEntity<ActionErrorMessage> onException(GeneralCannotDeleteException ex, WebRequest req) {
+        log.error("Cannot delete entity", ex);
+        final Throwable cause = ex.getCause();
+        final ActionErrorMessage response;
+        if (cause instanceof SchoolAccessDeniedException accessDeniedException) {
+            response = onException(accessDeniedException, req);
+        } else if (cause instanceof EntityNotFoundException notFoundException) {
+            response = onException(notFoundException, req);
+        } else if (cause instanceof EntityUnableProcessException unableProcessException) {
+            response = onException(unableProcessException, req);
+        } else {
+            response = unknownException(cause, req);
+        }
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
+    }
+
+    @ExceptionHandler(value = {RuntimeException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ActionErrorMessage unknownException(Throwable ex, WebRequest req) {
+        return errorMessageFor(HttpStatus.INTERNAL_SERVER_ERROR, ex, req);
     }
 
     // private methods
-    private static RestErrorMessage errorMessageFor(HttpStatus status, Throwable ex, WebRequest req) {
-        return RestErrorMessage.builder()
-                .errorCode(status.value())
-                .errorMessage(ex.getMessage())
-                .errorUrl(req.getContextPath())
+    private static ActionErrorMessage errorMessageFor(HttpStatus status, Throwable ex, WebRequest req) {
+        return ActionErrorMessage.builder()
+                .errorCode(status.value()).errorMessage(ex.getMessage()).errorUrl(req.getDescription(false))
                 .build();
     }
 
-    // inner classes
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class RestErrorMessage {
-        private int errorCode;
-        private String errorMessage;
-        private String errorUrl;
-    }
 }

@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -109,11 +109,11 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(database.findAuthorityPersonByProfileId(person.getProfileId())).contains(person.getOriginal());
         setPersonPermissions(person, username, password);
 
-        UnableExecuteCommandException thrown =
-                assertThrows(UnableExecuteCommandException.class, () -> facade.login(username, "password"));
+        SchoolAccessDeniedException thrown =
+                assertThrows(SchoolAccessDeniedException.class, () -> facade.login(username, "password"));
 
-        assertThat(thrown.getCause()).isInstanceOf(SchoolAccessIsDeniedException.class);
-        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
+        assertThat(thrown).isInstanceOf(SchoolAccessDeniedException.class);
+        assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
@@ -224,7 +224,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(cause).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(authorityPersonSource);
@@ -235,7 +235,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         AuthorityPerson authorityPerson = createAuthorityPerson();
         Long id = authorityPerson.getId();
 
@@ -253,8 +253,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() {
         Long id = 303L;
 
-        AuthorityPersonIsNotFoundException thrown =
-                assertThrows(AuthorityPersonIsNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonNotFoundException thrown =
+                assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("AuthorityPerson with ID:303 is not exists.");
 
@@ -267,7 +267,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         AuthorityPerson authorityPersonSource = makeCleanAuthorityPerson(2);
         if (authorityPersonSource instanceof FakeAuthorityPerson person) {
             person.setFaculties(List.of(makeCleanFacultyNoDean(2)));

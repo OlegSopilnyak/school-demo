@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.command.executable.course;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.FindCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;

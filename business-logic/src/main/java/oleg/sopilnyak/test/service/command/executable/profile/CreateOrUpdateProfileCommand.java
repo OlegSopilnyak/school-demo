@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -74,13 +74,13 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
      * @see CreateOrUpdateProfileCommand#functionFindById()
      * @see CreateOrUpdateProfileCommand#functionAdoptEntity()
      * @see CreateOrUpdateProfileCommand#functionSave()
-     * @see ProfileIsNotFoundException
+     * @see ProfileNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             final E profile = commandParameter(parameter);
             final Long id = profile.getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
@@ -89,7 +89,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
                 // previous version of profile is storing to context for further rollback (undo)
                 final PersonProfile entity = retrieveEntity(
                         id, functionFindById(), functionAdoptEntity(),
-                        () -> new ProfileIsNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new ProfileNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -126,7 +126,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile>
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             getLog().debug("Trying to undo person profile changes using: {}", parameter);
 
             rollbackCachedEntity(context, functionSave(), persistence::deleteProfileById);

@@ -4,11 +4,11 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.StudentToCourseLink;
 import oleg.sopilnyak.test.service.command.executable.course.UnRegisterStudentFromCourseCommand;
@@ -103,7 +103,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Student with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
@@ -121,7 +121,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);

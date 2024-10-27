@@ -3,14 +3,14 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.faculty;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +84,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(FacultyIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(FacultyNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
@@ -121,7 +121,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileNotFoundException {
         Faculty entity = persist();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteFaculty(id);
@@ -164,7 +164,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Faculty' value:[faculty]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Faculty' value:[faculty]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Faculty.class));
     }

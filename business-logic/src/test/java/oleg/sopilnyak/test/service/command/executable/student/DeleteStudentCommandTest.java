@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.Test;
@@ -93,7 +93,7 @@ class DeleteStudentCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(payloadMapper, never()).toPayload(any(Student.class));
@@ -143,7 +143,7 @@ class DeleteStudentCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'Student' value:[instance]");
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a 'Student' value:[instance]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.profile.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.business.profile.PrincipalProfileFacade;
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;

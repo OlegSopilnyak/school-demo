@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import org.slf4j.Logger;
@@ -18,7 +18,6 @@ import java.util.function.LongFunction;
  * @see StudentProfileCommand
  * @see StudentProfile
  * @see ProfilePersistenceFacade
- * @see oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity
  */
 @Slf4j
 @Component

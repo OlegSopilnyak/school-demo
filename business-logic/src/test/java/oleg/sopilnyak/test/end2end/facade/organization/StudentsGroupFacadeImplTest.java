@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -145,7 +145,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(StudentsGroupIsNotFoundException.class);
+        assertThat(cause).isInstanceOf(StudentsGroupNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(group);
@@ -208,8 +208,8 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroupById_GroupNotExists() {
         Long id = 503L;
-        StudentsGroupIsNotFoundException thrown =
-                assertThrows(StudentsGroupIsNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
+        StudentsGroupNotFoundException thrown =
+                assertThrows(StudentsGroupNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:503 is not exists.");
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
@@ -221,7 +221,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupIsNotFoundException {
+    void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
         StudentsGroup studentsGroup = makeCleanStudentsGroup(3);
         if (studentsGroup instanceof FakeStudentsGroup fake) {
             fake.setStudents(List.of(makeClearStudent(1)));

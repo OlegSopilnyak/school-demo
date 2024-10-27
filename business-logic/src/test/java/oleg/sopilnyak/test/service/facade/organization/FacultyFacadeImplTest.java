@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -133,7 +133,7 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteFacultyById() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    void shouldDeleteFacultyById() throws FacultyNotFoundException, FacultyIsNotEmptyException {
         Long id = 402L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
@@ -148,10 +148,10 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotFoundException, FacultyIsNotEmptyException {
         Long id = 403L;
 
-        FacultyIsNotFoundException thrown = assertThrows(FacultyIsNotFoundException.class, () -> facade.deleteFacultyById(id));
+        FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
@@ -162,7 +162,7 @@ class FacultyFacadeImplTest {
     }
 
     @Test
-    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotFoundException, FacultyIsNotEmptyException {
         Long id = 404L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);

@@ -1,10 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
@@ -82,7 +82,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(persistence, never()).findCourseById(id);
@@ -99,7 +99,7 @@ class UnRegisterStudentFromCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);

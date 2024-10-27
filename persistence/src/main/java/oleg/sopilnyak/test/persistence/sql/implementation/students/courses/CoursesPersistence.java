@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;

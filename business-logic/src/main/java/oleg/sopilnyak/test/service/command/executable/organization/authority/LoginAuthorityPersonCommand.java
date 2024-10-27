@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -53,12 +53,12 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
             log.debug("Trying to get principal-profile by username:{}", userName);
             final PrincipalProfile profile = persistence.findPrincipalProfileByLogin(userName)
                     .map(payloadMapper::toPayload)
-                    .orElseThrow(() -> new ProfileIsNotFoundException("Profile with login:'" + userName + "', is not found"));
+                    .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + userName + "', is not found"));
 
             log.debug("Checking the password for principal-profile by username:{}", userName);
             if (!profile.isPassword(password)) {
                 log.warn("Password for login: {} is incorrect", userName);
-                throw new SchoolAccessIsDeniedException("Login authority person command failed for username:" + userName);
+                throw new SchoolAccessDeniedException("Login authority person command failed for username:" + userName);
             }
 
             Long id = profile.getId();

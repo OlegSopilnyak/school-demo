@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import org.slf4j.Logger;
@@ -18,7 +18,6 @@ import java.util.function.LongFunction;
  * @see PrincipalProfileCommand
  * @see PrincipalProfile
  * @see ProfilePersistenceFacade
- * @see oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity
  */
 @Slf4j
 @Component

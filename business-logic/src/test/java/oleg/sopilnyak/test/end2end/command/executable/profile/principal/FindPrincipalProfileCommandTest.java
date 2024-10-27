@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.command.executable.profile.principal;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.FindPrincipalProfileCommand;
@@ -89,7 +89,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Long id = 406L;
+        long id = 406L;
         Context<Optional<PrincipalProfile>> context = command.createContext("" + id);
 
         command.doCommand(context);

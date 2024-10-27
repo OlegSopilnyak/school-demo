@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ class DeleteCourseCommandTest {
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.<Object>getUndoParameter()).isNull();
-        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
         verify(persistence, never()).deleteCourse(id);
@@ -144,7 +144,7 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Course' value:[course]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Course' value:[course]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(mockedCourse);
     }

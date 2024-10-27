@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
-import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -14,7 +14,6 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
-import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
@@ -107,11 +106,11 @@ class AuthorityPersonFacadeImplTest {
         when(persistenceFacade.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(mockProfile));
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
 
-        UnableExecuteCommandException thrown =
-                assertThrows(UnableExecuteCommandException.class, () -> facade.login(username, "password"));
+        SchoolAccessDeniedException thrown =
+                assertThrows(SchoolAccessDeniedException.class, () -> facade.login(username, "password"));
 
-        assertThat(thrown.getCause()).isInstanceOf(SchoolAccessIsDeniedException.class);
-        assertThat(thrown.getCause().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
+        assertThat(thrown).isInstanceOf(SchoolAccessDeniedException.class);
+        assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
@@ -228,7 +227,7 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         Long id = 302L;
         Long profileId = 402L;
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -252,11 +251,11 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         Long id = 303L;
 
-        AuthorityPersonIsNotFoundException thrown =
-                assertThrows(AuthorityPersonIsNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
+        AuthorityPersonNotFoundException thrown =
+                assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
 
@@ -268,7 +267,7 @@ class AuthorityPersonFacadeImplTest {
     }
 
     @Test
-    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         Long id = 304L;
         Long profileId = 404L;
         when(mockPerson.getProfileId()).thenReturn(profileId);

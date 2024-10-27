@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization.base.impl;
 
 import lombok.AllArgsConstructor;
-import oleg.sopilnyak.test.school.common.business.organization.base.OrganizationFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 

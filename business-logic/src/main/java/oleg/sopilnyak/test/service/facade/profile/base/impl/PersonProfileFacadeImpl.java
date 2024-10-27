@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.business.profile.base.PersonProfileFacade;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -87,7 +87,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
      * To delete profile by system-id
      *
      * @param id value of system-id
-     * @throws ProfileIsNotFoundException throws if the profile with system-id does not exist in the database
+     * @throws ProfileNotFoundException throws if the profile with system-id does not exist in the database
      * @see PersonProfileFacadeImpl#deleteByIdCommandId()
      * @see ProfileCommand#createContext(Object)
      * @see ProfileCommand#doCommand(Context)
@@ -95,7 +95,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
      * @see Context#getState()
      */
     @Override
-    public void deleteById(Long id) throws ProfileIsNotFoundException {
+    public void deleteById(Long id) throws ProfileNotFoundException {
         log.debug("Delete profile with ID:{}", id);
         final String commandId = deleteByIdCommandId();
         final RootCommand command = takeValidCommand(commandId, factory);
@@ -112,8 +112,8 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
         // fail processing
         final Exception deleteException = context.getException();
         log.warn(SOMETHING_WENT_WRONG + " with profile deletion", deleteException);
-        if (deleteException instanceof ProfileIsNotFoundException profileException) {
-            throw profileException;
+        if (deleteException instanceof ProfileNotFoundException profileNotFoundException) {
+            throw profileNotFoundException;
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {

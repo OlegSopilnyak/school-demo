@@ -43,7 +43,7 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      *
      * @param parameter input value to check
      */
-    default void check(Object parameter) {
+    default void checkNullParameter(Object parameter) {
         if (isNull(parameter)) {
             throw new NullPointerException("Wrong input parameter value null");
         }

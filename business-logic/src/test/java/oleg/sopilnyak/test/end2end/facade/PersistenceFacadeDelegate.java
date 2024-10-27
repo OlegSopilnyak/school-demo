@@ -142,11 +142,11 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      *
      * @param id system-id of the authority person
      * @throws AuthorityPersonManagesFacultyException throws when you want to delete authority person who is the dean of a faculty now
-     * @throws AuthorityPersonIsNotFoundException   throws when you want to delete authority person who is not created before
+     * @throws AuthorityPersonNotFoundException   throws when you want to delete authority person who is not created before
      * @see AuthorityPerson
      */
     @Override
-    public boolean deleteAuthorityPerson(Long id) throws AuthorityPersonManagesFacultyException, AuthorityPersonIsNotFoundException {
+    public boolean deleteAuthorityPerson(Long id) throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         return delegator.deleteAuthorityPerson(id);
     }
 
@@ -194,12 +194,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete faculty by id
      *
      * @param id system-id of the faculty
-     * @throws FacultyIsNotFoundException  throws when you want to delete faculty which is not created before
+     * @throws FacultyNotFoundException  throws when you want to delete faculty which is not created before
      * @throws FacultyIsNotEmptyException throws when you want to delete faculty which has courses
      * @see Faculty
      */
     @Override
-    public void deleteFaculty(Long id) throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    public void deleteFaculty(Long id) throws FacultyNotFoundException, FacultyIsNotEmptyException {
         delegator.deleteFaculty(id);
     }
 
@@ -246,12 +246,12 @@ public class PersistenceFacadeDelegate implements PersistenceFacade {
      * To delete students group by id
      *
      * @param id system-id of the students group
-     * @throws StudentsGroupIsNotFoundException   throws when you want to delete students group which is not created before
+     * @throws StudentsGroupNotFoundException   throws when you want to delete students group which is not created before
      * @throws StudentGroupWithStudentsException throws when you want to delete students group with students
      * @see StudentsGroup
      */
     @Override
-    public void deleteStudentsGroup(Long id) throws StudentsGroupIsNotFoundException, StudentGroupWithStudentsException {
+    public void deleteStudentsGroup(Long id) throws StudentsGroupNotFoundException, StudentGroupWithStudentsException {
         delegator.deleteStudentsGroup(id);
     }
 

@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -144,7 +144,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
 
@@ -292,7 +292,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
         verify(command, never()).executeDo(any(Context.class));
@@ -314,7 +314,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         MacroCommandParameter<Boolean> parameter = context.getRedoParameter();
 
@@ -325,7 +325,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
-        assertThat(profileContext.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(profileContext.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(profileContext.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter()).isNull();
         assertThat(profileContext.getResult()).isEmpty();

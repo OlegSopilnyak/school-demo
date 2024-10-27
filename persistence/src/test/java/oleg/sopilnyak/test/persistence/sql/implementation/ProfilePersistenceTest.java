@@ -5,8 +5,8 @@ import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -241,7 +241,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteProfileById() throws ProfileIsNotFoundException {
+    void shouldDeleteProfileById() throws ProfileNotFoundException {
         StudentProfile profile = makeStudentProfile(null);
         Optional<StudentProfile> student = persistence.save(profile);
         assertThat(student).isNotEmpty();
@@ -260,8 +260,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
     void shouldDontDeleteProfileById() {
         Long id = 504L;
 
-        ProfileIsNotFoundException exception =
-                assertThrows(ProfileIsNotFoundException.class, () -> persistence.deleteProfileById(id));
+        ProfileNotFoundException exception =
+                assertThrows(ProfileNotFoundException.class, () -> persistence.deleteProfileById(id));
 
         verify(personProfileRepository).findById(id);
         assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:504 is not exists.");

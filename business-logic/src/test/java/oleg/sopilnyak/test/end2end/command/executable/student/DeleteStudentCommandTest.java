@@ -2,15 +2,15 @@ package oleg.sopilnyak.test.end2end.command.executable.student;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CoursePayload;
 import oleg.sopilnyak.test.service.message.StudentPayload;
@@ -103,7 +103,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(StudentIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:112 is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
@@ -164,7 +164,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Student' value:[instance]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Student' value:[instance]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Student.class));
     }

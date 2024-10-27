@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.end2end.command.factory;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;

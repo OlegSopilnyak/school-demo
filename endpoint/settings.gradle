@@ -1,9 +1,5 @@
 include 'common'
-//include 'persistence'
-//include 'business-logic'
 project(':common').projectDir = "$rootDir/../common" as File
-//project(':persistence').projectDir = "$rootDir/../persistence" as File
-//project(':business-logic').projectDir = "$rootDir/../business-logic" as File
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

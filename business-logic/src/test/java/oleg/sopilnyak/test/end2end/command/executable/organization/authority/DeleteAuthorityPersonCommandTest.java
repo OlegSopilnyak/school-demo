@@ -3,14 +3,14 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(AuthorityPersonIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
@@ -123,7 +123,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileNotFoundException {
         AuthorityPerson entity = persist();
         Long id = entity.getId();
         assertThat(persistence.findAuthorityPersonById(id)).isPresent();
@@ -169,7 +169,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'AuthorityPerson' value:[person]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'AuthorityPerson' value:[person]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(AuthorityPerson.class));
     }

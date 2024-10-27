@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -55,13 +55,13 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
-     * @see StudentsGroupIsNotFoundException
+     * @see StudentsGroupNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to create or update students group {}", parameter);
             final Long id = ((StudentsGroup) parameter).getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
@@ -69,7 +69,7 @@ public class CreateOrUpdateStudentsGroupCommand
                 // cached students group is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(
                         id, persistence::findStudentsGroupById, payloadMapper::toPayload,
-                        () -> new StudentsGroupIsNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new StudentsGroupNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -101,13 +101,13 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      * @see StudentsGroupPersistenceFacade#deleteStudentsGroup(Long)
-     * @see StudentsGroupIsNotFoundException
+     * @see StudentsGroupNotFoundException
      */
     @Override
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo students group changes using: {}", parameter);
 
             rollbackCachedEntity(context, persistence::save, persistence::deleteStudentsGroup);

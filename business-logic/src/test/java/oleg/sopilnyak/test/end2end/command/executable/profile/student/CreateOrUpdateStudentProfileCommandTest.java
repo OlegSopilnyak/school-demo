@@ -2,14 +2,14 @@ package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -116,7 +116,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(profile.getId());
@@ -137,7 +137,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
@@ -303,13 +303,13 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a  'Long' value:[param]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileNotFoundException {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
         Context<Optional<StudentProfile>> context = spy(command.createContext());

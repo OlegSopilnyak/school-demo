@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.student;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -253,7 +253,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDelete() throws StudentWithCoursesException, StudentIsNotFoundException {
+    void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
@@ -284,7 +284,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDelete_StudentNotExists() {
         Long studentId = 101L;
 
-        StudentIsNotFoundException exception = assertThrows(StudentIsNotFoundException.class, () -> facade.delete(studentId));
+        StudentNotFoundException exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
         verify(factory).command(STUDENT_DELETE);

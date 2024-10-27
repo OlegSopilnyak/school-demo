@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.StudentProfilePayload;
 import org.junit.jupiter.api.Test;
@@ -141,7 +141,7 @@ class CreateOrUpdateStudentProfileCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'StudentProfile' value:");
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a 'StudentProfile' value:");
         verify(command).executeDo(context);
         verify(persistence, never()).saveProfile(any());
     }
@@ -156,7 +156,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(profile).getId();
@@ -313,12 +313,12 @@ class CreateOrUpdateStudentProfileCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'Long' value:[param]");
+        assertThat(context.getException().getMessage()).startsWith("Parameter not a 'Long' value:[param]");
         verify(command).executeUndo(context);
     }
 
     @Test
-    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileIsNotFoundException {
+    void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileNotFoundException {
         Long id = 703L;
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);

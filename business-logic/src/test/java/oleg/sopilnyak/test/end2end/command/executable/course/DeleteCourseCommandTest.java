@@ -4,14 +4,14 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.CourseEntity;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.EducationPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.DeleteCourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +88,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.<Object>getUndoParameter()).isNull();
-        assertThat(context.getException()).isInstanceOf(CourseIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
@@ -167,7 +167,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(InvalidParameterTypeException.class);
-        assertThat(context.getException().getMessage()).startsWith("Parameter not a  'Course' value:[course]");
+        assertThat(context.getException().getMessage()).isEqualTo("Parameter not a 'Course' value:[course]");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Course.class));
     }

@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;

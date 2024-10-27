@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.education.StudentIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.persistence.students.courses.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -51,13 +51,13 @@ public class CreateOrUpdateStudentCommand
      * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see StudentsPersistenceFacade#save(Student)
-     * @see StudentIsNotFoundException
+     * @see StudentNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to change student using: {}", parameter);
             final Long id = ((Student) parameter).getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
@@ -65,7 +65,7 @@ public class CreateOrUpdateStudentCommand
                 // previous version of student is getting and storing to context for further rollback (undo)
                 final Student entity = retrieveEntity(
                         id, persistence::findStudentById, payloadMapper::toPayload,
-                        () -> new StudentIsNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
+                        () -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 context.setUndoParameter(entity);
@@ -101,7 +101,7 @@ public class CreateOrUpdateStudentCommand
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             log.debug("Trying to undo student changes using: {}", parameter);
 
             rollbackCachedEntity(context, persistence::save, persistence::deleteStudent);

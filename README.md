@@ -32,15 +32,15 @@ Other could be used for application's observation.
 ### Endpoints
 
 * **GET** **_/school/authorities_** - to get all school's authorities
-  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto&gt;**
+  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto&gt;**
 * **GET** **_/school/authorities/{personId}_** - to get school's authority person by
-  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto**
+  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto**
   , parameter _personId_ (String)
 * **POST** **_/school/authorities_** - to create the authority person
-  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto**
+  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto**
   , parameter **AuthorityPersonDto** newInstance
 * **PUT** **_/school/authorities_** - to update the authority person
-  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto**
+  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto**
   , parameter **AuthorityPersonDto** instance
 * **DELETE** **_/school/authorities/{personId}_** - to delete school's authority person by ID
   <BR>returns **nothing**, parameter _personId_ (String)
@@ -48,30 +48,30 @@ Other could be used for application's observation.
 --------------------------------------------------------------------
 
 * **GET** **_/school/faculties_** - to get all school's faculties
-  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.FacultyDto&gt;**
+  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto&gt;**
 * **GET** **_/school/faculties/{facultyId}_** - to get school's faculty by
-  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.FacultyDto**
+  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto**
   , parameter _facultyId_ (String)
 * **POST** **_/school/faculties_** - to create the faculty
-  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.FacultyDto**
+  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto**
   , parameter **FacultyDto** newInstance
 * **PUT** **_/school/faculties_** - to update the faculty
-  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.FacultyDto**
+  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto**
   , parameter **FacultyDto** instance
 * **DELETE** **_/school/faculties/{facultyId}_** - to delete school's faculty by ID
   <BR>returns **nothing**, parameter _facultyId_ (String)
 
 --------------------------------------------------------------------
 * **GET** **_/school/student-groups_** - to get all school's students groups
-  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto&gt;**
+  <BR>returns **List&lt;oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto&gt;**
 * **GET** **_/school/student-groups/{groupId}_** - to get school's students group by
-  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto**
+  ID<BR>returns **oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto**
   , parameter _groupId_ (String)
 * **POST** **_/school/student-groups_** - to create the students group
-  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto**
+  <BR>returns created **oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto**
   , parameter **StudentsGroupDto** newInstance
 * **PUT** **_/school/student-groups_** - to update the students group
-  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto**
+  <BR>returns updated **oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto**
   , parameter **StudentsGroupDto** instance
 * **DELETE** **_/school/student-groups/{groupId}_** - to delete school's students group by ID
   <BR>returns **nothing**, parameter _groupId_ (String)
@@ -79,29 +79,29 @@ Other could be used for application's observation.
 --------------------------------------------------------------------
 
 * **POST** **_/school/courses_** - to create new instance of the Course<BR>
-  parameter _**CourseDto** newCourse_ (see **oleg.sopilnyak.test.endpoint.dto.CourseDto**)
+  parameter _**CourseDto** newCourse_ (see **oleg.sopilnyak.test.endpoint.dto.education.CourseDto**)
 * **PUT** **_/school/courses_** - to update exists instance of the Course<BR>
-  parameter _**CourseDto** course_ (see **oleg.sopilnyak.test.endpoint.dto.CourseDto**)
+  parameter _**CourseDto** course_ (see **oleg.sopilnyak.test.endpoint.dto.education.CourseDto**)
 * **GET** **_/school/courses/empty_** - to get courses without students<BR>returns **List&lt;Course&gt;**
 * **GET** **_/school/courses/registered/{studentId}_** - to get courses registered in the student
 <BR>returns **List&lt;Course&gt;**, parameter _studentId_ (String)
 * **GET** **_/school/courses/{courseId}_** - to get the course by ID
-<BR>returns **oleg.sopilnyak.test.endpoint.dto.CourseDto**, parameter _courseId_ (String)
+<BR>returns **oleg.sopilnyak.test.endpoint.dto.education.CourseDto**, parameter _courseId_ (String)
 * **DELETE** **_/school/courses/{courseId}_** - to delete the course by ID<BR>returns **nothing**
   parameter _courseId_ (String)
 
 --------------------------------------------------------------------
 
 * **POST** **_/school/students_** - to create new instance of the Student<BR>
-  parameter _**StudentDto** newStudent_ (see **oleg.sopilnyak.test.endpoint.dto.StudentDto**)
+  parameter _**StudentDto** newStudent_ (see **oleg.sopilnyak.test.endpoint.dto.education.StudentDto**)
 * **PUT** **_/school/students_** - to update exists instance of the Student<BR>
-  parameter _**StudentDto** student_ (see **oleg.sopilnyak.test.endpoint.dto.StudentDto**)
+  parameter _**StudentDto** student_ (see **oleg.sopilnyak.test.endpoint.dto.education.StudentDto**)
 * **GET** **_/school/students/empty_** - to get students who are not enrolled to any course<BR>
   returns **List&lt;Student&gt;**
 * **GET** **_/school/students/enrolled/{courseId}_** - to get students who are enrolled to particular course<BR>
   returns **List&lt;Student&gt;**, parameter _courseId_ (String)
 * **GET** **_/school/students/{studentId}_** - to get student by ID<BR>
-  returns **oleg.sopilnyak.test.endpoint.dto.StudentDto**, parameter _studentId_ (String)
+  returns **oleg.sopilnyak.test.endpoint.dto.education.StudentDto**, parameter _studentId_ (String)
 * **DELETE** **_/school/students/{studentId}_** - to delete student by ID<BR>
   returns **nothing**, parameter _studentId_ (String)
 

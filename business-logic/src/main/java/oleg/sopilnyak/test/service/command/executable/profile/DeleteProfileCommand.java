@@ -1,10 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.Getter;
-import oleg.sopilnyak.test.school.common.exception.EntityIsNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
-import oleg.sopilnyak.test.school.common.persistence.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -75,13 +75,13 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see DeleteProfileCommand#functionFindById()
      * @see DeleteProfileCommand#functionAdoptEntity()
      * @see DeleteProfileCommand#functionSave()
-     * @see ProfileIsNotFoundException
+     * @see ProfileNotFoundException
      */
     @Override
     public <T> void executeDo(Context<T> context) {
         final Object parameter = context.getRedoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             getLog().debug("Trying to delete profile using: {}", parameter);
             final Long id = commandParameter(parameter);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
@@ -118,7 +118,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
     public <T> void executeUndo(Context<T> context) {
         final Object parameter = context.getUndoParameter();
         try {
-            check(parameter);
+            checkNullParameter(parameter);
             getLog().debug("Trying to undo person's profile deletion using: {}", parameter);
             final E entity = rollbackCachedEntity(context, functionSave()).orElseThrow();
 
@@ -133,7 +133,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
     }
 
     // private methods
-    private EntityIsNotFoundException exceptionFor(final Long id) {
-        return new ProfileIsNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
+    private EntityNotFoundException exceptionFor(final Long id) {
+        return new ProfileNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.");
     }
 }

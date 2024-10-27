@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import oleg.sopilnyak.test.school.common.exception.SchoolAccessIsDeniedException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -95,7 +95,7 @@ class LoginAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileIsNotFoundException.class);
+        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
         assertThat(context.getResult()).isEmpty();
         assertThat(context.<Object>getUndoParameter()).isNull();
@@ -137,7 +137,7 @@ class LoginAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(SchoolAccessIsDeniedException.class);
+        assertThat(context.getException()).isInstanceOf(SchoolAccessDeniedException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.<Object>getUndoParameter()).isNull();

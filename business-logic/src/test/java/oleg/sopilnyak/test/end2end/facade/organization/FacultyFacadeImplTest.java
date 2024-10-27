@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -183,7 +183,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         Throwable cause = thrown.getCause();
-        assertThat(cause).isInstanceOf(FacultyIsNotFoundException.class);
+        assertThat(cause).isInstanceOf(FacultyNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
@@ -195,7 +195,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldDeleteFacultyById() throws FacultyIsNotFoundException, FacultyIsNotEmptyException {
+    void shouldDeleteFacultyById() throws FacultyNotFoundException, FacultyIsNotEmptyException {
         Faculty facultySource = persistFaculty();
         Long id = facultySource.getId();
 
@@ -214,7 +214,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     void shouldNoDeleteFacultyById_FacultyNotExists() {
         Long id = 403L;
 
-        FacultyIsNotFoundException thrown = assertThrows(FacultyIsNotFoundException.class, () -> facade.deleteFacultyById(id));
+        FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);

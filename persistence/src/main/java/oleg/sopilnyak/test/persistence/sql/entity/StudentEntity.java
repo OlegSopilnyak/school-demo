@@ -8,10 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
 
 import javax.persistence.*;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 
@@ -45,6 +42,7 @@ public class StudentEntity implements Student {
             inverseJoinColumns = {@JoinColumn(name = "fk_course")}
     )
     private Set<CourseEntity> courseSet;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private StudentsGroupEntity group;
@@ -57,10 +55,7 @@ public class StudentEntity implements Student {
     @Override
     public List<Course> getCourses() {
         refreshCourseSet();
-        return getCourseSet().stream()
-                .map(Course.class::cast)
-                .sorted(Comparator.comparing(Course::getName))
-                .toList();
+        return getCourseSet().stream().sorted(Comparator.comparing(Course::getName)).map(Course.class::cast).toList();
     }
 
     /**
@@ -68,9 +63,11 @@ public class StudentEntity implements Student {
      *
      * @param courses new student's courses list
      */
-    public void setCourses(List<Course> courses) {
+    public void setCourses(final List<Course> courses) {
         refreshCourseSet();
+        // remove old courses from student's courses set
         new HashSet<>(getCourseSet()).forEach(this::remove);
+        // add new ones
         courses.forEach(this::add);
     }
 
@@ -80,11 +77,10 @@ public class StudentEntity implements Student {
      * @param course new student's course
      * @return true if success
      */
-    public boolean add(Course course) {
+    public boolean add(final Course course) {
         refreshCourseSet();
         final Set<CourseEntity> courseEntities = getCourseSet();
-        final boolean isExistsCourse =
-                courseEntities.stream().anyMatch(ce -> equals(ce, course));
+        final boolean isExistsCourse = courseEntities.stream().anyMatch(ce -> equals(ce, course));
 
         if (isExistsCourse) {
             // course exists
@@ -104,7 +100,7 @@ public class StudentEntity implements Student {
      * @param course course to remove
      * @return true if success
      */
-    public boolean remove(Course course) {
+    public boolean remove(final Course course) {
         refreshCourseSet();
         final Set<CourseEntity> courseEntities = getCourseSet();
         final CourseEntity existsCourse =
@@ -129,15 +125,15 @@ public class StudentEntity implements Student {
         if (isNull(course.getStudentSet())) course.setStudentSet(new HashSet<>());
     }
 
-    private static boolean equals(Course first, Course second) {
+    private static boolean equals(final Course first, final Course second) {
         return !isNull(first) && !isNull(second) &&
                 equals(first.getName(), second.getName()) &&
                 equals(first.getDescription(), second.getDescription())
                 ;
     }
 
-    private static boolean equals(String first, String second) {
-        return isNull(first) ? isNull(second) : first.equals(second);
+    private static boolean equals(final String first, final String second) {
+        return Objects.equals(first, second);
     }
 
 }
