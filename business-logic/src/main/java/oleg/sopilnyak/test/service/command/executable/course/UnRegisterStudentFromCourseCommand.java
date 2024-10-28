@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
@@ -13,8 +14,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 import static java.util.Objects.isNull;
 
 /**
@@ -23,9 +22,9 @@ import static java.util.Objects.isNull;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class UnRegisterStudentFromCourseCommand implements CourseCommand {
-    public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
+public class UnRegisterStudentFromCourseCommand implements CourseCommand, EducationLinkCommand {
     private final EducationPersistenceFacade persistenceFacade;
+    @Getter
     private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -33,10 +32,10 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
+     * @see EducationLinkCommand#detached(Course)
+     * @see EducationLinkCommand#detached(Student) 
      * @see EducationPersistenceFacade#findStudentById(Long)
      * @see EducationPersistenceFacade#findCourseById(Long)
-     * @see BusinessMessagePayloadMapper#toPayload(Student)
-     * @see BusinessMessagePayloadMapper#toPayload(Course)
      * @see EducationPersistenceFacade#unLink(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
@@ -51,35 +50,21 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
             final Long[] ids = commandParameter(parameter);
             final Long studentId = ids[0];
             final Long courseId = ids[1];
-            final Optional<Student> student = persistenceFacade.findStudentById(studentId);
-            if (student.isEmpty()) {
-                log.debug("No such student with id:{}", studentId);
-                throw new StudentNotFoundException("Student with ID:" + studentId + IS_NOT_EXISTS_SUFFIX);
-            }
-            final Optional<Course> course = persistenceFacade.findCourseById(courseId);
-            if (course.isEmpty()) {
-                log.debug("No such course with id:{}", courseId);
-                throw new CourseNotFoundException("Course with ID:" + courseId + IS_NOT_EXISTS_SUFFIX);
-            }
+            final Student student = persistenceFacade.findStudentById(studentId)
+                    .orElseThrow(() -> new StudentNotFoundException("Student with ID:" + studentId + " is not exists."));
+            final Course course = persistenceFacade.findCourseById(courseId)
+                    .orElseThrow(() -> new CourseNotFoundException("Course with ID:" + courseId + " is not exists."));
 
-            final Student existingStudent = student.get();
-            final Course existingCourse = course.get();
-
+            final var undoLink = new StudentToCourseLink(detached(student), detached(course));
             log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
 
-            final StudentToCourseLink undoLink = StudentToCourseLink.builder()
-                    .student(payloadMapper.toPayload(existingStudent))
-                    .course(payloadMapper.toPayload(existingCourse))
-                    .build();
-            final boolean unLinked = persistenceFacade.unLink(existingStudent, existingCourse);
-            if (unLinked) {
-                context.setUndoParameter(undoLink);
-                context.setResult(true);
-            } else {
-                context.setResult(false);
-            }
+            final boolean successful = persistenceFacade.unLink(student, course);
 
-            log.debug("Un-linked student-id:{} from course-id:{} {}", studentId, courseId, unLinked);
+            if (successful) {
+                context.setUndoParameter(undoLink);
+            }
+            context.setResult(successful);
+            log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             context.failed(e);
@@ -101,19 +86,19 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand {
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");
             context.setState(Context.State.UNDONE);
-        } else {
-            try {
-                log.debug("Trying to undo student to course un-linking using: {}", parameter);
+            return;
+        }
+        log.debug("Trying to undo student to course un-linking using: {}", parameter);
+        try {
+            final StudentToCourseLink undoLink = commandParameter(parameter);
 
-                final StudentToCourseLink undoLink = commandParameter(parameter);
-                final boolean success = persistenceFacade.link(undoLink.getStudent(), undoLink.getCourse());
-                context.setState(Context.State.UNDONE);
+            final boolean successful = persistenceFacade.link(undoLink.getStudent(), undoLink.getCourse());
 
-                log.debug("Undone student to course linking {}", success);
-            } catch (Exception e) {
-                log.error("Cannot undo student to course linking for {}", parameter, e);
-                context.failed(e);
-            }
+            context.setState(Context.State.UNDONE);
+            log.debug("Undone student to course linking {}", successful);
+        } catch (Exception e) {
+            log.error("Cannot undo student to course linking for {}", parameter, e);
+            context.failed(e);
         }
     }
 

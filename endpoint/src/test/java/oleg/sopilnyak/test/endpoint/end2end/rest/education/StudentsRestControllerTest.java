@@ -19,6 +19,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.StudentPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -318,12 +319,12 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudent_StudentWithCoursesException() throws Exception {
-        Student student = getPersistent(makeClearStudent(0));
+        Student student = createStudent(makeClearStudent(0));
         Long id = student.getId();
         assertThat(database.findStudentById(id)).isPresent();
         String requestPath = ROOT + "/" + id;
-        if (student instanceof StudentEntity se) {
-            se.add(getPersistent(makeClearCourse(0)));
+        if (student instanceof StudentPayload payload && payload.getOriginal() instanceof StudentEntity entity) {
+            entity.add(getPersistent(makeClearCourse(0)));
         }
 
         MvcResult result =

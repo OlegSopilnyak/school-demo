@@ -123,6 +123,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Course newCourse = makeClearTestCourse();
         Course savedCourse = getPersistent(newCourse);
         Long studentId = savedCourse.getStudents().get(0).getId();
+        assertThat(studentId).isNotNull();
 
         Set<Course> courses = facade.findRegisteredFor(studentId);
 
@@ -461,6 +462,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     private Course getPersistent(Course newInstance) {
         Optional<Course> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();
+        saved.orElseThrow().getStudents().forEach(student -> database.save(student));
         return saved.get();
     }
 

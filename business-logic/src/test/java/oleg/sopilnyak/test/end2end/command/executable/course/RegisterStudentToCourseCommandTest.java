@@ -97,11 +97,13 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Long studentId = student.getId();
         Long courseId = course.getId();
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(courseId).orElseThrow());
-        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents())
-                .contains(persistence.findStudentById(studentId).orElseThrow());
+
+        Student linkedStudent = persistence.findStudentById(studentId).orElseThrow();
+        Course linkedCourse = persistence.findCourseById(courseId).orElseThrow();
+        assertThat(linkedStudent.getCourses()).contains(linkedCourse);
+        assertThat(linkedCourse.getStudents()).contains(linkedStudent);
         reset(persistence);
+
         Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);

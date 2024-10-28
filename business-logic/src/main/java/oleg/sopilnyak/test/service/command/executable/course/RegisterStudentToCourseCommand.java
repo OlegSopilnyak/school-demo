@@ -31,13 +31,12 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Slf4j
 @Getter
 @Component
-public class RegisterStudentToCourseCommand implements CourseCommand {
+public class RegisterStudentToCourseCommand implements CourseCommand, EducationLinkCommand {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
     @Getter(AccessLevel.NONE)
     private final EducationPersistenceFacade persistenceFacade;
-    @Getter(AccessLevel.NONE)
     private final BusinessMessagePayloadMapper payloadMapper;
     private final int maximumRooms;
     private final int coursesExceed;
@@ -57,10 +56,10 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
+     * @see EducationLinkCommand#detached(Course)
+     * @see EducationLinkCommand#detached(Student)
      * @see EducationPersistenceFacade#findStudentById(Long)
      * @see EducationPersistenceFacade#findCourseById(Long)
-     * @see BusinessMessagePayloadMapper#toPayload(Student)
-     * @see BusinessMessagePayloadMapper#toPayload(Course)
      * @see EducationPersistenceFacade#link(Student, Course)
      * @see Context
      * @see Context#setUndoParameter(Object)
@@ -76,35 +75,32 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
             final Long[] ids = commandParameter(parameter);
             final Long studentId = ids[0];
             final Long courseId = ids[1];
-            final Student student = persistenceFacade.findStudentById(studentId).map(payloadMapper::toPayload)
+            final Student studentEntity = persistenceFacade.findStudentById(studentId)
                     .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX));
-            final Course course = persistenceFacade.findCourseById(courseId).map(payloadMapper::toPayload)
+            final Course courseEntity = persistenceFacade.findCourseById(courseId)
                     .orElseThrow(() -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX));
 
-            if (isLinked(student, course)) {
+            if (isLinked(studentEntity, courseEntity)) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
                 context.setResult(true);
-                return;
-            } else if (course.getStudents().size() >= maximumRooms) {
+            } else if (courseEntity.getStudents().size() >= maximumRooms) {
                 log.error("Course with id:{} has students more than {}", courseId, maximumRooms);
                 throw new CourseHasNoRoomException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
-            } else if (student.getCourses().size() >= coursesExceed) {
+            } else if (studentEntity.getCourses().size() >= coursesExceed) {
                 log.error("Student with id:{} has more than {} courses", studentId, coursesExceed);
                 throw new StudentCoursesExceedException(STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses.");
-            }
-
-            log.debug("Linking student:{} to course:{}", studentId, courseId);
-
-            final var undoLink = StudentToCourseLink.builder().student(student).course(course).build();
-            final boolean linked = persistenceFacade.link(student, course);
-            if (linked) {
-                context.setUndoParameter(undoLink);
-                context.setResult(true);
             } else {
-                context.setResult(false);
-            }
+                log.debug("Linking student:{} to course:{}", studentId, courseId);
+                final var undoLink = new StudentToCourseLink(detached(studentEntity), detached(courseEntity));
 
-            log.debug("Linked student:{} to course {} {}", studentId, courseId, linked);
+                final boolean successful = persistenceFacade.link(studentEntity, courseEntity);
+
+                if (successful) {
+                    context.setUndoParameter(undoLink);
+                }
+                context.setResult(successful);
+                log.debug("Linked student:{} to course {} successful: {}", studentId, courseId, successful);
+            }
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             context.failed(e);
@@ -126,19 +122,19 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");
             context.setState(Context.State.UNDONE);
-        } else {
-            try {
-                log.debug("Trying to undo student to course linking using: {}", parameter);
+            return;
+        }
+        log.debug("Trying to undo student to course linking using: {}", parameter);
+        try {
+            final StudentToCourseLink undoLink = commandParameter(parameter);
 
-                final StudentToCourseLink undoLink = commandParameter(parameter);
-                final boolean success = persistenceFacade.unLink(undoLink.getStudent(), undoLink.getCourse());
-                context.setState(Context.State.UNDONE);
+            final boolean successful = persistenceFacade.unLink(undoLink.getStudent(), undoLink.getCourse());
 
-                log.debug("Undone student to course linking {}", success);
-            } catch (Exception e) {
-                log.error("Cannot undo student to course linking for {}", parameter, e);
-                context.failed(e);
-            }
+            context.setState(Context.State.UNDONE);
+            log.debug("Undone student to course linking {}", successful);
+        } catch (Exception e) {
+            log.error("Cannot undo student to course linking for {}", parameter, e);
+            context.failed(e);
         }
     }
 
@@ -162,6 +158,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand {
         return log;
     }
 
+    // private methods
     private static boolean isLinked(final Student student, final Course course) {
         return studentsHaveCourse(course.getStudents(), course.getId()) &&
                 coursesHaveStudent(student.getCourses(), student.getId());
