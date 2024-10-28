@@ -11,7 +11,9 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -29,6 +31,7 @@ public class AuthorityPersonsRestController {
     public static final String PASS_NAME = "password";
     public static final String VAR_NAME = "personId";
     public static final String WRONG_AUTHORITY_PERSON_ID_MESSAGE = "Wrong authority-person-id: '";
+    public static final String BEARER_PREFIX = "Bearer ";
     // delegate for requests processing
     private final AuthorityPersonFacade facade;
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
@@ -42,6 +45,20 @@ public class AuthorityPersonsRestController {
             return resultToDto(username, facade.login(username, password));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot login authority person for login: " + username, e);
+        }
+    }
+
+    @DeleteMapping("/logout")
+    public void logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        ActionContext.setup(FACADE_NAME, "logout");
+        log.debug("Trying to logout authority person using: '{}'", authorization);
+        if (!ObjectUtils.isEmpty(authorization) && authorization.startsWith(BEARER_PREFIX)) {
+            final String token = authorization.substring(7);
+            log.debug("Trying to logout authority person with token: '{}'", token);
+
+            facade.logout(token);
+
+            log.debug("Authority person is logged out.");
         }
     }
 

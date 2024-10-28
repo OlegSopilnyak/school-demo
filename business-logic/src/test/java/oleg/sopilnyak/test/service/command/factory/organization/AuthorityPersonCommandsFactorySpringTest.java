@@ -40,6 +40,7 @@ class AuthorityPersonCommandsFactorySpringTest {
     void setUp() {
         commandsId = Set.of(
                 "organization.authority.person.login",
+                "organization.authority.person.logout",
                 "organization.authority.person.findAll",
                 "organization.authority.person.findById",
                 "organization.authority.person.createOrUpdate",

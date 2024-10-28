@@ -37,6 +37,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
@@ -76,6 +77,17 @@ class AuthorityPersonFacadeImplTest {
         deletePersonMacroCommand.runThreadPoolExecutor();
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
+    }
+
+    @Test
+    void shouldLogoutAuthorityPerson() {
+        String token = "logged_in_person_token";
+
+        facade.logout(token);
+
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(token);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).doCommand(any(Context.class));
     }
 
     @Test
@@ -295,6 +307,7 @@ class AuthorityPersonFacadeImplTest {
         return spy(new AuthorityPersonCommandsFactory(
                         Set.of(
                                 spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
+                                spy(new LogoutAuthorityPersonCommand()),
                                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
                                 spy(new FindAuthorityPersonCommand(persistenceFacade)),
                                 createPersonCommand,

@@ -42,8 +42,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -64,6 +63,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     BusinessMessagePayloadMapper mapper;
+    @SpyBean
     @Autowired
     AuthorityPersonFacade facade;
     AuthorityPersonsRestController controller;
@@ -91,6 +91,69 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(controller).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldLogoutAuthorityPerson() throws Exception {
+        String headerName = "Authorization";
+        String token = "logged_in_person_token";
+        String bearer = "Bearer " + token;
+        String requestPath = ROOT + "/logout";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header(headerName, bearer)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        verify(controller).logout(bearer);
+        verify(facade).logout(token);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotLogoutAuthorityPerson_WrongHeaderValue() throws Exception {
+        String headerName = "Authorization";
+        String token = "logged_in_person_token";
+        String bearer = "bearer " + token;
+        String requestPath = ROOT + "/logout";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header(headerName, bearer)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        verify(controller).logout(bearer);
+        verify(facade, never()).logout(anyString());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldNotLogoutAuthorityPerson_WrongHeaderName() throws Exception {
+        String headerName = "AuthoriSation";
+        String token = "logged_in_person_token";
+        String bearer = "Bearer " + token;
+        String requestPath = ROOT + "/logout";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header(headerName, bearer)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isBadRequest())
+                .andDo(print())
+                .andReturn();
+
+        verify(controller, never()).logout(anyString());
+        verify(facade, never()).logout(anyString());
     }
 
     @Test
@@ -150,8 +213,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).login("username", password);
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'username', is not found");
@@ -183,8 +245,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).login(username, "password");
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(403);
         assertThat(error.getErrorMessage()).isEqualTo("Login authority person command failed for username:" + username);
@@ -305,8 +366,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).updatePerson(any(AuthorityPersonDto.class));
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-301'");
@@ -330,8 +390,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).updatePerson(any(AuthorityPersonDto.class));
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
@@ -374,8 +433,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).deletePerson("null");
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
@@ -396,8 +454,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).deletePerson(Long.toString(id));
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-303'");
@@ -418,8 +475,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).deletePerson(Long.toString(id));
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '304'");
@@ -432,8 +488,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         if (source instanceof FakeAuthorityPerson fake) {
             fake.setFaculties(List.of(makeCleanFacultyNoDean(1)));
         }
-        AuthorityPerson person = getPersistent(source);
-        Long id = person.getId();
+        AuthorityPerson person = create(source);
+        long id = person.getId();
         assertThat(database.findAuthorityPersonById(id)).isPresent();
         String requestPath = ROOT + "/" + id;
 
@@ -445,10 +501,9 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deletePerson(id.toString());
+        verify(controller).deletePerson(String.valueOf(id));
         String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo("AuthorityPerson with ID:" + id + " is managing faculties.");

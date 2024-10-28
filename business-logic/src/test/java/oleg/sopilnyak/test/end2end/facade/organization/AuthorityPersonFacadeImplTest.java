@@ -47,6 +47,7 @@ import static org.mockito.Mockito.*;
 @Rollback
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
@@ -77,6 +78,18 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(persistence).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldLogoutAuthorityPerson() {
+        String token = "logged_in_person_token";
+
+        facade.logout(token);
+
+        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(token);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).doCommand(any(Context.class));
     }
 
     @Test
@@ -305,6 +318,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         return new AuthorityPersonCommandsFactory(
                 Set.of(
                         spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
+                        spy(new LogoutAuthorityPersonCommand()),
                         createOrUpdateAuthorityPersonCommand,
                         createAuthorityPersonMacroCommand,
                         deleteAuthorityPersonCommand,

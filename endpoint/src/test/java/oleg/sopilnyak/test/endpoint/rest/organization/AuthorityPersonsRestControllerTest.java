@@ -22,8 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,7 +55,25 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldLogoutAuthorityPerson() throws Exception {
+        String token = "logged_in_person_token";
+        String bearer = "Bearer " + token;
+        String requestPath = ROOT + "/logout";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization",bearer)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        verify(controller).logout(bearer);
+        verify(facade).logout(token);
+    }
+
+    @Test
     void shouldLoginAuthorityPerson() throws Exception {
         String username = "test-username";
         String password = "test-password";
