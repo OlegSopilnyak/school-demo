@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.persistence.sql.repository;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.repository.education;
 
-import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Set;

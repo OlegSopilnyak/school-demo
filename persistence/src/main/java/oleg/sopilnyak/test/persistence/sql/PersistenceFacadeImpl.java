@@ -3,11 +3,17 @@ package oleg.sopilnyak.test.persistence.sql;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.persistence.sql.entity.*;
-import oleg.sopilnyak.test.persistence.sql.implementation.OrganizationPersistenceFacadeImplementation;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.implementation.EducationPersistence;
+import oleg.sopilnyak.test.persistence.sql.implementation.OrganizationPersistence;
 import oleg.sopilnyak.test.persistence.sql.implementation.ProfilePersistence;
-import oleg.sopilnyak.test.persistence.sql.implementation.StudentCourseLinkPersistenceFacadeImplementation;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
@@ -27,15 +33,13 @@ import java.security.NoSuchAlgorithmException;
 import static java.util.Objects.isNull;
 
 /**
- * Service-Facade-Implementation: Service for manage persistence layer of the school
+ * Service-Facade-Implementation: Service for manage persistence layer of the application
  */
 @Slf4j
 @Getter
 @Component
 public class PersistenceFacadeImpl implements PersistenceFacade,
-        StudentCourseLinkPersistenceFacadeImplementation,
-        OrganizationPersistenceFacadeImplementation,
-        ProfilePersistence {
+        EducationPersistence, OrganizationPersistence, ProfilePersistence {
     @Resource
     private StudentRepository studentRepository;
     @Resource
@@ -48,11 +52,11 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
     private StudentsGroupRepository studentsGroupRepository;
     @Resource
     private PersonProfileRepository<PersonProfileEntity> personProfileRepository;
-    private final SchoolEntityMapper mapper;
+    private final EntityMapper mapper;
     @Getter(AccessLevel.NONE)
     private PersistenceFacade delegate;
 
-    public PersistenceFacadeImpl(SchoolEntityMapper mapper) {
+    public PersistenceFacadeImpl(EntityMapper mapper) {
         this.mapper = mapper;
     }
 
@@ -80,33 +84,40 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
             log.info("Default data-set is installed already.");
             return;
         }
+        PrincipalProfileEntity maleProfile = PrincipalProfileEntity.builder()
+                .email("bill@school.com")
+                .location("Sweet Home")
+                .build();
         AuthorityPersonEntity maleTeacher = AuthorityPersonEntity.builder()
                 .title("Teacher").firstName("Bill").lastName("Clinton").gender("Mr")
+                .build();
+        PrincipalProfileEntity femaleProfile = PrincipalProfileEntity.builder()
+                .email("hillary@school.com")
+                .location("Sweet Home")
                 .build();
         AuthorityPersonEntity femaleTeacher = AuthorityPersonEntity.builder()
                 .title("Teacher").firstName("Hillary").lastName("Clinton").gender("Mrs")
                 .build();
+        log.info("Saving principal profiles set...");
+        delegate.save(maleProfile);
+        delegate.save(femaleProfile);
+        maleTeacher.setProfileId(maleProfile.getId());
+        femaleTeacher.setProfileId(femaleProfile.getId());
         log.info("Saving authority persons set...");
         delegate.save(maleTeacher);
         delegate.save(femaleTeacher);
+        delegate.updateAuthorityPersonAccess(maleTeacher, "bill", "");
+        delegate.updateAuthorityPersonAccess(femaleTeacher, "hillary", "");
 
-        FacultyEntity languageFaculty = FacultyEntity.builder()
-                .name("Languages")
-                .build();
-        FacultyEntity mathFaculty = FacultyEntity.builder()
-                .name("Math")
-                .build();
-        FacultyEntity natureFaculty = FacultyEntity.builder()
-                .name("Nature")
-                .build();
+        FacultyEntity languageFaculty = FacultyEntity.builder().name("Languages").build();
+        FacultyEntity mathFaculty = FacultyEntity.builder().name("Math").build();
+        FacultyEntity natureFaculty = FacultyEntity.builder().name("Nature").build();
         log.info("Saving faculty set...");
         delegate.save(languageFaculty);
         delegate.save(mathFaculty);
         delegate.save(natureFaculty);
 
-        StudentsGroupEntity group = StudentsGroupEntity.builder()
-                .name("Pupils")
-                .build();
+        StudentsGroupEntity group = StudentsGroupEntity.builder().name("Pupils").build();
         log.info("Saving students groups set...");
         delegate.save(group);
 

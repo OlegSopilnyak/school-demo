@@ -1,6 +1,12 @@
 package oleg.sopilnyak.test.persistence.sql.mapper;
 
-import oleg.sopilnyak.test.persistence.sql.entity.*;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import org.mapstruct.*;
@@ -28,7 +34,7 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
         builder = @Builder(disableBuilder = true)
 )
 
-public interface SchoolEntityMapper {
+public interface EntityMapper {
     /**
      * Convert model-type to Entity<BR/>Set ManyToOne field to null
      *

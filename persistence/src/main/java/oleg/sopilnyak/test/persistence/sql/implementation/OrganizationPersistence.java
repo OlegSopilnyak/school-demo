@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
-import oleg.sopilnyak.test.persistence.sql.entity.AuthorityPersonEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.FacultyEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentsGroupEntity;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
@@ -26,10 +26,10 @@ import static java.util.Objects.nonNull;
 /**
  * Persistence facade implementation for organization structure entities
  */
-public interface OrganizationPersistenceFacadeImplementation extends OrganizationPersistenceFacade {
+public interface OrganizationPersistence extends OrganizationPersistenceFacade {
     Logger getLog();
 
-    SchoolEntityMapper getMapper();
+    EntityMapper getMapper();
 
     AuthorityPersonRepository getAuthorityPersonRepository();
 

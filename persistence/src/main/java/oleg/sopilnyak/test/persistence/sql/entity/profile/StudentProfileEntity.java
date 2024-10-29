@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.persistence.sql.entity;
+package oleg.sopilnyak.test.persistence.sql.entity.profile;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;

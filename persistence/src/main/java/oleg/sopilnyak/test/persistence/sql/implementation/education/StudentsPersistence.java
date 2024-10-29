@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.persistence.sql.implementation.students.courses;
+package oleg.sopilnyak.test.persistence.sql.implementation.education;
 
-import oleg.sopilnyak.test.persistence.sql.entity.StudentEntity;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface StudentsPersistence extends StudentsPersistenceFacade {
     Logger getLog();
 
-    SchoolEntityMapper getMapper();
+    EntityMapper getMapper();
 
     StudentRepository getStudentRepository();
 

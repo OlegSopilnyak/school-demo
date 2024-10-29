@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.persistence.configuration;
 
 import oleg.sopilnyak.test.persistence.sql.PersistenceFacadeImpl;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,8 +34,8 @@ public class PersistenceConfiguration {
     }
 
     @Bean
-    public SchoolEntityMapper entityMapper() {
-        return Mappers.getMapper(SchoolEntityMapper.class);
+    public EntityMapper entityMapper() {
+        return Mappers.getMapper(EntityMapper.class);
     }
 
     @Bean(REAL_PERSISTENCE_FACADE)

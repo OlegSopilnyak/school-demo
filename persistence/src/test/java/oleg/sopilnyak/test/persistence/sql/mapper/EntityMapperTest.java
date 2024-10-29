@@ -1,6 +1,12 @@
 package oleg.sopilnyak.test.persistence.sql.mapper;
 
-import oleg.sopilnyak.test.persistence.sql.entity.*;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import org.junit.jupiter.api.Test;
@@ -9,8 +15,8 @@ import org.mapstruct.factory.Mappers;
 import java.util.Comparator;
 import java.util.List;
 
-class SchoolEntityMapperTest extends TestModelFactory {
-    private final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
+class EntityMapperTest extends TestModelFactory {
+    private final EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
 
     @Test
     void shouldTransformAuthorityPersonToEntity() {

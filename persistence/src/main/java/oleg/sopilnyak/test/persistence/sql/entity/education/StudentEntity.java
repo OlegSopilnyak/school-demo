@@ -1,8 +1,9 @@
-package oleg.sopilnyak.test.persistence.sql.entity;
+package oleg.sopilnyak.test.persistence.sql.entity.education;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
@@ -24,7 +25,7 @@ import static java.util.Objects.isNull;
         @Index(name = "student_profile_id", columnList = "profileId", unique = true)
 })
 public class StudentEntity implements Student {
-    private static SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
+    private static EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

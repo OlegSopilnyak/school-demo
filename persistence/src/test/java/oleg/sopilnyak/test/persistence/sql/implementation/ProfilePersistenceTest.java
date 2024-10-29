@@ -1,15 +1,15 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -36,24 +36,23 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class ProfilePersistenceTest extends MysqlTestModelFactory {
-
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
     @SpyBean
     @Autowired
-    PersonProfileRepository<PersonProfileEntity> personProfileRepository;
+    PersonProfileRepository<PersonProfileEntity> repository;
 
     @AfterEach
     void tearDown() {
         reset(persistence);
-        reset(personProfileRepository);
+        reset(repository);
     }
 
     @Test
     void persistenceShouldBePresent() {
         assertThat(persistence).isNotNull();
-        assertThat(personProfileRepository).isNotNull();
+        assertThat(repository).isNotNull();
     }
 
     @Test
@@ -70,10 +69,10 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         assertProfilesEquals(student.orElse(null), profile, false);
 
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
+        verify(repository).saveAndFlush(any(PersonProfileEntity.class));
 
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(repository).findById(id);
     }
 
     @Test
@@ -87,7 +86,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         verify(persistence).saveProfile(profile);
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository, times(2)).findById(id);
+        verify(repository, times(2)).findById(id);
     }
 
     @Test
@@ -104,10 +103,10 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         assertProfilesEquals(principal.orElse(null), profile, false);
 
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
+        verify(repository).saveAndFlush(any(PersonProfileEntity.class));
 
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(repository).findById(id);
     }
 
     @Test
@@ -121,13 +120,13 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         verify(persistence).saveProfile(profile);
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository, times(2)).findById(id);
+        verify(repository, times(2)).findById(id);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindProfileById() {
-        PersonProfile profile = makeStudentProfile(null);
+        StudentProfile profile = makeStudentProfile(null);
         Optional<? extends PersonProfile> personProfile = persistence.saveProfile(profile);
         assertThat(personProfile).isNotEmpty();
         Long id = personProfile.orElseThrow().getId();
@@ -135,13 +134,13 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         Optional<PersonProfile> person = persistence.findProfileById(id);
 
         assertThat(person).isNotEmpty();
-        assertProfilesEquals((StudentProfile) person.orElse(null), (StudentProfile) profile, false);
+        assertProfilesEquals((StudentProfile) person.orElse(null), profile, false);
 
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(StudentProfileEntity.class));
+        verify(repository).saveAndFlush(any(StudentProfileEntity.class));
 
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository).findById(id);
+        verify(repository).findById(id);
     }
 
     @Test
@@ -156,8 +155,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         assertThat(person).isEmpty();
         verify(persistence).saveProfile(profile);
         verify(persistence).findProfileById(id);
-        verify(personProfileRepository, times(2)).findById(id);
-        verify(personProfileRepository, never()).saveAndFlush(any(StudentProfileEntity.class));
+        verify(repository, times(2)).findById(id);
+        verify(repository, never()).saveAndFlush(any(StudentProfileEntity.class));
     }
 
     @Test
@@ -170,7 +169,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         assertThat(student).isNotEmpty();
         assertProfilesEquals(student.orElse(null), profile, false);
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(StudentProfileEntity.class));
+        verify(repository).saveAndFlush(any(StudentProfileEntity.class));
     }
 
     @Test
@@ -183,8 +182,8 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).findById(id);
-        verify(personProfileRepository, never()).saveAndFlush(any(PersonProfileEntity.class));
+        verify(repository).findById(id);
+        verify(repository, never()).saveAndFlush(any(PersonProfileEntity.class));
     }
 
     @Test
@@ -197,7 +196,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         assertThat(principal).isNotEmpty();
         assertProfilesEquals(principal.orElse(null), profile, false);
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).saveAndFlush(any(PrincipalProfileEntity.class));
+        verify(repository).saveAndFlush(any(PrincipalProfileEntity.class));
     }
 
     @Test
@@ -210,20 +209,20 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).findById(id);
-        verify(personProfileRepository, never()).saveAndFlush(any(PersonProfileEntity.class));
+        verify(repository).findById(id);
+        verify(repository, never()).saveAndFlush(any(PersonProfileEntity.class));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldSaveBaseProfile() {
-        PersonProfile profile = makeStudentProfile(null);
+        StudentProfile profile = makeStudentProfile(null);
 
         Optional<? extends PersonProfile> person = persistence.saveProfile(profile);
 
         assertThat(person).isNotEmpty();
-        assertProfilesEquals((StudentProfile) person.orElse(null), (StudentProfile) profile, false);
-        verify(personProfileRepository).saveAndFlush(any(PersonProfileEntity.class));
+        assertProfilesEquals((StudentProfile) person.orElse(null), profile, false);
+        verify(repository).saveAndFlush(any(PersonProfileEntity.class));
     }
 
     @Test
@@ -236,7 +235,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         assertThat(person).isEmpty();
         verify(persistence).saveProfile(profile);
-        verify(personProfileRepository).findById(id);
+        verify(repository).findById(id);
     }
 
     @Test
@@ -249,10 +248,10 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
         persistence.deleteProfileById(id);
 
-        verify(personProfileRepository).findById(id);
-        assertThat(personProfileRepository.findById(id)).isEmpty();
-        verify(personProfileRepository).deleteById(anyLong());
-        verify(personProfileRepository).flush();
+        verify(repository).findById(id);
+        assertThat(repository.findById(id)).isEmpty();
+        verify(repository).deleteById(anyLong());
+        verify(repository).flush();
     }
 
     @Test
@@ -263,7 +262,7 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
         ProfileNotFoundException exception =
                 assertThrows(ProfileNotFoundException.class, () -> persistence.deleteProfileById(id));
 
-        verify(personProfileRepository).findById(id);
+        verify(repository).findById(id);
         assertThat(exception.getMessage()).isEqualTo("PersonProfile with ID:504 is not exists.");
     }
 }

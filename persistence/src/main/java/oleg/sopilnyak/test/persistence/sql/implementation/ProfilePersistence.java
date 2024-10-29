@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
-import oleg.sopilnyak.test.persistence.sql.entity.PersonProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.PrincipalProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.StudentProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -26,7 +26,7 @@ import static java.util.Objects.nonNull;
 public interface ProfilePersistence extends ProfilePersistenceFacade {
     Logger getLog();
 
-    SchoolEntityMapper getMapper();
+    EntityMapper getMapper();
 
     PersonProfileRepository<PersonProfileEntity> getPersonProfileRepository();
 
@@ -136,9 +136,9 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     @Override
     default PersonProfileEntity toEntity(PersonProfile profile) {
         if (profile instanceof StudentProfile student) {
-            return student instanceof StudentProfileEntity studentProfile ? studentProfile : toEntity(student);
+            return student instanceof StudentProfileEntity entity ? entity : toEntity(student);
         } else if (profile instanceof PrincipalProfile principal) {
-            return principal instanceof PrincipalProfileEntity principalProfile ? principalProfile : toEntity(principal);
+            return principal instanceof PrincipalProfileEntity entity ? entity : toEntity(principal);
         } else return null;
     }
 

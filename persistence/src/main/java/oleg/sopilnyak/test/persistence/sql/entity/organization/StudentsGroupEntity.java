@@ -1,7 +1,8 @@
-package oleg.sopilnyak.test.persistence.sql.entity;
+package oleg.sopilnyak.test.persistence.sql.entity.organization;
 
 import lombok.*;
-import oleg.sopilnyak.test.persistence.sql.mapper.SchoolEntityMapper;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import org.mapstruct.factory.Mappers;
@@ -20,7 +21,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Entity
 @Table(name = "studentsGroups")
 public class StudentsGroupEntity implements StudentsGroup {
-    private static final SchoolEntityMapper mapper = Mappers.getMapper(SchoolEntityMapper.class);
+    private static final EntityMapper mapper = Mappers.getMapper(EntityMapper.class);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
