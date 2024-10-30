@@ -46,20 +46,6 @@ public class StudentProfileRestController {
         }
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public StudentProfileDto create(@RequestBody StudentProfileDto profileDto) {
-        ActionContext.setup(FACADE_NAME, "createNew");
-        log.debug("Trying to create student-profile {}", profileDto);
-        try {
-            profileDto.setId(null);
-            return toDto(null, facade.createOrUpdateProfile(profileDto));
-        } catch (Exception e) {
-            log.error("Cannot create new student-profile {}", profileDto.toString(), e);
-            throw new CannotProcessActionException("Cannot create new student-profile " + profileDto, e);
-        }
-    }
-
     @PutMapping
     public StudentProfileDto update(@RequestBody StudentProfileDto profileDto) {
         ActionContext.setup(FACADE_NAME, "updateExists");
@@ -75,41 +61,6 @@ public class StudentProfileRestController {
             throw new CannotProcessActionException("Cannot update student-profile " + profileDto, e);
         }
     }
-
-    @DeleteMapping
-    public void delete(@RequestBody StudentProfileDto profileDto) {
-        ActionContext.setup(FACADE_NAME, "delete");
-        log.debug("Trying to delete student-profile : {}", profileDto);
-        try {
-            log.debug("Deleting student-profile : {}", profileDto);
-
-            facade.delete(profileDto);
-        } catch (Exception e) {
-            log.error("Cannot delete student-profile {}", profileDto, e);
-            throw new CannotProcessActionException("Cannot delete student-profile " + profileDto, e);
-        }
-    }
-
-    @DeleteMapping("/{" + PROFILE_ID_VAR_NAME + "}")
-    public void deleteById(@PathVariable(PROFILE_ID_VAR_NAME) String profileId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
-        log.debug("Trying to delete student-profile for Id: '{}'", profileId);
-        try {
-            final Long id = Long.parseLong(profileId);
-            log.debug("Deleting student-profile for id: {}", id);
-            if (isInvalid(id)) {
-                throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + id + "'");
-            }
-
-            facade.deleteById(id);
-        } catch (NumberFormatException e) {
-            throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + profileId + "'");
-        } catch (Exception e) {
-            log.error("Cannot delete student-profile for id = {}", profileId, e);
-            throw new CannotProcessActionException("Cannot delete student-profile for id = " + profileId, e);
-        }
-    }
-
 
     private static StudentProfileDto toDto(Long profileId, Optional<StudentProfile> profile) {
         log.debug("Converting {} to DTO for student profile-id '{}'", profile, profileId);

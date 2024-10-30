@@ -48,20 +48,6 @@ public class PrincipalProfileRestController {
         }
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public PrincipalProfileDto create(@RequestBody PrincipalProfileDto profileDto) {
-        ActionContext.setup(FACADE_NAME, "createNew");
-        log.debug("Trying to create principal-profile {}", profileDto);
-        try {
-            profileDto.setId(null);
-            return toDto(null, facade.createOrUpdateProfile(profileDto));
-        } catch (Exception e) {
-            log.error("Cannot create new principal-profile {}", profileDto.toString(), e);
-            throw new CannotProcessActionException("Cannot create new principal-profile " + profileDto, e);
-        }
-    }
-
     @PutMapping
     public PrincipalProfileDto update(@RequestBody PrincipalProfileDto profileDto) {
         ActionContext.setup(FACADE_NAME, "updateExists");
@@ -75,40 +61,6 @@ public class PrincipalProfileRestController {
         } catch (Exception e) {
             log.error("Cannot update principal-profile {}", profileDto.toString(), e);
             throw new CannotProcessActionException("Cannot update principal-profile " + profileDto, e);
-        }
-    }
-
-    @DeleteMapping
-    public void delete(@RequestBody PrincipalProfileDto profileDto) {
-        ActionContext.setup(FACADE_NAME, "delete");
-        log.debug("Trying to delete principal-profile : {}", profileDto);
-        try {
-            log.debug("Deleting principal-profile : {}", profileDto);
-
-            facade.delete(profileDto);
-        } catch (Exception e) {
-            log.error("Cannot delete principal-profile {}", profileDto, e);
-            throw new CannotProcessActionException("Cannot delete principal-profile " + profileDto, e);
-        }
-    }
-
-    @DeleteMapping("/{" + PROFILE_ID_VAR_NAME + "}")
-    public void deleteById(@PathVariable(PROFILE_ID_VAR_NAME) String profileId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
-        log.debug("Trying to delete principal-profile for Id: '{}'", profileId);
-        try {
-            final Long id = Long.parseLong(profileId);
-            log.debug("Deleting principal-profile for id: {}", id);
-            if (isInvalid(id)) {
-                throw new ProfileNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + id + "'");
-            }
-
-            facade.deleteById(id);
-        } catch (NumberFormatException e) {
-            throw new ProfileNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + profileId + "'");
-        } catch (Exception e) {
-            log.error("Cannot delete principal-profile for id = {}", profileId, e);
-            throw new CannotProcessActionException("Cannot delete principal-profile for id = " + profileId, e);
         }
     }
 
