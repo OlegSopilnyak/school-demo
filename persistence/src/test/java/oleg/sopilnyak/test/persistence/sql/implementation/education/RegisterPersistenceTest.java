@@ -23,6 +23,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +53,22 @@ class RegisterPersistenceTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(persistence, studentsPersistence, coursesPersistence, courseRepository, studentRepository);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void shouldSaveTheCourseWithStudent() {
+        CourseEntity course = createCourse(1);
+        StudentEntity student = createStudent(11);
+        coursesPersistence.save(course);
+        studentsPersistence.save(student);
+        course.add(student);
+
+        coursesPersistence.save(course);
+
+        Optional<Course> received = coursesPersistence.findCourseById(course.getId());
+        assertThat(course).isEqualTo(received.orElseThrow());
+        assertThat(received.orElseThrow().getStudents()).contains(student);
     }
 
     @Test

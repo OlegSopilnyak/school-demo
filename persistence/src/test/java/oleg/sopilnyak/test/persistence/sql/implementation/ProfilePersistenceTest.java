@@ -45,11 +45,11 @@ class ProfilePersistenceTest extends MysqlTestModelFactory {
 
     @AfterEach
     void tearDown() {
-        reset(persistence);
-        reset(repository);
+        reset(persistence, repository);
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void persistenceShouldBePresent() {
         assertThat(persistence).isNotNull();
         assertThat(repository).isNotNull();
