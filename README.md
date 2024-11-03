@@ -1,4 +1,4 @@
-# -- School registration system --
+# -- School Application --
 
 ### Used modules
 
