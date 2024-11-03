@@ -1,0 +1,51 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+!pragma layout smetana
+left to right direction
+
+package RestControllersLayer {
+    frame http-controllers {
+        node education {
+            class StudentsRestController
+            class CoursesRestController
+            class RegisterCourseController
+        }
+        node organization {
+            class AuthorityPersonsRestController
+            class FacultiesRestController
+            class StudentsGroupsRestController
+        }
+        node profile {
+            class PrincipalProfileRestController
+            class StudentProfileRestController
+        }
+    }
+    frame business-logic-facades {
+        rectangle education {
+            interface StudentsFacade
+            interface CoursesFacade
+        }
+        rectangle profile {
+            interface PrincipalProfileFacade
+            interface StudentProfileFacade
+        }
+        rectangle organization {
+            interface AuthorityPersonFacade
+            interface FacultyFacade
+            interface StudentsGroupFacade
+        }
+    }
+}
+StudentsRestController --[hidden]> CoursesRestController
+CoursesRestController --[hidden]> RegisterCourseController
+AuthorityPersonsRestController --[hidden]> FacultiesRestController
+FacultiesRestController --[hidden]> StudentsGroupsRestController
+PrincipalProfileRestController --[hidden]> StudentProfileRestController
+
+StudentsFacade --[hidden]> CoursesFacade
+PrincipalProfileFacade --[hidden]> StudentProfileFacade
+AuthorityPersonFacade --[hidden]> FacultyFacade
+FacultyFacade --[hidden]> StudentsGroupFacade
+
+@enduml

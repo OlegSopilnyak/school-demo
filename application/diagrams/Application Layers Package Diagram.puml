@@ -1,14 +1,12 @@
 @startuml
 'https://plantuml.com/class-diagram
 
-:HTTP based client for the Application:as HttpClient
 :REST endpoints Layer (RestControllers): as RestControllersLayer
 :Business Logic Layer (Process Request from Rest): as BusinessLayer
 :Persistence Layer (Process Request from BusinessLogic): as PersistenceLayer
 
-skinparam packageStyle node
-package HttpClient {
-}
+skinparam actorStyle awesome
+actor "REST Client" as HttpClient
 
 skinparam packageStyle folder
 package RestControllersLayer {
@@ -24,12 +22,12 @@ note left of RestControllersLayer : Controllers accept connection and call Facad
 note left of BusinessLayer : Prepare request to Persistence Layer\nCall Persistence Layer through Facade.
 note left of PersistenceLayer : Prepare request to the Database\nCall Database feature through JPA.
 
-HttpClient -> RestControllersLayer: http request
-note top on link : HTTP request to Controllers Layer
+HttpClient -> RestControllersLayer
+note top on link : HTTP request to\nControllers Layer
 RestControllersLayer -> BusinessLayer: call facade method
-note top on link : JavaCall the method of Business Layer Facade
+note top on link : JavaCall the method of\nBusiness Layer Facade
 BusinessLayer -> PersistenceLayer: call facade method
-note top on link : JavaCall the method of Persistence Layer Facade
+note top on link : JavaCall the method of\nPersistence Layer Facade
 PersistenceLayer ..> BusinessLayer: data as response to call
 BusinessLayer ..> RestControllersLayer: response to call
 RestControllersLayer ..> HttpClient: response to request
