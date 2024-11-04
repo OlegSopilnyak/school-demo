@@ -1,0 +1,26 @@
+@startuml
+
+autonumber
+actor HttpClient as client
+boundary WebApplication as gate
+collections RestControllers as controllers
+collections BusinessLogicFacades as facades
+
+client -> gate: feature's http-request
+activate gate
+
+gate -> controllers: by request URI route to controller
+activate controllers
+
+controllers -> facades: call the facade's method
+activate facades
+
+facades --> controllers: result of facade's work
+deactivate facades
+
+controllers --> gate: response to request
+deactivate controllers
+
+gate --> client: response with status and JSON data
+
+@enduml
