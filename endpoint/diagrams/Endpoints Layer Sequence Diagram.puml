@@ -15,10 +15,10 @@ activate controllers
 controllers -> facades: call the facade's method
 activate facades
 
-facades --> controllers: result of facade's work
+facades --> controllers: result of facade's method call
 deactivate facades
 
-controllers --> gate: response to request
+controllers --> gate: prepare response to request
 deactivate controllers
 
 gate --> client: response with status and JSON data
