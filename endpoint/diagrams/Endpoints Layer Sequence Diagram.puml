@@ -8,26 +8,26 @@ collections RestControllers as controllers
 control ConcreteRestController as controller
 boundary LinkedBusinessLogicFacade as facade
 
-client -> gate: feature's http-request
+client -> gate: makes  feature's request
 activate gate
-gate -> controllers: route http-request to controllers
+gate -> controllers: routes http-request\nto controllers
 activate controllers
-controllers->controller: using URI route http-request\n to concrete controller
+controllers->controller: using URI routes request\n to concrete controller
 deactivate controllers
 activate controller
-controller->controller: prepare request's data\nfor facade's method call
+controller->controller: prepares request's data\nfor facade's method call
 activate controller
 controller->facade: calls facade's method\nwith prepared data
 activate facade
 deactivate controller
-facade-->controller: receives call's result
+facade-->controller: returns call's result
 deactivate facade
 activate controller
-controller--> controller: prepare http-response
+controller--> controller: prepares http-response
 deactivate controller
-controller-->gate : prepared http-response
+controller-->gate : sends prepared http-response
 deactivate controller
-gate --> client: response with status and JSON data
+gate --> client: response to request\nwith status and JSON data
 deactivate gate
 
 @enduml
