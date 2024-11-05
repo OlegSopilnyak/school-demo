@@ -12,7 +12,8 @@ client -> gate: feature's http-request
 activate gate
 gate -> controllers: route http-request to controllers
 activate controllers
-controllers->controller: using URI\nroute request to controller
+controllers->controller: using URI route http-request\n to concrete controller
+deactivate controllers
 activate controller
 controller->controller: prepare request's data\nfor facade's method call
 activate controller
@@ -25,6 +26,8 @@ activate controller
 controller--> controller: prepare http-response
 deactivate controller
 controller-->gate : prepared http-response
+deactivate controller
 gate --> client: response with status and JSON data
+deactivate gate
 
 @enduml
