@@ -1,26 +1,30 @@
 @startuml
 
+hide footbox
 autonumber
 actor HttpClient as client
 boundary WebApplication as gate
 collections RestControllers as controllers
-collections BusinessLogicFacades as facades
+control ConcreteRestController as controller
+boundary LinkedBusinessLogicFacade as facade
 
 client -> gate: feature's http-request
 activate gate
-
-gate -> controllers: by request URI route to controller
+gate -> controllers: route http-request to controllers
 activate controllers
-
-controllers -> facades: call the facade's method
-activate facades
-
-facades --> controllers: result of facade's method call
-deactivate facades
-
-controllers --> gate: prepare response to request
-deactivate controllers
-
+controllers->controller: using URI\nroute request to controller
+activate controller
+controller->controller: prepare request's data\nfor facade's method call
+activate controller
+controller->facade: calls facade's method\nwith prepared data
+activate facade
+deactivate controller
+facade-->controller: receives call's result
+deactivate facade
+activate controller
+controller--> controller: prepare http-response
+deactivate controller
+controller-->gate : prepared http-response
 gate --> client: response with status and JSON data
 
 @enduml
