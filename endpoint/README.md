@@ -1,4 +1,4 @@
-# --  To manage REST requests to the Application
+# --  REST endpoints for the School Application
 
 ## Receives HTTP request and servers them 
 
