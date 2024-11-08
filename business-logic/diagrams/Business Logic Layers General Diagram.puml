@@ -1,0 +1,56 @@
+    @startuml
+'https://plantuml.com/class-diagram
+
+'!pragma layout smetana
+left to right direction
+
+package BusinessLogicLayer {
+    frame layer-facade-implementations {
+        node profile {
+            abstract class PersonProfileFacadeImpl
+            class StudentProfileFacadeImpl extends PersonProfileFacadeImpl
+            class PrincipalProfileFacadeImpl extends PersonProfileFacadeImpl
+        }
+        node impl {
+            class CoursesFacadeImpl
+            class StudentsFacadeImpl
+        }
+        node organization{
+            abstract class OrganizationFacadeImpl
+            class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl
+            class FacultyFacadeImpl extends OrganizationFacadeImpl
+            class StudentsGroupFacadeImpl extends OrganizationFacadeImpl
+        }
+    }
+    frame persistence-facades {
+        rectangle profile {
+            interface ProfilePersistenceFacade
+        }
+        rectangle education {
+            interface joint.EducationPersistenceFacade extends CoursesPersistenceFacade, StudentsPersistenceFacade, RegisterPersistenceFacade
+            interface StudentsPersistenceFacade
+            interface CoursesPersistenceFacade
+            interface RegisterPersistenceFacade
+        }
+        rectangle organization {
+            interface joint.OrganizationPersistenceFacade extends AuthorityPersonPersistenceFacade, FacultyPersistenceFacade, StudentsGroupPersistenceFacade
+            interface AuthorityPersonPersistenceFacade
+            interface FacultyPersistenceFacade
+            interface StudentsGroupPersistenceFacade
+        }
+    }
+}
+CoursesFacadeImpl --[hidden]> StudentsFacadeImpl
+'AuthorityPersonFacadeImpl --[hidden]> FacultyFacadeImpl
+'AuthorityPersonFacadeImpl --[hidden]> FacultyFacadeImpl
+'FacultyFacadeImpl --[hidden]> StudentsGroupFacadeImpl
+'PrincipalProfileFacadeImpl --[hidden]> StudentProfileFacadeImpl
+
+'StudentsPersistenceFacade --[hidden]> CoursesPersistenceFacade
+'CoursesPersistenceFacade --[hidden]> RegisterPersistenceFacade
+'RegisterPersistenceFacade --[hidden]> EducationPersistenceFacade
+'PrincipalProfileFacade --[hidden]> StudentProfileFacade
+'AuthorityPersonFacade --[hidden]> FacultyFacade
+'FacultyFacade --[hidden]> StudentsGroupFacade
+
+@enduml

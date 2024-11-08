@@ -1,0 +1,36 @@
+@startuml
+
+hide footbox
+autonumber
+actor FacadeCaller as client
+boundary FacadeImplementation as facade
+control CommandsExecutor as executor
+control ConcreteCommandStrategy as command
+boundary LinkedPersistenceFacade as persistence
+
+client -> facade: calls method of facade
+activate facade
+facade -> executor: executes command\n(command-id, input parameter, factory)
+activate executor
+executor->executor: gets command-strategy instance\nfrom the factory by command-id
+activate executor
+executor->executor: makes command context\nfrom the parameter
+deactivate executor
+executor->command: executes command logic\nwith configured context
+activate command
+command->command: prepares data for\npersistence request
+activate command
+command->persistence: calls facade's method\nwith prepared data
+deactivate command
+activate persistence
+persistence-->command: returns the result
+deactivate persistence
+command-->command: prepares result of\ncommand's execution
+command-->executor: transforms context's\nresult to required type
+deactivate command
+executor-->facade: returns result ready\nto be a call's result
+deactivate executor
+facade-->client: returns the result of\nfacade method call
+deactivate facade
+
+@enduml

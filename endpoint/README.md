@@ -6,7 +6,7 @@ Received by REST controllers http requests pre-processing
 for further processing<br> and sending to **<ins>business-logic layer</ins>** through service facades.  
 
 ![Endpoint Layer General Diagram](diagrams/Endpoints%20Layer%20General%20Diagram.png "Endpoint Layer Diagram")
-## General Request Processing
+### General Request Processing
 ![Endpoint Layer General Diagram](diagrams/Endpoints%20Layer%20Sequence%20Diagram.png "Endpoint Layer Diagram")
 * ### education
 #### StudentsRestController
@@ -132,5 +132,5 @@ for further processing<br> and sending to **<ins>business-logic layer</ins>** th
   calls the`StudentProfileFacade#createOrUpdateProfile(profileDto))`<BR>
   returns updated **oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto**, input parameter `StudentProfileDto profileDto`
 
-
+### Module Data Model
 ![Endpoint Layer General Diagram](diagrams/Endpoints%20Layer%20Model%20Diagram.png "Endpoint Layer Diagram")

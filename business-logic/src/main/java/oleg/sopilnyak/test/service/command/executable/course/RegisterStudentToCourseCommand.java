@@ -75,25 +75,25 @@ public class RegisterStudentToCourseCommand implements CourseCommand, EducationL
             final Long[] ids = commandParameter(parameter);
             final Long studentId = ids[0];
             final Long courseId = ids[1];
-            final Student studentEntity = persistenceFacade.findStudentById(studentId)
+            final Student student = persistenceFacade.findStudentById(studentId)
                     .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX));
-            final Course courseEntity = persistenceFacade.findCourseById(courseId)
+            final Course course = persistenceFacade.findCourseById(courseId)
                     .orElseThrow(() -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX));
 
-            if (isLinked(studentEntity, courseEntity)) {
+            if (isLinked(student, course)) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
                 context.setResult(true);
-            } else if (courseEntity.getStudents().size() >= maximumRooms) {
+            } else if (course.getStudents().size() >= maximumRooms) {
                 log.error("Course with id:{} has students more than {}", courseId, maximumRooms);
                 throw new CourseHasNoRoomException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
-            } else if (studentEntity.getCourses().size() >= coursesExceed) {
+            } else if (student.getCourses().size() >= coursesExceed) {
                 log.error("Student with id:{} has more than {} courses", studentId, coursesExceed);
                 throw new StudentCoursesExceedException(STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses.");
             } else {
                 log.debug("Linking student:{} to course:{}", studentId, courseId);
-                final var undoLink = new StudentToCourseLink(detached(studentEntity), detached(courseEntity));
+                final var undoLink = new StudentToCourseLink(detached(student), detached(course));
 
-                final boolean successful = persistenceFacade.link(studentEntity, courseEntity);
+                final boolean successful = persistenceFacade.link(student, course);
 
                 if (successful) {
                     context.setUndoParameter(undoLink);
