@@ -54,4 +54,4 @@ for further processing and calling **<ins>persistence layer</ins>** through pers
 || **CreateOrUpdateStudentProfileCommand**   | `ProfilePersistenceFacade#save(StudentProfile input)`           |
 || **DeleteStudentProfileCommand**           | `ProfilePersistenceFacade#deleteProfileById(id)`                |
 ### Module Data Model
-![Business Logic Model Classes Diagram](diagrams/Model%20Classes%20Diagram.png "Business Logic Layer Sequence")
+![Business Logic Model Classes Diagram](diagrams/Model%20Classes%20Diagram.png "Business Logic Layer Model")
