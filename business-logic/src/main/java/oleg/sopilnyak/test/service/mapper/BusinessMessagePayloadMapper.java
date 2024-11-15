@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.mapper;
 
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
-import oleg.sopilnyak.test.service.message.*;
+import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.service.message.payload.*;
 import org.mapstruct.*;
 import org.springframework.util.ReflectionUtils;
 

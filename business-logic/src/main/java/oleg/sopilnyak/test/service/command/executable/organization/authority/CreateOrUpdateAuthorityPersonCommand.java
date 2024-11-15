@@ -28,9 +28,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateAuthorityPersonCommand
-        extends SchoolCommandCache<AuthorityPerson>
-        implements AuthorityPersonCommand {
+public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
+        implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final AuthorityPersonPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -58,7 +57,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see AuthorityPersonNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -104,7 +103,7 @@ public class CreateOrUpdateAuthorityPersonCommand
      * @see AuthorityPersonNotFoundException
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

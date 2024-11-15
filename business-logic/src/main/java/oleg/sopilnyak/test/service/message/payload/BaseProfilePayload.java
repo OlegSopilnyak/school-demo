@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.message;
+package oleg.sopilnyak.test.service.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
 import java.io.IOException;
 import java.util.Map;

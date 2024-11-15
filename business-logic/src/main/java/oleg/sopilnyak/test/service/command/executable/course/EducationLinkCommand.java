@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CoursePayload;
-import oleg.sopilnyak.test.service.message.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 /**
  * Common methods for Link/Unlink commands

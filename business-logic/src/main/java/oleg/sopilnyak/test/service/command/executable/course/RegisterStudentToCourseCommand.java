@@ -31,7 +31,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Slf4j
 @Getter
 @Component
-public class RegisterStudentToCourseCommand implements CourseCommand, EducationLinkCommand {
+public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
     public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
     public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
@@ -67,7 +67,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand, EducationL
      * @see Context.State#WORK
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -117,7 +117,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand, EducationL
      * @see Context#getUndoParameter()
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");

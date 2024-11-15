@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.facade.profile.base;
 
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 
 import java.util.Optional;

@@ -15,7 +15,7 @@ public interface Context<T> {
      * @return command instance
      * @see RootCommand
      */
-    RootCommand getCommand();
+    RootCommand<T> getCommand();
 
     /**
      * To get the state of the context
@@ -75,7 +75,7 @@ public interface Context<T> {
      * @param value the value of result
      * @see State#DONE
      */
-    void setResult(Object value);
+    void setResult(T value);
 
     /**
      * To get exception occurring during command execution
@@ -171,7 +171,7 @@ public interface Context<T> {
      * @param listener the listener of context-state changes
      * @see StateChangedListener
      */
-    void addStateListener(StateChangedListener<T> listener);
+    void addStateListener(StateChangedListener listener);
 
     /**
      * To remove change-context-state listener
@@ -179,7 +179,7 @@ public interface Context<T> {
      * @param listener the listener of context-state changes
      * @see StateChangedListener
      */
-    void removeStateListener(StateChangedListener<T> listener);
+    void removeStateListener(StateChangedListener listener);
 
 
     /**
@@ -205,7 +205,7 @@ public interface Context<T> {
     /**
      * The listener of context's state changing
      */
-    interface StateChangedListener<T> {
-        void stateChanged(Context<T> context, State previous, State newOne);
+    interface StateChangedListener {
+        void stateChanged(Context<?> context, State previous, State newOne);
     }
 }

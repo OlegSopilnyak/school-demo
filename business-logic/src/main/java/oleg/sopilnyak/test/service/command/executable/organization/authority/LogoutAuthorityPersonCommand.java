@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand {
+public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Boolean> {
 
 
     /**
@@ -34,7 +34,7 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand {
      * @see PersistenceFacade#findPrincipalProfileByLogin(String)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);

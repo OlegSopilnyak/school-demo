@@ -19,8 +19,8 @@ import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
-import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
@@ -40,7 +40,9 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand implements AuthorityPersonCommand {
+public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Optional<AuthorityPerson>>
+        implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+
     private final BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
@@ -76,8 +78,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
     /**
      * To prepare context for particular type of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <N>     type of create-or-update person nested command result
      * @return built context of the command for input parameter
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
@@ -85,8 +88,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(@NonNull final AuthorityPersonCommand command, final Object mainInput) {
-        return mainInput instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Object macroInputParameter) {
+        return macroInputParameter instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createPersonContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
@@ -95,12 +98,12 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      *
      * @param command create-or-update person command instance
      * @param person  input parameter of person to create
-     * @param <T>     type of create-or-update person command result
+     * @param <N>     type of create-or-update person nested command result
      * @return built context of the command for input person
      * @see BusinessMessagePayloadMapper#toPayload(AuthorityPerson)
      * @see AuthorityPersonPayload
      */
-    public <T> Context<T> createPersonContext(@NonNull final AuthorityPersonCommand command, final AuthorityPerson person) {
+    public <N> Context<N> createPersonContext(final AuthorityPersonCommand<N> command, final AuthorityPerson person) {
         final AuthorityPersonPayload payload =
                 person instanceof AuthorityPersonPayload personPayload ? personPayload : payloadMapper.toPayload(person);
         // prepare entity for create person sequence
@@ -113,8 +116,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * To prepare context for particular type of the nested command
      *
      * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of create-or-update person profile command result
+     * @param macroInputParameter macro-command input parameter
+     * @param <N>     type of create-or-update principal-profile nested command result
      * @return built context of the command for input parameter
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
@@ -122,8 +125,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(@NonNull final PrincipalProfileCommand command, final Object mainInput) {
-        return mainInput instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Object macroInputParameter) {
+        return macroInputParameter instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createProfileContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
@@ -132,11 +135,11 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      *
      * @param command create-or-update person profile command instance
      * @param person  input parameter of person to create
-     * @param <T>     type of create-or-update person profile command result
+     * @param <N>     type of create-or-update principal-profile nested command result
      * @return built context of the command for input parameter
      * @see PrincipalProfilePayload
      */
-    public <T> Context<T> createProfileContext(final PrincipalProfileCommand command, final AuthorityPerson person) {
+    public <N> Context<N> createProfileContext(final PrincipalProfileCommand<N> command, final AuthorityPerson person) {
         final String emailPrefix = person.getFirstName().trim().toLowerCase() + "." + person.getLastName().trim().toLowerCase();
         final PrincipalProfilePayload payload = PrincipalProfilePayload.builder()
                 .id(null).phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
@@ -145,7 +148,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
         try {
             payload.setSignature(payload.makeSignatureFor(""));
         } catch (NoSuchAlgorithmException e) {
-            log.error("Cannot make the signature for '{}'",command.getId(), e);
+            log.error("Cannot make the signature for '{}'", command.getId(), e);
             throw new CannotCreateCommandContextException(command.getId(), e);
         }
         // create command-context with created parameter by default
@@ -160,13 +163,13 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
     @Override
-    public NestedCommand wrap(final NestedCommand command) {
-        if (command instanceof AuthorityPersonCommand personCommand) {
+    public NestedCommand<?> wrap(final NestedCommand<?> command) {
+        if (command instanceof AuthorityPersonCommand<?> personCommand) {
             return wrap(personCommand);
-        } else if (command instanceof PrincipalProfileCommand profileCommand) {
+        } else if (command instanceof PrincipalProfileCommand<?> profileCommand) {
             return wrap(profileCommand);
         }
-        throw new UnableExecuteCommandException(((RootCommand) command).getId());
+        throw new UnableExecuteCommandException(((RootCommand<?>) command).getId());
     }
 
 // for command do activities as nested command
@@ -186,7 +189,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(@NonNull final PrincipalProfileCommand command,
+    public <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand command,
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
         if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
@@ -219,14 +222,13 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      *
      * @param visitor               visitor of prepared contexts
      * @param commandInputParameter Macro-Command call's input parameter
-     * @param <T>                   type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    public <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
+    public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
         return super.acceptPreparedContext(visitor, commandInputParameter);
     }
 
@@ -243,10 +245,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<T> context,
-                                      final Context.StateChangedListener<T> stateListener) {
-        super.doAsNestedCommand(visitor, context, stateListener);
+    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                  final Context<?> context, final Context.StateChangedListener stateListener) {
+        super.doAsNestedCommand(visitor, (Context<AuthorityPerson>) context, stateListener);
     }
 
     /**
@@ -254,67 +255,123 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand im
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                              final Context<T> context) {
+    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return super.undoAsNestedCommand(visitor, context);
     }
 
     // private methods
-    private NestedCommand wrap(final AuthorityPersonCommand command) {
+    private NestedCommand<?> wrap(final AuthorityPersonCommand<?> command) {
         return new PersonInSequenceCommand(command);
     }
 
-    private NestedCommand wrap(final PrincipalProfileCommand command) {
+    private NestedCommand<?> wrap(final PrincipalProfileCommand<?> command) {
         return new ProfileInSequenceCommand(command);
     }
 
-    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
+    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());
     }
 
     // inner classes
-    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand> implements AuthorityPersonCommand {
-        private final AuthorityPersonCommand command;
+    final class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand<?>>
+            implements AuthorityPersonCommand<Void> {
+        private final AuthorityPersonCommand<?> command;
 
-        private PersonInSequenceCommand(AuthorityPersonCommand command) {
+        private PersonInSequenceCommand(AuthorityPersonCommand<?> command) {
             this.command = command;
         }
 
         @Override
-        public AuthorityPersonCommand unWrap() {
+        public AuthorityPersonCommand<?> unWrap() {
             return command;
         }
 
+        /**
+         * To transfer command execution result to next command context
+         *
+         * @param visitor     visitor for transfer result
+         * @param resultValue result of command execution
+         * @param target      command context for next execution
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see Context#setRedoParameter(Object)
+         */
         @Override
-        public <S, T> void transferResultTo(final TransferResultVisitor visitor,
-                                            final S resultValue,
-                                            final Context<T> target) {
+        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+
+        @Override
+        public Logger getLog() {
+            return command.getLog();
+        }
+
+        @Override
+        public String getId() {
+            return command.getId();
+        }
+
+        @Override
+        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+            command.doAsNestedCommand(visitor, context, stateListener);
+        }
+
+        @Override
+        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+            return unWrap().undoAsNestedCommand(visitor, context);
         }
     }
 
-    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand> implements PrincipalProfileCommand {
-        private final PrincipalProfileCommand command;
+    final class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
+            implements PrincipalProfileCommand<Void> {
+        private final PrincipalProfileCommand<?> command;
 
-        private ProfileInSequenceCommand(PrincipalProfileCommand command) {
+        private ProfileInSequenceCommand(PrincipalProfileCommand<?> command) {
             this.command = command;
         }
 
         @Override
-        public PrincipalProfileCommand unWrap() {
+        public PrincipalProfileCommand<?> unWrap() {
             return command;
         }
 
+        /**
+         * To transfer command execution result to next command context
+         *
+         * @param visitor     visitor for transfer result
+         * @param resultValue result of command execution
+         * @param target      command context for next execution
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see Context#setRedoParameter(Object)
+         */
         @Override
-        public <S, T> void transferResultTo(final TransferResultVisitor visitor,
-                                            final S resultValue,
-                                            final Context<T> target) {
+        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        }
+
+        @Override
+        public Logger getLog() {
+            return command.getLog();
+        }
+
+        @Override
+        public String getId() {
+            return command.getId();
+        }
+
+        @Override
+        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+            command.doAsNestedCommand(visitor, context, stateListener);
+        }
+
+        @Override
+        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+            return unWrap().undoAsNestedCommand(visitor, context);
         }
     }
 

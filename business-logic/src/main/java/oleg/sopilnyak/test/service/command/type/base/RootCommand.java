@@ -10,8 +10,10 @@ import static java.util.Objects.isNull;
 
 /**
  * Type: Command to execute the business-logic action
+ *
+ * @param <T> the type of command execution (do) result
  */
-public interface RootCommand extends CommandExecutable, NestedCommand {
+public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     /**
      * To get reference to command's logger
      *
@@ -50,17 +52,16 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
     }
 
     /**
-     * To create command's context without doParameter
+     * To create command's context without parameters
      *
-     * @param <T> the type of command result
      * @return context instance
      * @see Context
      * @see CommandContext
      * @see Context.State#INIT
      */
     @Override
-    default <T> Context<T> createContext() {
-        final CommandContext<T> context = CommandContext.<T>builder().command(this).build();
+    default Context<T> createContext() {
+        final Context<T> context = CommandContext.<T>builder().command(this).build();
         context.setState(Context.State.INIT);
         return context;
     }
@@ -69,7 +70,6 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * To create command's context with doParameter
      *
      * @param input context's doParameter value
-     * @param <T>   the type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
@@ -77,8 +77,8 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see Context.State#READY
      */
     @Override
-    default <T> Context<T> createContext(Object input) {
-        final CommandContext<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
+    default Context<T> createContext(Object input) {
+        final Context<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
@@ -90,7 +90,7 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @return instance of initial command-context
      */
     @Override
-    default <T> Context<T> createContextInit() {
+    default Context<T> createContextInit() {
         return createContext();
     }
 
@@ -102,7 +102,7 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see CommandExecutable#executeDo(Context)
      */
     @Override
-    default <T> void doCommand(Context<T> context) {
+    default void doCommand(Context<T> context) {
         if (context.isReady()) {
             // start redo with correct context state
             context.setState(Context.State.WORK);
@@ -122,7 +122,7 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      * @see CommandExecutable#executeUndo(Context)
      */
     @Override
-    default <T> void undoCommand(Context<T> context) {
+    default void undoCommand(Context<?> context) {
         if (!context.isDone()) {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
@@ -133,42 +133,36 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
         }
     }
 
-// For commands playing Nested Command Role
+    // For commands playing as a Nested Command
 
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(RootCommand, Object)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor,
-                                                 final Object input) {
-        return visitor.prepareContext(this, input);
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+        return visitor.prepareContext(this, macroInputParameter);
     }
 
     /**
-     * To execute command Do as a nested command
+     * To execute command's Do as a nested command
      *
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
+     * @see Context
+     * @see Context.StateChangedListener
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see RootCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
+    @SuppressWarnings("unchecked")
     @Override
-    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context,
-                                       final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
+    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
     }
 
     /**
@@ -176,13 +170,12 @@ public interface RootCommand extends CommandExecutable, NestedCommand {
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
+     *                //     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
+    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return visitor.undoNestedCommand(this, context);
     }
 }

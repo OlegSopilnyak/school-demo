@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindStudentsGroupCommand implements StudentsGroupCommand {
+public class FindStudentsGroupCommand implements StudentsGroupCommand<Optional<StudentsGroup>> {
     private final StudentsGroupPersistenceFacade persistence;
 
     /**
@@ -36,7 +36,7 @@ public class FindStudentsGroupCommand implements StudentsGroupCommand {
      * @see StudentsGroupPersistenceFacade#findStudentsGroupById(Long)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<StudentsGroup>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find students group by ID:{}", parameter);

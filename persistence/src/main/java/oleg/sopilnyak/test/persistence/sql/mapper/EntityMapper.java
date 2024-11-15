@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEnti
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import org.mapstruct.*;
 import org.springframework.util.ReflectionUtils;
 

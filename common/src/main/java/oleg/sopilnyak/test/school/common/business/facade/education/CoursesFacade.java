@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.school.common.business.facade.education;
 import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
+import oleg.sopilnyak.test.school.common.model.BaseType;
 
 import java.util.Collections;
 import java.util.Optional;

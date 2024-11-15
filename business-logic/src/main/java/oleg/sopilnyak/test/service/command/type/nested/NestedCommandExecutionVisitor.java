@@ -13,321 +13,268 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import org.slf4j.Logger;
 
 /**
- * Visitor: Execute nested command
+ * Visitor: Executing nested command actions.
+ * Any method can be overridden in the class-child
  */
 public interface NestedCommandExecutionVisitor {
     /**
-     * To execute nested command
+     * To execute nested command (RootCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see RootCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see RootCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final RootCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final RootCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (StudentCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see StudentCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see StudentCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final StudentCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final StudentCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (CourseCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see CourseCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see CourseCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final CourseCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final CourseCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (CompositeCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see CompositeCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see CompositeCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final CompositeCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final CompositeCommand<N> command,
+                                     final Context<N> doContext,  final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (StudentProfileCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see StudentProfileCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see StudentProfileCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final StudentProfileCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final StudentProfileCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (PrincipalProfileCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see PrincipalProfileCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see PrincipalProfileCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final PrincipalProfileCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final PrincipalProfileCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (AuthorityPersonCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see StudentsGroupCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see AuthorityPersonCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final StudentsGroupCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final AuthorityPersonCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (FacultyCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see FacultyCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see FacultyCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final FacultyCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final FacultyCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To execute nested command
+     * To execute nested command (StudentsGroupCommand)
      *
-     * @param command       command to execute
+     * @param command       nested command to be executed
      * @param doContext     context for execution
-     * @param stateListener the lister of command state change
-     * @param <T>           type of command execution result
-     * @see AuthorityPersonCommand#doCommand(Context)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     * @see Context.State#READY
-     * @see Context.State#DONE
-     * @see Context.State#FAIL
+     * @param stateListener the lister of command-context-state changing
+     * @param <N>           type of nested command execution result
+     * @see StudentsGroupCommand
+     * @see NestedCommandExecutionVisitor#defaultDoNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    default <T> void doNestedCommand(final AuthorityPersonCommand command,
-                                     final Context<T> doContext,
-                                     final Context.StateChangedListener<T> stateListener) {
+    default <N> void doNestedCommand(final StudentsGroupCommand<N> command,
+                                     final Context<N> doContext, final Context.StateChangedListener stateListener) {
         defaultDoNestedCommand(command, doContext, stateListener);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for context with state DONE command (RootCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see RootCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see RootCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final RootCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final RootCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (StudentCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see StudentCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see StudentCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final StudentCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final StudentCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (CourseCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see CourseCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see CourseCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final CourseCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final CourseCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (CompositeCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see CompositeCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see CompositeCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final CompositeCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final CompositeCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (StudentProfileCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see StudentProfileCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see StudentProfileCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final StudentProfileCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final StudentProfileCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (PrincipalProfileCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see PrincipalProfileCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see PrincipalProfileCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final PrincipalProfileCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final PrincipalProfileCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (AuthorityPersonCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see StudentsGroupCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see AuthorityPersonCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final StudentsGroupCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final AuthorityPersonCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (FacultyCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see FacultyCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see FacultyCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final FacultyCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final FacultyCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
     /**
-     * To rollback changes for contexts with state DONE
+     * To rollback changes for nested context with state DONE command (StudentsGroupCommand)
+     * <BR/> the type of command result doesn't matter
      *
-     * @param command     nested command to do undo with nested context (could be Override)
-     * @param undoContext nested context with DONE state
-     * @see AuthorityPersonCommand#undoCommand(Context)
-     * @see Context.State#DONE
-     * @see Context.State#UNDONE
-     * @see Context.State#FAIL
+     * @param command     nested command to do undo with nested context (could be Overridden)
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see StudentsGroupCommand
+     * @see NestedCommandExecutionVisitor#defaultUndoNestedCommand(RootCommand, Context)
      */
-    default <T> Context<T> undoNestedCommand(final AuthorityPersonCommand command, final Context<T> undoContext) {
+    default Context<?> undoNestedCommand(final StudentsGroupCommand<?> command, final Context<?> undoContext) {
         return defaultUndoNestedCommand(command, undoContext);
     }
 
@@ -338,7 +285,27 @@ public interface NestedCommandExecutionVisitor {
      */
     Logger getLog();
 
-    private <T> void defaultDoNestedCommand(RootCommand command, Context<T> doContext, Context.StateChangedListener<T> stateListener) {
+    // private methods
+
+    /**
+     * Default behavior of do-nested-command activity
+     *
+     * @param command       command to execute
+     * @param doContext     execution context
+     * @param stateListener listener of context-state changing
+     * @param <N>           type of command execution result
+     * @see RootCommand#doCommand(Context)
+     * @see Context#addStateListener(Context.StateChangedListener)
+     * @see Context#removeStateListener(Context.StateChangedListener)
+     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see Context.State#READY
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
+     * @see Context#failed(Exception)
+     */
+    private <N> void defaultDoNestedCommand(final RootCommand<N> command,
+                                            final Context<N> doContext,
+                                            final Context.StateChangedListener stateListener) {
         doContext.addStateListener(stateListener);
         final String commandId = command.getId();
         try {
@@ -352,12 +319,24 @@ public interface NestedCommandExecutionVisitor {
         }
     }
 
-    private <T> Context<T> defaultUndoNestedCommand(RootCommand command, Context<T> undoContext) {
+    /**
+     * Default behavior of undo-nested-command activity
+     *
+     * @param command     nested command to do undo with nested context
+     * @param undoContext nested command context with DONE state
+     * @return nested command context with undo results
+     * @see RootCommand#undoCommand(Context)
+     * @see Context.State#DONE
+     * @see Context.State#UNDONE
+     * @see Context.State#FAIL
+     * @see Context#failed(Exception)
+     */
+    private Context<?> defaultUndoNestedCommand(RootCommand<?> command, Context<?> undoContext) {
         try {
             command.undoCommand(undoContext);
             getLog().debug("Rolled back done command '{}' with context:{}", command.getId(), undoContext);
         } catch (Exception e) {
-            getLog().error("Cannot rollback for {}", undoContext, e);
+            getLog().error("Cannot rollback command '{}' for {}", command.getId(), undoContext, e);
             undoContext.failed(e);
         }
         return undoContext;

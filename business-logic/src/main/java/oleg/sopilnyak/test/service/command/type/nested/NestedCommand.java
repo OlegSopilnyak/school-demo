@@ -6,20 +6,22 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 /**
  * Type: Command to execute the business-logic action as a nested-command of CompositeCommand
  *
+ * @param <T> the type of command execution (do) result
  * @see oleg.sopilnyak.test.service.command.type.CompositeCommand
  */
-public interface NestedCommand {
+public interface NestedCommand<T> {
     /**
      * To prepare context for nested command using the visitor
      *
      * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param macroInputParameter   Macro-Command call's input
+     *                //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(NestedCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
-    <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input);
+//    <T> Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object input);
+    Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object macroInputParameter);
 
     /**
      * To execute command Do as a nested command
@@ -27,36 +29,28 @@ public interface NestedCommand {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see RootCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    <T> void doAsNestedCommand(NestedCommandExecutionVisitor visitor,
-                               Context<T> context,
-                               Context.StateChangedListener<T> stateListener);
+    void doAsNestedCommand(NestedCommandExecutionVisitor visitor,
+                           Context<?> context,
+                           Context.StateChangedListener stateListener);
 
     /**
      * To execute command Undo as a nested command
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */
-    <T> Context<T> undoAsNestedCommand(NestedCommandExecutionVisitor visitor,
-                                       Context<T> context);
+    Context<?> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<?> context);
 
     /**
      * To create initial context fo the nested-command
      *
      * @return instance of initial command-context
-     * @param <T> type of command's result
      */
-    <T> Context<T> createContextInit();
+    Context<?> createContextInit();
 
     /**
      * For nested command in the sequential macro-command
@@ -71,12 +65,9 @@ public interface NestedCommand {
          * @param resultValue result of command execution
          * @param target      command context for next execution
          * @param <S>         type of current command execution result
-         * @param <T>         type of next command execution result
          * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
          * @see Context#setRedoParameter(Object)
          */
-        <S, T> void transferResultTo(TransferResultVisitor visitor,
-                                     S resultValue,
-                                     Context<T> target);
+        <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target);
     }
 }

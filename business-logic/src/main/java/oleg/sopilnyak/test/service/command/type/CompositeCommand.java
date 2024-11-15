@@ -13,28 +13,32 @@ import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import java.util.*;
 
 /**
- * Type: Command to execute the couple of commands
+ * Type: Command to execute the couple of school-commands
+ *
+ * @param <T> the type of command execution (do) result
+ * @see RootCommand
+ * @see PrepareContextVisitor
  */
-public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
+public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisitor {
     /**
-     * To get the collection of nested commands used it composite
+     * To get the collection of nested commands used it composite commands
      *
      * @return collection of nested commands
      */
-    Collection<NestedCommand> fromNest();
+    Collection<NestedCommand<?>> fromNest();
 
     /**
      * To add the command
      *
      * @param command the instance to add
      */
-    void addToNest(NestedCommand command);
+    void addToNest(NestedCommand<?> command);
 
     /**
      * To create command's context of macro command for input
      *
-     * @param input command context's parameter value
-     * @param <T>   type of command result
+     * @param inputParameter command context's parameter value
+     *              //     * @param <T>   type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
@@ -43,11 +47,12 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @see RootCommand#createContext()
      */
     @Override
-    default <T> Context<T> createContext(Object input) {
-        final List<Context<Object>> nested = fromNest().stream()
-                .map(nestedCommand -> prepareNestedContext(nestedCommand, input))
+    default Context<T> createContext(Object inputParameter) {
+//        default <T> Context<T> createContext(Object input) {
+        final List<? extends Context<?>> nested = fromNest().stream()
+                .map(nestedCommand -> prepareNestedContext(nestedCommand, inputParameter))
                 .toList();
-        final Optional<Context<Object>> failed = nested.stream()
+        final Optional<? extends Context<?>> failed = nested.stream()
                 .filter(Objects::nonNull)
                 .filter(Context::isFailed)
                 .findFirst();
@@ -55,7 +60,7 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
         if (failed.isPresent()) {
             macroCommandContext.failed(failed.get().getException());
         } else {
-            macroCommandContext.setRedoParameter(new MacroCommandParameter<>(input, new LinkedList<>(nested)));
+            macroCommandContext.setRedoParameter(new MacroCommandParameter(inputParameter, new LinkedList<>(nested)));
         }
         return macroCommandContext;
     }
@@ -65,17 +70,18 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor        visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
+     *                       //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
-        return visitor.prepareContext(this, input);
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+//        default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
+        return visitor.prepareContext(this, macroInputParameter);
     }
 
     /**
@@ -84,17 +90,12 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
-     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see CompositeCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     * @see NestedCommandExecutionVisitor#doNestedCommand(CompositeCommand, Context, Context.StateChangedListener)
      */
     @Override
-    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
+    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
     }
 
     /**
@@ -102,22 +103,20 @@ public interface CompositeCommand extends RootCommand, PrepareContextVisitor {
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
+    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return visitor.undoNestedCommand(this, context);
     }
 
     // private methods
-    private Context<Object> prepareNestedContext(NestedCommand command, Object input) {
+    private Context<?> prepareNestedContext(NestedCommand<?> command, Object mainInputParameter) {
         try {
-            return command.acceptPreparedContext(this, input);
+            return command.acceptPreparedContext(this, mainInputParameter);
         } catch (Exception e) {
-            getLog().error("Cannot prepare nested command context '{}' for value {}", command, input, e);
+            getLog().error("Cannot prepare nested command context '{}' for value {}", command, mainInputParameter, e);
             return command.createContextInit().failed(e);
         }
     }

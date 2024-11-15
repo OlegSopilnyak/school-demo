@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.message;
+package oleg.sopilnyak.test.service.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

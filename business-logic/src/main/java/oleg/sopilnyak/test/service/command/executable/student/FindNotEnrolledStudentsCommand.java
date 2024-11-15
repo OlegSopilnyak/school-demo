@@ -17,7 +17,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindNotEnrolledStudentsCommand implements StudentCommand {
+public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Student>> {
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
@@ -31,7 +31,7 @@ public class FindNotEnrolledStudentsCommand implements StudentCommand {
      * @see RegisterPersistenceFacade#findNotEnrolledStudents()
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<Student>> context) {
         log.debug("Trying to find not enrolled students");
         try {
 

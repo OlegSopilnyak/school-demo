@@ -22,7 +22,7 @@ import static java.util.Objects.isNull;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class UnRegisterStudentFromCourseCommand implements CourseCommand, EducationLinkCommand {
+public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
     private final EducationPersistenceFacade persistenceFacade;
     @Getter
     private final BusinessMessagePayloadMapper payloadMapper;
@@ -43,7 +43,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand, Educat
      * @see Context.State#WORK
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to un-link student from course: {}", parameter);
@@ -81,7 +81,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand, Educat
      * @see Context#getUndoParameter()
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         if (isNull(parameter)) {
             log.debug("Undo parameter is null");

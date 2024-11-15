@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
-import oleg.sopilnyak.test.service.message.*;
+import oleg.sopilnyak.test.service.message.payload.*;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 

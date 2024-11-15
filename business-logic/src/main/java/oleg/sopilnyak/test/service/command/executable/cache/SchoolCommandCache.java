@@ -2,12 +2,12 @@ package oleg.sopilnyak.test.service.command.executable.cache;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
+import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.BasePayload;
+import oleg.sopilnyak.test.service.message.payload.BasePayload;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -181,7 +181,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
                     "Got stored entity of '{}' value {}\nfrom parameter {}",
                     entityName, persistedEntityCopy, context.getRedoParameter()
             );
-            context.setResult(Optional.ofNullable(persistedEntityCopy));
+//            context.setResult(Optional.ofNullable(persistedEntityCopy));
 
             if (nonNull(persistedEntityCopy) && isCreateEntityMode) {
                 // storing created entity.id for undo operation

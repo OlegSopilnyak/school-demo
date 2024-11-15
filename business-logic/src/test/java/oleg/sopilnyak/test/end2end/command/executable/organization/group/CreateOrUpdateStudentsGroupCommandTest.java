@@ -12,7 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.CreateO
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

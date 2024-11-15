@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
 import javax.persistence.*;
 import java.util.Map;

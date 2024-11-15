@@ -17,7 +17,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindCourseCommand implements CourseCommand {
+public class FindCourseCommand implements CourseCommand<Optional<Course>> {
     private final CoursesPersistenceFacade persistenceFacade;
 
     /**
@@ -31,7 +31,7 @@ public class FindCourseCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<Course>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find course by ID:{}", parameter.toString());

@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
+public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final AuthorityPersonPersistenceFacade persistence;
 
     /**
@@ -36,7 +36,7 @@ public class FindAuthorityPersonCommand implements AuthorityPersonCommand {
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find authority person by ID:{}", parameter);

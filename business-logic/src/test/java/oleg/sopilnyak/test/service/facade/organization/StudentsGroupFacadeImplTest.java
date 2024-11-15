@@ -15,7 +15,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.StudentsGroupPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

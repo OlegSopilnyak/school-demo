@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 import java.util.Optional;
 import java.util.Set;

@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

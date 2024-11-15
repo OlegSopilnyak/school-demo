@@ -1,20 +1,23 @@
-package oleg.sopilnyak.test.service.message;
+package oleg.sopilnyak.test.service.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.Faculty;
 
 import java.util.List;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
+
 /**
- * BusinessMessage Payload Type: POJO for Student type
+ * BusinessMessage Payload Type: POJO for Faculty type
  *
- * @see Student
+ * @see Faculty
+ * @see AuthorityPerson
+ * @see AuthorityPersonPayload
  * @see Course
  * @see CoursePayload
  */
@@ -23,12 +26,15 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StudentPayload extends BasePersonPayload<Student> implements Student {
-    private String description;
+public class FacultyPayload extends BasePayload<Faculty> implements Faculty {
+    private String name;
 
-    @JsonDeserialize(contentAs= CoursePayload.class)
+    @JsonDeserialize(as = AuthorityPersonPayload.class)
+    private AuthorityPerson dean;
+
+    @JsonDeserialize(contentAs = CoursePayload.class)
     @ToString.Exclude
     private List<Course> courses;
 

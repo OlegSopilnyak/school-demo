@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePr
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

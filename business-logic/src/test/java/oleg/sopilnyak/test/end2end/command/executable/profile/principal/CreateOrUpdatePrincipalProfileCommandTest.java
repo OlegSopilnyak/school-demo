@@ -221,7 +221,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ClassCastException.class);
-        assertThat(context.getException().getMessage()).contains("cannot be cast to class oleg.sopilnyak.test.school.common.model.base.PersonProfile");
+        assertThat(context.getException().getMessage()).contains("cannot be cast to class oleg.sopilnyak.test.school.common.model.PersonProfile");
         verify(command).executeDo(context);
     }
 

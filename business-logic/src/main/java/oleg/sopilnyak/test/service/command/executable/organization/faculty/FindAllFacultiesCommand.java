@@ -21,7 +21,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAllFacultiesCommand implements FacultyCommand {
+public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
     private final FacultyPersistenceFacade persistence;
 
     /**
@@ -34,7 +34,7 @@ public class FindAllFacultiesCommand implements FacultyCommand {
      * @see FacultyPersistenceFacade#findAllFaculties()
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<Faculty>> context) {
         try {
             log.debug("Trying to get all faculties");
 

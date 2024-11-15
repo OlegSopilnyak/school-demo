@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.persistence.profile;
 
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
 import java.util.Optional;
 

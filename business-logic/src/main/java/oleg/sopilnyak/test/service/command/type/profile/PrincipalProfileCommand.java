@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 /**
  * Type for school-principal-profile commands
  */
-public interface PrincipalProfileCommand extends ProfileCommand {
+public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
     /**
      * ID of findById principal profile command
      */
@@ -32,16 +32,17 @@ public interface PrincipalProfileCommand extends ProfileCommand {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
+     *                            //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(PrincipalProfileCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
-        return visitor.prepareContext(this, input);
+//    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+        return visitor.prepareContext(this, macroInputParameter);
     }
 
     /**
@@ -50,31 +51,33 @@ public interface PrincipalProfileCommand extends ProfileCommand {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
+//     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see PrincipalProfileCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
-    }
+//    @Override
+////    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                   final Context<T> context,
+//                                   final Context.StateChangedListener<T> stateListener) {
+//        visitor.doNestedCommand(this, context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
+//     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see PrincipalProfileCommand#undoCommand(Context)
      */
-    @Override
-    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
-        return visitor.undoNestedCommand(this, context);
-    }
+//    @Override
+////    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//    default Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<T> context) {
+//        return visitor.undoNestedCommand(this, context);
+//    }
 }

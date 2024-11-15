@@ -29,9 +29,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeleteFacultyCommand
-        extends SchoolCommandCache<Faculty>
-        implements FacultyCommand {
+public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
+        implements FacultyCommand<Boolean> {
     private final FacultyPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -56,7 +55,7 @@ public class DeleteFacultyCommand
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -100,7 +99,7 @@ public class DeleteFacultyCommand
      * @see FacultyPersistenceFacade#save(Faculty)
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

@@ -14,7 +14,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
 import java.util.Collection;
 import java.util.Optional;

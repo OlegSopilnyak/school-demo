@@ -17,7 +17,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindCoursesWithoutStudentsCommand implements CourseCommand {
+public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Course>> {
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
@@ -31,7 +31,7 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<Course>> context) {
         try {
             log.debug("Trying to find courses without students");
 

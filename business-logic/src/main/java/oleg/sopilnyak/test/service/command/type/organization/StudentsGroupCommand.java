@@ -10,10 +10,11 @@ import org.springframework.lang.NonNull;
 /**
  * Type for school-organization students groups management command
  *
+ * @param <T> the type of command execution (do) result
  * @see OrganizationCommand
  * @see oleg.sopilnyak.test.school.common.model.StudentsGroup
  */
-public interface StudentsGroupCommand extends OrganizationCommand {
+public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
     String GROUP_WITH_ID_PREFIX = "Students Group with ID:";
     /**
      * The name of commands-factory SpringBean
@@ -41,16 +42,17 @@ public interface StudentsGroupCommand extends OrganizationCommand {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param input   Macro-Command call's input
-     * @param <T>     type of command result
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
+     *                            //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(StudentsGroupCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
-        return visitor.prepareContext(this, input);
+//    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+        return visitor.prepareContext(this, macroInputParameter);
     }
 
     /**
@@ -59,7 +61,6 @@ public interface StudentsGroupCommand extends OrganizationCommand {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see StudentsGroupCommand#doCommand(Context)
@@ -67,9 +68,9 @@ public interface StudentsGroupCommand extends OrganizationCommand {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
+    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
     }
 
     /**
@@ -77,13 +78,11 @@ public interface StudentsGroupCommand extends OrganizationCommand {
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see StudentsGroupCommand#undoCommand(Context)
      */
     @Override
-    default <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
+    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return visitor.undoNestedCommand(this, context);
     }
 }

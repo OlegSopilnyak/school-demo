@@ -25,9 +25,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class CreateOrUpdatePrincipalProfileCommand
-        extends CreateOrUpdateProfileCommand<PrincipalProfile>
-        implements PrincipalProfileCommand {
+public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfileCommand<PrincipalProfile>
+        implements PrincipalProfileCommand<Optional<PrincipalProfile>> {
 
     /**
      * Constructor

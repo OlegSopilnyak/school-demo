@@ -1,10 +1,10 @@
-package oleg.sopilnyak.test.service.message;
+package oleg.sopilnyak.test.service.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
+import oleg.sopilnyak.test.school.common.model.BaseType;
 
 /**
  * BusinessMessage Payload Type: POJO as parent of any payload
@@ -43,9 +43,6 @@ public abstract class BasePayload<T extends BaseType> {
     }
 
     public String getOriginalType() {
-        if (original instanceof BasePayload<?> payload){
-            return payload.getOriginalType();
-        }
-        return originalType;
+        return original instanceof BasePayload<?> payload ? payload.getOriginalType() : originalType;
     }
 }

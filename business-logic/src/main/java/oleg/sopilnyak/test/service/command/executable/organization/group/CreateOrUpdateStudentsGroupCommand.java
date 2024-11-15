@@ -28,9 +28,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateStudentsGroupCommand
-        extends SchoolCommandCache<StudentsGroup>
-        implements StudentsGroupCommand {
+public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
+        implements StudentsGroupCommand<Optional<StudentsGroup>> {
     private final StudentsGroupPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -58,7 +57,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see StudentsGroupNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<StudentsGroup>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -104,7 +103,7 @@ public class CreateOrUpdateStudentsGroupCommand
      * @see StudentsGroupNotFoundException
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

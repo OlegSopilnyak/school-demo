@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.endpoint.dto.profile.PersonProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.profile.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import org.mapstruct.*;
 
 import java.util.Arrays;

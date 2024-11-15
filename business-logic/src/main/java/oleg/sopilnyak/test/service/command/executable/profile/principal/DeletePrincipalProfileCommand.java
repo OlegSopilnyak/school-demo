@@ -23,8 +23,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeletePrincipalProfileCommand
-        extends DeleteProfileCommand<PrincipalProfile> implements PrincipalProfileCommand {
+public class DeletePrincipalProfileCommand extends DeleteProfileCommand<PrincipalProfile>
+        implements PrincipalProfileCommand<Boolean> {
     /**
      * Constructor
      *

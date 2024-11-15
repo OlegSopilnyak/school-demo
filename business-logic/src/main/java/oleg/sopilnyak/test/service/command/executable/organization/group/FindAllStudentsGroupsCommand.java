@@ -21,7 +21,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAllStudentsGroupsCommand implements StudentsGroupCommand {
+public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
     private final StudentsGroupPersistenceFacade persistence;
 
     /**
@@ -34,7 +34,7 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand {
      * @see StudentsGroupPersistenceFacade#findAllStudentsGroups()
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<StudentsGroup>> context) {
         try {
             log.debug("Trying to get all students groups");
 

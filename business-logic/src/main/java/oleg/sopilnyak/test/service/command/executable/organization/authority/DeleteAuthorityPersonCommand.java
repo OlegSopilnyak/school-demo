@@ -29,9 +29,8 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeleteAuthorityPersonCommand
-        extends SchoolCommandCache<AuthorityPerson>
-        implements AuthorityPersonCommand {
+public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
+        implements AuthorityPersonCommand<Boolean> {
     private final AuthorityPersonPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -57,7 +56,7 @@ public class DeleteAuthorityPersonCommand
      * @see AuthorityPersonNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -99,7 +98,7 @@ public class DeleteAuthorityPersonCommand
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

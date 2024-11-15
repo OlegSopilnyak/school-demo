@@ -12,12 +12,12 @@ import java.util.LinkedList;
  */
 @Data
 @ToString
-public class MacroCommandParameter<T> {
-    private Object input;
-    private Deque<Context<T>> nestedContexts = new LinkedList<>();
+public class MacroCommandParameter {
+    private final Object input;
+    private final Deque<Context<?>> nestedContexts = new LinkedList<>();
 
-    public MacroCommandParameter(Object input, Deque<Context<T>> nestedContexts) {
-        this.input = input;
+    public MacroCommandParameter(final Object macroOriginalParameter, final Deque<Context<?>> nestedContexts) {
+        this.input = macroOriginalParameter;
         this.nestedContexts.addAll(nestedContexts);
     }
 }

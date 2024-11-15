@@ -19,7 +19,6 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -39,7 +38,8 @@ import javax.annotation.PreDestroy;
  */
 @Slf4j
 @Component
-public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand implements AuthorityPersonCommand {
+public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
+        implements AuthorityPersonCommand<Boolean> {
     // executor of parallel nested commands
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     private final int maxPoolSize;
@@ -117,7 +117,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      *
      * @param command   nested command instance
      * @param mainInput macro-command input parameter
-     * @param <T>       type of delete principal profile command result
+     * @param <N>       type of delete principal profile nested command result
      * @return built context of the command for input parameter
      * @see AuthorityPerson
      * @see PrincipalProfileCommand
@@ -125,7 +125,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      * @see Context
      */
     @Override
-    public <T> Context<T> prepareContext(@NonNull final PrincipalProfileCommand command, final Object mainInput) {
+    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Object mainInput) {
         return mainInput instanceof Long personId && PrincipalProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
                 createPrincipalProfileContext(command, personId) : cannotCreateNestedContextFor(command);
     }
@@ -135,11 +135,11 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      *
      * @param command  delete principal person profile command instance
      * @param personId related person-id value
-     * @param <T>      type of delete principal profile command result
+     * @param <N>      type of delete principal profile nested command result
      * @return built context of the command for input parameter
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      */
-    public <T> Context<T> createPrincipalProfileContext(PrincipalProfileCommand command, Long personId) {
+    public <N> Context<N> createPrincipalProfileContext(PrincipalProfileCommand<N> command, Long personId) {
         final Long profileId = persistence.findAuthorityPersonById(personId)
                 .orElseThrow(() -> new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists."))
                 .getProfileId();
@@ -151,17 +151,16 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor               visitor of prepared contexts
-     * @param commandInputParameter Macro-Command call's input parameter
-     * @param <T>                   type of command result
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
      * @see MacroCommand#createContext(Object)
      */
     @Override
-    public <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
-        return super.acceptPreparedContext(visitor, commandInputParameter);
+    public Context<Boolean> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+        return super.acceptPreparedContext(visitor, macroInputParameter);
     }
 
     /**
@@ -177,9 +176,8 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-    public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<T> context,
-                                      final Context.StateChangedListener<T> stateListener) {
+    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+                                      final Context<?> context, final Context.StateChangedListener stateListener) {
         super.doAsNestedCommand(visitor, context, stateListener);
     }
 
@@ -188,15 +186,13 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand impl
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
     @Override
-    public <T> Context<T> undoAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor, final Context<T> context) {
+    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return super.undoAsNestedCommand(visitor, context);
     }
-
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
         throw new CannotCreateCommandContextException(command.getId());
     }

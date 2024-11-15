@@ -17,7 +17,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindRegisteredCoursesCommand implements CourseCommand {
+public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> {
     private final RegisterPersistenceFacade persistenceFacade;
 
     /**
@@ -31,7 +31,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand {
      * @see Context.State#WORK
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<Course>> context) {
         final Object parameter = context.getRedoParameter();
         log.debug("Trying to find courses registered to student ID: {}", parameter);
         try {

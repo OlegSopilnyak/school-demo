@@ -29,7 +29,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component
-public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand {
+public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
     private final CoursesPersistenceFacade persistenceFacade;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -52,7 +52,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -93,7 +93,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

@@ -25,9 +25,8 @@ import java.util.function.*;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateStudentCommand
-        extends SchoolCommandCache<Student>
-        implements StudentCommand {
+public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
+        implements StudentCommand<Optional<Student>> {
     private final StudentsPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -54,7 +53,7 @@ public class CreateOrUpdateStudentCommand
      * @see StudentNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<Student>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -98,7 +97,7 @@ public class CreateOrUpdateStudentCommand
      * @see StudentsPersistenceFacade#deleteStudent(Long)
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

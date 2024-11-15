@@ -9,10 +9,11 @@ import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCo
 /**
  * Type for school-organization authority persons management command
  *
+ * @param <T> the type of command execution (do) result
  * @see OrganizationCommand
  * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
-public interface AuthorityPersonCommand extends OrganizationCommand {
+public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
     /**
      * The name of commands-factory SpringBean
@@ -56,16 +57,16 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor               visitor of prepared contexts
-     * @param commandInputParameter Macro-Command call's input parameter
-     * @param <T>                   type of command result
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input parameter
+     *                            //     * @param <T>                   type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(AuthorityPersonCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-    default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
-        return visitor.prepareContext(this, commandInputParameter);
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+        return visitor.prepareContext(this, macroInputParameter);
     }
 
     /**
@@ -74,31 +75,37 @@ public interface AuthorityPersonCommand extends OrganizationCommand {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     * @param <T>           type of command execution result
+//     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see AuthorityPersonCommand#doCommand(Context)
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                       final Context<T> context, final Context.StateChangedListener<T> stateListener) {
-        visitor.doNestedCommand(this, context, stateListener);
-    }
+//    @Override
+////    default <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                   final Context<?> context,
+//                                   final Context.StateChangedListener<?> stateListener) {
+////        RootCommand<T>
+//        visitor.doNestedCommand(this,
+//                context,
+//                stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     * @param <T>     type of command execution result
+//     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see AuthorityPersonCommand#undoCommand(Context)
      */
-    @Override
-    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                               final Context<T> context) {
-        return visitor.undoNestedCommand(this, context);
-    }
+//    @Override
+////    default <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//    default Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                               final Context<T> context) {
+//        return visitor.undoNestedCommand(this, context);
+//    }
 }

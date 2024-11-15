@@ -26,7 +26,7 @@ import java.util.function.*;
  */
 @Slf4j
 @Component
-public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand {
+public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand<Boolean> {
     private final StudentsPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -49,7 +49,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -91,7 +91,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

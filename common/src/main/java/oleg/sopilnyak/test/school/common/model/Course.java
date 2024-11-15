@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.school.common.model;
 
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
-
 import java.util.List;
 
 /**

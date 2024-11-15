@@ -18,7 +18,7 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 @AllArgsConstructor
 @Builder
 public class CommandContext<T> implements Context<T> {
-    private RootCommand command;
+    private RootCommand<T> command;
     private Object redoParameter;
     private Object undoParameter;
     private T resultData;
@@ -35,7 +35,7 @@ public class CommandContext<T> implements Context<T> {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Builder.Default
-    private final List<StateChangedListener<T>> listeners = Collections.synchronizedList(new LinkedList<>());
+    private final List<StateChangedListener> listeners = Collections.synchronizedList(new LinkedList<>());
 
     /**
      * To set up current state of the context
@@ -95,9 +95,9 @@ public class CommandContext<T> implements Context<T> {
      * @see State#DONE
      */
     @Override
-    public void setResult(Object result) {
+    public void setResult(T result) {
         if (isWorking()) {
-            this.resultData = (T) result;
+            this.resultData = result;
             setState(DONE);
         }
     }
@@ -118,7 +118,7 @@ public class CommandContext<T> implements Context<T> {
      * @see StateChangedListener
      */
     @Override
-    public void addStateListener(final StateChangedListener<T> listener) {
+    public void addStateListener(final StateChangedListener listener) {
         listeners.add(listener);
     }
 
@@ -129,7 +129,7 @@ public class CommandContext<T> implements Context<T> {
      * @see StateChangedListener
      */
     @Override
-    public void removeStateListener(final StateChangedListener<T> listener) {
+    public void removeStateListener(final StateChangedListener listener) {
         listeners.remove(listener);
     }
 
@@ -137,7 +137,7 @@ public class CommandContext<T> implements Context<T> {
     private void notifyStateChangedListeners(final State previous, final State last) {
         if (ObjectUtils.isEmpty(listeners)) return;
         // delivery state-changed notification
-        final Consumer<StateChangedListener<T>> doStateChangedNotification =
+        final Consumer<StateChangedListener> doStateChangedNotification =
                 listener -> listener.stateChanged(this, previous, last);
         listeners.forEach(doStateChangedNotification);
     }

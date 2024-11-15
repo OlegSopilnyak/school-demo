@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 
 import java.util.Optional;
 import java.util.Set;

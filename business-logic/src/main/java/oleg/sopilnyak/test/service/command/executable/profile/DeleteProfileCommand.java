@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
@@ -26,9 +26,8 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Getter
-public abstract class DeleteProfileCommand<E extends PersonProfile>
-        extends SchoolCommandCache<E>
-        implements ProfileCommand {
+public abstract class DeleteProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
+        implements ProfileCommand<Boolean> {
     protected final ProfilePersistenceFacade persistence;
     protected final BusinessMessagePayloadMapper payloadMapper;
 
@@ -78,7 +77,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see ProfileNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Boolean> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -115,7 +114,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile>
      * @see DeleteProfileCommand#functionSave()
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

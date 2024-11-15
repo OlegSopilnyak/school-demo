@@ -26,9 +26,8 @@ import java.util.function.*;
  */
 @Slf4j
 @Component
-public class CreateOrUpdateCourseCommand
-        extends SchoolCommandCache<Course>
-        implements CourseCommand {
+public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
+        implements CourseCommand<Optional<Course>> {
     private final CoursesPersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -54,7 +53,7 @@ public class CreateOrUpdateCourseCommand
      * @see CourseNotFoundException
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<Course>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
@@ -99,7 +98,7 @@ public class CreateOrUpdateCourseCommand
      * @see InvalidParameterTypeException
      */
     @Override
-    public <T> void executeUndo(Context<T> context) {
+    public void executeUndo(Context<?> context) {
         final Object parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);

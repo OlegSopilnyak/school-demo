@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
 import lombok.Getter;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
@@ -18,7 +18,7 @@ import java.util.function.LongFunction;
  * @see ProfilePersistenceFacade
  */
 @Getter
-public abstract class FindProfileCommand<E extends PersonProfile> implements ProfileCommand {
+public abstract class FindProfileCommand<E extends PersonProfile> implements ProfileCommand<Optional<E>> {
     protected final ProfilePersistenceFacade persistence;
 
     protected FindProfileCommand(ProfilePersistenceFacade persistence) {
@@ -43,7 +43,7 @@ public abstract class FindProfileCommand<E extends PersonProfile> implements Pro
      * @see this#functionFindById()
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<E>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);

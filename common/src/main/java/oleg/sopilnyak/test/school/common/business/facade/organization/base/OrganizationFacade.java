@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.organization.base;
 
-import oleg.sopilnyak.test.school.common.model.base.BaseType;
+import oleg.sopilnyak.test.school.common.model.BaseType;
 
 import static java.util.Objects.isNull;
 

@@ -17,7 +17,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindStudentCommand implements StudentCommand {
+public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     private final StudentsPersistenceFacade persistenceFacade;
 
     /**
@@ -31,7 +31,7 @@ public class FindStudentCommand implements StudentCommand {
      * @see StudentsPersistenceFacade#findStudentById(Long)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<Student>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to find student by ID:{}", parameter.toString());

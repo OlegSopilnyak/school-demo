@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.message;
+package oleg.sopilnyak.test.service.message.payload;
 
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

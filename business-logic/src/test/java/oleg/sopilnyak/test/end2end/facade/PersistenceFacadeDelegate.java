@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.end2end.facade;
 import oleg.sopilnyak.test.school.common.exception.organization.*;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.base.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
 import java.util.Optional;
 import java.util.Set;

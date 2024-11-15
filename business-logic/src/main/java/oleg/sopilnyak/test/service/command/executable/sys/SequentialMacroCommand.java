@@ -1,25 +1,29 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
-import org.slf4j.Logger;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
+ *
+ * @param <T> the type of command execution (do) result
+ * @see MacroCommand
  */
-public abstract class SequentialMacroCommand extends MacroCommand implements TransferResultVisitor {
+public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implements TransferResultVisitor {
     /**
      * To add the command to the commands nest
      *
@@ -27,7 +31,7 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @see RootCommand
      */
     @Override
-    public void addToNest(final NestedCommand command) {
+    public void addToNest(final NestedCommand<?> command) {
         super.addToNest(wrap(command));
     }
 
@@ -38,59 +42,42 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @return wrapped nested command
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
-    public abstract NestedCommand wrap(final NestedCommand command);
+    public abstract NestedCommand<?> wrap(final NestedCommand<?> command);
 
     /**
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
      *
-     * @param doContexts    nested command contexts collection
-     * @param stateListener listener of context-state-change
-     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
-     * @see Deque
-     * @see java.util.LinkedList
-     * @see Context
-     * @see Context.StateChangedListener
-     * @see Context.State#FAIL
-     * @see Context.State#CANCEL
+     * @param nestedContextsToDo nested command contexts collection to do
+     * @param stateListener      listener of the nested command context state-change
+     * @see SequentialMacroCommand#cancelSequentialNestedCommandContext(Context.StateChangedListener, Context)
+     * @see SequentialMacroCommand#doSequentialNestedCommandContext(Context.StateChangedListener, Context, AtomicReference, AtomicBoolean)
+     * @see AtomicReference
+     * @see AtomicBoolean
+     * @see Deque#forEach(Consumer)
      */
     @Override
-    public <T> void doNestedCommands(final Deque<Context<T>> doContexts,
-                                     final Context.StateChangedListener<T> stateListener) {
+    public void doNestedCommands(final Deque<Context<?>> nestedContextsToDo,
+                                 final Context.StateChangedListener stateListener) {
+        // flag if something went wrong
         final AtomicBoolean isDoFailed = new AtomicBoolean(false);
-        final AtomicReference<Context<T>> previousContextReference = new AtomicReference<>(null);
+        // the value of previous nested command context
+        final AtomicReference<Context<?>> previousContextReference = new AtomicReference<>(null);
+
         // sequential walking through contexts set
-        doContexts.forEach(current -> {
+        nestedContextsToDo.forEach(nestedContext -> {
             if (isDoFailed.get()) {
                 // previous command's redo context.state had Context.State.FAIL
-                current.addStateListener(stateListener);
-                current.setState(Context.State.CANCEL);
-                current.removeStateListener(stateListener);
+                cancelSequentialNestedCommandContext(stateListener, nestedContext);
             } else {
-                final RootCommand command = current.getCommand();
-                final Context<T> previous = previousContextReference.get();
-                if (Objects.nonNull(previous)) {
-                    // transfer previous command's do result to current context
-                    getLog().debug("Transferring the result");
-                    transferringPreviousResult(previous, current);
-                }
-                // current nested command do executing
-                getLog().debug("Doing nested command for {}", current);
-                command.doAsNestedCommand(this, current, stateListener);
-                if (current.isDone()) {
-                    // current nested command's do is successful
-                    previousContextReference.getAndSet(current);
-                } else {
-                    // current nested command's do is failed
-                    isDoFailed.compareAndSet(false, true);
-                }
+                doSequentialNestedCommandContext(stateListener, nestedContext, previousContextReference, isDoFailed);
             }
         });
     }
 
     /**
-     * To rollback changes for nested contexts with state DONE<BR/>
-     * sequential revers order of commands deque
+     * To rollback changes for nested contexts with state DONE
+     * <BR/>sequential revers order of commands deque
      *
      * @param doneContexts collection of contexts with DONE state
      * @see Deque#stream()
@@ -100,47 +87,129 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
      * @see Context.State#UNDONE
      */
     @Override
-    public <T> Deque<Context<T>> undoNestedCommands(Deque<Context<T>> doneContexts) {
-        final List<Context<T>> reverted = new ArrayList<>(doneContexts);
+    public Deque<Context<?>> undoNestedCommands(Deque<Context<?>> doneContexts) {
+        final List<Context<?>> reverted = new ArrayList<>(doneContexts);
         // revert the order of undo contexts
         Collections.reverse(reverted);
-        final AtomicBoolean isFailed = new AtomicBoolean(false);
+        final AtomicBoolean isUndoNestedFailed = new AtomicBoolean(false);
         // rollback commands' changes
         return reverted.stream()
-                .map(nestedDoneContext -> undoNested(nestedDoneContext, isFailed))
+                .map(nestedDoneContext -> undoNested(nestedDoneContext, isUndoNestedFailed))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
-    private <T> Context<T> undoNested(final Context<T> nestedDoneContext, final AtomicBoolean isFailed) {
-        return isFailed.get() ? nestedDoneContext : doUndoNestedCommand(nestedDoneContext, isFailed);
+    private Context<?> undoNested(final Context<?> nestedDoneContext, final AtomicBoolean isFailed) {
+        return isFailed.get() ? nestedDoneContext : undoNestedCommand(nestedDoneContext, isFailed);
     }
 
-    private <T> Context<T> doUndoNestedCommand(final Context<T> nestedDoneContext, final AtomicBoolean isFailed) {
-        final Context<T> undoContext = nestedDoneContext.getCommand().undoAsNestedCommand(this, nestedDoneContext);
-        if (undoContext.isFailed()) {
+    private Context<?> undoNestedCommand(final Context<?> nestedDoneContext, final AtomicBoolean isFailed) {
+        final Context<?> nestedContext = nestedDoneContext.getCommand().undoAsNestedCommand(this, nestedDoneContext);
+        if (nestedContext.isFailed()) {
             // nested command undo is failed
             isFailed.compareAndSet(false, true);
         }
-        return undoContext;
+        return nestedContext;
     }
 
-    private <S, T> void transferringPreviousResult(final Context<S> previous, final Context<T> current) {
+    /**
+     * To cancel sequential nested command execution
+     *
+     * @param stateListener listener of nested command context-state-change
+     * @param context       nested command context
+     * @see Context
+     * @see Context.StateChangedListener
+     * @see Context.State#FAIL
+     * @see Context.State#CANCEL
+     */
+    private static void cancelSequentialNestedCommandContext(final Context.StateChangedListener stateListener,
+                                                             final Context<?> context) {
+        context.addStateListener(stateListener);
+        context.setState(Context.State.CANCEL);
+        context.removeStateListener(stateListener);
+    }
+
+    /**
+     * To do sequential nested command execution
+     *
+     * @param stateListener            listener of nested command context-state-change
+     * @param currentNestedContext     current nested command context
+     * @param previousContextReference previous nested command context holder
+     * @param isDoFailed               status of nested commands execution holder
+     * @see Context
+     * @see Context.StateChangedListener
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
+     * @see SequentialMacroCommand#transferringPreviousResult(Context, Context)
+     */
+    private void doSequentialNestedCommandContext(final Context.StateChangedListener stateListener,
+                                                  final Context<?> currentNestedContext,
+                                                  final AtomicReference<Context<?>> previousContextReference,
+                                                  final AtomicBoolean isDoFailed) {
+        final RootCommand<?> command = currentNestedContext.getCommand();
+        final Context<?> previousNestedContext = previousContextReference.get();
+        if (Objects.nonNull(previousNestedContext)) {
+            // transfer previous command's do result to current context
+            getLog().debug("Transferring the result to nested context of '{}'", command.getId());
+            transferringPreviousResult(previousNestedContext, currentNestedContext);
+        }
+
+        // current nested command do executing
+        getLog().debug("Doing nested command for {}", currentNestedContext);
+        command.doAsNestedCommand(this, currentNestedContext, stateListener);
+
+        // checking nested command do result
+        if (currentNestedContext.isDone()) {
+            // current nested command's do is successful
+            previousContextReference.getAndSet(currentNestedContext);
+        } else {
+            // current nested command's do is failed
+            getLog().warn("Something went wrong with {}", currentNestedContext);
+            isDoFailed.compareAndSet(false, true);
+        }
+    }
+
+    /**
+     * To transfer result of previous nested context to current one
+     *
+     * @param previous the instance of previous nested command context
+     * @param current the instance of nested context before RootCommand#doAsNestedCommand(...)
+     * @param <S> the type of previous nested command context result
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
+     * @see Context
+     * @see Context#getResult()
+     * @see Context#getCommand()
+     * @see RootCommand#getId()
+     * @see CannotTransferCommandResultException
+     * @see NestedCommand.InSequence#transferResultTo(TransferResultVisitor, Object, Context)
+     */
+    private <S> void transferringPreviousResult(final Context<S> previous, final Context<?> current) {
         // check source context's result
-        if (!previous.isDone()) return;
+        if (!previous.isDone()) {
+            getLog().warn("Wrong state of previous context: {}", previous.getState());
+            return;
+        }
         final Optional<S> result = previous.getResult();
-        if (ObjectUtils.isEmpty(result)) return;
+        if (ObjectUtils.isEmpty(result)) {
+            getLog().warn("Wrong result of previous command: {}", result);
+            return;
+        }
         // check source context's command
-        final RootCommand sourceCommand = previous.getCommand();
-        if (isNull(sourceCommand)) return;
-        // getting result value to transfer
-        final S resultValue = result.orElseThrow(() -> new CannotTransferCommandResultException(sourceCommand.getId()));
-        // everything is ready for transfer
+        final RootCommand<S> sourceCommand = previous.getCommand();
+        if (isNull(sourceCommand)) {
+            // empty command instance, very strange case!
+            getLog().error("Wrong context of previous command: {}", previous);
+            return;
+        }
         final String sourceCmdId = sourceCommand.getId();
+        // getting result value to transfer
+        final S resultValue = result.orElseThrow(() -> new CannotTransferCommandResultException(sourceCmdId));
+
+        // everything is ready for transfer
         final String currentCmdId = current.getCommand().getId();
         getLog().debug("Transferring from '{}' to '{}' value:[{}]", sourceCmdId, currentCmdId, resultValue);
+
         // transferring result to current context
-        if (sourceCommand instanceof SequentialMacroCommand.Chained<?> commandInSequence) {
+        if (sourceCommand instanceof NestedCommand.InSequence commandInSequence) {
             commandInSequence.transferResultTo(this, resultValue, current);
             getLog().debug("Transferred from '{}' to '{}' value:[{}] successfully", sourceCmdId, currentCmdId, resultValue);
         } else {
@@ -149,10 +218,11 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
     }
 
     // inner class-wrapper for nested command
+
     /**
      * class-wrapper for chained nested commands in sequence
      */
-    public abstract static class Chained<C extends RootCommand> implements NestedCommand.InSequence, RootCommand {
+    public abstract static class Chained<C extends RootCommand<?>> implements NestedCommand.InSequence {
         /**
          * To unwrap nested command
          *
@@ -160,27 +230,25 @@ public abstract class SequentialMacroCommand extends MacroCommand implements Tra
          */
         public abstract C unWrap();
 
-        @Override
-        public Logger getLog() {
-            return unWrap().getLog();
-        }
-
-        @Override
-        public String getId() {
-            return unWrap().getId();
-        }
-
-        @Override
-        public <T> void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                          final Context<T> context,
-                                          final Context.StateChangedListener<T> stateListener) {
-            unWrap().doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public <T> Context<T> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                                  final Context<T> context) {
-            return unWrap().undoAsNestedCommand(visitor, context);
-        }
+////        @Override
+//        public Logger getLog() {
+//            return unWrap().getLog();
+//        }
+//
+////        @Override
+//        public String getId() {
+//            return unWrap().getId();
+//        }
+//
+////        @Override
+//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                      final Context<?> context, final Context.StateChangedListener<?> stateListener) {
+//            unWrap().doAsNestedCommand(visitor, context, stateListener);
+//        }
+//
+////        @Override
+//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//            return unWrap().undoAsNestedCommand(visitor, context);
+//        }
     }
 }

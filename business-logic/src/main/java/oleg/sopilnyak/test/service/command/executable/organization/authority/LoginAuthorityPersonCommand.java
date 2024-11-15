@@ -25,7 +25,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
+public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final PersistenceFacade persistence;
     private final BusinessMessagePayloadMapper payloadMapper;
 
@@ -42,7 +42,7 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand {
      * @see PersistenceFacade#findPrincipalProfileByLogin(String)
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Object parameter = context.getRedoParameter();
         try {
             log.debug("Trying to login authority person by credentials:{}", parameter);

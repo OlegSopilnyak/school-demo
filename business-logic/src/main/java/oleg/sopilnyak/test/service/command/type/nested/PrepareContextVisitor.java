@@ -17,167 +17,167 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
  */
 public interface PrepareContextVisitor {
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (NestedCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see NestedCommand
      * @see RootCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final NestedCommand command, final Object mainInput) {
-        return prepareContext((RootCommand) command, mainInput);
+    default <T> Context<T> prepareContext(final NestedCommand<T> command, final Object macroInputParameter) {
+        return prepareContext((RootCommand<T>) command, macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (RootCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see RootCommand
      * @see RootCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final RootCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final RootCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (SequentialMacroCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see SequentialMacroCommand
      * @see SequentialMacroCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final SequentialMacroCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final SequentialMacroCommand command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (ParallelMacroCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see ParallelMacroCommand
      * @see ParallelMacroCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final ParallelMacroCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final ParallelMacroCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (CourseCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see CourseCommand
      * @see CourseCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final CourseCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final CourseCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (StudentCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see StudentCommand
      * @see StudentCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final StudentCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (PrincipalProfileCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see PrincipalProfileCommand
      * @see PrincipalProfileCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final PrincipalProfileCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final PrincipalProfileCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (StudentProfileCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see StudentProfileCommand
      * @see StudentProfileCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentProfileCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final StudentProfileCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (AuthorityPersonCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see AuthorityPersonCommand
      * @see AuthorityPersonCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final AuthorityPersonCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final AuthorityPersonCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (FacultyCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see FacultyCommand
      * @see FacultyCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final FacultyCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final FacultyCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 
     /**
-     * To prepare context for particular type of the nested command
+     * To prepare context for particular type (StudentsGroupCommand) of the nested command
      *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <T>       type of command's do result
-     * @return built context of the command for input parameter
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <T>                 type of command's do result
+     * @return built context of the nested command for the macro input parameter
      * @see StudentsGroupCommand
      * @see StudentsGroupCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentsGroupCommand command, final Object mainInput) {
-        return command.createContext(mainInput);
+    default <T> Context<T> prepareContext(final StudentsGroupCommand<T> command, final Object macroInputParameter) {
+        return command.createContext(macroInputParameter);
     }
 }

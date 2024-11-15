@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.school.common.model.base;
+package oleg.sopilnyak.test.school.common.model;
 
 import java.util.Optional;
 

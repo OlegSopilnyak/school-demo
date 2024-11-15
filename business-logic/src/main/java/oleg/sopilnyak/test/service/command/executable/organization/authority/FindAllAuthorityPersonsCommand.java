@@ -21,7 +21,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Component
-public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand {
+public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
     private final AuthorityPersonPersistenceFacade persistence;
 
     /**
@@ -34,7 +34,7 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand {
      * @see AuthorityPersonPersistenceFacade#findAllAuthorityPersons()
      */
     @Override
-    public <T> void executeDo(Context<T> context) {
+    public void executeDo(Context<Set<AuthorityPerson>> context) {
         try {
             log.debug("Trying to get all authority persons");
 
