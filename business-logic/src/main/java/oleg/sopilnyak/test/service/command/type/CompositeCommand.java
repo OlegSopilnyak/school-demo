@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of school-commands
@@ -25,7 +26,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      *
      * @return collection of nested commands
      */
-    Collection<NestedCommand<?>> fromNest();
+    <N> Collection<NestedCommand<N>> fromNest();
 
     /**
      * To add the command
@@ -48,19 +49,17 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      */
     @Override
     default Context<T> createContext(Object inputParameter) {
-//        default <T> Context<T> createContext(Object input) {
-        final List<? extends Context<?>> nested = fromNest().stream()
+        final Deque<Context<?>> nested = fromNest().stream()
                 .map(nestedCommand -> prepareNestedContext(nestedCommand, inputParameter))
-                .toList();
-        final Optional<? extends Context<?>> failed = nested.stream()
-                .filter(Objects::nonNull)
-                .filter(Context::isFailed)
-                .findFirst();
+                .collect(Collectors.toCollection(LinkedList::new));
+        final Optional<? extends Context<?>> failed =
+                nested.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst();
         final Context<T> macroCommandContext = createContext();
         if (failed.isPresent()) {
             macroCommandContext.failed(failed.get().getException());
         } else {
-            macroCommandContext.setRedoParameter(new MacroCommandParameter(inputParameter, new LinkedList<>(nested)));
+            final var redoParameter = new MacroCommandParameter(inputParameter, nested);
+            macroCommandContext.setRedoParameter(redoParameter);
         }
         return macroCommandContext;
     }
@@ -80,7 +79,6 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
-//        default <T> Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 

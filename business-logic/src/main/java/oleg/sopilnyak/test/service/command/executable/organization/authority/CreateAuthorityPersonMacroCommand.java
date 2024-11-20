@@ -189,7 +189,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand command,
+    public <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand<?> command,
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
         if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
@@ -247,7 +247,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     @Override
     public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-        super.doAsNestedCommand(visitor, (Context<AuthorityPerson>) context, stateListener);
+        super.doAsNestedCommand(visitor, context, stateListener);
     }
 
     /**
@@ -277,7 +277,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     }
 
     // inner classes
-    final class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand<?>>
+    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand<?>>
             implements AuthorityPersonCommand<Void> {
         private final AuthorityPersonCommand<?> command;
 
@@ -326,7 +326,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         }
     }
 
-    final class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
+    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
             implements PrincipalProfileCommand<Void> {
         private final PrincipalProfileCommand<?> command;
 

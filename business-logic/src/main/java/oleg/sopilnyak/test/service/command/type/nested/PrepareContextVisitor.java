@@ -57,7 +57,7 @@ public interface PrepareContextVisitor {
      * @see SequentialMacroCommand#createContext(Object)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final SequentialMacroCommand command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final SequentialMacroCommand<T> command, final Object macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 

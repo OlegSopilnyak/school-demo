@@ -4,11 +4,12 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -28,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,6 +80,9 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isSameAs(payloadMapper);
+        Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
+        assertThat(nested.pop()).isSameAs(personCommand);
+        assertThat(nested.pop()).isSameAs(profileCommand);
     }
 
     @Test
@@ -243,8 +248,8 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(personContext.<Long>getRedoParameter()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter()).isEqualTo(profileId);
 
-//        verifyStudentDoCommand(personContext);
-//        verifyProfileDoCommand(profileContext);
+        verifyPersonDoCommand(personContext);
+        verifyProfileDoCommand(profileContext);
     }
 
     @Test
@@ -294,8 +299,8 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-//        verifyStudentDoCommand(personContext);
-//        verifyStudentUndoCommand(personContext);
+        verifyPersonDoCommand(personContext);
+        verifyPersonUndoCommand(personContext);
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
@@ -336,9 +341,9 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-//        verifyStudentDoCommand(personContext);
-//        verifyProfileDoCommand(profileContext);
-//        verifyProfileUndoCommand(profileContext);
+        verifyPersonDoCommand(personContext);
+        verifyProfileDoCommand(profileContext);
+        verifyProfileUndoCommand(profileContext);
         verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
@@ -379,10 +384,10 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
 
-//        verifyStudentDoCommand(personContext);
-//        verifyProfileDoCommand(profileContext);
-//
-//        verifyStudentUndoCommand(personContext);
+        verifyPersonDoCommand(personContext);
+        verifyProfileDoCommand(profileContext);
+
+        verifyPersonUndoCommand(personContext);
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
@@ -410,8 +415,8 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         verify(command).executeUndo(context);
         verify(command).undoNestedCommands(any(Deque.class));
-//        verifyStudentUndoCommand(personContext);
-//        verifyProfileUndoCommand(profileContext);
+        verifyPersonUndoCommand(personContext);
+        verifyProfileUndoCommand(profileContext);
     }
 
     @Test
@@ -444,9 +449,9 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         verify(command).executeUndo(context);
         verify(command).undoNestedCommands(any(Deque.class));
-//        verifyStudentUndoCommand(personContext);
-//        verifyProfileUndoCommand(profileContext);
-//        verifyStudentDoCommand(personContext, 2);
+        verifyPersonUndoCommand(personContext);
+        verifyProfileUndoCommand(profileContext);
+        verifyPersonDoCommand(personContext, 2);
     }
 
     @Test
@@ -478,9 +483,9 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         verify(command).executeUndo(context);
         verify(command).undoNestedCommands(any(Deque.class));
-//        verifyStudentUndoCommand(personContext);
-//        verifyProfileUndoCommand(profileContext);
-//        verifyProfileDoCommand(profileContext, 2);
+        verifyPersonUndoCommand(personContext);
+        verifyProfileUndoCommand(profileContext);
+        verifyProfileDoCommand(profileContext, 2);
     }
 
 
@@ -497,47 +502,51 @@ class DeleteAuthorityPersonMacroCommandTest {
         return context;
     }
 
-    private void verifyProfileDoCommand(Context<Boolean> nestedContext) {
+    private void verifyProfileDoCommand(Context<?> nestedContext) {
         verifyProfileDoCommand(nestedContext, 1);
     }
 
-    private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
+    private void verifyProfileDoCommand(Context<?> nestedContext, int i) {
+        Context<Boolean> profileContext = (Context<Boolean>) nestedContext;
         verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command, times(i)).doNestedCommand(eq(profileCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(profileCommand, times(i)).doCommand(nestedContext);
-        verify(profileCommand, times(i)).executeDo(nestedContext);
+        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(profileCommand, times(i)).doCommand(profileContext);
+        verify(profileCommand, times(i)).executeDo(profileContext);
         Long id = nestedContext.getRedoParameter();
         verify(persistence, times(i)).findPrincipalProfileById(id);
         verify(persistence, times(i)).deleteProfileById(id);
     }
 
-    private void verifyStudentDoCommand(Context<Boolean> nestedContext) {
-        verifyStudentDoCommand(nestedContext, 1);
+    private void verifyPersonDoCommand(Context<?> nestedContext) {
+        verifyPersonDoCommand(nestedContext, 1);
     }
 
-    private void verifyStudentDoCommand(Context<Boolean> nestedContext, int i) {
+    private void verifyPersonDoCommand(Context<?> nestedContext, int i) {
+        Context<Boolean> personContext = (Context<Boolean>) nestedContext;
         verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command, times(i)).doNestedCommand(eq(personCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(personCommand, times(i)).doCommand(nestedContext);
-        verify(personCommand, times(i)).executeDo(nestedContext);
+        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
+        verify(personCommand, times(i)).doCommand(personContext);
+        verify(personCommand, times(i)).executeDo(personContext);
         Long id = nestedContext.getRedoParameter();
         verify(persistence, times(i + 1)).findAuthorityPersonById(id);
         verify(persistence, times(i)).deleteAuthorityPerson(id);
     }
 
-    private void verifyStudentUndoCommand(Context<Boolean> nestedContext) {
+    private void verifyPersonUndoCommand(Context<?> nestedContext) {
+        Context<Boolean> personContext = (Context<Boolean>) nestedContext;
         verify(personCommand).undoAsNestedCommand(command, nestedContext);
-        verify(command).undoNestedCommand(personCommand, nestedContext);
-        verify(personCommand).undoCommand(nestedContext);
-        verify(personCommand).executeUndo(nestedContext);
+        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+        verify(personCommand).undoCommand(personContext);
+        verify(personCommand).executeUndo(personContext);
         verify(persistence).save(any(AuthorityPerson.class));
     }
 
-    private void verifyProfileUndoCommand(Context<Boolean> nestedContext) {
+    private void verifyProfileUndoCommand(Context<?> nestedContext) {
+        Context<Boolean> profileContext = (Context<Boolean>) nestedContext;
         verify(profileCommand).undoAsNestedCommand(command, nestedContext);
-        verify(command).undoNestedCommand(profileCommand, nestedContext);
-        verify(profileCommand).undoCommand(nestedContext);
-        verify(profileCommand).executeUndo(nestedContext);
+        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
+        verify(profileCommand).undoCommand(profileContext);
+        verify(profileCommand).executeUndo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
     }
 }

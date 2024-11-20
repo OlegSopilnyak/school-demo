@@ -162,7 +162,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(@NonNull final StudentProfileCommand command,
+    public <S, T> void transferPreviousExecuteDoResult(@NonNull final StudentProfileCommand<?> command,
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
         if (result instanceof Optional<?> opt &&
@@ -245,38 +245,39 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see SequentialMacroCommand#addToNest(NestedCommand)
      */
     @Override
-    public NestedCommand wrap(final NestedCommand command) {
-        if (command instanceof StudentCommand personCommand) {
+    public NestedCommand<?> wrap(final NestedCommand<?> command) {
+        if (command instanceof StudentCommand<?> personCommand) {
             return wrap(personCommand);
-        } else if (command instanceof StudentProfileCommand profileCommand) {
+        } else if (command instanceof StudentProfileCommand<?> profileCommand) {
             return wrap(profileCommand);
         }
-        throw new UnableExecuteCommandException(((RootCommand) command).getId());
+        throw new UnableExecuteCommandException(((RootCommand<?>) command).getId());
     }
 
     // private methods
-    private NestedCommand wrap(final StudentCommand command) {
+    private NestedCommand<?> wrap(final StudentCommand<?> command) {
         return new PersonInSequenceCommand(command);
     }
 
-    private NestedCommand wrap(final StudentProfileCommand command) {
+    private NestedCommand<?> wrap(final StudentProfileCommand<?> command) {
         return new ProfileInSequenceCommand(command);
     }
 
-    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
+    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<?> command) {
         throw new CannotCreateCommandContextException(command.getId());
     }
 
     // inner classes
-    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<StudentCommand<Student>> implements StudentCommand<Void> {
-        private final StudentCommand<Student> command;
+    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<StudentCommand<?>>
+            implements StudentCommand<Void> {
+        private final StudentCommand<?> command;
 
-        private PersonInSequenceCommand(StudentCommand command) {
+        private PersonInSequenceCommand(StudentCommand<?> command) {
             this.command = command;
         }
 
         @Override
-        public StudentCommand unWrap() {
+        public StudentCommand<?> unWrap() {
             return command;
         }
 
@@ -303,19 +304,20 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
 
         @Override
         public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-            return unWrap().undoAsNestedCommand(visitor, context);
+            return command.undoAsNestedCommand(visitor, context);
         }
     }
 
-    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<StudentProfileCommand<StudentProfile>> implements StudentProfileCommand<Void> {
-        private final StudentProfileCommand<StudentProfile> command;
+    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<StudentProfileCommand<?>>
+            implements StudentProfileCommand<Void> {
+        private final StudentProfileCommand<?> command;
 
-        private ProfileInSequenceCommand(StudentProfileCommand<StudentProfile> command) {
+        private ProfileInSequenceCommand(StudentProfileCommand<?> command) {
             this.command = command;
         }
 
         @Override
-        public StudentProfileCommand<StudentProfile> unWrap() {
+        public StudentProfileCommand<?> unWrap() {
             return command;
         }
 
@@ -343,7 +345,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
 
         @Override
         public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-            return unWrap().undoAsNestedCommand(visitor, context);
+            return command.undoAsNestedCommand(visitor, context);
         }
     }
 

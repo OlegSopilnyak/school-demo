@@ -32,7 +32,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final RootCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final RootCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -51,7 +51,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final StudentCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final StudentCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -70,7 +70,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final CourseCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final CourseCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -89,7 +89,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -108,7 +108,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -127,7 +127,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final StudentProfileCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final StudentProfileCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -146,7 +146,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final AuthorityPersonCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final AuthorityPersonCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -165,7 +165,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final FacultyCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final FacultyCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -184,7 +184,7 @@ public interface TransferResultVisitor {
      * @see Optional#get()
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      */
-    default <S, T> void transferPreviousExecuteDoResult(final StudentsGroupCommand command,
+    default <S, T> void transferPreviousExecuteDoResult(final StudentsGroupCommand<?> command,
                                                         final S result,
                                                         final Context<T> target) {
         defaultResultTransfer(command, result, target);
@@ -197,7 +197,7 @@ public interface TransferResultVisitor {
      */
     Logger getLog();
 
-    private <S, T, C extends RootCommand> void defaultResultTransfer(final C command, final S result, final Context<T> target) {
+    private <S, T, C extends RootCommand<?>> void defaultResultTransfer(final C command, final S result, final Context<T> target) {
         getLog().debug("Default command execution result transfer for '{}' result:{} to context:{}", command, result, target);
     }
 }
