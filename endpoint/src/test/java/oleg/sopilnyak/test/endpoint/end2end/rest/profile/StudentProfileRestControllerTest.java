@@ -58,7 +58,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Autowired
     BusinessMessagePayloadMapper mapper;
     @Autowired
-    CommandsFactory<StudentProfileCommand> factory;
+    CommandsFactory<StudentProfileCommand<?>> factory;
     @SpyBean
     @Autowired
     StudentProfileFacade facade;

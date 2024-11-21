@@ -50,7 +50,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     ProfilePersistenceFacade persistence;
-    CommandsFactory<PrincipalProfileCommand> factory;
+    CommandsFactory<PrincipalProfileCommand<?>> factory;
     PrincipalProfileFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -280,7 +280,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private CommandsFactory<PrincipalProfileCommand> buildFactory(ProfilePersistenceFacade persistence) {
+    private CommandsFactory<PrincipalProfileCommand<?>> buildFactory(ProfilePersistenceFacade persistence) {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper)),

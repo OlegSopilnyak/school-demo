@@ -59,7 +59,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade database;
     @Autowired
-    CommandsFactory<AuthorityPersonCommand> factory;
+    CommandsFactory<AuthorityPersonCommand<?>> factory;
     @SpyBean
     @Autowired
     BusinessMessagePayloadMapper mapper;
@@ -257,7 +257,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         int personsAmount = 30;
         List<AuthorityPerson> staff = IntStream.range(0, personsAmount)
                 .mapToObj(i -> getPersistent(makeCleanAuthorityPerson(i + 1)))
-                .sorted(Comparator.comparing(AuthorityPerson::getFullName)) // controller is ordering so
+                // controller full-name is ordering also
+                .sorted(Comparator.comparing(AuthorityPerson::getFullName))
                 .collect(Collectors.toList());
 
         MvcResult result =

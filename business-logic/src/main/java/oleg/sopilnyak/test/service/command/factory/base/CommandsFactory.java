@@ -9,7 +9,7 @@ import java.util.Collection;
  *
  * @param <T> type of factory's commands
  */
-public interface CommandsFactory<T extends RootCommand> {
+public interface CommandsFactory<T extends RootCommand<?>> {
 
     /**
      * To get the commandIds of registered commands

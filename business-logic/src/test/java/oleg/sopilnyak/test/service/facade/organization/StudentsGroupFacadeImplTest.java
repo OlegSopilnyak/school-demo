@@ -41,7 +41,7 @@ class StudentsGroupFacadeImplTest {
     StudentsGroupPersistenceFacade persistenceFacade = mock(StudentsGroupPersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
-    CommandsFactory<StudentsGroupCommand> factory = buildFactory();
+    CommandsFactory<StudentsGroupCommand<?>> factory = buildFactory();
     @Spy
     @InjectMocks
     StudentsGroupFacadeImpl facade;
@@ -166,7 +166,7 @@ class StudentsGroupFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudentsGroup(id);
     }
 
-    private CommandsFactory<StudentsGroupCommand> buildFactory() {
+    private CommandsFactory<StudentsGroupCommand<?>> buildFactory() {
         return new StudentsGroupCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade, payloadMapper)),

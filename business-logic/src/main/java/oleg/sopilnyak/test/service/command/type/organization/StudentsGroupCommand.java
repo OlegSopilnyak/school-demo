@@ -5,7 +5,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
-import org.springframework.lang.NonNull;
 
 /**
  * Type for school-organization students groups management command
@@ -44,13 +43,11 @@ public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
      *
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
-     *                            //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(StudentsGroupCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-//    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
     default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }

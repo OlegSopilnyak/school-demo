@@ -45,7 +45,7 @@ class StudentProfileCommandsFactoryTest extends MysqlTestModelFactory {
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
-    CommandsFactory<StudentProfileCommand> factory;
+    CommandsFactory<StudentProfileCommand<?>> factory;
     @Autowired
     ApplicationContext context;
 
@@ -86,7 +86,7 @@ class StudentProfileCommandsFactoryTest extends MysqlTestModelFactory {
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean(name = SPRING_NAME)
-        public CommandsFactory<StudentProfileCommand> commandsFactory(final Collection<StudentProfileCommand> commands) {
+        public CommandsFactory<StudentProfileCommand<?>> commandsFactory(final Collection<StudentProfileCommand<?>> commands) {
             return new StudentProfileCommandsFactory(commands);
         }
     }

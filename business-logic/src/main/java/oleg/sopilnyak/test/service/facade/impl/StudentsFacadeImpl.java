@@ -26,12 +26,12 @@ import static oleg.sopilnyak.test.service.command.type.StudentCommand.*;
  */
 @Slf4j
 public class StudentsFacadeImpl implements StudentsFacade {
-    private final CommandsFactory<StudentCommand> factory;
+    private final CommandsFactory<StudentCommand<?>> factory;
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
     private final UnaryOperator<Student> convert;
 
-    public StudentsFacadeImpl(CommandsFactory<StudentCommand> factory, BusinessMessagePayloadMapper mapper) {
+    public StudentsFacadeImpl(CommandsFactory<StudentCommand<?>> factory, BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
         this.mapper = mapper;
         this.convert = student -> student instanceof StudentPayload ? student : this.mapper.toPayload(student);
@@ -126,7 +126,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     public boolean delete(Long id) throws StudentNotFoundException, StudentWithCoursesException {
         log.debug("Delete student with ID:{}", id);
         final String commandId = DELETE_ALL;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

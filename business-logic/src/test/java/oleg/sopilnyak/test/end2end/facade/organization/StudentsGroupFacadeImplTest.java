@@ -55,7 +55,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     StudentsGroupPersistenceFacade persistence;
-    CommandsFactory<StudentsGroupCommand> factory;
+    CommandsFactory<StudentsGroupCommand<?>> factory;
     StudentsGroupFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -241,7 +241,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private CommandsFactory<StudentsGroupCommand> buildFactory(StudentsGroupPersistenceFacade persistence) {
+    private CommandsFactory<StudentsGroupCommand<?>> buildFactory(StudentsGroupPersistenceFacade persistence) {
         return new StudentsGroupCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),

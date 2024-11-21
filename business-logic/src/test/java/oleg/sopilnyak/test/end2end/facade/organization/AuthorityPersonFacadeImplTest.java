@@ -58,7 +58,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     PersistenceFacade persistence;
-    CommandsFactory<AuthorityPersonCommand> factory;
+    CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -249,8 +249,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
-        AuthorityPerson authorityPerson = createAuthorityPerson();
-        Long id = authorityPerson.getId();
+        Long id = createAuthorityPerson().getId();
 
         facade.deleteAuthorityPersonById(id);
 
@@ -301,7 +300,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private CommandsFactory<AuthorityPersonCommand> buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<AuthorityPersonCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         CreateOrUpdateAuthorityPersonCommand createOrUpdateAuthorityPersonCommand =
                 spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper));
         CreateOrUpdatePrincipalProfileCommand createOrUpdatePrincipalProfileCommand =

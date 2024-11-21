@@ -13,7 +13,7 @@ import static java.util.Objects.isNull;
  * @see CommandsFactory
  * @see RootCommand
  */
-public class CommandsFactoriesFarm<T extends RootCommand> implements CommandsFactory<T> {
+public class CommandsFactoriesFarm<T extends RootCommand<?>> implements CommandsFactory<T> {
     public static final String FARM_BEAN_NAME = "commandFactoriesFarm";
     public static final String NAME = "CommandFactories-Farm";
     // The list of registered factories

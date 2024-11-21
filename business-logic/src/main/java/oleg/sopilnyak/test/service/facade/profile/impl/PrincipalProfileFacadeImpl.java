@@ -14,10 +14,10 @@ import static oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileC
  */
 @Slf4j
 public class PrincipalProfileFacadeImpl
-        extends PersonProfileFacadeImpl<PrincipalProfileCommand>
+        extends PersonProfileFacadeImpl<PrincipalProfileCommand<?>>
         implements PrincipalProfileFacade {
 
-    public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand> factory,
+    public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand<?>> factory,
                                       final BusinessMessagePayloadMapper payloadMapper) {
         super(factory, payloadMapper);
     }

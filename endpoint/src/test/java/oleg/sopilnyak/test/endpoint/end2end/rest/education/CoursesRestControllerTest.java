@@ -63,7 +63,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade database;
     @Autowired
-    CommandsFactory<CourseCommand> factory;
+    CommandsFactory<CourseCommand<?>> factory;
     @SpyBean
     @Autowired
     BusinessMessagePayloadMapper mapper;

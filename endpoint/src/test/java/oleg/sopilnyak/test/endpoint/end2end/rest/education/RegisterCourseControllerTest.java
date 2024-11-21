@@ -62,9 +62,9 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
     @Autowired
     StudentsFacade studentsFacade;
     @Autowired
-    CommandsFactory<CourseCommand> courseFactory;
+    CommandsFactory<CourseCommand<?>> courseFactory;
     @Autowired
-    CommandsFactory<StudentCommand> studentFactory;
+    CommandsFactory<StudentCommand<?>> studentFactory;
     @SpyBean
     @Autowired
     BusinessMessagePayloadMapper mapper;

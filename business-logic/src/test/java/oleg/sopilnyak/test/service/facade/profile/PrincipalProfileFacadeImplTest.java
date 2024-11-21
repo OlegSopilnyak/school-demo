@@ -37,7 +37,7 @@ class PrincipalProfileFacadeImplTest {
     ProfilePersistenceFacade persistence = mock(ProfilePersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
-    CommandsFactory<PrincipalProfileCommand> factory = buildFactory();
+    CommandsFactory<PrincipalProfileCommand<?>> factory = buildFactory();
 
     @Spy
     @InjectMocks
@@ -229,7 +229,7 @@ class PrincipalProfileFacadeImplTest {
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
-    private CommandsFactory<PrincipalProfileCommand> buildFactory() {
+    private CommandsFactory<PrincipalProfileCommand<?>> buildFactory() {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
                         spy(new FindPrincipalProfileCommand(persistence)),

@@ -13,10 +13,10 @@ import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCom
  * Service: To process commands for school's student profiles facade
  */
 @Slf4j
-public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentProfileCommand>
+public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentProfileCommand<?>>
         implements StudentProfileFacade {
 
-    public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand> factory,
+    public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
                                     final BusinessMessagePayloadMapper payloadMapper) {
         super(factory, payloadMapper);
     }

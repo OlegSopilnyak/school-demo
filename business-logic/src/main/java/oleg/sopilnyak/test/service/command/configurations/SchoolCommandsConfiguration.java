@@ -39,7 +39,7 @@ public class SchoolCommandsConfiguration {
      * @see StudentCommand
      */
     @Bean(name = StudentCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<StudentCommand> studentsCommandsFactory(final Collection<StudentCommand> commands) {
+    public CommandsFactory<StudentCommand<?>> studentsCommandsFactory(final Collection<StudentCommand<?>> commands) {
         return new StudentCommandsFactory(commands);
     }
 
@@ -51,7 +51,7 @@ public class SchoolCommandsConfiguration {
      * @see CourseCommand
      */
     @Bean(name = CourseCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<CourseCommand> courseCommandsFactory(final Collection<CourseCommand> commands) {
+    public CommandsFactory<CourseCommand<?>> courseCommandsFactory(final Collection<CourseCommand<?>> commands) {
         return new CourseCommandsFactory(commands);
     }
 
@@ -63,7 +63,7 @@ public class SchoolCommandsConfiguration {
      * @see AuthorityPersonCommand
      */
     @Bean(name = AuthorityPersonCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<AuthorityPersonCommand> authorityPersonCommandFactory(final Collection<AuthorityPersonCommand> commands) {
+    public CommandsFactory<AuthorityPersonCommand<?>> authorityPersonCommandFactory(final Collection<AuthorityPersonCommand<?>> commands) {
         return new AuthorityPersonCommandsFactory(commands);
     }
 
@@ -75,7 +75,7 @@ public class SchoolCommandsConfiguration {
      * @see FacultyCommand
      */
     @Bean(name = FacultyCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<FacultyCommand> facultyCommandFactory(final Collection<FacultyCommand> commands) {
+    public CommandsFactory<FacultyCommand<?>> facultyCommandFactory(final Collection<FacultyCommand<?>> commands) {
         return new FacultyCommandsFactory(commands);
     }
 
@@ -87,7 +87,7 @@ public class SchoolCommandsConfiguration {
      * @see StudentsGroupCommand
      */
     @Bean(name = StudentsGroupCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<StudentsGroupCommand> studentsGroupCommandFactory(final Collection<StudentsGroupCommand> commands) {
+    public CommandsFactory<StudentsGroupCommand<?>> studentsGroupCommandFactory(final Collection<StudentsGroupCommand<?>> commands) {
         return new StudentsGroupCommandsFactory(commands);
     }
 
@@ -99,7 +99,7 @@ public class SchoolCommandsConfiguration {
      * @see StudentProfileCommand
      */
     @Bean(name = StudentProfileCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<StudentProfileCommand> studentProfileCommandsFactory(final Collection<StudentProfileCommand> commands) {
+    public CommandsFactory<StudentProfileCommand<?>> studentProfileCommandsFactory(final Collection<StudentProfileCommand<?>> commands) {
         return new StudentProfileCommandsFactory(commands);
     }
 
@@ -111,7 +111,7 @@ public class SchoolCommandsConfiguration {
      * @see PrincipalProfileCommand
      */
     @Bean(name = PrincipalProfileCommand.FACTORY_BEAN_NAME)
-    public CommandsFactory<PrincipalProfileCommand> principalProfileCommandsFactory(final Collection<PrincipalProfileCommand> commands) {
+    public CommandsFactory<PrincipalProfileCommand<?>> principalProfileCommandsFactory(final Collection<PrincipalProfileCommand<?>> commands) {
         return new PrincipalProfileCommandsFactory(commands);
     }
 
@@ -125,7 +125,7 @@ public class SchoolCommandsConfiguration {
      * @see CommandsFactory
      */
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
-    public <T extends RootCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
+    public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
     }
 }

@@ -52,7 +52,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     ProfilePersistenceFacade persistence;
-    CommandsFactory<StudentProfileCommand> factory;
+    CommandsFactory<StudentProfileCommand<?>> factory;
     StudentProfileFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -279,7 +279,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
-    private CommandsFactory<StudentProfileCommand> buildFactory(ProfilePersistenceFacade persistence) {
+    private CommandsFactory<StudentProfileCommand<?>> buildFactory(ProfilePersistenceFacade persistence) {
         return new StudentProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)),

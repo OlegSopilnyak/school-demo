@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -172,8 +171,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * To transfer result of previous nested context to current one
      *
      * @param previous the instance of previous nested command context
-     * @param current the instance of nested context before RootCommand#doAsNestedCommand(...)
-     * @param <S> the type of previous nested command context result
+     * @param current  the instance of nested context before RootCommand#doAsNestedCommand(...)
+     * @param <S>      the type of previous nested command context result
      * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      * @see Context
      * @see Context#getResult()
@@ -229,26 +228,5 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
          * @return unwrapped instance of the command
          */
         public abstract C unWrap();
-
-////        @Override
-//        public Logger getLog() {
-//            return unWrap().getLog();
-//        }
-//
-////        @Override
-//        public String getId() {
-//            return unWrap().getId();
-//        }
-//
-////        @Override
-//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                      final Context<?> context, final Context.StateChangedListener<?> stateListener) {
-//            unWrap().doAsNestedCommand(visitor, context, stateListener);
-//        }
-//
-////        @Override
-//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//            return unWrap().undoAsNestedCommand(visitor, context);
-//        }
     }
 }

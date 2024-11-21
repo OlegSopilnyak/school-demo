@@ -8,10 +8,10 @@ import java.util.Collection;
 /**
  * Commands factory for courses syb-system
  */
-public class CourseCommandsFactory extends AbstractCommandFactory<CourseCommand> {
+public class CourseCommandsFactory extends AbstractCommandFactory<CourseCommand<?>> {
     public static final String NAME = "Courses";
 
-    public CourseCommandsFactory(Collection<CourseCommand> commands) {
+    public CourseCommandsFactory(Collection<CourseCommand<?>> commands) {
         super.applyFactoryCommands(commands);
     }
 

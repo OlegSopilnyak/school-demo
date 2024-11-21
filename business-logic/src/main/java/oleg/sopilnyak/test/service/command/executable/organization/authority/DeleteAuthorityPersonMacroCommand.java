@@ -193,7 +193,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
         return super.undoAsNestedCommand(visitor, context);
     }
-    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand command) {
+    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());
     }
 

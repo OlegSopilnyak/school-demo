@@ -59,7 +59,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     @Autowired
     BusinessMessagePayloadMapper mapper;
     @Autowired
-    CommandsFactory<PrincipalProfileCommand> factory;
+    CommandsFactory<PrincipalProfileCommand<?>> factory;
     @SpyBean
     @Autowired
     PrincipalProfileFacade facade;

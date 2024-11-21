@@ -120,7 +120,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
         throw new CountDownLatchInterruptedException(latch.getCount(), e);
     }
 
-    private <N> void kickOffDoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
+    private void kickOffDoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
                                      final Context<?> context, final Context.StateChangedListener stateListener,
                                      final CountDownLatch latch) {
         getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);

@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class StudentProfileCommandsFactoryTest {
     @Mock
-    StudentProfileCommand command1;
+    StudentProfileCommand<?> command1;
     @Mock
-    StudentProfileCommand command2;
+    StudentProfileCommand<?> command2;
     @Mock
-    StudentProfileCommand command3;
+    StudentProfileCommand<?> command3;
 
     StudentProfileCommandsFactory factory;
 

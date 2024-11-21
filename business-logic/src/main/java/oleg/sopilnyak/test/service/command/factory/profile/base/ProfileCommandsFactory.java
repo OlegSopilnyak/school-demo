@@ -13,7 +13,7 @@ import java.util.Collection;
  * @see AbstractCommandFactory
  * @see ProfileCommand
  */
-public abstract class ProfileCommandsFactory<T extends ProfileCommand>
+public abstract class ProfileCommandsFactory<T extends ProfileCommand<?>>
         extends AbstractCommandFactory<T> {
     protected ProfileCommandsFactory(Collection<T> commands) {
         super.applyFactoryCommands(commands);

@@ -30,7 +30,7 @@ public interface CommandExecutor {
      * @see CommandExecutor#takeValidCommand(String, CommandsFactory)
      * @see CommandExecutor#doCommand(RootCommand, Object)
      */
-    static <T, C extends RootCommand> T doSimpleCommand(final String commandId,
+    static <T, C extends RootCommand<?>> T doSimpleCommand(final String commandId,
                                                         final Object input,
                                                         final CommandsFactory<C> factory) {
         final C command = takeValidCommand(commandId, factory);
@@ -78,7 +78,7 @@ public interface CommandExecutor {
      * @see CommandExecutor#throwFor(String, Exception)
      * @see CommandNotRegisteredInFactoryException
      */
-    static <T extends RootCommand> T takeValidCommand(final String commandId,
+    static <T extends RootCommand<?>> T takeValidCommand(final String commandId,
                                                       final CommandsFactory<T> factory) {
         final T concreteCommand = factory.command(commandId);
         return nonNull(concreteCommand) ? concreteCommand :

@@ -9,7 +9,7 @@ import java.util.Collection;
 /**
  * Commands factory for organization-infrastructure syb-system
  */
-public abstract class OrganizationCommandsFactory<T extends OrganizationCommand>
+public abstract class OrganizationCommandsFactory<T extends OrganizationCommand<?>>
         extends AbstractCommandFactory<T>
         implements CommandsFactory<T> {
     protected OrganizationCommandsFactory(Collection<T> commands) {

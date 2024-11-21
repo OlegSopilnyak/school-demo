@@ -31,12 +31,12 @@ import static oleg.sopilnyak.test.service.command.type.organization.FacultyComma
  * @see FacultyCommand
  */
 @Slf4j
-public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> implements FacultyFacade {
+public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>> implements FacultyFacade {
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
     private final UnaryOperator<Faculty> convert;
 
-    public FacultyFacadeImpl(final CommandsFactory<FacultyCommand> factory,
+    public FacultyFacadeImpl(final CommandsFactory<FacultyCommand<?>> factory,
                              final BusinessMessagePayloadMapper mapper) {
         super(factory);
         this.mapper = mapper;
@@ -102,7 +102,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand> im
     public void deleteFacultyById(Long id) throws FacultyNotFoundException, FacultyIsNotEmptyException {
         log.debug("Delete faculty with ID:{}", id);
         final String commandId = DELETE;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

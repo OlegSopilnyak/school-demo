@@ -65,7 +65,7 @@ class FindStudentProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat((Optional) context.getResult().orElse(Optional.empty())).isEmpty();
+        assertThat(context.getResult().orElse(Optional.empty())).isEmpty();
 
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);

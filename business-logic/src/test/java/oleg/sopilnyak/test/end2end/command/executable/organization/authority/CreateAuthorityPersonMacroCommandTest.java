@@ -4,7 +4,6 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
@@ -77,7 +76,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     void setUp() {
         command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper) {
             @Override
-            public NestedCommand wrap(NestedCommand command) {
+            public NestedCommand<?> wrap(NestedCommand<?> command) {
                 return spy(super.wrap(command));
             }
         });
@@ -106,8 +105,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         AuthorityPerson newPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(1));
         reset(payloadMapper);
         Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
-        PrincipalProfileCommand nestedProfileCommand = (PrincipalProfileCommand) nestedCommands.pop();
-        AuthorityPersonCommand nestedPersonCommand = (AuthorityPersonCommand) nestedCommands.pop();
+        PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
+        AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
 
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
 
@@ -148,9 +147,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
-        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
-        PrincipalProfileCommand nestedProfileCommand = (PrincipalProfileCommand) nestedCommands.pop();
-        AuthorityPersonCommand nestedPersonCommand = (AuthorityPersonCommand) nestedCommands.pop();
+        Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
+        PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
+        AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
 
         Context<Optional<AuthorityPerson>> context = command.createContext(wrongTypeInput);
 
@@ -177,9 +176,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         String errorMessage = "Cannot create nested profile context";
         RuntimeException exception = new RuntimeException(errorMessage);
         AuthorityPerson newPerson = makeCleanAuthorityPerson(2);
-        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
-        PrincipalProfileCommand nestedProfileCommand = (PrincipalProfileCommand) nestedCommands.pop();
-        AuthorityPersonCommand nestedPersonCommand = (AuthorityPersonCommand) nestedCommands.pop();
+        Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
+        PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
+        AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
         doThrow(exception).when(nestedProfileCommand).createContext(any(PrincipalProfilePayload.class));
 
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
@@ -206,9 +205,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         String errorMessage = "Cannot create nested person context";
         RuntimeException exception = new RuntimeException(errorMessage);
         AuthorityPerson newPerson = makeCleanAuthorityPerson(3);
-        Deque<NestedCommand> nestedCommands = new LinkedList<>(command.fromNest());
-        PrincipalProfileCommand nestedProfileCommand = (PrincipalProfileCommand) nestedCommands.pop();
-        AuthorityPersonCommand nestedPersonCommand = (AuthorityPersonCommand) nestedCommands.pop();
+        Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
+        PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
+        AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
         doThrow(exception).when(nestedPersonCommand).createContext(any(AuthorityPersonPayload.class));
 
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
@@ -238,41 +237,41 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         command.doCommand(context);
 
         MacroCommandParameter parameter = context.getRedoParameter();
-        Context<?> profileContext = parameter.getNestedContexts().pop();
-        Context<?> personContext = parameter.getNestedContexts().pop();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
 
-//        checkContextAfterDoCommand(profileContext);
-//        Optional<?> profileResult = profileContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
-//
-//        checkContextAfterDoCommand(context);
-//        Optional<AuthorityPerson> savedPerson = context.getResult().orElseThrow();
-//        Long personId = savedPerson.orElseThrow().getId();
-//        assertThat(savedPerson.orElseThrow().getProfileId()).isEqualTo(profileId);
-//        assertAuthorityPersonEquals(savedPerson.orElseThrow(), newPerson, false);
-//
-//        checkContextAfterDoCommand(personContext);
-//        Optional<BaseType> personResult = personContext.getResult().orElseThrow();
-//        final AuthorityPerson person = personResult.map(AuthorityPerson.class::cast).orElseThrow();
-//        assertAuthorityPersonEquals(person, newPerson, false);
-//        assertThat(person.getId()).isEqualTo(personId);
-//        assertThat(person.getProfileId()).isEqualTo(profileId);
-//        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(personId);
-//        assertThat(savedPerson.orElseThrow()).isSameAs(person);
-//
-//        verify(command).executeDo(context);
-//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-//
-//        verifyProfileDoCommand(profileContext);
-//
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-//        verify(command).transferProfileIdToStudentInput(profileId, personContext);
-//
-//        verifyPersonDoCommand(personContext);
-//
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        checkContextAfterDoCommand(profileContext);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+
+        checkContextAfterDoCommand(context);
+        Optional<AuthorityPerson> savedPerson = context.getResult().orElseThrow();
+        Long personId = savedPerson.orElseThrow().getId();
+        assertThat(savedPerson.orElseThrow().getProfileId()).isEqualTo(profileId);
+        assertAuthorityPersonEquals(savedPerson.orElseThrow(), newPerson, false);
+
+        checkContextAfterDoCommand(personContext);
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        final AuthorityPerson person = personResult.orElseThrow();
+        assertAuthorityPersonEquals(person, newPerson, false);
+        assertThat(person.getId()).isEqualTo(personId);
+        assertThat(person.getProfileId()).isEqualTo(profileId);
+        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(personId);
+        assertThat(savedPerson.orElseThrow()).isSameAs(person);
+
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
+        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+
+        verifyPersonDoCommand(personContext);
+
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
     @Test
@@ -303,34 +302,34 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.getRedoParameter();
-        Context<?> profileContext = parameter.getNestedContexts().pop();
-        Context<?> personContext = parameter.getNestedContexts().pop();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
 
-//        checkContextAfterDoCommand(profileContext);
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
-//
-//        checkContextAfterDoCommand(personContext);
-//        Optional<BaseType> personResult = personContext.getResult().orElseThrow();
-//        final AuthorityPerson person = personResult.map(AuthorityPerson.class::cast).orElseThrow();
-//        assertAuthorityPersonEquals(person, newPerson, false);
-//        Long studentId = person.getId();
-//        assertThat(person.getProfileId()).isEqualTo(profileId);
-//        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(studentId);
-//
-//        verify(command).executeDo(context);
-//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-//
-//        verifyProfileDoCommand(profileContext);
-//
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-//        verify(command).transferProfileIdToStudentInput(profileId, personContext);
-//
-//        verifyPersonDoCommand(personContext);
-//
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        checkContextAfterDoCommand(profileContext);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+
+        checkContextAfterDoCommand(personContext);
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        final AuthorityPerson person = personResult.orElseThrow();
+        assertAuthorityPersonEquals(person, newPerson, false);
+        Long studentId = person.getId();
+        assertThat(person.getProfileId()).isEqualTo(profileId);
+        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(studentId);
+
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
+        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+
+        verifyPersonDoCommand(personContext);
+
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
     @Test
@@ -347,24 +346,24 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
-//        Context<Optional<BaseType>> personContext = parameter.getNestedContexts().pop();
-//        assertThat(profileContext.isFailed()).isTrue();
-//        assertThat(profileContext.getResult()).isEmpty();
-//        assertThat(profileContext.getException()).isEqualTo(exception);
-//
-//        assertThat(personContext.getState()).isEqualTo(CANCEL);
-//
-//        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-//        verify(command).doNestedCommand(eq(profileCommand), eq(profileContext), any(Context.StateChangedListener.class));
-//        verify(profileCommand).doCommand(profileContext);
-//        verify(profileCommand).executeDo(profileContext);
-//        verify(persistence).save(any(PrincipalProfile.class));
-//
-//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
-//
-//        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
-//        verify(command, never()).doNestedCommand(any(RootCommand.class), any(Context.class), any(Context.StateChangedListener.class));
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+        assertThat(profileContext.isFailed()).isTrue();
+        assertThat(profileContext.getResult()).isEmpty();
+        assertThat(profileContext.getException()).isEqualTo(exception);
+
+        assertThat(personContext.getState()).isEqualTo(CANCEL);
+
+        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+        verify(profileCommand).doCommand(profileContext);
+        verify(profileCommand).executeDo(profileContext);
+        verify(persistence).save(any(PrincipalProfile.class));
+
+        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+
+        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
+        verify(command, never()).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -381,32 +380,32 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Context<Optional<BaseType>> profileContext = parameter.getNestedContexts().pop();
-//        Context<Optional<BaseType>> personContext = parameter.getNestedContexts().pop();
-//
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
-//        assertThat(profileContext.getState()).isEqualTo(UNDONE);
-//        assertThat(profileContext.getResult()).isPresent();
-//
-//        AuthorityPerson person = personContext.getRedoParameter();
-//        assertAuthorityPersonEquals(person, newPerson, false);
-//        assertThat(person.getProfileId()).isEqualTo(profileId);
-//
-//        verify(command).executeDo(context);
-//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-//
-//        verifyProfileDoCommand(profileContext);
-//
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-//        verify(command).transferProfileIdToStudentInput(profileId, personContext);
-//
-//        verifyPersonDoCommand(personContext);
-//
-//        // changes' compensation after nested command fail
-//        verifyProfileUndoCommand(profileContext, profileId);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+        assertThat(profileContext.getState()).isEqualTo(UNDONE);
+        assertThat(profileContext.getResult()).isPresent();
+
+        AuthorityPerson person = personContext.getRedoParameter();
+        assertAuthorityPersonEquals(person, newPerson, false);
+        assertThat(person.getProfileId()).isEqualTo(profileId);
+
+        verify(command).executeDo(context);
+        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+
+        verifyProfileDoCommand(profileContext);
+
+        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
+        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+
+        verifyPersonDoCommand(personContext);
+
+        // changes' compensation after nested command fail
+        verifyProfileUndoCommand(profileContext, profileId);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
     }
 
     @Test
@@ -415,33 +414,33 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         AuthorityPerson newPerson = makeCleanAuthorityPerson(8);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Deque<Context<Optional<BaseType>>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
-//        Context<Optional<BaseType>> profileContext = nestedContexts.pop();
-//        Context<Optional<BaseType>> personContext = nestedContexts.pop();
-//
-//        command.doCommand(context);
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Optional<BaseType> personResult = personContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        Long studentId = personResult.orElseThrow().getId();
-//        assertThat(profileId).isEqualTo(((AuthorityPerson) personResult.orElseThrow()).getProfileId());
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
-//        command.undoCommand(context);
-//
-//        assertThat(context.getState()).isEqualTo(UNDONE);
-//
-//        assertThat(profileContext.getState()).isEqualTo(UNDONE);
-//        assertThat(personContext.getState()).isEqualTo(UNDONE);
-//
-//        verify(command).executeUndo(context);
-//        verifyProfileUndoCommand(profileContext, profileId);
-//        verifyPersonUndoCommand(personContext, studentId);
-//        // nested commands order
-//        checkUndoNestedCommandsOrder(profileContext, personContext, studentId, profileId);
-//
-//        assertThat(persistence.findStudentById(studentId)).isEmpty();
-//        assertThat(persistence.findStudentProfileById(profileId)).isEmpty();
+        Deque<Context<?>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
+
+        command.doCommand(context);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        Long studentId = personResult.orElseThrow().getId();
+        assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        command.undoCommand(context);
+
+        assertThat(context.getState()).isEqualTo(UNDONE);
+
+        assertThat(profileContext.getState()).isEqualTo(UNDONE);
+        assertThat(personContext.getState()).isEqualTo(UNDONE);
+
+        verify(command).executeUndo(context);
+        verifyProfileUndoCommand(profileContext, profileId);
+        verifyPersonUndoCommand(personContext, studentId);
+        // nested commands order
+        checkUndoNestedCommandsOrder(profileContext, personContext, studentId, profileId);
+
+        assertThat(persistence.findStudentById(studentId)).isEmpty();
+        assertThat(persistence.findStudentProfileById(profileId)).isEmpty();
     }
 
 
@@ -451,33 +450,33 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         AuthorityPerson newPerson = makeCleanAuthorityPerson(11);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Deque<Context<Optional<BaseType>>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
-//        Context<Optional<BaseType>> profileContext = nestedContexts.pop();
-//        Context<Optional<BaseType>> personContext = nestedContexts.pop();
-//
-//        RuntimeException exception = new RuntimeException("Cannot process person undo command");
-//        doThrow(exception).when(command).undoNestedCommands(any(Deque.class));
-//
-//        command.doCommand(context);
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Optional<BaseType> personResult = personContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        Long studentId = personResult.orElseThrow().getId();
-//        assertThat(profileId).isEqualTo(((AuthorityPerson) personResult.orElseThrow()).getProfileId());
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
-//        command.undoCommand(context);
-//
-//        assertThat(context.isFailed()).isTrue();
-//        assertThat(context.getException()).isEqualTo(exception);
-//
-//        verify(command).executeUndo(context);
-//        verify(command).undoNestedCommands(any(Deque.class));
-//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-//
-//        assertThat(persistence.findAuthorityPersonById(studentId)).isPresent();
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        Deque<Context<?>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
+
+        RuntimeException exception = new RuntimeException("Cannot process person undo command");
+        doThrow(exception).when(command).undoNestedCommands(any(Deque.class));
+
+        command.doCommand(context);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        Long studentId = personResult.orElseThrow().getId();
+        assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isEqualTo(exception);
+
+        verify(command).executeUndo(context);
+        verify(command).undoNestedCommands(any(Deque.class));
+        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+
+        assertThat(persistence.findAuthorityPersonById(studentId)).isPresent();
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
     @Test
@@ -486,35 +485,35 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         AuthorityPerson newPerson = makeCleanAuthorityPerson(9);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Deque<Context<Optional<BaseType>>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
-//        Context<Optional<BaseType>> profileContext = nestedContexts.pop();
-//        Context<Optional<BaseType>> personContext = nestedContexts.pop();
-//
-//        RuntimeException exception = new RuntimeException("Cannot process person undo command");
-//
-//        command.doCommand(context);
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Optional<BaseType> personResult = personContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        Long personId = personResult.orElseThrow().getId();
-//        assertThat(profileId).isEqualTo(((AuthorityPerson) personResult.orElseThrow()).getProfileId());
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
-//        doThrow(exception).when(persistence).deleteAuthorityPerson(personId);
-//        command.undoCommand(context);
-//
-//        assertThat(context.isFailed()).isTrue();
-//        assertThat(context.getException()).isEqualTo(exception);
-//
-//        assertThat(profileContext.isDone()).isTrue();
-//        assertThat(personContext.isFailed()).isTrue();
-//        assertThat(personContext.getException()).isEqualTo(exception);
-//
-//        verify(command).executeUndo(context);
-//        verifyPersonUndoCommand(personContext, personId);
-//
-//        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        Deque<Context<?>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
+
+        RuntimeException exception = new RuntimeException("Cannot process person undo command");
+
+        command.doCommand(context);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        Long personId = personResult.orElseThrow().getId();
+        assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        doThrow(exception).when(persistence).deleteAuthorityPerson(personId);
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isEqualTo(exception);
+
+        assertThat(profileContext.isDone()).isTrue();
+        assertThat(personContext.isFailed()).isTrue();
+        assertThat(personContext.getException()).isEqualTo(exception);
+
+        verify(command).executeUndo(context);
+        verifyPersonUndoCommand(personContext, personId);
+
+        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
     @Test
@@ -523,52 +522,54 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         AuthorityPerson newPerson = makeCleanAuthorityPerson(10);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPerson);
         MacroCommandParameter parameter = context.getRedoParameter();
-//        Deque<Context<Optional<BaseType>>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
-//        Context<Optional<BaseType>> profileContext = nestedContexts.pop();
-//        Context<Optional<BaseType>> personContext = nestedContexts.pop();
-//
-//        RuntimeException exception = new RuntimeException("Cannot process profile undo command");
-//
-//        command.doCommand(context);
-//        reset(persistence, command, personCommand);
-//        Optional<BaseType> profileResult = profileContext.getResult().orElseThrow();
-//        Optional<BaseType> studentResult = personContext.getResult().orElseThrow();
-//        Long profileId = profileResult.orElseThrow().getId();
-//        Long personId = studentResult.orElseThrow().getId();
-//        assertThat(profileId).isEqualTo(((AuthorityPerson) studentResult.orElseThrow()).getProfileId());
-//        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
-//        doThrow(exception).when(persistence).deleteProfileById(profileId);
-//        command.undoCommand(context);
-//
-//        assertThat(context.isFailed()).isTrue();
-//        assertThat(context.getException()).isEqualTo(exception);
-//        assertThat(profileContext.isFailed()).isTrue();
-//        assertThat(profileContext.getException()).isEqualTo(exception);
-//        assertThat(personContext.isUndone()).isFalse();
-//        assertThat(personContext.isDone()).isTrue();
-//
-//        verify(command).executeUndo(context);
-//        verifyProfileUndoCommand(profileContext, profileId);
-//        verifyPersonUndoCommand(personContext, personId);
-//        verifyPersonDoCommand(personContext);
-//
-//        personId = personContext.getResult().orElseThrow().orElseThrow().getId();
-//        profileId = profileContext.getResult().orElseThrow().orElseThrow().getId();
-//        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-//        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        Deque<Context<?>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
+
+        RuntimeException exception = new RuntimeException("Cannot process profile undo command");
+
+        command.doCommand(context);
+        reset(persistence, command, personCommand);
+        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
+        Optional<AuthorityPerson> studentResult = personContext.getResult().orElseThrow();
+        Long profileId = profileResult.orElseThrow().getId();
+        Long personId = studentResult.orElseThrow().getId();
+        assertThat(profileId).isEqualTo(studentResult.orElseThrow().getProfileId());
+        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        doThrow(exception).when(persistence).deleteProfileById(profileId);
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isEqualTo(exception);
+        assertThat(profileContext.isFailed()).isTrue();
+        assertThat(profileContext.getException()).isEqualTo(exception);
+        assertThat(personContext.isUndone()).isFalse();
+        assertThat(personContext.isDone()).isTrue();
+
+        verify(command).executeUndo(context);
+        verifyProfileUndoCommand(profileContext, profileId);
+        verifyPersonUndoCommand(personContext, personId);
+        verifyPersonDoCommand(personContext);
+
+        personId = personContext.getResult().orElseThrow().orElseThrow().getId();
+        profileId = profileContext.getResult().orElseThrow().orElseThrow().getId();
+        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
+        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
     // private methods
-    private void checkUndoNestedCommandsOrder(Context<Optional<BaseType>> profileContext, Context<Optional<BaseType>> personContext, Long personId, Long profileId) {
+    private void checkUndoNestedCommandsOrder(Context<Optional<PrincipalProfile>> profileContext,
+                                              Context<Optional<AuthorityPerson>> personContext,
+                                              Long personId, Long profileId) {
         // nested commands order
         InOrder inOrder = Mockito.inOrder(command);
         // creating profile and person (profile is first) avers commands order
-//        inOrder.verify(command).doNestedCommand(eq(profileCommand), eq(profileContext), any(Context.StateChangedListener.class));
-//        inOrder.verify(command).doNestedCommand(eq(personCommand), eq(personContext), any(Context.StateChangedListener.class));
+        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
         // undo creating profile and person (person is first) revers commands order
-        inOrder.verify(command).undoNestedCommand(personCommand, personContext);
-        inOrder.verify(command).undoNestedCommand(profileCommand, profileContext);
+        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
 
         // persistence operations order
         inOrder = Mockito.inOrder(persistence);
@@ -580,35 +581,35 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         inOrder.verify(persistence).deleteProfileById(profileId);
     }
 
-    private void verifyProfileUndoCommand(Context<Optional<BaseType>> profileContext, Long id) {
+    private void verifyProfileUndoCommand(Context<Optional<PrincipalProfile>> profileContext, Long id) {
         verify(profileCommand).undoAsNestedCommand(command, profileContext);
-        verify(command).undoNestedCommand(profileCommand, profileContext);
+        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
         verify(persistence).deleteProfileById(id);
     }
 
-    private void verifyPersonUndoCommand(Context<Optional<BaseType>> personContext, Long id) {
+    private void verifyPersonUndoCommand(Context<Optional<AuthorityPerson>> personContext, Long id) {
         verify(personCommand).undoAsNestedCommand(command, personContext);
-        verify(command).undoNestedCommand(personCommand, personContext);
+        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
         verify(personCommand).undoCommand(personContext);
         verify(personCommand).executeUndo(personContext);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
-    private void verifyProfileDoCommand(Context<Optional<BaseType>> nestedContext) {
+    private void verifyProfileDoCommand(Context<Optional<PrincipalProfile>> nestedContext) {
         verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command).doNestedCommand(eq(profileCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(profileCommand).doCommand(nestedContext);
-//        verify(profileCommand).executeDo(nestedContext);
+        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(profileCommand).doCommand(nestedContext);
+        verify(profileCommand).executeDo(nestedContext);
         verify(persistence).save(any(PrincipalProfile.class));
     }
 
-    private void verifyPersonDoCommand(Context<Optional<BaseType>> nestedContext) {
+    private void verifyPersonDoCommand(Context<Optional<AuthorityPerson>> nestedContext) {
         verify(personCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command).doNestedCommand(eq(personCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(personCommand).doCommand(nestedContext);
-//        verify(personCommand).executeDo(nestedContext);
+        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(personCommand).doCommand(nestedContext);
+        verify(personCommand).executeDo(nestedContext);
         verify(persistence).save(any(AuthorityPerson.class));
     }
 
@@ -618,14 +619,14 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.getResult().get()).isPresent();
     }
 
-    private void verifyPersonCommandContext(AuthorityPerson newPerson, AuthorityPersonCommand personCommand) {
+    private void verifyPersonCommandContext(AuthorityPerson newPerson, AuthorityPersonCommand<?> personCommand) {
         verify(personCommand).acceptPreparedContext(command, newPerson);
         verify(command).prepareContext(personCommand, newPerson);
         verify(command).createPersonContext(personCommand, newPerson);
         verify(personCommand).createContext(any(AuthorityPersonPayload.class));
     }
 
-    private void verifyProfileCommandContext(AuthorityPerson newPerson, PrincipalProfileCommand profileCommand) {
+    private void verifyProfileCommandContext(AuthorityPerson newPerson, PrincipalProfileCommand<?> profileCommand) {
         verify(profileCommand).acceptPreparedContext(command, newPerson);
         verify(command).prepareContext(profileCommand, newPerson);
         verify(command).createProfileContext(profileCommand, newPerson);

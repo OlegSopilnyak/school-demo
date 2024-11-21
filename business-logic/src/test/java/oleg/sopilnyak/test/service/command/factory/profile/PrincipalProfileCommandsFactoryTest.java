@@ -15,11 +15,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class PrincipalProfileCommandsFactoryTest {
     @Mock
-    PrincipalProfileCommand command1;
+    PrincipalProfileCommand<?> command1;
     @Mock
-    PrincipalProfileCommand command2;
+    PrincipalProfileCommand<?> command2;
     @Mock
-    PrincipalProfileCommand command3;
+    PrincipalProfileCommand<?> command3;
 
     PrincipalProfileCommandsFactory factory;
 

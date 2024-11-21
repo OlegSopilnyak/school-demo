@@ -34,28 +34,28 @@ class SchoolCommandsConfigurationTest {
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     @Qualifier("studentCommandsFactory")
-    CommandsFactory<StudentCommand> studentsCommandsFactory;
+    CommandsFactory<StudentCommand<?>> studentsCommandsFactory;
     @Autowired
     @Qualifier("courseCommandsFactory")
-    CommandsFactory<CourseCommand> courseCommandsFactory;
+    CommandsFactory<CourseCommand<?>> courseCommandsFactory;
     @Autowired
     @Qualifier("authorityCommandsFactory")
-    CommandsFactory<AuthorityPersonCommand> authorityPersonCommandFactory;
+    CommandsFactory<AuthorityPersonCommand<?>> authorityPersonCommandFactory;
     @Autowired
     @Qualifier("facultyCommandsFactory")
-    CommandsFactory<FacultyCommand> facultyCommandFactory;
+    CommandsFactory<FacultyCommand<?>> facultyCommandFactory;
     @Autowired
     @Qualifier("groupCommandsFactory")
-    CommandsFactory<StudentsGroupCommand> studentsGroupCommandFactory;
+    CommandsFactory<StudentsGroupCommand<?>> studentsGroupCommandFactory;
     @Autowired
     @Qualifier("studentProfileCommandsFactory")
-    CommandsFactory<StudentProfileCommand> studentProfileCommandsFactory;
+    CommandsFactory<StudentProfileCommand<?>> studentProfileCommandsFactory;
     @Autowired
     @Qualifier("principalProfileCommandsFactory")
-    CommandsFactory<PrincipalProfileCommand> principalProfileCommandsFactory;
+    CommandsFactory<PrincipalProfileCommand<?>> principalProfileCommandsFactory;
     @Autowired
     @Qualifier("commandFactoriesFarm")
-    CommandsFactory<RootCommand> farm;
+    CommandsFactory<RootCommand<?>> farm;
     @Autowired
     ApplicationContext context;
 
@@ -77,7 +77,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(studentsCommandsFactory.getSize()).isGreaterThan(1);
         var factory = studentsCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            StudentCommand command = factory.command(cmdId);
+            StudentCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -87,7 +87,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(courseCommandsFactory.getSize()).isGreaterThan(1);
         var factory = courseCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            CourseCommand command = factory.command(cmdId);
+            CourseCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -97,7 +97,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(authorityPersonCommandFactory.getSize()).isGreaterThan(1);
         var factory = authorityPersonCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            AuthorityPersonCommand command = factory.command(cmdId);
+            AuthorityPersonCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -107,7 +107,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(facultyCommandFactory.getSize()).isGreaterThan(1);
         var factory = facultyCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            FacultyCommand command = factory.command(cmdId);
+            FacultyCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -117,7 +117,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(studentsGroupCommandFactory.getSize()).isGreaterThan(1);
         var factory = studentsGroupCommandFactory;
         factory.commandIds().forEach(cmdId -> {
-            StudentsGroupCommand command = factory.command(cmdId);
+            StudentsGroupCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -127,7 +127,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(studentProfileCommandsFactory.getSize()).isGreaterThan(1);
         var factory = studentProfileCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            StudentProfileCommand command = factory.command(cmdId);
+            StudentProfileCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
@@ -137,14 +137,14 @@ class SchoolCommandsConfigurationTest {
         assertThat(principalProfileCommandsFactory.getSize()).isGreaterThan(1);
         var factory = principalProfileCommandsFactory;
         factory.commandIds().forEach(cmdId -> {
-            PrincipalProfileCommand command = factory.command(cmdId);
+            PrincipalProfileCommand<?> command = factory.command(cmdId);
             assertThat(command).isEqualTo(farm.command(cmdId));
         });
     }
 
     @Test
     void shouldHaveFactoriesCommandsInTheFarm() {
-        CommandsFactoriesFarm<RootCommand> factoriesFarm = (CommandsFactoriesFarm<RootCommand>) farm;
+        CommandsFactoriesFarm<RootCommand<?>> factoriesFarm = (CommandsFactoriesFarm<RootCommand<?>>) farm;
         assertThat(factoriesFarm.findCommandFactory(studentsCommandsFactory.getName()).orElseThrow()).isEqualTo(studentsCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(courseCommandsFactory.getName()).orElseThrow()).isEqualTo(courseCommandsFactory);
         assertThat(factoriesFarm.findCommandFactory(authorityPersonCommandFactory.getName()).orElseThrow()).isEqualTo(authorityPersonCommandFactory);
@@ -156,7 +156,7 @@ class SchoolCommandsConfigurationTest {
 
     @Test
     void shouldHaveCommandsInTheFarm() {
-        List<CommandsFactory<? extends RootCommand>> factories = List.of(
+        List<CommandsFactory<? extends RootCommand<?>>> factories = List.of(
                 studentsCommandsFactory,
                 courseCommandsFactory,
                 authorityPersonCommandFactory,
@@ -170,7 +170,7 @@ class SchoolCommandsConfigurationTest {
         assertThat(commandsCount).isEqualTo(farm.getSize());
 
         factories.forEach(factory -> factory.commandIds().forEach(cmdId -> {
-                    RootCommand command = factory.command(cmdId);
+                    RootCommand<?> command = factory.command(cmdId);
                     assertThat(command).isEqualTo(farm.command(cmdId));
                 })
         );

@@ -29,12 +29,12 @@ import static oleg.sopilnyak.test.service.command.type.organization.StudentsGrou
  * @see StudentsGroup
  */
 @Slf4j
-public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand> implements StudentsGroupFacade {
+public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand<?>> implements StudentsGroupFacade {
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
     private final UnaryOperator<StudentsGroup> convert;
 
-    public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand> factory,
+    public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand<?>> factory,
                                    final BusinessMessagePayloadMapper mapper) {
         super(factory);
         this.mapper = mapper;
@@ -100,7 +100,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotFoundException, StudentGroupWithStudentsException {
         log.debug("Delete students group with ID:{}", id);
         final String commandId = DELETE;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

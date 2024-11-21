@@ -16,7 +16,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CommandsFactoriesFarmTest<T extends RootCommand> {
+class CommandsFactoriesFarmTest<T extends RootCommand<?>> {
     @Mock
     CommandsFactory<T> factory1;
     @Mock
@@ -24,11 +24,11 @@ class CommandsFactoriesFarmTest<T extends RootCommand> {
     @Mock
     CommandsFactory<T> factory3;
 
-    CommandsFactoriesFarm farm;
+    CommandsFactoriesFarm<T> farm;
 
     @BeforeEach
     void setUp() {
-        farm = new CommandsFactoriesFarm(Set.of(factory1, factory2, factory3));
+        farm = new CommandsFactoriesFarm<>(Set.of(factory1, factory2, factory3));
     }
 
     @Test

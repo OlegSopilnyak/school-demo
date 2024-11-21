@@ -53,7 +53,7 @@ class AuthorityPersonFacadeImplTest {
     DeletePrincipalProfileCommand deleteProfileCommand;
     DeleteAuthorityPersonMacroCommand deletePersonMacroCommand;
 
-    CommandsFactory<AuthorityPersonCommand> factory;
+    CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
 
     @Mock
@@ -303,7 +303,7 @@ class AuthorityPersonFacadeImplTest {
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
     }
 
-    private CommandsFactory<AuthorityPersonCommand> buildFactory() {
+    private CommandsFactory<AuthorityPersonCommand<?>> buildFactory() {
         return spy(new AuthorityPersonCommandsFactory(
                         Set.of(
                                 spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),

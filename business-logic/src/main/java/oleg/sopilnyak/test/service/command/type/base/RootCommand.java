@@ -170,7 +170,6 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param visitor visitor to do nested command execution
      * @param context context for nested command execution
-     *                //     * @param <T>     type of command execution result
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */

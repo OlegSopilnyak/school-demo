@@ -28,12 +28,12 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_WAS_NOT_STORED = "Command fail Exception was not stored!!!";
-    private final CommandsFactory<CourseCommand> factory;
+    private final CommandsFactory<CourseCommand<?>> factory;
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
     private final UnaryOperator<Course> convert;
 
-    public CoursesFacadeImpl(CommandsFactory<CourseCommand> factory, BusinessMessagePayloadMapper mapper) {
+    public CoursesFacadeImpl(CommandsFactory<CourseCommand<?>> factory, BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
         this.mapper = mapper;
         this.convert = course -> course instanceof CoursePayload ? course : this.mapper.toPayload(course);
@@ -110,7 +110,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public void delete(Long id) throws CourseNotFoundException, CourseWithStudentsException {
         log.debug("Delete course with ID:{}", id);
         final String commandId = DELETE;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);
@@ -151,7 +151,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
             CourseHasNoRoomException, StudentCoursesExceedException {
         log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
         final String commandId = REGISTER;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);
@@ -192,7 +192,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     public void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException {
         log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
         final String commandId = UN_REGISTER;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
 
         command.doCommand(context);

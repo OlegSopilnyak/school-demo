@@ -34,12 +34,12 @@ import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPer
  * @see AuthorityPersonCommand
  */
 @Slf4j
-public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand> implements AuthorityPersonFacade {
+public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand<?>> implements AuthorityPersonFacade {
     private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
     private final UnaryOperator<AuthorityPerson> convert;
 
-    public AuthorityPersonFacadeImpl(final CommandsFactory<AuthorityPersonCommand> factory,
+    public AuthorityPersonFacadeImpl(final CommandsFactory<AuthorityPersonCommand<?>> factory,
                                      final BusinessMessagePayloadMapper mapper) {
         super(factory);
         this.mapper = mapper;
@@ -59,7 +59,8 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         log.debug("Try to login using: '{}'", username);
         final String[] permissions = new String[]{username, password};
         final String commandId = LOGIN;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final AuthorityPersonCommand<Optional<AuthorityPerson>> command =
+                (AuthorityPersonCommand<Optional<AuthorityPerson>>) takeValidCommand(commandId, factory);
         final Context<Optional<AuthorityPerson>> context = command.createContext(permissions);
 
         command.doCommand(context);
@@ -179,7 +180,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         log.debug("Delete authority person with ID:{}", id);
         final String commandId = DELETE_ALL;
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

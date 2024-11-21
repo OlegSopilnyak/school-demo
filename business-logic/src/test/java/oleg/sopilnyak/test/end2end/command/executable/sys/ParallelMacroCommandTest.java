@@ -200,9 +200,7 @@ public class ParallelMacroCommandTest extends MysqlTestModelFactory {
 
         public void synchronize() {
             if (active) return;
-            resourcesMap.entrySet().forEach(entry ->
-                    TransactionSynchronizationManager.bindResource(entry.getKey(), entry.getValue())
-            );
+            resourcesMap.forEach(TransactionSynchronizationManager::bindResource);
             TransactionSynchronizationManager.setCurrentTransactionName(currentTransactionName);
             TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(currentTransactionIsolationLevel);
             TransactionSynchronizationManager.setCurrentTransactionReadOnly(currentTransactionReadOnly);
@@ -294,6 +292,7 @@ public class ParallelMacroCommandTest extends MysqlTestModelFactory {
         }
 
         void waitForActionIsFinished(final Object actionFinished) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (actionFinished) {
                 try {
                     actionFinished.wait();

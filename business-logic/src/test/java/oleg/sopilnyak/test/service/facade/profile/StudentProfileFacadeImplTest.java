@@ -249,7 +249,7 @@ class StudentProfileFacadeImplTest {
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
-    private CommandsFactory<StudentProfileCommand> buildFactory() {
+    private CommandsFactory<StudentProfileCommand<?>> buildFactory() {
         return new StudentProfileCommandsFactory(
                 Set.of(
                         spy(new FindStudentProfileCommand(persistence)),

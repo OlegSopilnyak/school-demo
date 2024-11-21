@@ -53,7 +53,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @SpyBean
     PersistenceFacade database;
     PersistenceFacade persistenceFacade;
-    CommandsFactory<CourseCommand> factory;
+    CommandsFactory<CourseCommand<?>> factory;
     BusinessMessagePayloadMapper payloadMapper;
 
     CoursesFacade facade;
@@ -466,7 +466,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
-    private CommandsFactory<CourseCommand> buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<CourseCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         return new CourseCommandsFactory(List.of(
                 spy(new FindCourseCommand(persistenceFacade)),
                 spy(new FindRegisteredCoursesCommand(persistenceFacade)),

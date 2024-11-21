@@ -42,13 +42,11 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
      *
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
-     *                            //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(FacultyCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
     @Override
-//    default <T> Context<T> acceptPreparedContext(@NonNull final PrepareContextVisitor visitor, final Object input) {
     default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
@@ -59,7 +57,6 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
      * @param visitor       visitor to do nested command execution
      * @param context       context for nested command execution
      * @param stateListener listener of context-state-change
-     *                      //     * @param <T>           type of command execution result
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      * @see Context#addStateListener(Context.StateChangedListener)
      * @see FacultyCommand#doCommand(Context)
@@ -67,7 +64,6 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
-//    default <T> void doAsNestedCommand(@NonNull final NestedCommandExecutionVisitor visitor,
     default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                    final Context<?> context, final Context.StateChangedListener stateListener) {
         visitor.doNestedCommand(this, (Context<T>) context, stateListener);

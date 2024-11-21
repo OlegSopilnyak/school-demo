@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
  * @see CommandsFactory#getName()
  */
 public class CommandNotRegisteredInFactoryException extends Exception {
-    public <T extends RootCommand> CommandNotRegisteredInFactoryException(String commandId,
+    public <T extends RootCommand<?>> CommandNotRegisteredInFactoryException(String commandId,
                                                                           CommandsFactory<T> factory) {
         super("Command '" + commandId + "' is not registered in factory :" + factory.getName());
     }

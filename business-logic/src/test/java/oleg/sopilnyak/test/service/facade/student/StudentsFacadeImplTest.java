@@ -60,7 +60,7 @@ class StudentsFacadeImplTest {
     DeleteStudentProfileCommand deleteProfileCommand;
     DeleteStudentMacroCommand deleteStudentMacroCommand;
 
-    CommandsFactory<StudentCommand> factory;
+    CommandsFactory<StudentCommand<?>> factory;
 
     @BeforeEach
     void setUp() {
@@ -272,7 +272,7 @@ class StudentsFacadeImplTest {
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
-    private CommandsFactory<StudentCommand> buildFactory() {
+    private CommandsFactory<StudentCommand<?>> buildFactory() {
         return spy(new StudentCommandsFactory(
                         Set.of(
                                 spy(new FindStudentCommand(persistenceFacade)),

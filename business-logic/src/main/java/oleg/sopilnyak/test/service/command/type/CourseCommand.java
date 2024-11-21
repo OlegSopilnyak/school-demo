@@ -34,7 +34,6 @@ public interface CourseCommand<T> extends RootCommand<T> {
      *
      * @param visitor visitor of prepared contexts
      * @param macroInputParameter   Macro-Command call's input
-//     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(CourseCommand, Object)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)

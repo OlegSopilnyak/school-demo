@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of commands in the factory
  */
-public abstract class AbstractCommandFactory<T extends RootCommand> implements CommandsFactory<T> {
+public abstract class AbstractCommandFactory<T extends RootCommand<?>> implements CommandsFactory<T> {
     private final Map<String, T> commandMap = new HashMap<>();
 
     /**

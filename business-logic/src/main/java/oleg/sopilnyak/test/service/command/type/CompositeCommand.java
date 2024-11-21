@@ -39,7 +39,6 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      * To create command's context of macro command for input
      *
      * @param inputParameter command context's parameter value
-     *              //     * @param <T>   type of command result
      * @return context instance
      * @see Context
      * @see Context#getRedoParameter()
@@ -71,7 +70,6 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      *
      * @param visitor        visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
-     *                       //     * @param <T>     type of command result
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
      * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)

@@ -22,7 +22,7 @@ import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
  * Service: To process commands for school's person profiles facade
  */
 @Slf4j
-public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implements PersonProfileFacade {
+public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> implements PersonProfileFacade {
     protected static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     protected static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
     protected static final String SOMETHING_WENT_WRONG = "Something went wrong";
@@ -98,7 +98,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand> implemen
     public void deleteById(Long id) throws ProfileNotFoundException {
         log.debug("Delete profile with ID:{}", id);
         final String commandId = deleteByIdCommandId();
-        final RootCommand command = takeValidCommand(commandId, factory);
+        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(id);
 
         command.doCommand(context);

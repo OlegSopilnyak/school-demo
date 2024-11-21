@@ -40,7 +40,7 @@ class CoursesFacadeImplTest {
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
-    CommandsFactory<CourseCommand> factory = buildFactory();
+    CommandsFactory<CourseCommand<?>> factory = buildFactory();
     @Spy
     @InjectMocks
     CoursesFacadeImpl facade;
@@ -375,7 +375,7 @@ class CoursesFacadeImplTest {
         verify(persistenceFacade, never()).unLink(mockedStudent, mockedCourse);
     }
 
-    private CommandsFactory<CourseCommand> buildFactory() {
+    private CommandsFactory<CourseCommand<?>> buildFactory() {
         return new CourseCommandsFactory(
                 List.of(
                         spy(new FindCourseCommand(persistenceFacade)),

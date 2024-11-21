@@ -55,7 +55,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     FacultyPersistenceFacade persistence;
-    CommandsFactory<FacultyCommand> factory;
+    CommandsFactory<FacultyCommand<?>> factory;
     FacultyFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -246,7 +246,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private CommandsFactory<FacultyCommand> buildFactory(FacultyPersistenceFacade persistence) {
+    private CommandsFactory<FacultyCommand<?>> buildFactory(FacultyPersistenceFacade persistence) {
         return new FacultyCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),

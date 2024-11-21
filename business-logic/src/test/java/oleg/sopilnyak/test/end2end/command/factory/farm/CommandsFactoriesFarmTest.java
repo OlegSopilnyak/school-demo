@@ -45,13 +45,13 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
-    CommandsFactory<CourseCommand> factory1;
+    CommandsFactory<CourseCommand<?>> factory1;
     @SpyBean
-    CommandsFactory<StudentCommand> factory2;
+    CommandsFactory<StudentCommand<?>> factory2;
     @SpyBean
-    CommandsFactory<FacultyCommand> factory3;
+    CommandsFactory<FacultyCommand<?>> factory3;
     @SpyBean
-    CommandsFactoriesFarm<RootCommand> farm;
+    CommandsFactoriesFarm<RootCommand<?>> farm;
     @Autowired
     ApplicationContext context;
 
@@ -88,7 +88,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
         assertThat(farm.getSize()).isEqualTo(commandsIds.size());
 
         commandsIds.forEach(commandId -> {
-            RootCommand command = farm.command(commandId);
+            RootCommand<?> command = farm.command(commandId);
             assertThat(command).isNotNull();
             CommandsFactory<?> factory = findCommandFactory(factories, commandId);
             assertThat(command).isEqualTo(factory.command(commandId));
@@ -104,22 +104,22 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean
-        public CommandsFactory<StudentCommand> studentsCommandsFactory(final Collection<StudentCommand> commands) {
+        public CommandsFactory<StudentCommand<?>> studentsCommandsFactory(final Collection<StudentCommand<?>> commands) {
             return new StudentCommandsFactory(commands);
         }
 
         @Bean
-        public CommandsFactory<CourseCommand> courseCommandsFactory(final Collection<CourseCommand> commands) {
+        public CommandsFactory<CourseCommand<?>> courseCommandsFactory(final Collection<CourseCommand<?>> commands) {
             return new CourseCommandsFactory(commands);
         }
 
         @Bean
-        public CommandsFactory<FacultyCommand> facultyCommandFactory(final Collection<FacultyCommand> commands) {
+        public CommandsFactory<FacultyCommand<?>> facultyCommandFactory(final Collection<FacultyCommand<?>> commands) {
             return new FacultyCommandsFactory(commands);
         }
 
         @Bean
-        public <T extends RootCommand> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
+        public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
             return new CommandsFactoriesFarm<>(factories);
         }
     }

@@ -22,14 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class})
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
 class RegisterCourseCommandConfigurationTest {
-    final String REGISTER_COMMAND_ID = "course.register";
+    static final String REGISTER_COMMAND_ID = "course.register";
     @MockBean
     PersistenceFacade persistence;
     @MockBean
     BusinessMessagePayloadMapper payloadMapper;
 
     @Autowired(required = false)
-    CommandsFactory<CourseCommand> factory;
+    CommandsFactory<CourseCommand<?>> factory;
 
     @Test
     void shouldBuildCourseCommandsFactory() {
@@ -42,7 +42,7 @@ class RegisterCourseCommandConfigurationTest {
             @Value("${school.courses.maximum.rooms:50}") final int maximumRooms,
             @Value("${school.students.maximum.courses:5}") final int coursesExceed
     ) {
-        RootCommand command = factory.command(REGISTER_COMMAND_ID);
+        RootCommand<?> command = factory.command(REGISTER_COMMAND_ID);
         assertThat(command).isNotNull();
         if (command instanceof RegisterStudentToCourseCommand registerCommand) {
             assertThat(registerCommand.getMaximumRooms()).isEqualTo(maximumRooms).isEqualTo(20);

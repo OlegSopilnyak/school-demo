@@ -55,7 +55,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade database;
 
     PersistenceFacade persistenceFacade;
-    CommandsFactory<StudentCommand> factory;
+    CommandsFactory<StudentCommand<?>> factory;
 
     StudentsFacadeImpl facade;
     BusinessMessagePayloadMapper payloadMapper;
@@ -298,6 +298,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDelete_StudentWithCourses() {
         Long studentId = getPersistentStudent(makeClearTestStudent()).getId();
+        assertThat(studentId).isNotNull();
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
@@ -328,7 +329,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         return saved.get();
     }
 
-    private CommandsFactory<StudentCommand> buildFactory(PersistenceFacade persistenceFacade) {
+    private CommandsFactory<StudentCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         return spy(new StudentCommandsFactory(
                         Set.of(
                                 spy(new FindStudentCommand(persistenceFacade)),

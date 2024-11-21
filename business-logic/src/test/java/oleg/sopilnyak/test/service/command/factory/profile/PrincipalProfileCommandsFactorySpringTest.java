@@ -32,7 +32,7 @@ class PrincipalProfileCommandsFactorySpringTest {
     @MockBean
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
-    CommandsFactory<PrincipalProfileCommand> factory;
+    CommandsFactory<PrincipalProfileCommand<?>> factory;
     @Autowired
     ApplicationContext context;
 
@@ -67,7 +67,7 @@ class PrincipalProfileCommandsFactorySpringTest {
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean(name = SPRING_NAME)
-        public CommandsFactory<PrincipalProfileCommand> commandsFactory(final Collection<PrincipalProfileCommand> commands) {
+        public CommandsFactory<PrincipalProfileCommand<?>> commandsFactory(final Collection<PrincipalProfileCommand<?>> commands) {
             return new PrincipalProfileCommandsFactory(commands);
         }
     }
