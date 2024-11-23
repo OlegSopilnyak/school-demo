@@ -2,8 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.education;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
-import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
@@ -40,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 class StudentsRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = "/students";
 
     @Mock
     StudentsFacade facade;
@@ -61,7 +61,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long id = 100L;
         Student student = makeTestStudent(id);
         when(facade.findById(id)).thenReturn(Optional.of(student));
-        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
+        String requestPath = ROOT + "/" + id;
 
         MvcResult result =
                 mockMvc.perform(
@@ -90,7 +90,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 40L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         when(facade.findEnrolledTo(courseId)).thenReturn(students);
-        String requestPath = RequestMappingRoot.STUDENTS + "/enrolled/" + courseId;
+        String requestPath = ROOT + "/enrolled/" + courseId;
 
         MvcResult result =
                 mockMvc.perform(
@@ -116,7 +116,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 5L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         when(facade.findNotEnrolled()).thenReturn(students);
-        String requestPath = RequestMappingRoot.STUDENTS + "/empty";
+        String requestPath = ROOT + "/empty";
 
         MvcResult result =
                 mockMvc.perform(
@@ -147,12 +147,11 @@ class StudentsRestControllerTest extends TestModelFactory {
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
         }).when(facade).create(any(Student.class));
-        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
+                                MockMvcRequestBuilders.post(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -181,13 +180,12 @@ class StudentsRestControllerTest extends TestModelFactory {
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
         }).when(facade).createOrUpdate(any(Student.class));
-        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -209,12 +207,11 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotUpdateInvalidStudent_NullId() throws Exception {
         Student student = makeTestStudent(null);
-        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -234,12 +231,11 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldNotUpdateInvalidStudent_NegativeId() throws Exception {
         Long id = -1001L;
         Student student = makeTestStudent(id);
-        String requestPath = RequestMappingRoot.STUDENTS;
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -258,7 +254,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldDeleteStudentValidId() throws Exception {
         long id = 102L;
-        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
+        String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -272,7 +268,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentValidId_StudentNotExistsException() throws Exception {
         Long id = 103L;
-        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
+        String requestPath = ROOT + "/" + id;
         doThrow(new StudentNotFoundException("Wrong student")).when(facade).delete(id);
 
         MvcResult result =
@@ -294,7 +290,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentValidId_StudentWithCoursesException() throws Exception {
         Long id = 104L;
-        String requestPath = RequestMappingRoot.STUDENTS + "/" + id;
+        String requestPath = ROOT + "/" + id;
         String errorMessage = "Not empty courses set";
         doThrow(new StudentWithCoursesException(errorMessage)).when(facade).delete(id);
         MvcResult result =

@@ -2,8 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto;
-import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
@@ -37,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 class FacultiesRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = "/faculties";
 
     @Mock
     FacultyFacade facade;
@@ -59,11 +59,10 @@ class FacultiesRestControllerTest extends TestModelFactory {
         int personsAmount = 10;
         Collection<Faculty> faculties = makeFaculties(personsAmount);
         when(facade.findAllFaculties()).thenReturn(faculties);
-        String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.get(requestPath)
+                                MockMvcRequestBuilders.get(ROOT)
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -87,7 +86,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = 400L;
         Faculty faculty = makeTestFaculty(id);
         when(facade.findFacultyById(id)).thenReturn(Optional.of(faculty));
-        String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
+        String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
@@ -108,7 +107,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldNotFindFacultyById() throws Exception {
         Long id = 400L;
         when(facade.findFacultyById(id)).thenReturn(Optional.empty());
-        String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
+        String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
@@ -137,11 +136,10 @@ class FacultiesRestControllerTest extends TestModelFactory {
             return Optional.of(faculty);
         }).when(facade).createOrUpdateFaculty(any(Faculty.class));
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
+                                MockMvcRequestBuilders.post(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -167,11 +165,10 @@ class FacultiesRestControllerTest extends TestModelFactory {
             return Optional.of(faculty);
         }).when(facade).createOrUpdateFaculty(any(Faculty.class));
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -190,11 +187,10 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldNotUpdateFaculty_WrongId_Null() throws Exception {
         Faculty faculty = makeTestFaculty(null);
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -217,11 +213,10 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = -403L;
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -242,7 +237,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     @Test
     void shouldDeleteFaculty() throws Exception {
         Long id = 410L;
-        String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
+        String requestPath = ROOT + "/" + id;
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
                 )
@@ -255,7 +250,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotDeleteFaculty_WrongId_Null() throws Exception {
-        String requestPath = RequestMappingRoot.FACULTIES + "/null";
+        String requestPath = ROOT + "/null";
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -275,7 +270,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteFaculty_WrongId_Negative() throws Exception {
         long id = -411L;
-        String requestPath = RequestMappingRoot.FACULTIES + "/" + id;
+        String requestPath = ROOT + "/" + id;
 
         MvcResult result =
                 mockMvc.perform(
@@ -298,9 +293,9 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = 410L;
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
+
         mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
+                        MockMvcRequestBuilders.delete(ROOT)
                                 .content(jsonContent)
                                 .contentType(APPLICATION_JSON)
                 )
@@ -316,12 +311,12 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = 410L;
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String requestPath = RequestMappingRoot.FACULTIES;
         String errorMessage = "Faculty '" + id + "' not exists.";
         doThrow(new FacultyNotFoundException(errorMessage)).when(facade).deleteFaculty(any(FacultyDto.class));
+
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
+                                MockMvcRequestBuilders.delete(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )

@@ -2,8 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto;
-import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
@@ -36,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 class StudentsGroupsRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = "/student-groups";
 
     @Mock
     StudentsGroupFacade facade;
@@ -57,11 +57,10 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         int groupsAmount = 5;
         Collection<StudentsGroup> studentsGroups = makeStudentsGroups(groupsAmount);
         when(facade.findAllStudentsGroups()).thenReturn(studentsGroups);
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.get(requestPath)
+                                MockMvcRequestBuilders.get(ROOT)
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -84,7 +83,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         Long id = 500L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
         when(facade.findStudentsGroupById(id)).thenReturn(Optional.of(studentsGroup));
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS + "/" + id;
+        String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
@@ -112,11 +111,10 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
             return Optional.of(studentsGroup);
         }).when(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
+                                MockMvcRequestBuilders.post(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -143,11 +141,10 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
             return Optional.of(studentsGroup);
         }).when(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -167,11 +164,10 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     void shouldNotUpdateStudentsGroup_WrongId_Null() throws Exception {
         StudentsGroup studentsGroup = makeTestStudentsGroup(null);
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -186,16 +182,16 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
     }
+
     @Test
     void shouldNotUpdateStudentsGroup_WrongId_Negative() throws Exception {
         Long id = -502L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS;
 
         MvcResult result =
                 mockMvc.perform(
-                                MockMvcRequestBuilders.put(requestPath)
+                                MockMvcRequestBuilders.put(ROOT)
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -214,7 +210,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     @Test
     void shouldDeleteStudentsGroup() throws Exception {
         Long id = 510L;
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS + "/" + id;
+        String requestPath = ROOT + "/" + id;
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
                 )
@@ -227,7 +223,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldNotDeleteStudentsGroup_WrongId_Null() throws Exception {
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS + "/null";
+        String requestPath = ROOT + "/null";
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -247,7 +243,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     @Test
     void shouldNotDeleteStudentsGroup_WrongId_Negative() throws Exception {
         long id = -511L;
-        String requestPath = RequestMappingRoot.STUDENT_GROUPS + "/" + id;
+        String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;

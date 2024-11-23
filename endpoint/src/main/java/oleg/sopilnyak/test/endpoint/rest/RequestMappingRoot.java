@@ -9,8 +9,36 @@ public interface RequestMappingRoot {
     String REGISTER = "/register";
     String AUTHORITIES = "/authorities";
     String PROFILES = "/profiles";
-    String STUDENT_PROFILES = "/profiles/students";
-    String PRINCIPAL_PROFILES = "/profiles/principals";
+    String STUDENT_PROFILES = PROFILES + "/students";
+    String PRINCIPAL_PROFILES = PROFILES + "/principals";
     String FACULTIES = "/faculties";
     String STUDENT_GROUPS = "/student-groups";
+
+    default String coursesRoot() {
+        return COURSES;
+    }
+
+    default String studentsRoot() {
+        return STUDENTS;
+    }
+
+    default String registerRoot() {
+        return REGISTER;
+    }
+
+    default String authoritiesRoot() {
+        return AUTHORITIES;
+    }
+    default String studentProfilesRoot(){
+        return STUDENT_PROFILES;
+    }
+    default String principalProfilesRoot(){
+        return PRINCIPAL_PROFILES;
+    }
+    default String facultiesRoot() {
+        return FACULTIES;
+    }
+    default String studentGroupsRoot() {
+        return STUDENT_GROUPS;
+    }
 }

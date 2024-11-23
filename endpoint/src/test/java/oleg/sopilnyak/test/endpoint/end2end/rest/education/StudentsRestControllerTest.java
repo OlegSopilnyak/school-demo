@@ -2,8 +2,7 @@ package oleg.sopilnyak.test.endpoint.end2end.rest.education;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
-import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.rest.education.StudentsRestController;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
@@ -60,7 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Rollback
 class StudentsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String ROOT = RequestMappingRoot.STUDENTS;
+    private static final String ROOT = "/students";
 
     @Autowired
     PersistenceFacade database;

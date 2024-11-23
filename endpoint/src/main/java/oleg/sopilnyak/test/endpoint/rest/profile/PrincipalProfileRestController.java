@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.profile;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.endpoint.dto.profile.PrincipalProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;

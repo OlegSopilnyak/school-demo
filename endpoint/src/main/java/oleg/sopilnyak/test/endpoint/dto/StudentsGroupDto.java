@@ -1,12 +1,9 @@
-package oleg.sopilnyak.test.endpoint.dto.organization;
+package oleg.sopilnyak.test.endpoint.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
@@ -16,18 +13,20 @@ import java.util.List;
  * DataTransportObject: POJO for StudentGroup type
  *
  * @see StudentsGroup
+ * @see Student
  */
 @Data
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StudentsGroupDto implements StudentsGroup {
-    private Long id;
+public class StudentsGroupDto extends BaseDto implements StudentsGroup {
     private String name;
 
-    @JsonDeserialize(as= StudentDto.class)
+    @JsonDeserialize(as = StudentDto.class)
     private Student leader;
-    @JsonDeserialize(contentAs= StudentDto.class)
+    @JsonDeserialize(contentAs = StudentDto.class)
     private List<Student> students;
 }

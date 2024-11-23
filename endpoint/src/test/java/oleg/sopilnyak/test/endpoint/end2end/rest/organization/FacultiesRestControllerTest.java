@@ -2,8 +2,7 @@ package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto;
-import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
+import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.organization.FacultiesRestController;
@@ -53,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Rollback
 class FacultiesRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String ROOT = RequestMappingRoot.FACULTIES;
+    private static final String ROOT = "/faculties";
 
     @Autowired
     PersistenceFacade database;
@@ -111,7 +110,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
 
         var facultyList = MAPPER.<List<FacultyDto>>readValue(responseString, new TypeReference<>() {
-                }).stream().map(Faculty.class::cast).toList();
+        }).stream().map(Faculty.class::cast).toList();
 
         assertThat(facultyList).hasSize(personsAmount);
         assertFacultyLists(faculties, facultyList, true);

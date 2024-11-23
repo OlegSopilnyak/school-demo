@@ -1,13 +1,13 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
-import oleg.sopilnyak.test.endpoint.dto.education.CourseDto;
-import oleg.sopilnyak.test.endpoint.dto.education.StudentDto;
-import oleg.sopilnyak.test.endpoint.dto.organization.AuthorityPersonDto;
-import oleg.sopilnyak.test.endpoint.dto.organization.FacultyDto;
-import oleg.sopilnyak.test.endpoint.dto.organization.StudentsGroupDto;
-import oleg.sopilnyak.test.endpoint.dto.profile.PersonProfileDto;
-import oleg.sopilnyak.test.endpoint.dto.profile.PrincipalProfileDto;
-import oleg.sopilnyak.test.endpoint.dto.profile.StudentProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.CourseDto;
+import oleg.sopilnyak.test.endpoint.dto.StudentDto;
+import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
+import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
+import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
+import oleg.sopilnyak.test.endpoint.dto.BaseProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import org.mapstruct.*;
@@ -22,7 +22,6 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 /**
  * MapStruct Mapper: To convert model types to DTOs
  */
-@SuppressWarnings("SpellCheckingInspection")
 @Mapper(
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = IGNORE,
@@ -132,11 +131,11 @@ public interface EndpointMapper {
     PrincipalProfileDto toDto(PrincipalProfile profile);
 
     @Named("toProfileExtras")
-    default PersonProfileDto.Extra[] toProfileExtras(PersonProfile profile) {
+    default BaseProfileDto.Extra[] toProfileExtras(PersonProfile profile) {
         return Arrays.stream(profile.getExtraKeys())
                 .filter(key -> profile.getExtra(key).isPresent())
-                .map(key -> new PersonProfileDto.Extra(key, profile.getExtra(key).orElseThrow()))
-                .toList().toArray(new PersonProfileDto.Extra[0]);
+                .map(key -> new BaseProfileDto.Extra(key, profile.getExtra(key).orElseThrow()))
+                .toList().toArray(new BaseProfileDto.Extra[0]);
     }
 
     @Named("toCourseDtos")

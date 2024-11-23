@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.education;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.dto.education.CourseDto;
+import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;

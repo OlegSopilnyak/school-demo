@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.education;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @AllArgsConstructor
 @RestController
-@RequestMapping("/register")
+@RequestMapping(RequestMappingRoot.REGISTER)
 @ResponseStatus(HttpStatus.OK)
 public class RegisterCourseController {
     public static final String FACADE_NAME = "CoursesFacade";

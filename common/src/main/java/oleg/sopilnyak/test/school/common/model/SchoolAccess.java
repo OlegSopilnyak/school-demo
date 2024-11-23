@@ -37,11 +37,11 @@ public interface SchoolAccess {
         final MessageDigest md = MessageDigest.getInstance("MD5");
         final String forSign = getLogin() + " " + password;
         md.update(forSign.getBytes());
-        return printHexBinary(md.digest()).toUpperCase();
+        return makeHexString(md.digest()).toUpperCase();
     }
 
     // private methods
-    private static String printHexBinary(final byte[] data) {
+    private static String makeHexString(final byte[] data) {
         final char[] hexCode = "0123456789ABCDEF".toCharArray();
         return IntStream.range(0, data.length).mapToObj(i -> {
             final byte dataByte = data[i];

@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.endpoint.dto.profile;
+package oleg.sopilnyak.test.endpoint.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
 import java.io.IOException;
@@ -22,13 +23,17 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * DataTransportObject: POJO for PersonProfile type (the parent of any type of profiles)
  *
  * @see PersonProfile
+ * @see oleg.sopilnyak.test.school.common.model.PrincipalProfile
+ * @see oleg.sopilnyak.test.school.common.model.StudentProfile
  */
 @Data
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class PersonProfileDto implements PersonProfile {
-    private Long id;
+public abstract class BaseProfileDto extends BaseDto implements PersonProfile {
     private String photoUrl;
     private String email;
     private String phone;
