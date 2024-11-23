@@ -133,4 +133,4 @@ for further processing<br> and sending to **<ins>business-logic layer</ins>** th
   returns updated **oleg.sopilnyak.test.endpoint.dto.StudentProfileDto**, input parameter `StudentProfileDto profileDto`
 
 ### Module Data Model
-![Endpoint Layer General Diagram](diagrams/Endpoints%20Layer%20Model%20Diagram.png "Endpoint Layer Diagram")
+![Endpoint Layer General Diagram](diagrams/Model%20Classes%20Diagram.png "Endpoint Layer Diagram")
