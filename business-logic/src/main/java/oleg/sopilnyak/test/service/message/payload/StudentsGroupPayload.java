@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.message.payload;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 
@@ -22,7 +23,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StudentsGroupPayload extends BasePayload<StudentsGroup> implements StudentsGroup {
     private String name;

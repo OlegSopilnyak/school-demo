@@ -1,16 +1,29 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CommandContextTest<T> {
-
+    @Mock
+    RootCommand<T> rootCommand;
+    @Spy
     CommandContext<T> context = CommandContext.<T>builder().build();
 
     @Test
@@ -26,13 +39,16 @@ class CommandContextTest<T> {
                 DONE,
                 // command execution is finished unsuccessfully
                 FAIL,
+                // further command execution is canceled
+                CANCEL,
                 // command undo(...) is finished successfully
                 UNDONE
         );
 
         states.forEach(state -> context.setState(state));
 
-        assertThat(context.getStates()).isEqualTo(states);
+        assertThat(context.getStatesHistory()).isEqualTo(states);
+        verify(context, times(states.size())).setState(any(Context.State.class));
     }
 
     @Test
@@ -49,5 +65,112 @@ class CommandContextTest<T> {
 
         assertThat(changed1.get()).isTrue();
         assertThat(changed2.get()).isTrue();
+    }
+
+    @Test
+    void shouldSetStartedAtValue() throws InterruptedException {
+        doCallRealMethod().when(rootCommand).createContext();
+        Context<T> commandContext = spy(rootCommand.createContext());
+        assertThat(commandContext.getCommand()).isEqualTo(rootCommand);
+        assertThat(commandContext.getState()).isEqualTo(INIT);
+        assertThat(commandContext.getStartedAt()).isNull();
+        assertThat(commandContext.getDuration()).isNull();
+
+        commandContext.setRedoParameter(Boolean.TRUE);
+        assertThat(commandContext.getState()).isEqualTo(READY);
+        assertThat(commandContext.getStartedAt()).isNull();
+        assertThat(commandContext.getDuration()).isNull();
+
+        commandContext.setState(WORK);
+        List<Context.State> states = List.of(INIT, READY, WORK);
+        assertThat(commandContext.getStartedAt()).isNotNull();
+        assertThat(commandContext.getDuration()).isNull();
+        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
+        TimeUnit.MILLISECONDS.sleep(100);
+        assertThat(Instant.now().isAfter(commandContext.getStartedAt())).isTrue();
+    }
+
+    @Test
+    void shouldSetDurationValueStateDone() throws InterruptedException {
+        long sleepTime = 100;
+        RootCommand<Boolean> command = mock(RootCommand.class);
+        doCallRealMethod().when(command).createContext();
+        Context<Boolean> commandContext = spy(command.createContext());
+        commandContext.setRedoParameter(Boolean.TRUE);
+        assertThat(commandContext.getState()).isEqualTo(READY);
+        commandContext.setState(WORK);
+        verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
+        assertThat(commandContext.getDuration()).isNull();
+        TimeUnit.MILLISECONDS.sleep(sleepTime);
+//        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
+
+        commandContext.setResult(Boolean.FALSE);
+
+        assertThat(commandContext.getState()).isEqualTo(DONE);
+        List<Context.State> states = List.of(INIT, READY, WORK, DONE);
+        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
+        assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
+        verify((CommandContext<T>) commandContext).setDuration(any(Duration.class));
+    }
+
+    @Test
+    void shouldSetDurationValueStateFailed() throws InterruptedException {
+        long sleepTime = 100;
+        RootCommand<Boolean> command = mock(RootCommand.class);
+        doCallRealMethod().when(command).createContext();
+        Context<Boolean> commandContext = spy(command.createContext());
+        commandContext.setRedoParameter(Boolean.TRUE);
+        assertThat(commandContext.getState()).isEqualTo(READY);
+        commandContext.setState(WORK);
+        verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
+        assertThat(commandContext.getDuration()).isNull();
+        TimeUnit.MILLISECONDS.sleep(sleepTime);
+//        await().atMost(sleepTime, TimeUnit.MILLISECONDS).until(() -> true);
+        Exception failure = new Exception();
+
+        commandContext.failed(failure);
+
+        assertThat(commandContext.getState()).isEqualTo(FAIL);
+        assertThat(commandContext.getResult()).isEmpty();
+        assertThat(commandContext.getException()).isSameAs(failure);
+        List<Context.State> states = List.of(INIT, READY, WORK, FAIL);
+        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
+        assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
+        verify((CommandContext<T>) commandContext).setDuration(any(Duration.class));
+    }
+
+    @Test
+    void shouldSetDurationValueStateUndo() throws InterruptedException {
+        long sleepTime = 100;
+        RootCommand<Boolean> command = mock(RootCommand.class);
+        doCallRealMethod().when(command).createContext();
+        Context<Boolean> commandContext = spy(command.createContext());
+        commandContext.setRedoParameter(Boolean.TRUE);
+        assertThat(commandContext.getState()).isEqualTo(READY);
+        commandContext.setState(WORK);
+        verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
+        assertThat(commandContext.getDuration()).isNull();
+        commandContext.setResult(Boolean.FALSE);
+
+        commandContext.setState(WORK);
+        TimeUnit.MILLISECONDS.sleep(sleepTime);
+//        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
+        commandContext.setUndoParameter(Boolean.TRUE);
+        commandContext.setState(UNDONE);
+
+        assertThat(commandContext.getState()).isEqualTo(UNDONE);
+        assertThat(commandContext.getResult().orElseThrow()).isFalse();
+        List<Context.State> states = List.of(INIT, READY, WORK, DONE, WORK, UNDONE);
+        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
+        assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
+        int invokeTimes = 2;
+        assertThat(((CommandContext<T>) commandContext).getStartedAtHistory()).hasSize(invokeTimes);
+        assertThat(((CommandContext<T>) commandContext).getWorkedHistory()).hasSize(invokeTimes);
+        verify((CommandContext<T>) commandContext, times(invokeTimes)).setStartedAt(any(Instant.class));
+        verify((CommandContext<T>) commandContext, times(invokeTimes)).setDuration(any(Duration.class));
     }
 }

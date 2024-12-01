@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.message.payload;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 
@@ -23,7 +24,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @ToString(callSuper = true, doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthorityPersonPayload extends BasePersonPayload<AuthorityPerson> implements AuthorityPerson {
     private String title;

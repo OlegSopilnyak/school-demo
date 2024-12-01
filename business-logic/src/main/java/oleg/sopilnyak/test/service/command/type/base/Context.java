@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -18,9 +20,26 @@ public interface Context<T> {
     RootCommand<T> getCommand();
 
     /**
+     * To get when command's execution is started
+     *
+     * @return the time when execution starts or null if it doesn't
+     * @see Instant
+     */
+    Instant getStartedAt();
+
+    /**
+     * To get command's execution duration
+     *
+     * @return the value of last command execution duration or null if it doesn't
+     * @see Duration
+     */
+    Duration getDuration();
+
+    /**
      * To get the state of the context
      *
      * @return current context's state
+     * @see State
      */
     State getState();
 
@@ -28,13 +47,14 @@ public interface Context<T> {
      * To set up current state of the context
      *
      * @param state new current context's state
+     * @see State
      */
     void setState(State state);
 
     /**
      * To get parameter value for command execution
      *
-     * @param <R> type of do-parameter
+     * @param <R> type of do-input-parameter
      * @return the value of parameter
      */
     <R> R getRedoParameter();
@@ -65,6 +85,7 @@ public interface Context<T> {
      * To get the result of command execution
      *
      * @return the value of result
+     * @see Optional
      * @see State#DONE
      */
     Optional<T> getResult();
