@@ -505,7 +505,6 @@ class OutputResultTest {
         assertThat(result).isInstanceOf(Output.class);
     }
 
-
     @Test
     void shouldRestoreStudentProfilePayloadSetResult() throws JsonProcessingException {
         int size = 11;
