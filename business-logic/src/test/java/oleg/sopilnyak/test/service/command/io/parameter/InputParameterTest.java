@@ -80,6 +80,7 @@ class InputParameterTest {
         PayloadParameter<StudentPayload> parameter = new PayloadParameter<>(student);
 
         assertThat(parameter.value()).isSameAs(student);
+        assertThat(parameter.value().getCourses()).contains(course);
         assertThat(parameter).isInstanceOf(Input.class);
     }
 
@@ -113,6 +114,7 @@ class InputParameterTest {
         PayloadParameter<CoursePayload> parameter = new PayloadParameter<>(course);
 
         assertThat(parameter.value()).isSameAs(course);
+        assertThat(parameter.value().getStudents()).contains(student);
         assertThat(parameter).isInstanceOf(Input.class);
     }
 
@@ -144,6 +146,7 @@ class InputParameterTest {
         PayloadParameter<AuthorityPersonPayload> parameter = new PayloadParameter<>(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
+        assertThat(parameter.value().getFaculties()).contains(faculty);
         assertThat(parameter).isInstanceOf(Input.class);
     }
 

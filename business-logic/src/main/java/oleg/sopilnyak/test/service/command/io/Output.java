@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.io;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 
-import java.io.Serializable;
+import static java.util.Objects.isNull;
 
 
 /**
@@ -10,13 +10,15 @@ import java.io.Serializable;
  *
  * @param <O> the type of command execution result value
  * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#executeDo(Context)
- * @see Context#setRedoParameter(Object)
+ * @see Context#setResult(Object)
  */
-public interface Output<O> extends Serializable {
+public interface Output<O>  extends IOBase<O> {
     /**
-     * To get the value of command execution result
+     * To check is result's output value is empty
      *
-     * @return value of the result
+     * @return true if no data in the output result
      */
-    O value();
+    default boolean isEmpty() {
+        return isNull(value());
+    }
 }
