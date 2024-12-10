@@ -20,6 +20,8 @@ import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.io.IOException;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
+
 /**
  * Type: I/O school-command Model type command execution result
  *
@@ -83,7 +85,7 @@ public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) 
             try {
                 final Class<?> nestedClass = nestedClass(treeNode.get(IOFieldNames.NESTED_TYPE_FIELD_NAME));
                 final JavaType valueJavaType = MAPPER.getTypeFactory().constructType(nestedClass);
-                final TreeNode valueNode = treeNode.get(IOFieldNames.VALUE_FIELD_NAME);
+                final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
                 return new PayloadResult<>(MAPPER.readValue(valueNode.toString(), valueJavaType));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);

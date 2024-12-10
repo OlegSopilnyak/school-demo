@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * @param <P> the type of command input-output entity
  */
-public interface IOBase<P> extends IOFieldNames, Serializable {
+public interface IOBase<P> extends Serializable {
     /**
      * To get the value of command input-output entity
      *

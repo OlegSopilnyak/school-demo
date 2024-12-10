@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
+
 /**
  * Type: I/O school-command set of Model-types command execution result
  *
@@ -94,7 +96,7 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
             try {
                 final Class<?> nestedClass = nestedClass(treeNode.get(IOFieldNames.NESTED_TYPE_FIELD_NAME));
                 final JavaType valueJavaType = MAPPER.getTypeFactory().constructType(nestedClass);
-                final TreeNode valueNode = treeNode.get(IOFieldNames.VALUE_FIELD_NAME);
+                final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
                 return new PayloadSetResult<>(deserializeNodesArray(valueNode, valueJavaType));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);

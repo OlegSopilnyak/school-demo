@@ -11,9 +11,10 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import oleg.sopilnyak.test.service.command.io.Input;
 
 import java.io.IOException;
+
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.*;
 
 /**
  * Type: I/O school-command the pair of Long-id input parameter
@@ -44,8 +45,8 @@ public record LongIdPairParameter(Long first, Long second) implements PairParame
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(Input.TYPE_FIELD_NAME, LongIdPairParameter.class.getName());
-            generator.writeStringField(Input.NESTED_TYPE_FIELD_NAME, Long.class.getName());
+            generator.writeStringField(TYPE_FIELD_NAME, LongIdPairParameter.class.getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, Long.class.getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeStartObject();
             generator.writeNumberField(FIRST_FIELD_NAME, parameter.value().first());
@@ -74,7 +75,7 @@ public record LongIdPairParameter(Long first, Long second) implements PairParame
         @Override
         public LongIdPairParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
-            final TreeNode valueNode = jsonParser.readValueAsTree().get(Input.VALUE_FIELD_NAME);
+            final TreeNode valueNode = jsonParser.readValueAsTree().get(VALUE_FIELD_NAME);
             final long firstId = longValueOf(valueNode.get(FIRST_FIELD_NAME));
             final long secondId = longValueOf(valueNode.get(SECOND_FIELD_NAME));
             return new LongIdPairParameter(firstId, secondId);

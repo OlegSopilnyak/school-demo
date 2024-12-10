@@ -6,7 +6,8 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
  * Exception: throws when system cannot process facade's action
  */
 public class CannotProcessActionException extends RuntimeException {
-    private static final String MESSAGE_TEMPLATE = "Cannot process the action '%2$s' for the facade '%1$s'.\n--\tBecause '%3$s'.";
+    private static final String MESSAGE_TEMPLATE_PREFIX = "Cannot process the action '%2$s' for the facade '%1$s'.";
+    private static final String MESSAGE_TEMPLATE = MESSAGE_TEMPLATE_PREFIX + "\n--\tBecause '%3$s'.";
 
     private CannotProcessActionException(String facadeName, String actionName) {
         super(makeMessageFor(facadeName, actionName));
@@ -40,14 +41,6 @@ public class CannotProcessActionException extends RuntimeException {
         this(ActionContext.current(), message, cause);
     }
 
-    private CannotProcessActionException(ActionContext context, Throwable cause) {
-        this(context.getFacadeName(), context.getActionName(), cause);
-    }
-
-    private CannotProcessActionException(String facadeName, String actionName, Throwable cause) {
-        super(makeMessageFor(facadeName, actionName), cause);
-    }
-
     private CannotProcessActionException(String facadeName, String actionName, String message, Throwable cause) {
         super(makeMessageFor(facadeName, actionName, message), cause);
     }
@@ -59,6 +52,10 @@ public class CannotProcessActionException extends RuntimeException {
     private static String makeMessageFor(String facadeName, String actionName, String reason) {
         assert facadeName != null && !facadeName.isBlank() : "facadeName is invalid";
         assert actionName != null && !actionName.isBlank() : "actionName is invalid";
-        return String.format(MESSAGE_TEMPLATE, facadeName, actionName, reason);
+        return reason != null && reason.startsWith(String.format(MESSAGE_TEMPLATE_PREFIX, facadeName, actionName)) ?
+                // just created the instance from deserializer
+                reason :
+                // the instance created from particular rest controller for throw
+                String.format(MESSAGE_TEMPLATE, facadeName, actionName, reason);
     }
 }

@@ -17,6 +17,8 @@ import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.io.IOException;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.*;
+
 /**
  * Type: I/O school-command Model Type input parameter
  *
@@ -48,8 +50,8 @@ public record PayloadParameter<T extends BasePayload<?>>(T value) implements Inp
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(Input.TYPE_FIELD_NAME, PayloadParameter.class.getName());
-            generator.writeStringField(Input.NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
+            generator.writeStringField(TYPE_FIELD_NAME, PayloadParameter.class.getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeRawValue(MAPPER.writeValueAsString(parameter.value));
             generator.writeEndObject();
@@ -77,9 +79,9 @@ public record PayloadParameter<T extends BasePayload<?>>(T value) implements Inp
                 throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
-                final Class<?> nestedClass = nestedClass(treeNode.get(Input.NESTED_TYPE_FIELD_NAME));
+                final Class<?> nestedClass = nestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));
                 final JavaType valueJavaType = MAPPER.getTypeFactory().constructType(nestedClass);
-                final TreeNode valueNode = treeNode.get(Input.VALUE_FIELD_NAME);
+                final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
                 return new PayloadParameter<>(MAPPER.readValue(valueNode.toString(), valueJavaType));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);

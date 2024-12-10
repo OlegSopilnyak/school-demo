@@ -3,12 +3,14 @@ package oleg.sopilnyak.test.school.common.business.facade;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Type : context of facade action
  */
 @Data
 @Builder
-public class ActionContext {
+public class ActionContext implements Serializable {
     private static final ThreadLocal<ActionContext> CONTEXT = new ThreadLocal<>();
 
     /**

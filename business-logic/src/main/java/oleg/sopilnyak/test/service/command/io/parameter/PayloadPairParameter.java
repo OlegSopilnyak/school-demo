@@ -12,11 +12,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.io.IOException;
 import java.util.Objects;
+
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.*;
 
 /**
  * Type: I/O school-command the pair of BaseType input parameter
@@ -54,8 +55,8 @@ public record PayloadPairParameter<T extends BasePayload<?>>(T first, T second) 
                 throw new IOException("Pair parameter class mismatch");
             }
             generator.writeStartObject();
-            generator.writeStringField(Input.TYPE_FIELD_NAME, PayloadPairParameter.class.getName());
-            generator.writeStringField(Input.NESTED_TYPE_FIELD_NAME, firstParameterClass.getName());
+            generator.writeStringField(TYPE_FIELD_NAME, PayloadPairParameter.class.getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, firstParameterClass.getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeStartObject();
             generator.writeFieldName(FIRST_FIELD_NAME);
@@ -88,9 +89,9 @@ public record PayloadPairParameter<T extends BasePayload<?>>(T first, T second) 
                 throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
-                final Class<?> nestedClass = nestedClass(treeNode.get(Input.NESTED_TYPE_FIELD_NAME));
+                final Class<?> nestedClass = nestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));
                 final JavaType valueJavaType = MAPPER.getTypeFactory().constructType(nestedClass);
-                final TreeNode valueNode = treeNode.get(Input.VALUE_FIELD_NAME);
+                final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
                 return new PayloadPairParameter<>(
                         MAPPER.readValue(valueNode.get(FIRST_FIELD_NAME).toString(), valueJavaType),
                         MAPPER.readValue(valueNode.get(SECOND_FIELD_NAME).toString(), valueJavaType)

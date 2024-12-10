@@ -16,6 +16,8 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import java.io.IOException;
 
 import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
  * Type: I/O school-command Long-id input parameter
@@ -45,8 +47,8 @@ public record LongIdParameter(Long value) implements Input<Long> {
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(Input.TYPE_FIELD_NAME, LongIdParameter.class.getName());
-            generator.writeNumberField(Input.VALUE_FIELD_NAME, parameter.value());
+            generator.writeStringField(TYPE_FIELD_NAME, LongIdParameter.class.getName());
+            generator.writeNumberField(VALUE_FIELD_NAME, parameter.value());
             generator.writeEndObject();
         }
     }
@@ -70,7 +72,7 @@ public record LongIdParameter(Long value) implements Input<Long> {
         @Override
         public LongIdParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
-            final TreeNode valueNode = jsonParser.readValueAsTree().get(Input.VALUE_FIELD_NAME);
+            final TreeNode valueNode = jsonParser.readValueAsTree().get(VALUE_FIELD_NAME);
             return new LongIdParameter(isNull(valueNode) ? -1L : longValueOf(valueNode));
         }
 

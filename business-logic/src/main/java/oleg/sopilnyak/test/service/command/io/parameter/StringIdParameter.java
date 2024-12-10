@@ -14,6 +14,9 @@ import oleg.sopilnyak.test.service.command.io.Input;
 
 import java.io.IOException;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
+
 /**
  * Type: I/O school-command String-id input parameter
  *
@@ -42,8 +45,8 @@ public record StringIdParameter(String value) implements Input<String> {
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(Input.TYPE_FIELD_NAME, StringIdParameter.class.getName());
-            generator.writeStringField(Input.VALUE_FIELD_NAME, parameter.value());
+            generator.writeStringField(TYPE_FIELD_NAME, StringIdParameter.class.getName());
+            generator.writeStringField(VALUE_FIELD_NAME, parameter.value());
             generator.writeEndObject();
         }
     }
@@ -67,7 +70,7 @@ public record StringIdParameter(String value) implements Input<String> {
         @Override
         public StringIdParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
-            final TreeNode valueNode = jsonParser.readValueAsTree().get(Input.VALUE_FIELD_NAME);
+            final TreeNode valueNode = jsonParser.readValueAsTree().get(VALUE_FIELD_NAME);
             return new StringIdParameter(valueNode instanceof TextNode textNode ? textNode.asText() : "");
         }
     }
