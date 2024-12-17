@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -20,42 +19,43 @@ import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.io.IOException;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.NESTED_TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
  * Type: I/O school-command Model type command execution result
  *
- * @param <T> type of the output result
+ * @param <P> type of the output result
  * @see BasePayload
  * @see BaseType
  * @see Output
  */
 @JsonSerialize(using = PayloadResult.Serializer.class)
 @JsonDeserialize(using = PayloadResult.Deserializer.class)
-public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) implements Output<T> {
+public record PayloadResult<P extends BasePayload<? extends BaseType>>(P value) implements Output<P> {
     /**
      * JSON: Serializer for PayloadParameter
      *
      * @see StdSerializer
      * @see PayloadParameter
      */
-    static class Serializer extends StdSerializer<PayloadResult<?>> {
+    static class Serializer<T extends BasePayload<? extends BaseType>> extends StdSerializer<PayloadResult<T>> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<PayloadResult<?>> t) {
+        protected Serializer(Class<PayloadResult<T>> t) {
             super(t);
         }
 
         @Override
-        public void serialize(final PayloadResult<?> parameter,
+        public void serialize(final PayloadResult<T> parameter,
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadResult.class.getName());
-            generator.writeStringField(IOFieldNames.NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeRawValue(mapper.writeValueAsString(parameter.value));
             generator.writeEndObject();
@@ -68,7 +68,7 @@ public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) 
      * @see StdDeserializer
      * @see PayloadParameter
      */
-    static class Deserializer extends StdDeserializer<PayloadResult<?>> {
+    static class Deserializer<T extends BasePayload<? extends BaseType>> extends StdDeserializer<PayloadResult<T>> {
 
         public Deserializer() {
             this(PayloadResult.class);
@@ -79,22 +79,23 @@ public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) 
         }
 
         @Override
-        public PayloadResult<?> deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
-                throws IOException {
+        public PayloadResult<T> deserialize(final JsonParser jsonParser,
+                                            final DeserializationContext deserializationContext) throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
+                final Class<?> nestedClass = restoreNestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));
                 final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-                final Class<?> nestedClass = nestedClass(treeNode.get(IOFieldNames.NESTED_TYPE_FIELD_NAME));
-                final JavaType valueJavaType = mapper.getTypeFactory().constructType(nestedClass);
-                final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
-                return new PayloadResult<>(mapper.readValue(valueNode.toString(), valueJavaType));
+                return new PayloadResult<>(mapper.readValue(
+                        treeNode.get(VALUE_FIELD_NAME).toString(),
+                        mapper.getTypeFactory().constructType(nestedClass)
+                ));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);
             }
         }
 
         // private methods
-        private Class<?> nestedClass(final TreeNode node) throws ClassNotFoundException {
+        private Class<?> restoreNestedClass(final TreeNode node) throws ClassNotFoundException {
             if (node instanceof TextNode textNode) {
                 return Class.forName(textNode.asText());
             } else {
