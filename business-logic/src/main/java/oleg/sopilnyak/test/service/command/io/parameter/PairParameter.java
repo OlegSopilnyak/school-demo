@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.service.command.io.Input;
 
 /**
  * Type: I/O school-command pair input parameter
+ * @see LongIdPairParameter
+ * @see PayloadPairParameter
  */
 public interface PairParameter<P> extends Input<PairParameter<P>> {
     String FIRST_FIELD_NAME = "first";

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -119,9 +120,117 @@ public interface CommandMessage<I, O> extends Serializable {
     // serializer/deserializer for message's fields
 
     /**
+     * JSON: Deserializer for Input Parameter field of the command-message
+     *
+     * @see StdDeserializer
+     * @see CommandMessage#getParameter()
+     * @see Input
+     */
+    class InputParameterDeserializer extends StdDeserializer<Input<?>> {
+
+        public InputParameterDeserializer() {
+            this(Input.class);
+        }
+
+        protected InputParameterDeserializer(Class<? extends Input> vc) {
+            super(vc);
+        }
+
+        @Override
+        public Input<?> deserialize(final JsonParser jsonParser,
+                                 final DeserializationContext deserializationContext) throws IOException {
+            final TreeNode parameterNode = jsonParser.readValueAsTree();
+            final Class<? extends Input> inputParameterClass = restoreIoBaseClass(parameterNode, Input.class);
+            return ((ObjectMapper) jsonParser.getCodec()).readValue(parameterNode.toString(), inputParameterClass);
+        }
+
+    }
+
+    /**
+     * JSON: Deserializer for action-context field
+     *
+     * @see StdDeserializer
+     * @see CommandMessage#getActionContext()
+     * @see ActionContext
+     * @see ActionContext#builder()
+     */
+    class ActionContextDeserializer extends StdDeserializer<ActionContext> {
+
+        public ActionContextDeserializer() {
+            this(ActionContext.class);
+        }
+
+        protected ActionContextDeserializer(Class<ActionContext> vc) {
+            super(vc);
+        }
+
+        @Override
+        public ActionContext deserialize(final JsonParser jsonParser,
+                                         final DeserializationContext deserializationContext) throws IOException {
+            final TreeNode contextNodeTree = jsonParser.readValueAsTree();
+            final String facadeName = restoreString(contextNodeTree.get("facadeName"));
+            final String actionName = restoreString(contextNodeTree.get("actionName"));
+            return ActionContext.builder().facadeName(facadeName).actionName(actionName).build();
+        }
+
+        private static String restoreString(TreeNode propertyValueNode) throws IOException {
+            if (propertyValueNode instanceof TextNode valueNode) {
+                return valueNode.asText();
+            } else {
+                throw new IOException("Wrong node-type of propertyValueNode: " + propertyValueNode.getClass().getName());
+            }
+        }
+
+    }
+
+    /**
+     * JSON: Deserializer for Output Result field of the command-message
+     *
+     * @see StdDeserializer
+     * @see CommandMessage#getResult()
+     * @see Output
+     */
+    class OutputResultDeserializer extends StdDeserializer<Output<?>> {
+
+        public OutputResultDeserializer() {
+            this(Output.class);
+        }
+
+        protected OutputResultDeserializer(Class<? extends Output> vc) {
+            super(vc);
+        }
+
+        @Override
+        public Output<?> deserialize(final JsonParser jsonParser,
+                                     final DeserializationContext deserializationContext) throws IOException {
+            final TreeNode resultNode = jsonParser.readValueAsTree();
+            final Class<? extends Output> inputParameterClass = restoreIoBaseClass(resultNode, Output.class);
+            return ((ObjectMapper) jsonParser.getCodec()).readValue(resultNode.toString(), inputParameterClass);
+        }
+
+    }
+
+    private static <T extends IOBase<?>> Class<T> restoreIoBaseClass(final TreeNode ioTreeNode,
+                                                                     final Class<T> shouldBeType) throws IOException {
+        final TreeNode ioClassNameNode = ioTreeNode.get(TYPE_FIELD_NAME);
+        if (ioClassNameNode instanceof TextNode typeTextNode) {
+            final String ioTypeClassName = typeTextNode.asText();
+            try {
+                return (Class<T>) Class.forName(ioTypeClassName).asSubclass(shouldBeType);
+            } catch (ClassNotFoundException | ClassCastException e) {
+                // class not found or class is not ioClass
+                throw new IOException("Wrong class name in node-type: " + ioTypeClassName);
+            }
+        } else {
+            throw new IOException("Wrong node-type of ioTreeNode: " + ioClassNameNode.getClass().getName());
+        }
+    }
+
+    /**
      * JSON: Serializer for Throwable
      *
      * @see StdSerializer
+     * @see CommandMessage#getError()
      * @see Throwable
      */
     class ExceptionSerializer<T extends Throwable> extends StdSerializer<T> {
@@ -166,6 +275,7 @@ public interface CommandMessage<I, O> extends Serializable {
      * JSON: Deserializer for Throwable
      *
      * @see StdDeserializer
+     * @see CommandMessage#getError()
      * @see Throwable
      */
     class ExceptionDeserializer extends StdDeserializer<Throwable> {
@@ -179,8 +289,8 @@ public interface CommandMessage<I, O> extends Serializable {
         }
 
         @Override
-        public Throwable deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
-                throws IOException {
+        public Throwable deserialize(final JsonParser jsonParser,
+                                     final DeserializationContext deserializationContext) throws IOException {
             return restoreExceptionBy(jsonParser.readValueAsTree(), jsonParser);
         }
 

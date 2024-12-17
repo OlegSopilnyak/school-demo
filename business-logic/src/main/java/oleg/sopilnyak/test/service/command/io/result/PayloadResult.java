@@ -34,6 +34,7 @@ import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NA
 @JsonDeserialize(using = PayloadResult.Deserializer.class)
 public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) implements Output<T> {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
     /**
      * JSON: Serializer for PayloadParameter
      *
@@ -54,7 +55,7 @@ public record PayloadResult<T extends BasePayload<? extends BaseType>>(T value) 
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadParameter.class.getName());
+            generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadResult.class.getName());
             generator.writeStringField(IOFieldNames.NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeRawValue(MAPPER.writeValueAsString(parameter.value));

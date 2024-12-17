@@ -62,7 +62,7 @@ public class EmptyResult implements Output<Void> {
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, BooleanResult.class.getName());
+            generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, EmptyResult.class.getName());
             generator.writeStringField(IOFieldNames.VALUE_FIELD_NAME, "none");
             generator.writeEndObject();
         }
