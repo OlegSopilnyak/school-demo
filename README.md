@@ -1,6 +1,6 @@
 # -- School Application --
 
-### Used modules
+### Used modules.
 
 * **common** - module with declared abstract service model and facades.
 * **[endpoint](./endpoint/README.md)** - module to manage REST requests to the system.
