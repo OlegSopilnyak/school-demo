@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -62,7 +64,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_UpdateProfile() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -83,7 +85,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         if (profile instanceof FakeStudentsProfile fakeProfile) {
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -111,7 +113,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_IncompatibleProfileType() {
         PrincipalProfile profile = persistPrincipalProfile();
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -132,7 +134,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         if (profile instanceof FakeStudentsProfile fakeProfile) {
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -151,7 +153,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -171,7 +173,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
         doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         command.doCommand(context);
 
@@ -190,7 +192,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         StudentProfile exists = persistence.findStudentProfileById(id).orElseThrow();
         reset(persistence);
         doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
-        Context<Optional<StudentProfile>> context = spy(command.createContext(profile));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of(profile)));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -208,7 +210,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<StudentProfile>> context = spy(command.createContext("input"));
+        Context<Optional<StudentProfile>> context = spy(command.createContext(Input.of("input")));
 
         command.doCommand(context);
 
@@ -238,8 +240,12 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         Long id = profile.getId();
         Context<Optional<StudentProfile>> context = spy(command.createContext());
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -255,8 +261,12 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         StudentProfile profile = persistStudentProfile();
         Context<Optional<StudentProfile>> context = spy(command.createContext());
         context.setState(Context.State.WORK);
-        context.setUndoParameter(profile);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setUndoParameter(profile);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -296,8 +306,12 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<StudentProfile>> context = spy(command.createContext());
         context.setState(Context.State.WORK);
-        context.setUndoParameter("param");
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("param"));
+        }
+//        context.setUndoParameter("param");
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -314,8 +328,12 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         Long id = profile.getId();
         Context<Optional<StudentProfile>> context = spy(command.createContext());
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
 
         command.undoCommand(context);
@@ -332,8 +350,12 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         StudentProfile profile = persistStudentProfile();
         Context<Optional<StudentProfile>> context = spy(command.createContext());
         context.setState(Context.State.WORK);
-        context.setUndoParameter(profile);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setUndoParameter(profile);
+//        context.setState(Context.State.DONE);
         doCallRealMethod().when(persistence).save(profile);
         doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
 

@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -82,13 +84,14 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param macroInputParameter macro-command input parameter
      * @param <N>     type of create-or-update person nested command result
      * @return built context of the command for input parameter
+     * @see Input
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
      * @see CreateAuthorityPersonMacroCommand#createPersonContext(AuthorityPersonCommand, AuthorityPerson)
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Object macroInputParameter) {
+    public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> macroInputParameter) {
         return macroInputParameter instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createPersonContext(command, person) : cannotCreateNestedContextFor(command);
     }
@@ -109,7 +112,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
-        return command.createContext(payload);
+        return command.createContext(Input.of(payload));
     }
 
     /**
@@ -119,13 +122,14 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param macroInputParameter macro-command input parameter
      * @param <N>     type of create-or-update principal-profile nested command result
      * @return built context of the command for input parameter
+     * @see Input
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
      * @see CreateAuthorityPersonMacroCommand#createProfileContext(PrincipalProfileCommand, AuthorityPerson)
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Object macroInputParameter) {
+    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> macroInputParameter) {
         return macroInputParameter instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createProfileContext(command, person) : cannotCreateNestedContextFor(command);
     }
@@ -152,7 +156,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
             throw new CannotCreateCommandContextException(command.getId(), e);
         }
         // create command-context with created parameter by default
-        return command.createContext(payload);
+        return command.createContext(Input.of(payload));
     }
 
     /**
@@ -182,7 +186,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param result  the result of successful command execution
      * @param target  next command context to execute command's redo
      * @see PrincipalProfileCommand#doCommand(Context)
-     * @see Context#setRedoParameter(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      * @see CreateAuthorityPersonMacroCommand#transferProfileIdToStudentInput(Long, Context)
      * @see AuthorityPersonPayload#setProfileId(Long)
@@ -207,14 +211,18 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param profileId the id of profile created before person
      * @param target    create-person command context
      * @see Context#getRedoParameter()
-     * @see Context#setRedoParameter(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see AuthorityPersonPayload#setProfileId(Long)
      */
     public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {
-        final AuthorityPersonPayload personPayload = target.getRedoParameter();
+        final AuthorityPersonPayload personPayload = target.<AuthorityPersonPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
-        target.setRedoParameter(personPayload);
+        if (target instanceof CommandContext commandContext) {
+            commandContext.setRedoParameter(Input.of(personPayload));
+            log.debug("Transferred to student changed input parameter: {}", personPayload);
+        }
+//        target.setRedoParameter(personPayload);
     }
 
     /**
@@ -223,12 +231,12 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param visitor               visitor of prepared contexts
      * @param commandInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareContextVisitor visitor, final Object commandInputParameter) {
+    public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> commandInputParameter) {
         return super.acceptPreparedContext(visitor, commandInputParameter);
     }
 
@@ -297,7 +305,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @param resultValue result of command execution
          * @param target      command context for next execution
          * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see Context#setRedoParameter(Object)
+         * @see CommandContext#setRedoParameter(Input)
          */
         @Override
         public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
@@ -346,7 +354,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @param resultValue result of command execution
          * @param target      command context for next execution
          * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see Context#setRedoParameter(Object)
+         * @see CommandContext#setRedoParameter(Input)
          */
         @Override
         public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {

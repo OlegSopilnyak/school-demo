@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.LogoutAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ class LogoutAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(token);
+        Context<Boolean> context = command.createContext(Input.of(token));
 
         command.doCommand(context);
 
@@ -52,7 +53,7 @@ class LogoutAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(token);
+        Context<Boolean> context = command.createContext(Input.of(token));
         context.setState(DONE);
 
         command.undoCommand(context);

@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -107,8 +109,12 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
             // change authority-person-id value for further do command action
-            context.setRedoParameter(entity.getId());
-            context.setState(Context.State.UNDONE);
+            if (context instanceof CommandContext<?> commandContext) {
+                commandContext.setRedoParameter(Input.of(entity.getId()));
+                commandContext.setState(Context.State.UNDONE);
+            }
+//            context.setRedoParameter(entity.getId());
+//            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo authority person deletion {}", parameter, e);
             context.failed(e);

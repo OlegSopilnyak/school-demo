@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.group;
 
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +33,7 @@ class FindStudentsGroupCommandTest {
     void shouldDoCommand_EntityExists() {
         long id = 520L;
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -45,7 +47,7 @@ class FindStudentsGroupCommandTest {
     @Test
     void shouldDoCommand_EntityNotExists() {
         long id = 521L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -59,7 +61,7 @@ class FindStudentsGroupCommandTest {
     @Test
     void shouldNotDoCommand_FindThrowsException() {
         long id = 522L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
         doThrow(RuntimeException.class).when(persistence).findStudentsGroupById(id);
 
         command.doCommand(context);
@@ -73,9 +75,13 @@ class FindStudentsGroupCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         long id = 523L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

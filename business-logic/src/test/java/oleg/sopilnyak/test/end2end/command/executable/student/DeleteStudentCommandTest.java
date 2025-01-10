@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.DeleteStudentCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -64,7 +66,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentFound() {
         Long id = persistStudent().getId();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -83,7 +85,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         Long id = persistStudent().getId();
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).deleteStudent(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -98,7 +100,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_StudentNotFound() {
         Long id = 112L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -120,7 +122,7 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
                 .contains(persistence.findCourseById(course.getId()).orElseThrow());
         reset(persistence);
         Long id = student.getId();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -139,8 +141,12 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         Student student = persistStudent();
         Long id = student.getId();
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter(student);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(student));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(student);
         persistence.deleteStudent(id);
         assertThat(persistence.isNoStudents()).isTrue();
 
@@ -157,8 +163,12 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter("instance");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("instance"));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter("instance");
 
         command.undoCommand(context);
 

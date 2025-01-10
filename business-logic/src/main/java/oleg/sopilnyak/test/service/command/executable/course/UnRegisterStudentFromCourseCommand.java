@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -60,11 +62,16 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
 
             final boolean successful = persistenceFacade.unLink(student, course);
 
-            if (successful) {
-                context.setUndoParameter(undoLink);
+            if (context instanceof CommandContext commandContext) {
+                commandContext.setUndoParameter(Input.of(undoLink));
+                commandContext.setResult(successful);
+                log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
             }
-            context.setResult(successful);
-            log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
+//            if (successful) {
+//                context.setUndoParameter(undoLink);
+//            }
+//            context.setResult(successful);
+//            log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             context.failed(e);

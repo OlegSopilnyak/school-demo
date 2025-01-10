@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -47,7 +49,7 @@ class CreateOrUpdateCourseCommandTest {
         when(mockedCourse.getId()).thenReturn(id);
         when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
 
         command.doCommand(context);
 
@@ -67,7 +69,7 @@ class CreateOrUpdateCourseCommandTest {
         when(persistence.findCourseById(id)).thenReturn(Optional.of(mockedCourse));
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
 
         command.doCommand(context);
 
@@ -84,7 +86,7 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<Course>> context = command.createContext("course");
+        Context<Optional<Course>> context = command.createContext(Input.of("course"));
 
         command.doCommand(context);
 
@@ -113,7 +115,7 @@ class CreateOrUpdateCourseCommandTest {
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
         when(persistence.save(mockedCourse)).thenThrow(cannotExecute).thenReturn(Optional.of(mockedCourse));
 
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
 
         command.doCommand(context);
 
@@ -133,7 +135,7 @@ class CreateOrUpdateCourseCommandTest {
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
         doThrow(cannotExecute).when(persistence).save(any(Course.class));
 
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -148,9 +150,13 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldUndoCommand_CreateCourse() {
         Long id = 103L;
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(id);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
@@ -161,9 +167,13 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldUndoCommand_UpdateCourse() {
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(mockedCourse));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(mockedCourse);
 
         command.undoCommand(context);
 
@@ -174,9 +184,13 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("id");
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("id"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("id");
 
         command.undoCommand(context);
 
@@ -189,7 +203,7 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_NullParameter() {
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
         context.setState(Context.State.DONE);
 
         command.undoCommand(context);
@@ -204,9 +218,13 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldNotUndoCommand_CreateExceptionThrown() {
         Long id = 104L;
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(id);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo create");
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
 
@@ -220,9 +238,13 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_UpdateExceptionThrown() {
-        Context<Optional<Course>> context = command.createContext(mockedCourse);
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(mockedCourse);
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(mockedCourse));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(mockedCourse);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo update");
         doThrow(cannotExecute).when(persistence).save(mockedCourse);
 

@@ -6,6 +6,8 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +53,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityExists() {
         Faculty entity = persist();
         Long id = entity.getId();
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -67,7 +69,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         long id = 421L;
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -82,7 +84,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         long id = 422L;
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
         doThrow(RuntimeException.class).when(persistence).findFacultyById(id);
 
         command.doCommand(context);
@@ -97,9 +99,13 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         long id = 423L;
-        Context<Optional<Faculty>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(persist());
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(persist()));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(persist());
 
         command.undoCommand(context);
 

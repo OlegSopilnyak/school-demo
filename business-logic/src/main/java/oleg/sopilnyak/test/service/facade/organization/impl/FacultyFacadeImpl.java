@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmpt
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -69,7 +70,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public Optional<Faculty> findFacultyById(Long id) {
         log.debug("Find faculty by ID:{}", id);
-        final Optional<Faculty> result = doSimpleCommand(FIND_BY_ID, id, factory);
+        final Optional<Faculty> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
         log.debug("Found faculty {}", result);
         return result.map(convert);
     }
@@ -86,7 +87,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
         log.debug("Create or Update faculty {}", instance);
-        final Optional<Faculty> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
+        final Optional<Faculty> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed faculty {}", result);
         return result.map(convert);
     }
@@ -103,7 +104,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
         log.debug("Delete faculty with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

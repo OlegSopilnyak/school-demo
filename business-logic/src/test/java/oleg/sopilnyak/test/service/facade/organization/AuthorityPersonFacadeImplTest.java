@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOr
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
@@ -86,7 +87,7 @@ class AuthorityPersonFacadeImplTest {
         facade.logout(token);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(token);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(Input.of(token));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).doCommand(any(Context.class));
     }
 
@@ -106,7 +107,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(loggedIn).isPresent();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, password});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(Input.of(username, password));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
         verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade).findAuthorityPersonByProfileId(id);
@@ -125,7 +126,7 @@ class AuthorityPersonFacadeImplTest {
         assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(new String[]{username, "password"});
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(Input.of(username, "password"));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
         verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());
@@ -166,7 +167,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(person).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
@@ -181,7 +182,7 @@ class AuthorityPersonFacadeImplTest {
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
 
         assertThat(person).isPresent();
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(any(AuthorityPerson.class));
@@ -200,7 +201,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(mockPersonPayload);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -215,7 +216,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPersonPayload);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -232,7 +233,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).contains(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(mockPersonPayload);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -252,7 +253,7 @@ class AuthorityPersonFacadeImplTest {
         facade.deleteAuthorityPersonById(id);
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistenceFacade).findPrincipalProfileById(profileId);
@@ -272,7 +273,7 @@ class AuthorityPersonFacadeImplTest {
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);
@@ -297,7 +298,7 @@ class AuthorityPersonFacadeImplTest {
         assertEquals("AuthorityPerson with ID:304 is managing faculties.", thrown.getMessage());
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(id);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistenceFacade, never()).deleteAuthorityPerson(id);

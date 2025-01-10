@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -49,7 +51,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = -500L;
         when(entity.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -68,7 +70,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -87,7 +89,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 501L;
         when(entity.getId()).thenReturn(id);
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -106,7 +108,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = 502L;
         when(entity.getId()).thenReturn(id);
         doThrow(RuntimeException.class).when(persistence).findStudentsGroupById(id);
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -122,7 +124,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     @Test
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         doThrow(RuntimeException.class).when(persistence).save(entity);
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -140,7 +142,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         doThrow(RuntimeException.class).when(persistence).save(any(StudentsGroup.class));
-        Context<Optional<StudentsGroup>> context = command.createContext(entity);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -155,7 +157,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<StudentsGroup>> context = command.createContext("input");
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of("input"));
 
         command.doCommand(context);
 
@@ -191,8 +193,12 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = 504L;
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -205,8 +211,12 @@ class CreateOrUpdateStudentsGroupCommandTest {
     void shouldUndoCommand_UpdateEntity() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -242,8 +252,12 @@ class CreateOrUpdateStudentsGroupCommandTest {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter("param");
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("param"));
+        }
+//        context.setUndoParameter("param");
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -258,8 +272,12 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Long id = 505L;
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteStudentsGroup(id);
 
         command.undoCommand(context);
@@ -274,8 +292,12 @@ class CreateOrUpdateStudentsGroupCommandTest {
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
         command.undoCommand(context);

@@ -6,6 +6,8 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -106,8 +108,12 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         StudentsGroup entity = persistClear();
         Context<Set<StudentsGroup>> context = command.createContext(null);
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

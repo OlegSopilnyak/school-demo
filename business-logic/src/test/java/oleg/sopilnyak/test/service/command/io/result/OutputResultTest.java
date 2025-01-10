@@ -1,9 +1,11 @@
 package oleg.sopilnyak.test.service.command.io.result;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import oleg.sopilnyak.test.service.command.io.Output;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.message.payload.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,17 +31,17 @@ class OutputResultTest {
 
     @Test
     void shouldCreateBooleanResult() {
-        BooleanResult result = new BooleanResult(true);
+        Output<Boolean> result = Output.of(true);
 
         assertThat(result).isNotNull();
         assertThat(result.value()).isTrue();
         assertThat(result.isEmpty()).isFalse();
-        assertThat(result).isInstanceOf(Output.class);
+        assertThat(result).isInstanceOf(BooleanResult.class);
     }
 
     @Test
     void shouldRestoreBooleanResult() throws JsonProcessingException {
-        BooleanResult result = new BooleanResult(true);
+        Output<Boolean> result = Output.of(true);
         String json = objectMapper.writeValueAsString(result);
         BooleanResult restored = objectMapper.readValue(json, BooleanResult.class);
 
@@ -51,17 +53,17 @@ class OutputResultTest {
 
     @Test
     void shouldCreateEmptyResult() {
-        EmptyResult result = new EmptyResult();
+        Output<Void> result = Output.empty();
 
         assertThat(result).isNotNull();
         assertThat(result.value()).isNull();
         assertThat(result.isEmpty()).isTrue();
-        assertThat(result).isInstanceOf(Output.class);
+        assertThat(result).isInstanceOf(EmptyResult.class);
     }
 
     @Test
     void shouldRestoreEmptyResult() throws JsonProcessingException {
-        EmptyResult result = new EmptyResult();
+        Output<Void> result = Output.empty();
         String json = objectMapper.writeValueAsString(result);
         EmptyResult restored = objectMapper.readValue(json, EmptyResult.class);
 
@@ -78,11 +80,11 @@ class OutputResultTest {
         CoursePayload extra = createCourse(id + 1);
         entity.setCourses(List.of(extra));
 
-        PayloadResult<StudentPayload> result = new PayloadResult<>(entity);
+        Output<StudentPayload> result = Output.of(entity);
 
         assertThat(result.value()).isSameAs(entity);
         assertThat(result.value().getCourses()).contains(extra);
-        assertThat(result).isInstanceOf(Output.class);
+        assertThat(result).isInstanceOf(PayloadResult.class);
     }
 
     @Test
@@ -92,9 +94,12 @@ class OutputResultTest {
         CoursePayload extra = createCourse(id + 1);
         entity.setCourses(List.of(extra));
 
-        PayloadResult<StudentPayload> result = new PayloadResult<>(entity);
+        Output<StudentPayload> result = Output.of(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<StudentPayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<StudentPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<StudentPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getCourses()).contains(extra);
@@ -107,11 +112,11 @@ class OutputResultTest {
         CoursePayload entity = createCourse(id + 1);
         StudentPayload extra = createStudent(id);
         entity.setStudents(List.of(extra));
-        PayloadResult<CoursePayload> result = new PayloadResult<>(entity);
+        Output<CoursePayload> result = Output.of(entity);
 
         assertThat(result.value()).isSameAs(entity);
         assertThat(result.value().getStudents()).contains(extra);
-        assertThat(result).isInstanceOf(Output.class);
+        assertThat(result).isInstanceOf(PayloadResult.class);
     }
 
     @Test
@@ -121,9 +126,12 @@ class OutputResultTest {
         StudentPayload extra = createStudent(id);
         entity.setStudents(List.of(extra));
 
-        PayloadResult<CoursePayload> result = new PayloadResult<>(entity);
+        Output<CoursePayload> result = Output.of(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<CoursePayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<CoursePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<CoursePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getStudents()).contains(extra);
@@ -152,7 +160,10 @@ class OutputResultTest {
 
         PayloadResult<AuthorityPersonPayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<AuthorityPersonPayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<AuthorityPersonPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<AuthorityPersonPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getFaculties()).contains(extra);
@@ -186,7 +197,10 @@ class OutputResultTest {
 
         PayloadResult<FacultyPayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<FacultyPayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<FacultyPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<FacultyPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getDean()).isEqualTo(dean);
@@ -220,7 +234,10 @@ class OutputResultTest {
 
         PayloadResult<StudentsGroupPayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<StudentsGroupPayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<StudentsGroupPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<StudentsGroupPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getLeader()).isEqualTo(extra);
@@ -246,7 +263,10 @@ class OutputResultTest {
 
         PayloadResult<StudentProfilePayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<StudentProfilePayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<StudentProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<StudentProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored).isInstanceOf(Output.class);
@@ -270,7 +290,10 @@ class OutputResultTest {
 
         PayloadResult<PrincipalProfilePayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
-        PayloadResult<PrincipalProfilePayload> restored = objectMapper.readValue(json, PayloadResult.class);
+
+        TypeReference<PayloadResult<PrincipalProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadResult<PrincipalProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored).isInstanceOf(Output.class);
@@ -307,7 +330,10 @@ class OutputResultTest {
 
         PayloadSetResult<StudentPayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<StudentPayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<StudentPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<StudentPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -363,7 +389,10 @@ class OutputResultTest {
 
         PayloadSetResult<CoursePayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<CoursePayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<CoursePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<CoursePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -401,7 +430,10 @@ class OutputResultTest {
 
         PayloadSetResult<AuthorityPersonPayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<AuthorityPersonPayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<AuthorityPersonPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<AuthorityPersonPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -443,7 +475,10 @@ class OutputResultTest {
 
         PayloadSetResult<FacultyPayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<FacultyPayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<FacultyPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<FacultyPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -483,7 +518,10 @@ class OutputResultTest {
 
         PayloadSetResult<StudentsGroupPayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<StudentsGroupPayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<StudentsGroupPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<StudentsGroupPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -515,7 +553,10 @@ class OutputResultTest {
 
         PayloadSetResult<StudentProfilePayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<StudentProfilePayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<StudentProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<StudentProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
@@ -547,7 +588,10 @@ class OutputResultTest {
 
         PayloadSetResult<PrincipalProfilePayload> result = new PayloadSetResult<>(entitySet);
         String json = objectMapper.writeValueAsString(result);
-        PayloadSetResult<PrincipalProfilePayload> restored = objectMapper.readValue(json, PayloadSetResult.class);
+
+        TypeReference<PayloadSetResult<PrincipalProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadSetResult<PrincipalProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));

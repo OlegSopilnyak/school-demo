@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindA
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
@@ -84,7 +85,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
@@ -99,7 +100,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).contains(mockFacultyPayload);
         verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
@@ -114,7 +115,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFacultyPayload);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }
@@ -127,7 +128,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(mockFacultyPayload);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }
@@ -141,7 +142,7 @@ class FacultyFacadeImplTest {
         facade.deleteFacultyById(id);
 
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence).deleteFaculty(id);
@@ -155,7 +156,7 @@ class FacultyFacadeImplTest {
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
@@ -172,7 +173,7 @@ class FacultyFacadeImplTest {
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:404 has courses.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);

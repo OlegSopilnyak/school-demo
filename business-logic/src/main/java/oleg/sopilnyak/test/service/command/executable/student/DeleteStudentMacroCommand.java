@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -119,14 +120,15 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
      * @param macroInputParameter macro-command input parameter
      * @param <N>                 type of delete student profile command result
      * @return built context of the command for input parameter
+     * @see Input
      * @see Student
      * @see StudentProfileCommand
      * @see DeleteStudentMacroCommand#createStudentProfileContext(StudentProfileCommand, Long)
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final StudentProfileCommand<N> command, final Object macroInputParameter) {
-        return macroInputParameter instanceof Long studentId && StudentProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
+    public <N> Context<N> prepareContext(final StudentProfileCommand<N> command, final Input<?> macroInputParameter) {
+        return macroInputParameter.value() instanceof Long studentId && StudentProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
                 createStudentProfileContext(command, studentId) : cannotCreateNestedContextFor(command);
     }
 
@@ -143,7 +145,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
         final Long profileId = persistence.findStudentById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."))
                 .getProfileId();
-        return command.createContext(profileId);
+        return command.createContext(Input.of(profileId));
     }
 
 // for command activities as nested command
@@ -154,12 +156,12 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    public Context<Boolean> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+    public Context<Boolean> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
         return super.acceptPreparedContext(visitor, macroInputParameter);
     }
 

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -86,8 +87,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see Context.State#UNDONE
      */
     @Override
-    public Deque<Context<?>> undoNestedCommands(Deque<Context<?>> doneContexts) {
-        final List<Context<?>> reverted = new ArrayList<>(doneContexts);
+    public Deque<Context<?>> undoNestedCommands(Input<Deque<Context<?>>> doneContexts) {
+        final List<Context<?>> reverted = new ArrayList<>(doneContexts.value());
         // revert the order of undo contexts
         Collections.reverse(reverted);
         final AtomicBoolean isUndoNestedFailed = new AtomicBoolean(false);

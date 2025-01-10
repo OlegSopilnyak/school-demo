@@ -10,6 +10,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.DeleteCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -64,12 +66,12 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_CourseFound() {
         Course course = persistCourse();
         Long id = course.getId();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertCourseEquals(course, context.getUndoParameter(), false);
+        assertCourseEquals(course, context.<Course>getUndoParameter().value(), false);
         assertThat(context.getResult()).isPresent();
         assertThat(context.getResult().get()).isTrue();
         verify(command).executeDo(context);
@@ -82,7 +84,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CourseNotFound() {
         Long id = 102L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -105,7 +107,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         Long id = course.getId();
         assertThat(persistence.findCourseById(id).orElseThrow().getStudents()).contains(student);
         reset(persistence);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -127,7 +129,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         String errorMessage = "Cannot delete course with ID:" + id;
         RuntimeException cannotExecute = new RuntimeException(errorMessage);
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -145,8 +147,12 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_CourseFound() {
         Course course = persistCourse();
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter(course);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(course));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(course);
 
         command.undoCommand(context);
 
@@ -160,8 +166,12 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter("course");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("course"));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter("course");
 
         command.undoCommand(context);
 
@@ -194,8 +204,12 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         Context<Boolean> context = command.createContext();
         RuntimeException cannotExecute = new RuntimeException("Cannot restore");
         doThrow(cannotExecute).when(persistence).save(course);
-        context.setState(DONE);
-        context.setUndoParameter(course);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(course));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(course);
 
         command.undoCommand(context);
 

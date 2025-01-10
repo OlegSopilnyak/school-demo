@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -63,14 +65,14 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         Long id = profile.getId();
         StudentProfile exists = persistence.findStudentProfileById(id).orElseThrow();
         reset(persistence);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getException()).isNull();
         assertThat(context.getResult()).contains(true);
-        assertProfilesEquals(profile, context.getUndoParameter(), false);
+        assertProfilesEquals(profile, context.<StudentProfile>getUndoParameter().value(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -84,7 +86,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NoProfile() {
         long id = 415L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -101,7 +103,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() throws ProfileNotFoundException {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -131,7 +133,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         StudentProfilePayload profile = persistStudentProfile();
         long id = profile.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -149,8 +151,12 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoProfileExists() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(profile);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(profile);
 
         command.undoCommand(context);
 
@@ -165,8 +171,12 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("input");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("input"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("input");
 
         command.undoCommand(context);
 
@@ -181,8 +191,12 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -198,8 +212,12 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(profile);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(profile);
         doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
 
         command.undoCommand(context);

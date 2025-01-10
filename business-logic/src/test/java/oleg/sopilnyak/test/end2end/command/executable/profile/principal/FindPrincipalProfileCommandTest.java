@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.FindPrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -60,7 +62,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityFound() {
         PrincipalProfile profile = persistPrincipalProfile();
         long id = profile.getId();
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -75,7 +77,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotFound() {
         Long id = 405L;
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -90,7 +92,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         long id = 406L;
-        Context<Optional<PrincipalProfile>> context = command.createContext("" + id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of("" + id));
 
         command.doCommand(context);
 
@@ -106,7 +108,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
         PrincipalProfile profile = persistPrincipalProfile();
         long id = profile.getId();
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -121,9 +123,13 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         Long id = 408L;
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 

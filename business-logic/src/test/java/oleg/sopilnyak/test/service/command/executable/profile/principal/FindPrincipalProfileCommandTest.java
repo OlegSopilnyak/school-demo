@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +45,7 @@ class FindPrincipalProfileCommandTest {
         Long id = 404L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -59,7 +61,7 @@ class FindPrincipalProfileCommandTest {
     void shouldDoCommand_EntityNotFound() {
         Long id = 405L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -74,7 +76,7 @@ class FindPrincipalProfileCommandTest {
     @Test
     void shouldNotDoCommand_WrongParameterType() {
         long id = 406L;
-        Context<Optional<PrincipalProfile>> context = command.createContext("" + id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of("" + id));
 
         command.doCommand(context);
 
@@ -90,7 +92,7 @@ class FindPrincipalProfileCommandTest {
         Long id = 407L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -104,9 +106,13 @@ class FindPrincipalProfileCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         Long id = 408L;
-        Context<Optional<PrincipalProfile>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(id);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 

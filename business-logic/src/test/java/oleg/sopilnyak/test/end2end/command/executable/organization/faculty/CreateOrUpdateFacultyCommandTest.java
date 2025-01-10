@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -64,7 +66,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
         Faculty entity = makeCleanFacultyNoDean(1);
-        Context<Optional<Faculty>> context = command.createContext(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -85,13 +87,13 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         if (entityUpdated instanceof FacultyPayload updated) {
             updated.setName(entity.getName() + "-updated");
         }
-        Context<Optional<Faculty>> context = command.createContext(entityUpdated);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entityUpdated));
         reset(payloadMapper);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        Faculty undo = context.getUndoParameter();
+        Faculty undo = context.<Faculty>getUndoParameter().value();
         assertFacultyEquals(entity, undo, true);
         Faculty result = context.getResult().orElseThrow().orElseThrow();
         assertFacultyEquals(entityUpdated, result, true);
@@ -106,7 +108,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 401L;
         Faculty entity = spy(makeTestFaculty(id));
-        Context<Optional<Faculty>> context = command.createContext(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -125,7 +127,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Faculty entity = persist();
         Long id = entity.getId();
         doThrow(RuntimeException.class).when(persistence).findFacultyById(id);
-        Context<Optional<Faculty>> context = command.createContext(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -142,7 +144,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         Faculty entity = spy(makeCleanFacultyNoDean(1));
         doThrow(RuntimeException.class).when(persistence).save(entity);
-        Context<Optional<Faculty>> context = command.createContext(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -158,7 +160,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Faculty entity = persist();
         Long id = entity.getId();
         doThrow(RuntimeException.class).when(persistence).save(entity);
-        Context<Optional<Faculty>> context = command.createContext(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -173,7 +175,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<Faculty>> context = command.createContext("input");
+        Context<Optional<Faculty>> context = command.createContext(Input.of("input"));
 
         command.doCommand(context);
 
@@ -213,8 +215,12 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Long id = entity.getId();
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -229,8 +235,12 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Faculty entity = persist();
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -269,8 +279,12 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter("param");
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("param"));
+        }
+//        context.setUndoParameter("param");
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -287,8 +301,12 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Long id = entity.getId();
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteFaculty(id);
 
         command.undoCommand(context);
@@ -305,8 +323,12 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         Faculty entity = persist();
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
         command.undoCommand(context);

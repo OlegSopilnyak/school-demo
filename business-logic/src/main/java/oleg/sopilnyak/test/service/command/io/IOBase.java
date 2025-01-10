@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.io;
 
 import java.io.Serializable;
 
+import static java.util.Objects.isNull;
+
 /**
  * Type: I/O school-command input-output base type
  *
@@ -14,4 +16,12 @@ public interface IOBase<P> extends Serializable {
      * @return value of the parameter
      */
     P value();
+    /**
+     * To check is result's output value is empty
+     *
+     * @return true if no data in the output result
+     */
+    default boolean isEmpty() {
+        return isNull(value());
+    }
 }

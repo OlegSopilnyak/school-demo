@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ class FindStudentCommandTest {
     @Test
     void shouldDoCommand_StudentNotFound() {
         Long id = 106L;
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -46,7 +47,7 @@ class FindStudentCommandTest {
     void shouldDoCommand_StudentFound() {
         Long id = 107L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -63,7 +64,7 @@ class FindStudentCommandTest {
         Long id = 108L;
         RuntimeException cannotExecute = new RuntimeException();
         doThrow(cannotExecute).when(persistence).findStudentById(id);
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

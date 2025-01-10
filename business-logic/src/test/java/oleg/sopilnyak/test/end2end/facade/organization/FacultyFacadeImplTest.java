@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindA
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
@@ -115,7 +116,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), entity);
         verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
@@ -129,7 +130,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
@@ -144,7 +145,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), facultySource, false);
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(facultySource));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(facultySource);
     }
@@ -161,7 +162,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), facultySource);
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(facultySource));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(payloadMapper, times(2)).toPayload(any(FacultyEntity.class));
@@ -186,7 +187,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         assertThat(cause).isInstanceOf(FacultyNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Faculty with ID:").endsWith(" is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(facultySource);
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(facultySource));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(payloadMapper, never()).toPayload(any(FacultyEntity.class));
@@ -202,7 +203,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         facade.deleteFacultyById(id);
 
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence).deleteFaculty(id);
@@ -218,7 +219,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
@@ -239,7 +240,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).startsWith("Faculty with ID").endsWith(" has courses.");
         verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(id);
+        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);

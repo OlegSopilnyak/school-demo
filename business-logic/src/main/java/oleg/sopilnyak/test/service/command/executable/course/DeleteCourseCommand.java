@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -103,8 +106,10 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
 
             log.debug("Updated in database: '{}'", entity);
             // change course-id value for further do command action
-            context.setRedoParameter(entity.getId());
-            context.setState(Context.State.UNDONE);
+            if (context instanceof CommandContext commandContext) {
+                commandContext.setUndoParameter(Input.of(entity.getId()));
+                commandContext.setState(Context.State.UNDONE);
+            }
         } catch (Exception e) {
             log.error("Cannot undo course deletion {}", parameter, e);
             context.failed(e);

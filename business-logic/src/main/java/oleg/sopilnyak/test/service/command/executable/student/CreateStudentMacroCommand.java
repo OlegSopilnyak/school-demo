@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -86,8 +88,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final StudentCommand<N> command, final Object macroInputParameter) {
-        return macroInputParameter instanceof Student person && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <N> Context<N> prepareContext(final StudentCommand<N> command, final Input<?> macroInputParameter) {
+        return macroInputParameter.value() instanceof Student person && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createPersonContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
@@ -107,7 +109,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
-        return command.createContext(payload);
+        return command.createContext(Input.of(payload));
     }
 
     /**
@@ -123,8 +125,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(@NonNull final StudentProfileCommand<N> command, final Object mainInput) {
-        return mainInput instanceof Student person && StudentProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+    public <N> Context<N> prepareContext(@NonNull final StudentProfileCommand<N> command, final Input<?> mainInput) {
+        return mainInput.value() instanceof Student person && StudentProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createProfileContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
@@ -143,7 +145,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
                 .id(null).phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
                 .build();
         // create command-context with created parameter by default
-        return command.createContext(payload);
+        return command.createContext(Input.of(payload));
     }
 
 // for command do activities as nested command
@@ -156,7 +158,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param result  the result of successful command execution
      * @param target  next command context to execute command's redo
      * @see StudentProfileCommand#doCommand(Context)
-     * @see Context#setRedoParameter(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
      * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
      * @see CannotTransferCommandResultException
@@ -181,14 +183,19 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param profileId the id of profile created before person
      * @param target    create-person command context
      * @see Context#getRedoParameter()
-     * @see Context#setRedoParameter(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see StudentPayload#setProfileId(Long)
      */
     public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {
-        final StudentPayload personPayload = target.getRedoParameter();
+        final StudentPayload personPayload = target.<StudentPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
-        target.setRedoParameter(personPayload);
+        if (target instanceof CommandContext commandContext) {
+            commandContext.setRedoParameter(Input.of(personPayload));
+            log.debug("Transferred to student changed input parameter: {}", personPayload);
+        }
+//        personPayload.setProfileId(profileId);
+//        target.setRedoParameter(personPayload);
     }
 
     /**
@@ -197,12 +204,12 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    public Context<Optional<Student>> acceptPreparedContext(final PrepareContextVisitor visitor, final Object input) {
+    public Context<Optional<Student>> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> input) {
         return super.acceptPreparedContext(visitor, input);
     }
 

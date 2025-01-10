@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.student.DeleteStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -109,13 +110,14 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findStudentProfileById(profileId)).isPresent();
         reset(persistence);
 
-        Context<Boolean> context = command.createContext(studentId);
+        Input<Long> inputStudentId = Input.of(studentId);
+        Context<Boolean> context = command.createContext(inputStudentId);
 
         assertThat(context).isNotNull();
         assertThat(context.isReady()).isTrue();
-        MacroCommandParameter redoParameter = context.getRedoParameter();
+        MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInput()).isSameAs(studentId);
+        assertThat(redoParameter.getInputParameter()).isSameAs(studentId);
         Context<?> studentContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(studentContext.isReady()).isTrue();
@@ -123,15 +125,15 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(studentContext.<Long>getRedoParameter()).isSameAs(studentId);
         assertThat(profileContext.<Long>getRedoParameter()).isSameAs(profileId);
 
-        verify(studentCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(studentCommand, studentId);
-        verify(studentCommand).createContext(studentId);
+        verify(studentCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(studentCommand, inputStudentId);
+        verify(studentCommand).createContext(inputStudentId);
 
-        verify(profileCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(profileCommand, studentId);
+        verify(profileCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(profileCommand, inputStudentId);
         verify(command).createStudentProfileContext(profileCommand, studentId);
         verify(persistence).findStudentById(studentId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -141,7 +143,8 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findStudentById(student.getId())).isPresent();
         Long studentId = 3L;
 
-        Context<Boolean> context = command.createContext(studentId);
+        Input<Long> inputStudentId = Input.of(studentId);
+        Context<Boolean> context = command.createContext(inputStudentId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
@@ -149,12 +152,12 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(studentCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(studentCommand, studentId);
-        verify(studentCommand).createContext(studentId);
+        verify(studentCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(studentCommand, inputStudentId);
+        verify(studentCommand).createContext(inputStudentId);
 
-        verify(profileCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(profileCommand, studentId);
+        verify(profileCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(profileCommand, inputStudentId);
         verify(command).createStudentProfileContext(profileCommand, studentId);
         verify(persistence).findStudentById(studentId);
         verify(profileCommand, never()).createContext(any());
@@ -166,7 +169,8 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
 
-        Context<Boolean> context = command.createContext(wrongTypeInput);
+        Input<?> wrongInput = Input.of(wrongTypeInput);
+        Context<Boolean> context = command.createContext(wrongInput);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
@@ -174,12 +178,12 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.DELETE_BY_ID);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(studentCommand).acceptPreparedContext(command, wrongTypeInput);
-        verify(command).prepareContext(studentCommand, wrongTypeInput);
-        verify(studentCommand).createContext(wrongTypeInput);
+        verify(studentCommand).acceptPreparedContext(command, wrongInput);
+        verify(command).prepareContext(studentCommand, wrongInput);
+        verify(studentCommand).createContext(wrongInput);
 
-        verify(profileCommand).acceptPreparedContext(command, wrongTypeInput);
-        verify(command).prepareContext(profileCommand, wrongTypeInput);
+        verify(profileCommand).acceptPreparedContext(command, wrongInput);
+        verify(command).prepareContext(profileCommand, wrongInput);
         verify(command, never()).createStudentProfileContext(eq(profileCommand), any());
         verify(profileCommand).createContextInit();
         verify(profileCommand, never()).createContext(any());
@@ -196,24 +200,25 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         reset(persistence);
         String errorMessage = "Cannot create nested profile context";
         RuntimeException exception = new RuntimeException(errorMessage);
-        doThrow(exception).when(profileCommand).createContext(profileId);
+        doThrow(exception).when(profileCommand).createContext(Input.of(profileId));
 
-        Context<Boolean> context = command.createContext(studentId);
+        Input<Long> inputStudentId = Input.of(studentId);
+        Context<Boolean> context = command.createContext(inputStudentId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(studentCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(studentCommand, studentId);
-        verify(studentCommand).createContext(studentId);
+        verify(studentCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(studentCommand, inputStudentId);
+        verify(studentCommand).createContext(inputStudentId);
 
-        verify(profileCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(profileCommand, studentId);
+        verify(profileCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(profileCommand, inputStudentId);
         verify(command).createStudentProfileContext(profileCommand, studentId);
         verify(persistence).findStudentById(studentId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -227,24 +232,25 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         reset(persistence);
         String errorMessage = "Cannot create nested student context";
         RuntimeException exception = new RuntimeException(errorMessage);
-        doThrow(exception).when(studentCommand).createContext(studentId);
+        Input<Long> inputStudentId = Input.of(studentId);
+        doThrow(exception).when(studentCommand).createContext(inputStudentId);
 
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(inputStudentId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(studentCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(studentCommand, studentId);
-        verify(studentCommand).createContext(studentId);
+        verify(studentCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(studentCommand, inputStudentId);
+        verify(studentCommand).createContext(inputStudentId);
 
-        verify(profileCommand).acceptPreparedContext(command, studentId);
-        verify(command).prepareContext(profileCommand, studentId);
+        verify(profileCommand).acceptPreparedContext(command, inputStudentId);
+        verify(command).prepareContext(profileCommand, inputStudentId);
         verify(command).createStudentProfileContext(profileCommand, studentId);
         verify(persistence).findStudentById(studentId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -255,22 +261,22 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Long profileId = studentPayload.getProfileId();
         Student student = persistence.findStudentById(studentId).orElseThrow();
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         reset(persistence);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isDone()).isTrue();
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        assertThat(studentContext.<StudentPayload>getUndoParameter().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().getOriginal()).isEqualTo(profile);
+        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
@@ -287,7 +293,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_StudentNotFound() {
         Long studentId = 10L;
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         assertThat(context.isReady()).isFalse();
 
         command.doCommand(context);
@@ -308,7 +314,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Student student = persistence.findStudentById(studentId).orElseThrow();
         persistence.deleteProfileById(profileId);
         assertThat(persistence.findStudentProfileById(profileId)).isEmpty();
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         assertThat(context.isReady()).isTrue();
         reset(persistence);
 
@@ -317,11 +323,11 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isUndone()).isTrue();
-        assertThat(studentContext.<StudentPayload>getUndoParameter().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -340,7 +346,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));
-        Long savedStudentId = studentContext.getRedoParameter();
+        Long savedStudentId = studentContext.<Long>getRedoParameter().value();
         assertThat(persistence.findStudentById(savedStudentId)).isPresent();
 
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
@@ -358,7 +364,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
         assertThat(persistence.findStudentById(studentId)).isPresent();
         reset(persistence);
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         String errorMessage = "Cannot delete student";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).deleteStudent(studentId);
@@ -368,7 +374,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.getException().getMessage()).isEqualTo(errorMessage);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isFailed()).isTrue();
@@ -379,7 +385,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isUndone()).isTrue();
-        StudentProfilePayload savedProfile = profileContext.getUndoParameter();
+        StudentProfilePayload savedProfile = profileContext.<StudentProfilePayload>getUndoParameter().value();
         assertThat(savedProfile.getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
@@ -398,8 +404,8 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).save(savedProfile);
 
         verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        assertThat(persistence.findStudentById(studentContext.getRedoParameter())).isPresent();
-        assertThat(persistence.findStudentProfileById(profileContext.getRedoParameter())).isPresent();
+        assertThat(persistence.findStudentById(studentContext.<Long>getRedoParameter().value())).isPresent();
+        assertThat(persistence.findStudentProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
     }
 
     @Test
@@ -410,7 +416,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Long profileId = studentPayload.getProfileId();
         Student student = persistence.findStudentById(studentId).orElseThrow();
         reset(persistence);
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         String errorMessage = "Cannot delete profile";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).deleteProfileById(profileId);
@@ -420,11 +426,11 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.getException().getMessage()).isEqualTo(errorMessage);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isUndone()).isTrue();
-        assertThat(studentContext.<StudentPayload>getUndoParameter().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -446,11 +452,11 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).deleteProfileById(profileId);
 
         verifyStudentUndoCommand(studentContext);
-        verify(persistence).save(studentContext.<Student>getUndoParameter());
+        verify(persistence).save(studentContext.<Student>getUndoParameter().value());
 
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        assertThat(persistence.findStudentById(studentContext.getRedoParameter())).isPresent();
-        assertThat(persistence.findStudentProfileById(profileContext.getRedoParameter())).isPresent();
+        assertThat(persistence.findStudentById(studentContext.<Long>getRedoParameter().value())).isPresent();
+        assertThat(persistence.findStudentProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
     }
 
     @Test
@@ -461,7 +467,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Long profileId = studentPayload.getProfileId();
         Student student = persistence.findStudentById(studentId).orElseThrow();
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         command.doCommand(context);
         reset(persistence);
 
@@ -469,29 +475,29 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isUndone()).isTrue();
 
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isUndone()).isTrue();
-        assertThat(studentContext.<StudentPayload>getUndoParameter().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isUndone()).isTrue();
-        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().getOriginal()).isEqualTo(profile);
+        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
 
         verifyStudentUndoCommand(studentContext);
-        verify(persistence).save(studentContext.<Student>getUndoParameter());
+        verify(persistence).save(studentContext.<Student>getUndoParameter().value());
 
         verifyProfileUndoCommand(profileContext);
-        verify(persistence).save(profileContext.<StudentProfile>getUndoParameter());
+        verify(persistence).save(profileContext.<StudentProfile>getUndoParameter().value());
 
-        assertThat(persistence.findStudentById(studentContext.getRedoParameter())).isPresent();
-        assertThat(persistence.findStudentProfileById(profileContext.getRedoParameter())).isPresent();
+        assertThat(persistence.findStudentById(studentContext.<Long>getRedoParameter().value())).isPresent();
+        assertThat(persistence.findStudentProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
     }
 
     @Test
@@ -502,7 +508,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Long profileId = studentPayload.getProfileId();
         Student student = persistence.findStudentById(studentId).orElseThrow();
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         command.doCommand(context);
         reset(persistence);
         String errorMessage = "Cannot restore profile";
@@ -514,35 +520,35 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
 
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isDone()).isTrue();
-        assertStudentEquals(studentContext.<StudentPayload>getUndoParameter().getOriginal(), student, false);
+        assertStudentEquals(studentContext.<StudentPayload>getUndoParameter().value().getOriginal(), student, false);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
-        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().getOriginal()).isEqualTo(profile);
+        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));
 
         verifyProfileUndoCommand(profileContext);
-        verify(persistence).save(profileContext.<StudentProfile>getUndoParameter());
+        verify(persistence).save(profileContext.<StudentProfile>getUndoParameter().value());
 
         verifyStudentDoCommand(studentContext, 2);
-        Long newStudentId = studentContext.getRedoParameter();
+        Long newStudentId = studentContext.<Long>getRedoParameter().value();
         verify(persistence).findStudentById(newStudentId);
         verify(persistence).deleteStudent(newStudentId);
 
         assertThat(persistence.findStudentById(newStudentId)).isEmpty();
         assertThat(persistence.findStudentById(studentId)).isEmpty();
-        assertThat(persistence.findStudentProfileById(profileContext.getRedoParameter())).isEmpty();
+        assertThat(persistence.findStudentProfileById(profileContext.<Long>getRedoParameter().value())).isEmpty();
         assertThat(persistence.findStudentProfileById(profileId)).isEmpty();
     }
 
@@ -554,7 +560,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Long profileId = studentPayload.getProfileId();
         Student student = persistence.findStudentById(studentId).orElseThrow();
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
-        Context<Boolean> context = command.createContext(studentId);
+        Context<Boolean> context = command.createContext(Input.of(studentId));
         command.doCommand(context);
         reset(persistence);
         String errorMessage = "Cannot restore student";
@@ -565,21 +571,21 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isFailed()).isTrue();
         assertThat(studentContext.getException()).isSameAs(exception);
-        assertThat(studentContext.<StudentPayload>getUndoParameter().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();
-        assertProfilesEquals(profileContext.<StudentProfilePayload>getUndoParameter().getOriginal(), profile, false);
+        assertProfilesEquals(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal(), profile, false);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));
@@ -588,11 +594,11 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).save(any(StudentProfilePayload.class));
 
         verifyProfileDoCommand(profileContext, 2);
-        Long newProfileId = profileContext.getRedoParameter();
+        Long newProfileId = profileContext.<Long>getRedoParameter().value();
         verify(persistence).findStudentProfileById(newProfileId);
         verify(persistence).deleteProfileById(newProfileId);
 
-        assertThat(persistence.findStudentById(studentContext.getRedoParameter())).isEmpty();
+        assertThat(persistence.findStudentById(studentContext.<Long>getRedoParameter().value())).isEmpty();
         assertThat(persistence.findStudentById(studentId)).isEmpty();
         assertThat(persistence.findStudentProfileById(newProfileId)).isEmpty();
         assertThat(persistence.findStudentProfileById(profileId)).isEmpty();

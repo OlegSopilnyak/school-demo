@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
@@ -59,7 +60,7 @@ class StudentProfileFacadeImplTest {
         assertThat(faculty).contains(payload);
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -76,7 +77,7 @@ class StudentProfileFacadeImplTest {
         assertThat(faculty).isEmpty();
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -93,7 +94,7 @@ class StudentProfileFacadeImplTest {
         assertThat(profileFromDb).isEmpty();
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -110,7 +111,7 @@ class StudentProfileFacadeImplTest {
         assertThat(result).contains(payload);
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(payload);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
@@ -127,7 +128,7 @@ class StudentProfileFacadeImplTest {
         assertThat(result).isEmpty();
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(payload);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
@@ -146,7 +147,7 @@ class StudentProfileFacadeImplTest {
         facade.deleteById(id);
 
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -164,7 +165,7 @@ class StudentProfileFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -180,7 +181,7 @@ class StudentProfileFacadeImplTest {
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -200,7 +201,7 @@ class StudentProfileFacadeImplTest {
 
         verify(facade).deleteById(id);
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -219,7 +220,7 @@ class StudentProfileFacadeImplTest {
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
         verify(facade).deleteById(id);
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);

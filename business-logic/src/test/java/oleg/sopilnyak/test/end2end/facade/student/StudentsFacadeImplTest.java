@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
@@ -104,7 +105,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isEmpty();
         verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
@@ -119,7 +120,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isNotEmpty();
         assertStudentEquals(newStudent, student.get(), false);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
@@ -135,7 +136,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
@@ -149,7 +150,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
@@ -165,7 +166,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertCourseEquals(course, database.findCourseById(courseId).orElse(null), false);
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
@@ -225,7 +226,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertStudentEquals(student, result.orElseThrow(), false);
         verify(factory).command(STUDENT_CREATE_NEW);
-        verify(factory.command(STUDENT_CREATE_NEW)).createContext(any(StudentPayload.class));
+        verify(factory.command(STUDENT_CREATE_NEW)).createContext(any(Input.class));
         verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(any(StudentPayload.class));
     }
@@ -245,7 +246,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(result).isNotEmpty();
         assertStudentEquals(oldStudent, result.orElseThrow());
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(oldStudent);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(oldStudent));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(student.getId());
         verify(persistenceFacade).save(oldStudent);
@@ -269,7 +270,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(database.findStudentById(studentId)).isEmpty();
         assertThat(database.findStudentProfileById(profileId)).isEmpty();
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).deleteStudent(studentId);
         verify(persistenceFacade).deleteProfileById(profileId);
@@ -288,7 +289,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).deleteStudent(anyLong());
@@ -304,7 +305,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
         verify(factory).command(STUDENT_DELETE);
-        verify(factory.command(STUDENT_DELETE)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
         // 1. building context for delete
         // 2. deleting student

@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -92,13 +93,14 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(person.getProfileId()).thenReturn(profileId);
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
 
-        Context<Boolean> context = command.createContext(personId);
+        Input<?> inputPersonId = Input.of(personId);
+        Context<Boolean> context = command.createContext(inputPersonId);
 
         assertThat(context).isNotNull();
         assertThat(context.isReady()).isTrue();
-        MacroCommandParameter redoParameter = context.getRedoParameter();
+        MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInput()).isSameAs(personId);
+        assertThat(redoParameter.getInputParameter()).isSameAs(personId);
         Context<?> personContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(personContext.isReady()).isTrue();
@@ -106,22 +108,23 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(personContext.<Long>getRedoParameter()).isSameAs(personId);
         assertThat(profileContext.<Long>getRedoParameter()).isSameAs(profileId);
 
-        verify(personCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(personCommand, personId);
-        verify(personCommand).createContext(personId);
+        verify(personCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(personCommand, inputPersonId);
+        verify(personCommand).createContext(inputPersonId);
 
-        verify(profileCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(profileCommand, personId);
+        verify(profileCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(profileCommand, inputPersonId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(inputPersonId);
     }
 
     @Test
     void shouldNotCreateMacroCommandContext_StudentNotFound() {
         Long personId = 3L;
 
-        Context<Boolean> context = command.createContext(personId);
+        Input<?> inputPersonId = Input.of(personId);
+        Context<Boolean> context = command.createContext(inputPersonId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
@@ -129,12 +132,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(personCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(personCommand, personId);
-        verify(personCommand).createContext(personId);
+        verify(personCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(personCommand, inputPersonId);
+        verify(personCommand).createContext(inputPersonId);
 
-        verify(profileCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(profileCommand, personId);
+        verify(profileCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(profileCommand, inputPersonId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(profileCommand, never()).createContext(any());
         verify(profileCommand).createContextInit();
@@ -144,7 +147,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
 
-        Context<Boolean> context = command.createContext(wrongTypeInput);
+        Input<?> wrongInput = Input.of(wrongTypeInput);
+        Context<Boolean> context = command.createContext(wrongInput);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
@@ -152,12 +156,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.DELETE_BY_ID);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(personCommand).acceptPreparedContext(command, wrongTypeInput);
-        verify(command).prepareContext(personCommand, wrongTypeInput);
-        verify(personCommand).createContext(wrongTypeInput);
+        verify(personCommand).acceptPreparedContext(command, wrongInput);
+        verify(command).prepareContext(personCommand, wrongInput);
+        verify(personCommand).createContext(wrongInput);
 
-        verify(profileCommand).acceptPreparedContext(command, wrongTypeInput);
-        verify(command).prepareContext(profileCommand, wrongTypeInput);
+        verify(profileCommand).acceptPreparedContext(command, wrongInput);
+        verify(command).prepareContext(profileCommand, wrongInput);
         verify(command, never()).createPrincipalProfileContext(eq(profileCommand), any());
         verify(profileCommand).createContextInit();
         verify(profileCommand, never()).createContext(any());
@@ -171,24 +175,25 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         String errorMessage = "Cannot create nested profile context";
         RuntimeException exception = new RuntimeException(errorMessage);
-        doThrow(exception).when(profileCommand).createContext(profileId);
+        Input<?> inputProfileId = Input.of(profileId);
+        doThrow(exception).when(profileCommand).createContext(inputProfileId);
 
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(inputProfileId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(personCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(personCommand, personId);
-        verify(personCommand).createContext(personId);
+        verify(personCommand).acceptPreparedContext(command, inputProfileId);
+        verify(command).prepareContext(personCommand, inputProfileId);
+        verify(personCommand).createContext(inputProfileId);
 
-        verify(profileCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(profileCommand, personId);
+        verify(profileCommand).acceptPreparedContext(command, inputProfileId);
+        verify(command).prepareContext(profileCommand, inputProfileId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(inputProfileId);
     }
 
     @Test
@@ -199,24 +204,25 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         String errorMessage = "Cannot create nested person context";
         RuntimeException exception = new RuntimeException(errorMessage);
-        doThrow(exception).when(personCommand).createContext(personId);
+        Input<?> inputPersonId = Input.of(personId);
+        doThrow(exception).when(personCommand).createContext(inputPersonId);
 
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(inputPersonId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.<Object>getRedoParameter()).isNull();
 
-        verify(personCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(personCommand, personId);
-        verify(personCommand).createContext(personId);
+        verify(personCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(personCommand, inputPersonId);
+        verify(personCommand).createContext(inputPersonId);
 
-        verify(profileCommand).acceptPreparedContext(command, personId);
-        verify(command).prepareContext(profileCommand, personId);
+        verify(profileCommand).acceptPreparedContext(command, inputPersonId);
+        verify(command).prepareContext(profileCommand, inputPersonId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(profileId);
+        verify(profileCommand).createContext(inputPersonId);
     }
 
     @Test
@@ -227,21 +233,22 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
-        Context<Boolean> context = command.createContext(personId);
+        Input<?> inputPersonId = Input.of(personId);
+        Context<Boolean> context = command.createContext(inputPersonId);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isDone()).isTrue();
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().getOriginal()).isSameAs(profile);
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
@@ -255,7 +262,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldNotExecuteDoCommand_StudentNotFound() {
         Long personId = 10L;
-        Context<Boolean> context = command.createContext(personId);
+        Input<?> inputPersonId = Input.of(personId);
+        Context<Boolean> context = command.createContext(inputPersonId);
         assertThat(context.isReady()).isFalse();
 
         command.doCommand(context);
@@ -275,7 +283,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(person.getProfileId()).thenReturn(profileId);
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         when(persistence.save(any(AuthorityPerson.class))).thenReturn(Optional.of(person));
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(Input.of(personId));
         assertThat(context.isReady()).isTrue();
 
         command.doCommand(context);
@@ -283,11 +291,11 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
@@ -315,7 +323,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(persistence.save(any(PrincipalProfile.class))).thenReturn(Optional.of(profile));
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(Input.of(personId));
         String errorMessage = "Cannot delete person";
         RuntimeException exception = new RuntimeException(errorMessage);
         when(persistence.deleteAuthorityPerson(personId)).thenThrow(exception);
@@ -325,7 +333,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         assertThat(context.getException().getMessage()).isEqualTo(errorMessage);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isFailed()).isTrue();
@@ -336,7 +344,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isUndone()).isTrue();
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().getOriginal()).isSameAs(profile);
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeDo(context);
@@ -357,7 +365,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.save(any(AuthorityPerson.class))).thenReturn(Optional.of(person));
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(Input.of(personId));
         String errorMessage = "Cannot delete profile";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).deleteProfileById(profileId);
@@ -367,11 +375,11 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         assertThat(context.getException().getMessage()).isEqualTo(errorMessage);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
 
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
@@ -402,19 +410,19 @@ class DeleteAuthorityPersonMacroCommandTest {
         command.undoCommand(context);
 
         assertThat(context.isUndone()).isTrue();
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isUndone()).isTrue();
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().getOriginal()).isSameAs(profile);
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
     }
@@ -435,20 +443,20 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isDone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().getOriginal()).isSameAs(profile);
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyPersonDoCommand(personContext, 2);
@@ -469,20 +477,20 @@ class DeleteAuthorityPersonMacroCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        MacroCommandParameter parameter = context.getRedoParameter();
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<?> personContext = parameter.getNestedContexts().pop();
         assertThat(personContext.isFailed()).isTrue();
         assertThat(personContext.getException()).isSameAs(exception);
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().getOriginal()).isSameAs(profile);
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Deque.class));
+        verify(command).undoNestedCommands(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyProfileDoCommand(profileContext, 2);
@@ -497,7 +505,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
-        Context<Boolean> context = command.createContext(personId);
+        Context<Boolean> context = command.createContext(Input.of(personId));
         command.doCommand(context);
         return context;
     }
@@ -512,7 +520,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand, times(i)).doCommand(profileContext);
         verify(profileCommand, times(i)).executeDo(profileContext);
-        Long id = nestedContext.getRedoParameter();
+        Long id = nestedContext.<Long>getRedoParameter().value();
         verify(persistence, times(i)).findPrincipalProfileById(id);
         verify(persistence, times(i)).deleteProfileById(id);
     }
@@ -527,7 +535,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
         verify(personCommand, times(i)).doCommand(personContext);
         verify(personCommand, times(i)).executeDo(personContext);
-        Long id = nestedContext.getRedoParameter();
+        Long id = nestedContext.<Long>getRedoParameter().value();
         verify(persistence, times(i + 1)).findAuthorityPersonById(id);
         verify(persistence, times(i)).deleteAuthorityPerson(id);
     }

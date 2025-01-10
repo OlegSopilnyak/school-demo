@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -48,7 +50,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = -300L;
         when(entity.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -67,7 +69,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -86,7 +88,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 301L;
         when(entity.getId()).thenReturn(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -105,7 +107,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 302L;
         when(entity.getId()).thenReturn(id);
         doThrow(RuntimeException.class).when(persistence).findAuthorityPersonById(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -121,7 +123,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     @Test
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         doThrow(RuntimeException.class).when(persistence).save(entity);
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -139,7 +141,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         doThrow(RuntimeException.class).when(persistence).save(any(AuthorityPerson.class));
-        Context<Optional<AuthorityPerson>> context = command.createContext(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -154,7 +156,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<AuthorityPerson>> context = command.createContext("input");
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of("input"));
 
         command.doCommand(context);
 
@@ -190,8 +192,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 304L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -204,8 +210,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldUndoCommand_UpdateEntity() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -241,8 +251,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter("param");
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("param"));
+        }
+//        context.setUndoParameter("param");
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -257,8 +271,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteAuthorityPerson(id);
 
         command.undoCommand(context);
@@ -273,8 +291,12 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(entity);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setUndoParameter(entity);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
         command.undoCommand(context);

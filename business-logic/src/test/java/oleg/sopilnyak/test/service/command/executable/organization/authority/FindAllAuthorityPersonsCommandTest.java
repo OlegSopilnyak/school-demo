@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,8 +72,12 @@ class FindAllAuthorityPersonsCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         Context<Set<AuthorityPerson>> context = command.createContext(null);
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.student.*;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.StudentsFacadeImpl;
@@ -82,7 +83,7 @@ class StudentsFacadeImplTest {
 
         assertThat(student).isEmpty();
         verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
@@ -97,7 +98,7 @@ class StudentsFacadeImplTest {
 
         assertThat(student).isPresent();
         verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(studentId);
+        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(payloadMapper).toPayload(mockedStudent);
@@ -111,7 +112,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
@@ -125,7 +126,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).hasSize(1);
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(courseId);
+        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
         verify(payloadMapper).toPayload(mockedStudent);
@@ -165,7 +166,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(mockedStudentPayload);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
@@ -185,7 +186,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
         verify(factory).command(STUDENT_CREATE_NEW);
-        verify(factory.command(STUDENT_CREATE_NEW)).createContext(mockedStudentPayload);
+        verify(factory.command(STUDENT_CREATE_NEW)).createContext(Input.of(mockedStudentPayload));
         verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
@@ -202,7 +203,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(mockedStudentPayload);
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
@@ -223,7 +224,7 @@ class StudentsFacadeImplTest {
         facade.delete(studentId);
 
         verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
         verify(persistenceFacade).findStudentProfileById(profileId);
@@ -242,7 +243,7 @@ class StudentsFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
         verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(payloadMapper, never()).toPayload(any(Student.class));
@@ -265,7 +266,7 @@ class StudentsFacadeImplTest {
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
         verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(studentId);
+        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
         verify(payloadMapper).toPayload(mockedStudent);

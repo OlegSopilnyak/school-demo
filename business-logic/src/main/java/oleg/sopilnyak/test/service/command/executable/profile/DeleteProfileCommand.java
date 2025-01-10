@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -123,8 +125,12 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
 
             getLog().debug("Updated in database: '{}'", entity);
             // change profile-id value for further do command action
-            context.setRedoParameter(entity.getId());
-            context.setState(Context.State.UNDONE);
+            if (context instanceof CommandContext<?> commandContext) {
+                commandContext.setRedoParameter(Input.of(entity.getId()));
+                commandContext.setState(Context.State.UNDONE);
+            }
+//            context.setRedoParameter(entity.getId());
+//            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             getLog().error("Cannot undo profile deletion {}", parameter, e);
             context.failed(e);

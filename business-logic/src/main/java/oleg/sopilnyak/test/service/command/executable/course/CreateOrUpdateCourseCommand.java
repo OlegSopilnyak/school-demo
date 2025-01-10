@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -67,7 +69,9 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
                         () -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                context.setUndoParameter(entity);
+                if (context instanceof CommandContext<Optional<Course>> commandContext) {
+                    commandContext.setUndoParameter(Input.of(entity));
+                }
             } else {
                 log.debug("Trying to create course using: {}", parameter);
             }

@@ -6,6 +6,8 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
@@ -53,7 +55,7 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityExists() {
         AuthorityPerson entity = persist();
         long id = entity.getId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(id);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -69,7 +71,7 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         long id = 321L;
-        Context<Optional<AuthorityPerson>> context = command.createContext(id);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -84,7 +86,7 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         long id = 322L;
-        Context<Optional<AuthorityPerson>> context = command.createContext(id);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(id));
         doThrow(RuntimeException.class).when(persistence).findAuthorityPersonById(id);
 
         command.doCommand(context);
@@ -99,9 +101,13 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         long id = 323L;
-        Context<Optional<AuthorityPerson>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(persist());
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(persist()));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(persist());
 
         command.undoCommand(context);
 

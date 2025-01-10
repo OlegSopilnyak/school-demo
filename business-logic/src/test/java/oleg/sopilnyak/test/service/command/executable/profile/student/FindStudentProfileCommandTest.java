@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +46,7 @@ class FindStudentProfileCommandTest {
         Long id = 814L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
-        Context<Optional<StudentProfile>> context = command.createContext(id);
+        Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -60,7 +62,7 @@ class FindStudentProfileCommandTest {
     void shouldDoCommand_EntityNotFound() {
         Long id = 815L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
-        Context<Optional<StudentProfile>> context = command.createContext(id);
+        Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -75,7 +77,7 @@ class FindStudentProfileCommandTest {
     @Test
     void shouldNotDoCommand_WrongParameterType() {
         long id = 816L;
-        Context<Optional<StudentProfile>> context = command.createContext("" + id);
+        Context<Optional<StudentProfile>> context = command.createContext(Input.of("" + id));
 
         command.doCommand(context);
 
@@ -91,7 +93,7 @@ class FindStudentProfileCommandTest {
         Long id = 817L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
-        Context<Optional<StudentProfile>> context = command.createContext(id);
+        Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -105,9 +107,13 @@ class FindStudentProfileCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         Long id = 818L;
-        Context<Optional<StudentProfile>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(id);
+        Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 

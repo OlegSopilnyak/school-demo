@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
@@ -69,16 +70,17 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     /**
      * To create command's context with doParameter
      *
-     * @param input context's doParameter value
+     * @param parameter context's doParameter input value
      * @return context instance
+     * @see Input
      * @see Context
      * @see Context#getRedoParameter()
      * @see CommandContext
      * @see Context.State#READY
      */
     @Override
-    default Context<T> createContext(Object input) {
-        final Context<T> context = CommandContext.<T>builder().command(this).redoParameter(input).build();
+    default Context<T> createContext(Input<?> parameter) {
+        final Context<T> context = CommandContext.<T>builder().command(this).redoParameter(parameter).build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
         return context;
@@ -141,10 +143,10 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(RootCommand, Object)
+     * @see PrepareContextVisitor#prepareContext(RootCommand, Input<?>)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 

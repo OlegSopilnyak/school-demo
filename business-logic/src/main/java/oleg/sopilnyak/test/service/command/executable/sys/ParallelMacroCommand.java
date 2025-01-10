@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -70,13 +72,14 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
      * To rollback changes for contexts with state DONE<BR/>
      * sequential revers order of commands deque
      *
-     * @param doneContexts collection of contexts with DONE state
+     * @param inputDoneContexts wrapped collection of contexts with DONE state
      * @see SchedulingTaskExecutor#submit(Callable)
      * @see Deque
      * @see Context.State#DONE
      */
     @Override
-    public Deque<Context<?>> undoNestedCommands(final Deque<Context<?>> doneContexts) {
+    public Deque<Context<?>> undoNestedCommands(final Input<Deque<Context<?>>> inputDoneContexts) {
+        final Deque<Context<?>> doneContexts = inputDoneContexts.value();
         if (ObjectUtils.isEmpty(doneContexts)) {
             getLog().warn("Nothing to undo");
             return doneContexts;

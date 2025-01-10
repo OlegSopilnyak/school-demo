@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade
 import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -51,7 +52,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> findById(Long id) {
         log.debug("Find course by ID:{}", id);
-        final Optional<Course> result = doSimpleCommand(FIND_BY_ID, id, factory);
+        final Optional<Course> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
         log.debug("Found the course {}", result);
         return result.map(convert);
     }
@@ -65,7 +66,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findRegisteredFor(Long id) {
         log.debug("Find courses registered to student with ID:{}", id);
-        final Set<Course> result = doSimpleCommand(FIND_REGISTERED, id, factory);
+        final Set<Course> result = doSimpleCommand(FIND_REGISTERED, Input.of(id), factory);
         log.debug("Found courses registered to student {}", result);
         return result.stream().map(convert).collect(Collectors.toSet());
     }
@@ -94,7 +95,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> createOrUpdate(Course instance) {
         log.debug("Create or Update course {}", instance);
-        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
+        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed course {}", result);
         return result.map(convert);
     }
@@ -111,7 +112,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("Delete course with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -152,7 +153,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
         final String commandId = REGISTER;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        final Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -193,7 +194,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
         log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
         final String commandId = UN_REGISTER;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        final Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 

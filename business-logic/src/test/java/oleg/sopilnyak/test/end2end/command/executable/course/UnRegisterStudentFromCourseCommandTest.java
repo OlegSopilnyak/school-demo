@@ -12,6 +12,8 @@ import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPe
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.StudentToCourseLink;
 import oleg.sopilnyak.test.service.command.executable.course.UnRegisterStudentFromCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -76,7 +78,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         course = payloadMapper.toPayload(persistence.findCourseById(courseId).orElseThrow());
         student = payloadMapper.toPayload(persistence.findStudentById(studentId).orElseThrow());
         reset(persistence, payloadMapper);
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -97,7 +99,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NoStudent() {
         Long id = 132L;
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -115,7 +117,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NoCourse() {
         Long id = persistStudent().getId();
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -144,7 +146,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         reset(persistence);
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
         doThrow(cannotExecute).when(persistence).unLink(any(StudentEntity.class), any(CourseEntity.class));
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -172,8 +174,12 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents()).isEmpty();
         reset(persistence);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(new StudentToCourseLink(student, course));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(new StudentToCourseLink(student, course)));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(new StudentToCourseLink(student, course));
 
         command.undoCommand(context);
 
@@ -190,8 +196,12 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_IgnoreParameter() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -204,8 +214,12 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("null");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("null"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 
@@ -228,8 +242,12 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
         doThrow(cannotExecute).when(persistence).link(student, course);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(new StudentToCourseLink(student, course));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(new StudentToCourseLink(student, course)));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(new StudentToCourseLink(student, course));
 
         command.undoCommand(context);
 

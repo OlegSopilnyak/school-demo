@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.*;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.springframework.util.ObjectUtils;
@@ -8,8 +9,8 @@ import org.springframework.util.ObjectUtils;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 
@@ -19,8 +20,10 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 @Builder
 public class CommandContext<T> implements Context<T> {
     private RootCommand<T> command;
-    private Object redoParameter;
-    private Object undoParameter;
+    private Input<?> redoParameter;
+    private Input<?> undoParameter;
+    //    private Object redoParameter;
+//    private Object undoParameter;
     private T resultData;
     private Exception exception;
     // the time when execution starts
@@ -43,28 +46,6 @@ public class CommandContext<T> implements Context<T> {
             Collections.synchronizedList(new LinkedList<>(List.of(new InternalStateChangedListener())));
 
     /**
-     * To get when command's execution is started
-     *
-     * @return the time when execution starts or null if it doesn't
-     * @see Instant
-     */
-    @Override
-    public Instant getStartedAt() {
-        return startedAt;
-    }
-
-    /**
-     * To get command's execution duration
-     *
-     * @return the value of last command execution duration or null if it doesn't
-     * @see Duration
-     */
-    @Override
-    public Duration getDuration() {
-        return duration;
-    }
-
-    /**
      * To set up current state of the context
      *
      * @param newState new current context's state
@@ -83,8 +64,28 @@ public class CommandContext<T> implements Context<T> {
      *
      * @param parameter the value
      */
-    @Override
-    public void setRedoParameter(Object parameter) {
+//    @Override
+//    public void setRedoParameter(Object parameter) {
+//        redoParameter = parameter;
+//    }
+
+    /**
+     * To set up parameter value for rollback changes
+     *
+     * @param parameter the value
+     */
+//    @Override
+//    public void setUndoParameter(Object parameter) {
+//        undoParameter = parameter;
+//    }
+
+    /**
+     * To set up input parameter value for command execution
+     *
+     * @param parameter the value
+     */
+//    @Override
+    public <R> void setRedoParameter(final Input<R> parameter) {
         this.redoParameter = parameter;
         if (state == INIT) {
             setState(READY);
@@ -92,14 +93,14 @@ public class CommandContext<T> implements Context<T> {
     }
 
     /**
-     * To set up parameter value for rollback changes
+     * To set up input parameter value for rollback changes
      *
      * @param parameter the value
      */
-    @Override
-    public void setUndoParameter(Object parameter) {
-        if (isDone() || isWorking()) {
-            undoParameter = parameter;
+//    @Override
+    public <U> void setUndoParameter(final Input<U> parameter) {
+        if (canUndo(state)) {
+            undoParameter = nonNull(parameter) ? parameter : Input.empty();
         }
     }
 
@@ -129,12 +130,22 @@ public class CommandContext<T> implements Context<T> {
     }
 
     /**
+     * To get context's life-cycle activities history
+     *
+     * @return context's history instance
+     */
+    @Override
+    public LifeCycleHistory getHistory() {
+        return history;
+    }
+
+    /**
      * To get states of context during context's life-cycle
      *
      * @return list of states
      * @see oleg.sopilnyak.test.service.command.type.base.Context.State
      */
-    public List<State> getStatesHistory() {
+    public List<StateChangedHistoryItem> getStatesHistory() {
         return List.copyOf(history.states);
     }
 
@@ -181,10 +192,14 @@ public class CommandContext<T> implements Context<T> {
     }
 
     // private methods
-    private void notifyStateChangedListeners(final State previous, final State last) {
+    private void notifyStateChangedListeners(final State previous, final State current) {
         if (ObjectUtils.isEmpty(listeners)) return;
         // delivery state-changed notification
-        listeners.forEach(listener -> listener.stateChanged(this, previous, last));
+        listeners.forEach(listener -> listener.stateChanged(this, previous, current));
+    }
+
+    private static boolean canUndo(State state) {
+        return state == DONE || state == WORK;
     }
 
     // nested class
@@ -193,52 +208,43 @@ public class CommandContext<T> implements Context<T> {
         private static final Set<State> alreadyFinished = Set.of(DONE, UNDONE, FAIL);
 
         @Override
-        public void stateChanged(Context<?> context, State previous, State current) {
+        public void stateChanged(final Context<?> context, final State previous, final State current) {
             final CommandContext<?> commandContext = (CommandContext<?>) context;
-            if (nonNull(previous) && commandExecutionReadyToStart(previous, current)) {
+            if (nonNull(previous) && readyToStart.contains(previous) && current == WORK) {
                 commandExecutionStarted(previous, commandContext);
-            } else if (commandExecutionAlreadyFinished(previous, current)) {
+            } else if (alreadyFinished.contains(current) && previous == WORK) {
                 commandExecutionFinished(current, commandContext);
             }
             commandContext.history.add(current);
-
         }
 
         // private methods
-        private static boolean commandExecutionReadyToStart(final State previous, final State current) {
-            return readyToStart.contains(previous) && current == WORK;
-        }
-
-        private static void commandExecutionStarted(State previous, final CommandContext<?> context) {
+        private static void commandExecutionStarted(final State previous, final CommandContext<?> context) {
             // command execution is started
-            final Instant now = Instant.now();
-            context.history.add(now, previous);
-            context.setStartedAt(now);
-        }
-
-        private static boolean commandExecutionAlreadyFinished(final State previous, final State current) {
-            return alreadyFinished.contains(current) && previous == WORK;
+            final Instant timeMark = Instant.now();
+            context.history.add(timeMark, previous);
+            context.setStartedAt(timeMark);
         }
 
         private static void commandExecutionFinished(final State current, final CommandContext<?> context) {
             // command execution is finished
-            if (isNull(context.getStartedAt())) {
-                return;
+            final Instant startedAt = context.getStartedAt();
+            if (nonNull(startedAt)) {
+                // store execution duration
+                final Duration duration = Duration.between(startedAt, Instant.now());
+                context.history.add(duration, current);
+                context.setDuration(duration);
             }
-            // store execution duration
-            final Duration duration = Duration.between(context.getStartedAt(), Instant.now());
-            context.history.add(duration, current);
-            context.setDuration(duration);
         }
     }
 
-    private static class History {
-        private final List<State> states = new LinkedList<>();
+    private static class History implements LifeCycleHistory {
+        private final List<StateChangedHistoryItem> states = new LinkedList<>();
         private final List<StartedAtHistoryItem> started = new LinkedList<>();
         private final List<WorkedHistoryItem> worked = new LinkedList<>();
 
         void add(final State state) {
-            states.add(state);
+            states.add(new StateChangedHistoryItem(state, Instant.now()));
         }
 
         void add(final Instant startedAt, final State startedAfter) {
@@ -247,6 +253,49 @@ public class CommandContext<T> implements Context<T> {
 
         void add(final Duration duration, final State finishedBy) {
             worked.add(new WorkedHistoryItem(duration, finishedBy));
+        }
+
+        /**
+         * To get context's states history
+         *
+         * @return deque of states
+         */
+        @Override
+        public Deque<State> states() {
+            return states.stream()
+                    .map(item -> item.newContextState)
+                    .collect(Collectors.toCollection(LinkedList::new));
+        }
+
+        /**
+         * To get when context started history (do/undo)
+         *
+         * @return deque of time-marks
+         */
+        @Override
+        public Deque<Instant> started() {
+            return started.stream()
+                    .map(item -> item.startedAt)
+                    .collect(Collectors.toCollection(LinkedList::new));
+        }
+
+        /**
+         * To get the duration of context running history (do/undo)
+         *
+         * @return deque of durations
+         */
+        @Override
+        public Deque<Duration> durations() {
+            return worked.stream()
+                    .map(item -> item.worked)
+                    .collect(Collectors.toCollection(LinkedList::new));
+        }
+    }
+
+    public record StateChangedHistoryItem(State newContextState, Instant when) {
+        @Override
+        public String toString() {
+            return "New Context State: " + newContextState + " Set Up at '" + when.toString() + "'";
         }
     }
 

@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -99,7 +101,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
 
         command.doCommand(context);
 
@@ -122,7 +124,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         doCallRealMethod().when(persistence).save(profile);
         Long id = -700L;
         when(profile.getId()).thenReturn(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
 
         command.doCommand(context);
@@ -150,7 +152,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_IncompatibleProfileType() {
-        Context<Optional<PrincipalProfile>> context = command.createContext(mock(StudentProfile.class));
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(mock(StudentProfile.class)));
 
         command.doCommand(context);
 
@@ -166,7 +168,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Long id = 701L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
 
         command.doCommand(context);
 
@@ -186,7 +188,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         doThrow(RuntimeException.class).when(persistence).findProfileById(id);
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
 
         command.doCommand(context);
 
@@ -203,7 +205,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         doCallRealMethod().when(persistence).save(profile);
         doThrow(RuntimeException.class).when(persistence).saveProfile(profile);
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
 
         command.doCommand(context);
 
@@ -225,7 +227,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
         doThrow(RuntimeException.class).when(persistence).saveProfile(any(PrincipalProfile.class));
-        Context<Optional<PrincipalProfile>> context = command.createContext(profile);
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
 
         assertThrows(RuntimeException.class, () -> command.doCommand(context));
 
@@ -243,7 +245,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<PrincipalProfile>> context = command.createContext("input");
+        Context<Optional<PrincipalProfile>> context = command.createContext(Input.of("input"));
 
         command.doCommand(context);
 
@@ -268,8 +270,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Long id = 704L;
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -283,8 +289,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         doCallRealMethod().when(persistence).save(profile);
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(profile);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setUndoParameter(profile);
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -321,8 +331,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter("param");
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("param"));
+        }
+//        context.setUndoParameter("param");
+//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -337,8 +351,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Long id = 703L;
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(id);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setUndoParameter(id);
+//        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
 
         command.undoCommand(context);
@@ -353,8 +371,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
     void shouldNotUndoCommand_SaveProfileExceptionThrown() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
-        context.setUndoParameter(profile);
-        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setUndoParameter(profile);
+//        context.setState(Context.State.DONE);
         doCallRealMethod().when(persistence).save(profile);
         doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
 

@@ -13,6 +13,8 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.course.StudentToCourseLink;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -72,7 +74,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Course course = persistCourse();
         Long studentId = student.getId();
         Long courseId = course.getId();
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -104,7 +106,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         assertThat(linkedCourse.getStudents()).contains(linkedStudent);
         reset(persistence);
 
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -121,7 +123,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NoStudent() {
         Long id = 121L;
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -138,7 +140,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_NoCourse() {
         Long studentId = persistStudent().getId();
         Long id = 122L;
-        Context<Boolean> context = command.createContext(new Long[]{studentId, id});
+        Context<Boolean> context = command.createContext(Input.of(studentId, id));
 
         command.doCommand(context);
 
@@ -161,7 +163,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents()).hasSize(2);
         reset(persistence);
         Long studentId = persistStudent(3).getId();
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -185,7 +187,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses()).hasSize(2);
         reset(persistence);
         Long courseId = persistCourse(3).getId();
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -207,7 +209,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         Long courseId = course.getId();
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
         doThrow(cannotExecute).when(persistence).link(any(Student.class), any(Course.class));
-        Context<Boolean> context = command.createContext(new Long[]{studentId, courseId});
+        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
 
         command.doCommand(context);
 
@@ -232,8 +234,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         reset(persistence);
         final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(forUndo);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(forUndo));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
@@ -247,8 +253,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NotLinked() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -260,8 +270,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("null");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("null"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 
@@ -285,8 +299,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         doThrow(cannotExecute).when(persistence).unLink(student, course);
         final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(forUndo);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(forUndo));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 

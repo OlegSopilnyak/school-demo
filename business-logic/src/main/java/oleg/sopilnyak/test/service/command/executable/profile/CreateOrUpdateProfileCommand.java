@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -90,8 +92,11 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
                         id, functionFindById(), functionAdoptEntity(),
                         () -> new ProfileNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
-                context.setUndoParameter(entity);
+                if (context instanceof CommandContext<?> commandContext) {
+                    getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
+                    commandContext.setRedoParameter(Input.of(entity));
+                }
+//                context.setUndoParameter(entity);
             } else {
                 getLog().debug("Trying to create profile using: {}", profile);
             }

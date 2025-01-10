@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -63,13 +65,13 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityExists() {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertStudentsGroupEquals(entity, context.getUndoParameter(), false);
+        assertStudentsGroupEquals(entity, context.<StudentsGroup>getUndoParameter().value(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));
@@ -80,7 +82,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotExists() {
         long id = 515L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -96,7 +98,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -126,7 +128,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteStudentsGroup(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -143,8 +145,12 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsCorrect() {
         StudentsGroup entity = persistClear();
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -158,8 +164,12 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("group");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("group"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("group");
 
         command.undoCommand(context);
 
@@ -174,8 +184,12 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -191,8 +205,12 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         StudentsGroup entity = persistClear();
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
         command.undoCommand(context);

@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -47,7 +49,7 @@ class DeleteStudentsGroupCommandTest {
         long id = 514L;
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -63,7 +65,7 @@ class DeleteStudentsGroupCommandTest {
     @Test
     void shouldNotDoCommand_EntityNotExists() {
         long id = 515L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -78,7 +80,7 @@ class DeleteStudentsGroupCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -107,7 +109,7 @@ class DeleteStudentsGroupCommandTest {
         when(persistence.findStudentsGroupById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         doThrow(new UnsupportedOperationException()).when(persistence).deleteStudentsGroup(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -122,8 +124,12 @@ class DeleteStudentsGroupCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
@@ -137,8 +143,12 @@ class DeleteStudentsGroupCommandTest {
     @Test
     void shouldNotUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("person");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("person"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("person");
 
         command.undoCommand(context);
 
@@ -152,8 +162,12 @@ class DeleteStudentsGroupCommandTest {
     @Test
     void shouldNotUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -167,8 +181,12 @@ class DeleteStudentsGroupCommandTest {
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
         command.undoCommand(context);

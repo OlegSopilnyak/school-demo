@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.student;
 
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -46,7 +48,7 @@ class CreateOrUpdateStudentCommandTest {
         Long id = -1L;
         when(entity.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<Student>> context = command.createContext(entity);
+        Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -66,7 +68,7 @@ class CreateOrUpdateStudentCommandTest {
         when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
-        Context<Optional<Student>> context = command.createContext(entity);
+        Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -82,7 +84,7 @@ class CreateOrUpdateStudentCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Optional<Student>> context = command.createContext("instance");
+        Context<Optional<Student>> context = command.createContext(Input.of("instance"));
 
         command.doCommand(context);
 
@@ -112,7 +114,7 @@ class CreateOrUpdateStudentCommandTest {
         when(entity.getId()).thenReturn(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
         doThrow(cannotExecute).when(persistence).save(entity);
-        Context<Optional<Student>> context = command.createContext(entity);
+        Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -131,7 +133,7 @@ class CreateOrUpdateStudentCommandTest {
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         RuntimeException cannotExecute = new RuntimeException("Cannot update");
         when(persistence.save(entity)).thenThrow(cannotExecute).thenReturn(Optional.of(entity));
-        Context<Optional<Student>> context = command.createContext(entity);
+        Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
 
@@ -148,8 +150,12 @@ class CreateOrUpdateStudentCommandTest {
     void shouldUndoCommand_DeleteStudent() {
         Long id = 111L;
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(id);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
@@ -161,8 +167,12 @@ class CreateOrUpdateStudentCommandTest {
     @Test
     void shouldUndoCommand_RestoreStudent() {
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -174,8 +184,12 @@ class CreateOrUpdateStudentCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("instance");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("instance"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("instance");
 
         command.undoCommand(context);
 
@@ -189,8 +203,12 @@ class CreateOrUpdateStudentCommandTest {
     @Test
     void shouldNotUndoCommand_NullParameter() {
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -205,8 +223,12 @@ class CreateOrUpdateStudentCommandTest {
         Long id = 111L;
         doThrow(RuntimeException.class).when(persistence).deleteStudent(id);
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(id);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(id));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
@@ -220,8 +242,12 @@ class CreateOrUpdateStudentCommandTest {
     void shouldNotUndoCommand_RestoreThrown() {
         doThrow(RuntimeException.class).when(persistence).save(entity);
         Context<Optional<Student>> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

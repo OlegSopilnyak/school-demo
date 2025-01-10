@@ -6,6 +6,8 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -60,7 +62,7 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityExists() {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -76,7 +78,7 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         long id = 521L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -91,7 +93,7 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         long id = 522L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
         doThrow(RuntimeException.class).when(persistence).findStudentsGroupById(id);
 
         command.doCommand(context);
@@ -106,9 +108,13 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         long id = 523L;
-        Context<Optional<StudentsGroup>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(persistClear());
+        Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(persistClear()));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(persistClear());
 
         command.undoCommand(context);
 

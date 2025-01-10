@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.type.nested;
 
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -24,10 +25,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see NestedCommand
-     * @see RootCommand#createContext(Object)
+     * @see RootCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final NestedCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final NestedCommand<T> command, final Input<?> macroInputParameter) {
         return prepareContext((RootCommand<T>) command, macroInputParameter);
     }
 
@@ -39,10 +40,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see RootCommand
-     * @see RootCommand#createContext(Object)
+     * @see RootCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final RootCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final RootCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -54,10 +55,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see SequentialMacroCommand
-     * @see SequentialMacroCommand#createContext(Object)
+     * @see SequentialMacroCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final SequentialMacroCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final SequentialMacroCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -69,10 +70,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see ParallelMacroCommand
-     * @see ParallelMacroCommand#createContext(Object)
+     * @see ParallelMacroCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final ParallelMacroCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final ParallelMacroCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -84,10 +85,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see CourseCommand
-     * @see CourseCommand#createContext(Object)
+     * @see CourseCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final CourseCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final CourseCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -99,10 +100,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see StudentCommand
-     * @see StudentCommand#createContext(Object)
+     * @see StudentCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final StudentCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -114,10 +115,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see PrincipalProfileCommand
-     * @see PrincipalProfileCommand#createContext(Object)
+     * @see PrincipalProfileCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final PrincipalProfileCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final PrincipalProfileCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -129,10 +130,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see StudentProfileCommand
-     * @see StudentProfileCommand#createContext(Object)
+     * @see StudentProfileCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentProfileCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final StudentProfileCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -144,10 +145,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see AuthorityPersonCommand
-     * @see AuthorityPersonCommand#createContext(Object)
+     * @see AuthorityPersonCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final AuthorityPersonCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final AuthorityPersonCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -159,10 +160,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see FacultyCommand
-     * @see FacultyCommand#createContext(Object)
+     * @see FacultyCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final FacultyCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final FacultyCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 
@@ -174,10 +175,10 @@ public interface PrepareContextVisitor {
      * @param <T>                 type of command's do result
      * @return built context of the nested command for the macro input parameter
      * @see StudentsGroupCommand
-     * @see StudentsGroupCommand#createContext(Object)
+     * @see StudentsGroupCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final StudentsGroupCommand<T> command, final Object macroInputParameter) {
+    default <T> Context<T> prepareContext(final StudentsGroupCommand<T> command, final Input<?> macroInputParameter) {
         return command.createContext(macroInputParameter);
     }
 }

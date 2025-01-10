@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -62,14 +64,14 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPerson entity = persist();
         Long id = entity.getId();
         assertThat(persistence.findAuthorityPersonById(id)).isPresent();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
         reset(persistence);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertAuthorityPersonEquals(entity, context.getUndoParameter(), false);
+        assertAuthorityPersonEquals(entity, context.<AuthorityPerson>getUndoParameter().value(), false);
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(any(AuthorityPersonEntity.class));
@@ -81,7 +83,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotExists() {
         long id = 315L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -97,7 +99,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -129,7 +131,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findAuthorityPersonById(id)).isPresent();
         reset(persistence);
         doThrow(new UnsupportedOperationException()).when(persistence).deleteAuthorityPerson(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -147,8 +149,12 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsCorrect() {
         AuthorityPerson entity = spy(makeCleanAuthorityPerson(1));
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -162,8 +168,12 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("person");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("person"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("person");
 
         command.undoCommand(context);
 
@@ -178,8 +188,12 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -195,8 +209,12 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         AuthorityPerson entity = spy(makeCleanAuthorityPerson(1));
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
         command.undoCommand(context);

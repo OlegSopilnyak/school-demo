@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
@@ -86,7 +87,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertProfilesEquals(entity.get(), profile, true);
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -102,7 +103,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(faculty).isEmpty();
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -118,7 +119,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(profile).isEmpty();
         verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(id);
+        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -135,7 +136,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertProfilesEquals(entity.get(), profileSource, false);
         verify(facade).createOrUpdate(profileSource);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(StudentProfilePayload.class));
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(any(StudentProfilePayload.class));
         verify(persistence).saveProfile(any(StudentProfilePayload.class));
@@ -153,7 +154,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertProfilesEquals(entity.orElseThrow(), profile, true);
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(profile);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(profile));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -175,7 +176,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(cause).isInstanceOf(ProfileNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(profileSource);
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(profileSource));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -192,7 +193,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         facade.deleteById(id);
 
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -211,7 +212,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         verify(facade).deleteById(id);
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).deleteProfileById(id);
         verify(persistence).findStudentProfileById(id);
@@ -232,7 +233,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         verify(facade).deleteById(id);
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -248,7 +249,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
         verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(id);
+        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
@@ -16,10 +17,10 @@ public interface NestedCommand<T> {
      * @param visitor visitor of prepared contexts
      * @param macroInputParameter   Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(NestedCommand, Object)
+     * @see PrepareContextVisitor#prepareContext(NestedCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
      */
-    Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Object macroInputParameter);
+    Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Input<?> macroInputParameter);
 
     /**
      * To execute command Do as a nested command
@@ -64,7 +65,7 @@ public interface NestedCommand<T> {
          * @param target      command context for next execution
          * @param <S>         type of current command execution result
          * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see Context#setRedoParameter(Object)
+         * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
          */
         <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target);
     }

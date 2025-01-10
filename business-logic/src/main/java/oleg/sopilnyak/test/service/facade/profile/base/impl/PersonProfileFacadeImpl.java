@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
@@ -59,7 +60,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     @Override
     public Optional<PersonProfile> findById(Long id) {
         log.debug("Find profile by ID:{}", id);
-        final Optional<PersonProfile> result = doSimpleCommand(findByIdCommandId(), id, factory);
+        final Optional<PersonProfile> result = doSimpleCommand(findByIdCommandId(), Input.of(id), factory);
         log.debug("Found profile {}", result);
         return result.map(convert);
     }
@@ -70,7 +71,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param instance instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfileFacadeImpl#createOrUpdateCommandId()
-     * @see CommandExecutor#doSimpleCommand(String, Object, CommandsFactory)
+     * @see CommandExecutor#doSimpleCommand(String, Input, CommandsFactory)
      * @see PersonProfile
      * @see Optional
      * @see Optional#empty()
@@ -78,7 +79,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     @Override
     public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
         log.debug("Create or Update profile {}", instance);
-        final Optional<PersonProfile> result = doSimpleCommand(createOrUpdateCommandId(), convert.apply(instance), factory);
+        final Optional<PersonProfile> result = doSimpleCommand(createOrUpdateCommandId(), Input.of(convert.apply(instance)), factory);
         log.debug("Changed profile {}", result);
         return result.map(convert);
     }
@@ -89,7 +90,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id value of system-id
      * @throws ProfileNotFoundException throws if the profile with system-id does not exist in the database
      * @see PersonProfileFacadeImpl#deleteByIdCommandId()
-     * @see ProfileCommand#createContext(Object)
+     * @see ProfileCommand#createContext(Input)
      * @see ProfileCommand#doCommand(Context)
      * @see Context
      * @see Context#getState()
@@ -99,7 +100,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         log.debug("Delete profile with ID:{}", id);
         final String commandId = deleteByIdCommandId();
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

@@ -1,20 +1,27 @@
 package oleg.sopilnyak.test.service.command.io.parameter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.message.payload.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {
@@ -24,17 +31,17 @@ class InputParameterTest {
     void shouldCreateLongIdParameter() {
         long id = 1L;
 
-        LongIdParameter parameter = new LongIdParameter(id);
+        Input<Long> parameter = Input.of(id);
 
         assertThat(parameter.value()).isSameAs(id);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(LongIdParameter.class);
     }
 
     @Test
     void shouldRestoreLongIdParameter() throws JsonProcessingException {
         long id = 2L;
 
-        LongIdParameter parameter = new LongIdParameter(id);
+        Input<Long> parameter = Input.of(id);
 
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(LongIdParameter.class.getName());
@@ -49,10 +56,10 @@ class InputParameterTest {
         long id = 3L;
         String stringId = ":" + id;
 
-        StringIdParameter parameter = new StringIdParameter(stringId);
+        Input<String> parameter = Input.of(stringId);
 
         assertThat(parameter.value()).isSameAs(stringId);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(StringIdParameter.class);
     }
 
     @Test
@@ -60,7 +67,7 @@ class InputParameterTest {
         long id = 4L;
         String stringId = ":" + id;
 
-        StringIdParameter parameter = new StringIdParameter(stringId);
+        Input<String> parameter = Input.of(stringId);
 
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StringIdParameter.class.getName());
@@ -75,13 +82,14 @@ class InputParameterTest {
         long id = 30L;
         long courseId = 31L;
         CoursePayload course = createCourse(courseId);
-        StudentPayload student = createStudent(id);
-        student.setCourses(List.of(course));
-        PayloadParameter<StudentPayload> parameter = new PayloadParameter<>(student);
+        StudentPayload entity = createStudent(id);
+        entity.setCourses(List.of(course));
 
-        assertThat(parameter.value()).isSameAs(student);
+        Input<StudentPayload> parameter = Input.of(entity);
+
+        assertThat(parameter.value()).isSameAs(entity);
         assertThat(parameter.value().getCourses()).contains(course);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -91,14 +99,15 @@ class InputParameterTest {
         CoursePayload course = createCourse(courseId);
         StudentPayload entity = createStudent(id);
         entity.setCourses(List.of(course));
+        Input<StudentPayload> parameter = Input.of(entity);
 
-        PayloadParameter<StudentPayload> parameter = new PayloadParameter<>(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(StudentPayload.class.getName());
 
-        PayloadParameter<StudentPayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<StudentPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<StudentPayload> restored = objectMapper.readValue(json, typeReference);
 
-        assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
         assertThat(restored.value().getCourses()).contains(course);
         assertThat(restored).isInstanceOf(Input.class);
@@ -108,14 +117,14 @@ class InputParameterTest {
     void shouldCreateCoursePayloadParameter() {
         long id = 32L;
         long courseId = 33L;
-        CoursePayload course = createCourse(courseId);
+        CoursePayload entity = createCourse(courseId);
         StudentPayload student = createStudent(id);
-        course.setStudents(List.of(student));
-        PayloadParameter<CoursePayload> parameter = new PayloadParameter<>(course);
+        entity.setStudents(List.of(student));
+        Input<CoursePayload> parameter = Input.of(entity);
 
-        assertThat(parameter.value()).isSameAs(course);
+        assertThat(parameter.value()).isSameAs(entity);
         assertThat(parameter.value().getStudents()).contains(student);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -125,11 +134,13 @@ class InputParameterTest {
         CoursePayload entity = createCourse(courseId);
         StudentPayload student = createStudent(id);
         entity.setStudents(List.of(student));
-        PayloadParameter<CoursePayload> parameter = new PayloadParameter<>(entity);
+        Input<CoursePayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(CoursePayload.class.getName());
 
-        PayloadParameter<CoursePayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<CoursePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<CoursePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -143,11 +154,12 @@ class InputParameterTest {
         AuthorityPersonPayload entity = createAuthorityPerson(id);
         FacultyPayload faculty = createFaculty(anotherId);
         entity.setFaculties(List.of(faculty));
-        PayloadParameter<AuthorityPersonPayload> parameter = new PayloadParameter<>(entity);
+
+        Input<AuthorityPersonPayload> parameter = Input.of(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
         assertThat(parameter.value().getFaculties()).contains(faculty);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -157,11 +169,14 @@ class InputParameterTest {
         AuthorityPersonPayload entity = createAuthorityPerson(id);
         FacultyPayload faculty = createFaculty(anotherId);
         entity.setFaculties(List.of(faculty));
-        PayloadParameter<AuthorityPersonPayload> parameter = new PayloadParameter<>(entity);
+
+        Input<AuthorityPersonPayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(AuthorityPersonPayload.class.getName());
 
-        PayloadParameter<AuthorityPersonPayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<AuthorityPersonPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<AuthorityPersonPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -175,10 +190,11 @@ class InputParameterTest {
         FacultyPayload entity = createFaculty(id);
         CoursePayload course = createCourse(anotherId);
         entity.setCourses(List.of(course));
-        PayloadParameter<FacultyPayload> parameter = new PayloadParameter<>(entity);
+
+        Input<FacultyPayload> parameter = Input.of(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -188,11 +204,14 @@ class InputParameterTest {
         FacultyPayload entity = createFaculty(id);
         CoursePayload course = createCourse(anotherId);
         entity.setCourses(List.of(course));
-        PayloadParameter<FacultyPayload> parameter = new PayloadParameter<>(entity);
+
+        Input<FacultyPayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(FacultyPayload.class.getName());
 
-        PayloadParameter<FacultyPayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<FacultyPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<FacultyPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -204,10 +223,10 @@ class InputParameterTest {
         long id = 40L;
         StudentProfilePayload entity = createStudentProfile(id);
 
-        PayloadParameter<StudentProfilePayload> parameter = new PayloadParameter<>(entity);
+        Input<StudentProfilePayload> parameter = Input.of(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -215,11 +234,13 @@ class InputParameterTest {
         long id = 401L;
         StudentProfilePayload entity = createStudentProfile(id);
 
-        PayloadParameter<StudentProfilePayload> parameter = new PayloadParameter<>(entity);
+        Input<StudentProfilePayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(StudentProfilePayload.class.getName());
 
-        PayloadParameter<StudentProfilePayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<StudentProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<StudentProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -230,10 +251,10 @@ class InputParameterTest {
         long id = 41L;
         PrincipalProfilePayload entity = createPrincipalProfile(id);
 
-        PayloadParameter<PrincipalProfilePayload> parameter = new PayloadParameter<>(entity);
+        Input<PrincipalProfilePayload> parameter = Input.of(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -241,11 +262,13 @@ class InputParameterTest {
         long id = 411L;
         PrincipalProfilePayload entity = createPrincipalProfile(id);
 
-        PayloadParameter<PrincipalProfilePayload> parameter = new PayloadParameter<>(entity);
+        Input<PrincipalProfilePayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(PrincipalProfilePayload.class.getName());
 
-        PayloadParameter<PrincipalProfilePayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<PrincipalProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<PrincipalProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -259,10 +282,10 @@ class InputParameterTest {
         StudentPayload student = createStudent(anotherId);
         entity.setStudents(List.of(student));
 
-        PayloadParameter<StudentsGroupPayload> parameter = new PayloadParameter<>(entity);
+        Input<StudentsGroupPayload> parameter = Input.of(entity);
 
         assertThat(parameter.value()).isSameAs(entity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class);
     }
 
     @Test
@@ -273,11 +296,13 @@ class InputParameterTest {
         StudentPayload student = createStudent(anotherId);
         entity.setStudents(List.of(student));
 
-        PayloadParameter<StudentsGroupPayload> parameter = new PayloadParameter<>(entity);
+        Input<StudentsGroupPayload> parameter = Input.of(entity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PayloadParameter.class.getName()).contains(StudentsGroupPayload.class.getName());
 
-        PayloadParameter<StudentsGroupPayload> restored = objectMapper.readValue(json, PayloadParameter.class);
+        TypeReference<PayloadParameter<StudentsGroupPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadParameter<StudentsGroupPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored).isInstanceOf(Input.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -289,11 +314,11 @@ class InputParameterTest {
         long firstId = 5L;
         long secondId = 6L;
 
-        LongIdPairParameter parameter = new LongIdPairParameter(firstId, secondId);
+        PairParameter<Long> parameter = Input.of(firstId, secondId);
 
         assertThat(parameter.value().first()).isSameAs(firstId);
         assertThat(parameter.value().second()).isSameAs(secondId);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(LongIdPairParameter.class);
     }
 
     @Test
@@ -301,7 +326,7 @@ class InputParameterTest {
         long firstId = 7L;
         long secondId = 8L;
 
-        LongIdPairParameter parameter = new LongIdPairParameter(firstId, secondId);
+        PairParameter<Long> parameter = Input.of(firstId, secondId);
 
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(LongIdPairParameter.class.getName());
@@ -309,7 +334,7 @@ class InputParameterTest {
 
         assertThat(restored.value().first()).isSameAs(firstId);
         assertThat(restored.value().second()).isSameAs(secondId);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -323,13 +348,13 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondEntity.setCourses(List.of(secondCourse));
 
-        PayloadPairParameter<StudentPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentPayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().first().getCourses()).contains(firstCourse);
         assertThat(parameter.value().second()).isSameAs(secondEntity);
         assertThat(parameter.value().second().getCourses()).contains(secondCourse);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -343,16 +368,19 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondEntity.setCourses(List.of(secondCourse));
 
-        PayloadPairParameter<StudentPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentPayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentPayload.class.getName());
-        PayloadPairParameter<StudentPayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<StudentPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<StudentPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().first().getCourses()).contains(firstCourse);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
         assertThat(restored.value().second().getCourses()).contains(secondCourse);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -379,13 +407,13 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondCourse.setStudents(List.of(secondEntity));
 
-        PayloadPairParameter<CoursePayload> parameter = new PayloadPairParameter<>(firstCourse, secondCourse);
+        PairParameter<CoursePayload> parameter = Input.of(firstCourse, secondCourse);
 
         assertThat(parameter.value().first()).isSameAs(firstCourse);
         assertThat(parameter.value().first().getStudents()).contains(firstEntity);
         assertThat(parameter.value().second()).isSameAs(secondCourse);
         assertThat(parameter.value().second().getStudents()).contains(secondEntity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -399,16 +427,19 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondCourse.setStudents(List.of(secondEntity));
 
-        PayloadPairParameter<CoursePayload> parameter = new PayloadPairParameter<>(firstCourse, secondCourse);
+        PairParameter<CoursePayload> parameter = Input.of(firstCourse, secondCourse);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(CoursePayload.class.getName());
-        PayloadPairParameter<CoursePayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<CoursePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<CoursePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstCourse);
         assertThat(restored.value().first().getStudents()).contains(firstEntity);
         assertThat(restored.value().second()).isEqualTo(secondCourse);
         assertThat(restored.value().second().getStudents()).contains(secondEntity);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -422,13 +453,13 @@ class InputParameterTest {
         firstEntity.setFaculties(List.of(firstFaculty));
         secondEntity.setFaculties(List.of(secondFaculty));
 
-        PayloadPairParameter<AuthorityPersonPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<AuthorityPersonPayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().first().getFaculties()).contains(firstFaculty);
         assertThat(parameter.value().second()).isSameAs(secondEntity);
         assertThat(parameter.value().second().getFaculties()).contains(secondFaculty);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -442,16 +473,19 @@ class InputParameterTest {
         firstEntity.setFaculties(List.of(firstFaculty));
         secondEntity.setFaculties(List.of(secondFaculty));
 
-        PayloadPairParameter<AuthorityPersonPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<AuthorityPersonPayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(AuthorityPersonPayload.class.getName());
-        PayloadPairParameter<AuthorityPersonPayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<AuthorityPersonPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<AuthorityPersonPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().first().getFaculties()).contains(firstFaculty);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
         assertThat(restored.value().second().getFaculties()).contains(secondFaculty);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -469,7 +503,7 @@ class InputParameterTest {
         firstEntity.setDean(firstDean);
         secondEntity.setDean(secondDean);
 
-        PayloadPairParameter<FacultyPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<FacultyPayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().first().getDean()).isSameAs(firstDean);
@@ -477,7 +511,7 @@ class InputParameterTest {
         assertThat(parameter.value().second()).isSameAs(secondEntity);
         assertThat(parameter.value().second().getDean()).isSameAs(secondDean);
         assertThat(parameter.value().second().getCourses()).contains(secondCourse);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -495,10 +529,13 @@ class InputParameterTest {
         firstEntity.setDean(firstDean);
         secondEntity.setDean(secondDean);
 
-        PayloadPairParameter<FacultyPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<FacultyPayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(FacultyPayload.class.getName());
-        PayloadPairParameter<FacultyPayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<FacultyPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<FacultyPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().first().getDean()).isEqualTo(firstDean);
@@ -506,7 +543,7 @@ class InputParameterTest {
         assertThat(restored.value().second()).isEqualTo(secondEntity);
         assertThat(restored.value().second().getDean()).isEqualTo(secondDean);
         assertThat(restored.value().second().getCourses()).contains(secondCourse);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -522,7 +559,7 @@ class InputParameterTest {
         secondEntity.setStudents(List.of(secondStudent));
         secondEntity.setLeader(secondStudent);
 
-        PayloadPairParameter<StudentsGroupPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentsGroupPayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().first().getLeader()).isSameAs(firstStudent);
@@ -530,7 +567,7 @@ class InputParameterTest {
         assertThat(parameter.value().second()).isSameAs(secondEntity);
         assertThat(parameter.value().second().getLeader()).isSameAs(secondStudent);
         assertThat(parameter.value().second().getStudents()).contains(secondStudent);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -546,10 +583,13 @@ class InputParameterTest {
         secondEntity.setStudents(List.of(secondStudent));
         secondEntity.setLeader(secondStudent);
 
-        PayloadPairParameter<StudentsGroupPayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentsGroupPayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentsGroupPayload.class.getName());
-        PayloadPairParameter<StudentsGroupPayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<StudentsGroupPayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<StudentsGroupPayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().first().getLeader()).isEqualTo(firstStudent);
@@ -557,7 +597,7 @@ class InputParameterTest {
         assertThat(restored.value().second()).isEqualTo(secondEntity);
         assertThat(restored.value().second().getLeader()).isEqualTo(secondStudent);
         assertThat(restored.value().second().getStudents()).contains(secondStudent);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -567,11 +607,11 @@ class InputParameterTest {
         StudentProfilePayload firstEntity = createStudentProfile(firstId);
         StudentProfilePayload secondEntity = createStudentProfile(secondId);
 
-        PayloadPairParameter<StudentProfilePayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentProfilePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().second()).isSameAs(secondEntity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -581,14 +621,17 @@ class InputParameterTest {
         StudentProfilePayload firstEntity = createStudentProfile(firstId);
         StudentProfilePayload secondEntity = createStudentProfile(secondId);
 
-        PayloadPairParameter<StudentProfilePayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<StudentProfilePayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentProfilePayload.class.getName());
-        PayloadPairParameter<StudentProfilePayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<StudentProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<StudentProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -598,11 +641,11 @@ class InputParameterTest {
         PrincipalProfilePayload firstEntity = createPrincipalProfile(firstId);
         PrincipalProfilePayload secondEntity = createPrincipalProfile(secondId);
 
-        PayloadPairParameter<PrincipalProfilePayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<PrincipalProfilePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value().first()).isSameAs(firstEntity);
         assertThat(parameter.value().second()).isSameAs(secondEntity);
-        assertThat(parameter).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(PayloadPairParameter.class);
     }
 
     @Test
@@ -612,14 +655,30 @@ class InputParameterTest {
         PrincipalProfilePayload firstEntity = createPrincipalProfile(firstId);
         PrincipalProfilePayload secondEntity = createPrincipalProfile(secondId);
 
-        PayloadPairParameter<PrincipalProfilePayload> parameter = new PayloadPairParameter<>(firstEntity, secondEntity);
+        PairParameter<PrincipalProfilePayload> parameter = Input.of(firstEntity, secondEntity);
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PrincipalProfilePayload.class.getName());
-        PayloadPairParameter<PrincipalProfilePayload> restored = objectMapper.readValue(json, PayloadPairParameter.class);
+
+        TypeReference<PayloadPairParameter<PrincipalProfilePayload>> typeReference = new TypeReference<>() {
+        };
+        PayloadPairParameter<PrincipalProfilePayload> restored = objectMapper.readValue(json, typeReference);
 
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
-        assertThat(restored).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldCreateUndoDequeContextsParameter() {
+        Context<?> context1 = mock(Context.class);
+        Context<?> context2 = mock(Context.class);
+        Deque<Context<?>> contexts = List.of(context1,context2).stream().collect(Collectors.toCollection(LinkedList::new));
+
+        Input<Deque<Context<?>>> parameter = Input.of(contexts);
+
+        assertThat(parameter.value()).hasSameSizeAs(contexts);
+        assertThat(parameter.value()).contains(context1).contains(context2);
+        assertThat(parameter).isInstanceOf(UndoDequeContextsParameter.class);
     }
 
     // private methods

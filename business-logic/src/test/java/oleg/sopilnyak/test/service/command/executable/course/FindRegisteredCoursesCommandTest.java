@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +32,7 @@ class FindRegisteredCoursesCommandTest {
     void shouldDoCommand_CoursesFound() {
         Long id = 111L;
         when(persistence.findCoursesRegisteredForStudent(id)).thenReturn(Set.of(course));
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -46,7 +47,7 @@ class FindRegisteredCoursesCommandTest {
     @Test
     void shouldDoCommand_CoursesNotFound() {
         Long id = 110L;
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -63,7 +64,7 @@ class FindRegisteredCoursesCommandTest {
         Long id = 112L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).findCoursesRegisteredForStudent(id);
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

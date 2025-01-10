@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.FindEnrolledStudentsCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -59,7 +60,7 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentsNotFound() {
         Long id = 210L;
-        Context<Set<Student>> context = command.createContext(id);
+        Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -82,7 +83,7 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
         Student saved = persistence.findStudentById(student.getId()).orElseThrow();
         reset(persistence);
         Long id = course.getId();
-        Context<Set<Student>> context = command.createContext(id);
+        Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -98,7 +99,7 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_StudentNotEnrolled() {
         persistStudent();
         Long id = persistCourse().getId();
-        Context<Set<Student>> context = command.createContext(id);
+        Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -116,7 +117,7 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
         Long id = 212L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).findEnrolledStudentsByCourseId(id);
-        Context<Set<Student>> context = command.createContext(id);
+        Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

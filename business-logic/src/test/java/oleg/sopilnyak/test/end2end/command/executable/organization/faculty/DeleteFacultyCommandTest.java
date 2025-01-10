@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -62,13 +64,13 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_EntityExists() {
         Faculty entity = persist();
         Long id = entity.getId();
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertFacultyEquals(entity, context.getUndoParameter(), false);
+        assertFacultyEquals(entity, context.<Faculty>getUndoParameter().value(), false);
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
         verify(payloadMapper).toPayload(any(FacultyEntity.class));
@@ -79,7 +81,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotExists() {
         long id = 415L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -95,7 +97,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -125,7 +127,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
         Faculty entity = persist();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteFaculty(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -142,8 +144,12 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Faculty entity = makeCleanFacultyNoDean(0);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -157,8 +163,12 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("faculty");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("faculty"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("faculty");
 
         command.undoCommand(context);
 
@@ -189,8 +199,12 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         Faculty entity = makeCleanFacultyNoDean(0);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
         command.undoCommand(context);

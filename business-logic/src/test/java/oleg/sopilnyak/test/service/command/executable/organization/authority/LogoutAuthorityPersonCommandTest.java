@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +22,7 @@ class LogoutAuthorityPersonCommandTest {
     @Test
     void shouldDoCommand() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(token);
+        Context<Boolean> context = command.createContext(Input.of(token));
 
         command.doCommand(context);
 
@@ -32,7 +33,7 @@ class LogoutAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(token);
+        Context<Boolean> context = command.createContext(Input.of(token));
         context.setState(DONE);
 
         command.undoCommand(context);

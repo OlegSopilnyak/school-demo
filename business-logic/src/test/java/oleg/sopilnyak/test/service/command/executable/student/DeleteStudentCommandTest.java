@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesE
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -52,7 +54,7 @@ class DeleteStudentCommandTest {
         when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
         when(persistence.deleteStudent(id)).thenReturn(true);
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -73,7 +75,7 @@ class DeleteStudentCommandTest {
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).deleteStudent(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -88,7 +90,7 @@ class DeleteStudentCommandTest {
     @Test
     void shouldNotDoCommand_StudentNotFound() {
         Long id = 112L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -106,7 +108,7 @@ class DeleteStudentCommandTest {
         when(payload.getCourses()).thenReturn(List.of(mock(Course.class)));
         when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -121,8 +123,12 @@ class DeleteStudentCommandTest {
     @Test
     void shouldUndoCommand_RestoreStudent() {
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
@@ -136,8 +142,12 @@ class DeleteStudentCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(DONE);
-        context.setUndoParameter("instance");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("instance"));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter("instance");
 
         command.undoCommand(context);
 

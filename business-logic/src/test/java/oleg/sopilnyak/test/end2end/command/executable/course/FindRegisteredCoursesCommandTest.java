@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.FindRegisteredCoursesCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -64,7 +65,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
         persistence.link(student, course);
         reset(persistence);
         Long id = student.getId();
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -79,7 +80,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CoursesNotFound() {
         Long id = 110L;
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -96,7 +97,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_CoursesNotLinked() {
         persistCourse();
         Long id = persistStudent().getId();
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -114,7 +115,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
         Long id = 112L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
         doThrow(cannotExecute).when(persistence).findCoursesRegisteredForStudent(id);
-        Context<Set<Course>> context = command.createContext(id);
+        Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -100,8 +102,12 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
 
             log.debug("Updated in database: '{}'", entity);
             // change student-id value for further do command action
-            context.setRedoParameter(entity.getId());
-            context.setState(Context.State.UNDONE);
+            if (context instanceof CommandContext<?> commandContext) {
+                commandContext.setRedoParameter(Input.of(entity.getId()));
+                commandContext.setState(Context.State.UNDONE);
+            }
+//            context.setRedoParameter(entity.getId());
+//            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);
             context.failed(e);

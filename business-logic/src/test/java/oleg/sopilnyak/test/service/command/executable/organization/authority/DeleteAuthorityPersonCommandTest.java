@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -47,7 +49,7 @@ class DeleteAuthorityPersonCommandTest {
         long id = 314L;
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -63,7 +65,7 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldNotDoCommand_EntityNotExists() {
         long id = 315L;
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -78,7 +80,7 @@ class DeleteAuthorityPersonCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -107,7 +109,7 @@ class DeleteAuthorityPersonCommandTest {
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         doThrow(new UnsupportedOperationException()).when(persistence).deleteAuthorityPerson(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -121,8 +123,12 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
@@ -136,8 +142,12 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("person");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("person"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("person");
 
         command.undoCommand(context);
 
@@ -151,8 +161,12 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -166,8 +180,12 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(entity);
         doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
         command.undoCommand(context);

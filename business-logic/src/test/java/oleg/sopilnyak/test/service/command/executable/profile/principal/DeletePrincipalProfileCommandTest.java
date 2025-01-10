@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.profile.principal;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -79,7 +81,7 @@ class DeletePrincipalProfileCommandTest {
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -99,7 +101,7 @@ class DeletePrincipalProfileCommandTest {
     void shouldNotDoCommand_NoProfile() {
         long id = 415L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -116,7 +118,7 @@ class DeletePrincipalProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongParameterType() throws ProfileNotFoundException {
-        Context<Boolean> context = command.createContext("id");
+        Context<Boolean> context = command.createContext(Input.of("id"));
 
         command.doCommand(context);
 
@@ -147,7 +149,7 @@ class DeletePrincipalProfileCommandTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
-        Context<Boolean> context = command.createContext(id);
+        Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -165,8 +167,12 @@ class DeletePrincipalProfileCommandTest {
     void shouldUndoCommand_UndoProfileExists() {
         doCallRealMethod().when(persistence).save(profile);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(profile);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(profile);
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
 
         command.undoCommand(context);
@@ -181,8 +187,12 @@ class DeletePrincipalProfileCommandTest {
     @Test
     void shouldNotUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("input");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("input"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("input");
 
         command.undoCommand(context);
 
@@ -196,8 +206,12 @@ class DeletePrincipalProfileCommandTest {
     @Test
     void shouldNotUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -212,8 +226,12 @@ class DeletePrincipalProfileCommandTest {
     void shouldNotUndoCommand_ExceptionThrown() {
         doCallRealMethod().when(persistence).save(profile);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(profile);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(profile));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(profile);
         doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
 
         command.undoCommand(context);

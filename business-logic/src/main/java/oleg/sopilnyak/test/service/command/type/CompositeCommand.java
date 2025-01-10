@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -40,6 +41,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      *
      * @param inputParameter command context's parameter value
      * @return context instance
+     * @see Input
      * @see Context
      * @see Context#getRedoParameter()
      * @see CommandContext
@@ -47,20 +49,26 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      * @see RootCommand#createContext()
      */
     @Override
-    default Context<T> createContext(Object inputParameter) {
-        final Deque<Context<?>> nested = fromNest().stream()
+    default Context<T> createContext(Input<?> inputParameter) {
+        final Deque<Context<?>> nestedContextsDeque = fromNest().stream()
                 .map(nestedCommand -> prepareNestedContext(nestedCommand, inputParameter))
                 .collect(Collectors.toCollection(LinkedList::new));
-        final Optional<? extends Context<?>> failed =
-                nested.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst();
-        final Context<T> macroCommandContext = createContext();
-        if (failed.isPresent()) {
-            macroCommandContext.failed(failed.get().getException());
-        } else {
-            final var redoParameter = new MacroCommandParameter(inputParameter, nested);
-            macroCommandContext.setRedoParameter(redoParameter);
-        }
-        return macroCommandContext;
+        final Optional<? extends Context<?>> failedContext = nestedContextsDeque.stream()
+                .filter(Objects::nonNull).filter(Context::isFailed)
+                .findFirst();
+////        final Context<T> macroCommandContext = createContext();
+//        if (failed.isPresent()) {
+//            return RootCommand.super.createContext().failed(failed.get().getException());
+////            macroCommandContext.failed(failed.get().getException());
+//        } else {
+//            return RootCommand.super.createContext(new MacroCommandParameter(inputParameter, nested));
+////            final var redoParameter = new MacroCommandParameter(inputParameter, nested);
+////            macroCommandContext.setRedoParameter(redoParameter);
+//        }
+        return failedContext.isEmpty() ?
+                RootCommand.super.createContext(new MacroCommandParameter(inputParameter, nestedContextsDeque)) :
+                RootCommand.super.createContext().failed(failedContext.get().getException());
+//        return macroCommandContext;
     }
 
 // For commands playing Nested Command Role
@@ -71,12 +79,12 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      * @param visitor        visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Object)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Object)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Object macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 
@@ -108,7 +116,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
     }
 
     // private methods
-    private Context<?> prepareNestedContext(NestedCommand<?> command, Object mainInputParameter) {
+    private Context<?> prepareNestedContext(NestedCommand<?> command, Input<?> mainInputParameter) {
         try {
             return command.acceptPreparedContext(this, mainInputParameter);
         } catch (Exception e) {

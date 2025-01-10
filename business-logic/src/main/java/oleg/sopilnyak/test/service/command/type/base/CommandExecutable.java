@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 
 /**
  * Type: Command to execute command business-logic
@@ -22,8 +23,9 @@ public interface CommandExecutable<T> {
     /**
      * To create command's execution context with input parameter
      *
-     * @param input context's doParameter value
+     * @param input context's doParameter input value
      * @return context instance
+     * @see Input
      * @see Context
      * @see Context#getRedoParameter()
      * @see CommandContext
@@ -31,7 +33,7 @@ public interface CommandExecutable<T> {
      * @see CommandExecutable#executeDo(Context)
      * @see CommandExecutable#executeUndo(Context)
      */
-    Context<T> createContext(Object input);
+    Context<T> createContext(Input<?> input);
 
 
     /**

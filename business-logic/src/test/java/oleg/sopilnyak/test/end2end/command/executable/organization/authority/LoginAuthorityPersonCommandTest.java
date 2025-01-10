@@ -9,6 +9,8 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.LoginAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -62,7 +64,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -82,7 +84,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
         persistence.deleteAuthorityPerson(entity.getId());
 
         command.doCommand(context);
@@ -103,7 +105,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
         persistence.deleteProfileById(id);
 
         command.doCommand(context);
@@ -129,7 +131,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String error = "error finding principal profile";
         RuntimeException runtimeException = new RuntimeException(error);
         doThrow(runtimeException).when(persistence).findPrincipalProfileByLogin(username);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -150,7 +152,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, "password"});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, "password"));
 
         command.doCommand(context);
 
@@ -175,7 +177,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String error = "error finding authority person";
         RuntimeException runtimeException = new RuntimeException(error);
         doThrow(runtimeException).when(persistence).findAuthorityPersonByProfileId(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -196,9 +198,13 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

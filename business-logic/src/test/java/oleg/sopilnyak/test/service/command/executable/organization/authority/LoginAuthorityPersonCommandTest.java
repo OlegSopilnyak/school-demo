@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -52,7 +54,7 @@ class LoginAuthorityPersonCommandTest {
         when(persistence.findAuthorityPersonByProfileId(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(entityPayload);
         when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -73,7 +75,7 @@ class LoginAuthorityPersonCommandTest {
         when(profilePayload.isPassword(password)).thenReturn(true);
         when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
         when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -90,7 +92,7 @@ class LoginAuthorityPersonCommandTest {
         long id = 332L;
         String username = "login";
         String password = "pass";
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -112,7 +114,7 @@ class LoginAuthorityPersonCommandTest {
         String error = "error finding principal profile";
         RuntimeException runtimeException = new RuntimeException(error);
         doThrow(runtimeException).when(persistence).findPrincipalProfileByLogin(username);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -132,7 +134,7 @@ class LoginAuthorityPersonCommandTest {
         String password = "pass";
         when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
         when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -158,7 +160,7 @@ class LoginAuthorityPersonCommandTest {
         when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
         when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
         doThrow(runtimeException).when(persistence).findAuthorityPersonByProfileId(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -176,9 +178,13 @@ class LoginAuthorityPersonCommandTest {
     void shouldUndoCommand_NothingToDo() {
         String username = "login";
         String password = "pass";
-        Context<Optional<AuthorityPerson>> context = command.createContext(new String[]{username, password});
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

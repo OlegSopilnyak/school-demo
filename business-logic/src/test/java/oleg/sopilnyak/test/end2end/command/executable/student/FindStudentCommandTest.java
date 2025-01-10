@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.student.FindStudentCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -58,7 +59,7 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentNotFound() {
         Long id = 106L;
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -75,7 +76,7 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_StudentFound() {
         Student student = persist();
         Long id = student.getId();
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -92,7 +93,7 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
         Long id = persist().getId();
         RuntimeException cannotExecute = new RuntimeException();
         doThrow(cannotExecute).when(persistence).findStudentById(id);
-        Context<Optional<Student>> context = command.createContext(id);
+        Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

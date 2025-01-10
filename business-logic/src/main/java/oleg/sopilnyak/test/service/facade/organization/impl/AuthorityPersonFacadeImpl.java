@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -57,11 +58,11 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> login(String username, String password) {
         log.debug("Try to login using: '{}'", username);
-        final String[] permissions = new String[]{username, password};
+//        final String[] permissions = new String[]{username, password};
         final String commandId = LOGIN;
         final AuthorityPersonCommand<Optional<AuthorityPerson>> command =
                 (AuthorityPersonCommand<Optional<AuthorityPerson>>) takeValidCommand(commandId, factory);
-        final Context<Optional<AuthorityPerson>> context = command.createContext(permissions);
+        final Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -96,7 +97,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public void logout(String token) {
         log.debug("Logout for token: {}", token);
-        final boolean loggedOut = doSimpleCommand(LOGOUT, token, factory);
+        final boolean loggedOut = doSimpleCommand(LOGOUT, Input.of(token), factory);
         log.debug("Person is logged out: {}", loggedOut);
     }
 
@@ -129,7 +130,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
         log.debug("Find authority person by ID:{}", id);
-        final Optional<AuthorityPerson> result = doSimpleCommand(FIND_BY_ID, id, factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
         log.debug("Found authority person {}", result);
         return result.map(convert);
     }
@@ -147,7 +148,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
         log.debug("Create or Update authority person {}", instance);
-        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed authority person {}", result);
         return result.map(convert);
     }
@@ -164,7 +165,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> create(AuthorityPerson instance) {
         log.debug("Create authority person with new profile {}", instance);
-        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_NEW, convert.apply(instance), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_NEW, Input.of(convert.apply(instance)), factory);
         log.debug("Created authority person {}", result);
         return result.map(convert);
     }
@@ -173,7 +174,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonNotFoundException      throws when authorityPerson is not exists
+     * @throws AuthorityPersonNotFoundException       throws when authorityPerson is not exists
      * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
      */
     @Override
@@ -181,7 +182,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         log.debug("Delete authority person with ID:{}", id);
         final String commandId = DELETE_ALL;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

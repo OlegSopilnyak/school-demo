@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeExce
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
@@ -101,7 +103,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         final Object parameter = context.getUndoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().debug("Restoring changed value of {}\n'{}'", entityName, parameter);
-            return facadeSave.apply(context.getUndoParameter());
+//            return facadeSave.apply(context.getUndoParameter());
         } else if (isNull(facadeDeleteById)) {
             throw new InvalidParameterTypeException(entityName, parameter);
         }
@@ -146,7 +148,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         final Object parameter = context.getRedoParameter();
         if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
             getLog().debug("Storing changed value of {} '{}'", entityName, parameter);
-            return facadeSave.apply(context.getRedoParameter());
+//            return facadeSave.apply(context.getRedoParameter());
         }
         getLog().warn("Invalid redo parameter type (expected '{}' for [{}])", entityName, parameter);
         throw new InvalidParameterTypeException(entityName, parameter);
@@ -162,7 +164,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)
-     * @see Context#setUndoParameter(Object)
+     * @see CommandContext#setUndoParameter(Input)
      * @see Optional
      * @see Runnable#run()
      */
@@ -186,7 +188,9 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
             if (nonNull(persistedEntityCopy) && isCreateEntityMode) {
                 // storing created entity.id for undo operation
-                context.setUndoParameter(persistedEntityCopy.getId());
+                if (context instanceof CommandContext<Optional<T>> commandContext) {
+                    commandContext.setUndoParameter(Input.of(persistedEntityCopy.getId()));
+                }
             }
         }
     }
@@ -200,7 +204,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @param <E>               type of command result
      * @see BasePayload
      * @see BasePayload#setId(Long)
-     * @see Context#setUndoParameter(Object)\
+     * @see CommandContext#setUndoParameter(Input)
      * @see Supplier#get()
      */
     protected <E> void setupUndoParameter(final Context<E> context,
@@ -213,6 +217,8 @@ public abstract class SchoolCommandCache<T extends BaseType> {
             throw exceptionSupplier.get();
         }
         // cached profile is storing to context for further rollback (undo)
-        context.setUndoParameter(entity);
+        if (context instanceof CommandContext<E> commandContext) {
+            commandContext.setUndoParameter(Input.of(entity));
+        }
     }
 }

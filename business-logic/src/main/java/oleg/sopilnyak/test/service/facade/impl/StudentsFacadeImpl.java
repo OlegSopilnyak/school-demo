@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -49,7 +50,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> findById(Long id) {
         log.debug("Find student by ID:{}", id);
-        final Optional<Student> result = doSimpleCommand(FIND_BY_ID, id, factory);
+        final Optional<Student> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
         log.debug("Found the student {}", result);
         return result.map(convert);
     }
@@ -63,7 +64,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Set<Student> findEnrolledTo(Long id) {
         log.debug("Find students enrolled to the course with ID:{}", id);
-        final Set<Student> result = doSimpleCommand(FIND_ENROLLED, id, factory);
+        final Set<Student> result = doSimpleCommand(FIND_ENROLLED, Input.of(id), factory);
         log.debug("Found students enrolled to the course {}", result);
         return result.stream().map(convert).collect(Collectors.toSet());
     }
@@ -92,7 +93,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> createOrUpdate(Student instance) {
         log.debug("Create or Update student {}", instance);
-        final Optional<Student> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
+        final Optional<Student> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed student {}", result);
         return result.map(convert);
     }
@@ -109,7 +110,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> create(Student instance) {
         log.debug("Creating student {}", instance);
-        final Optional<Student> result = doSimpleCommand(CREATE_NEW, convert.apply(instance), factory);
+        final Optional<Student> result = doSimpleCommand(CREATE_NEW, Input.of(convert.apply(instance)), factory);
         log.debug("Created student {}", result);
         return result.map(convert);
     }
@@ -127,7 +128,7 @@ public class StudentsFacadeImpl implements StudentsFacade {
         log.debug("Delete student with ID:{}", id);
         final String commandId = DELETE_ALL;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

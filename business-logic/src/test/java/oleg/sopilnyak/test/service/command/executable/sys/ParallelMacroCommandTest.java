@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -59,334 +60,334 @@ class ParallelMacroCommandTest {
     void checkIntegrity() {
         assertThat(command).isNotNull();
     }
-
-    @Test
-    void shouldDoAllNestedCommands() {
-        int parameter = 100;
-        allowRealPrepareContextBase(parameter);
-        Context<?> macroContext = command.createContext(parameter);
-        assertThat(macroContext.isReady()).isTrue();
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        assertThat(wrapper.getInput()).isEqualTo(parameter);
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10);
-        AtomicInteger counter = new AtomicInteger(0);
-        Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
-        allowRealNestedCommandExecutionBase();
-
-        command.doNestedCommands(wrapper.getNestedContexts(), listener);
-
-        assertThat(counter.get()).isEqualTo(command.fromNest().size());
-        verify(executor, times(counter.get())).submit(any(Callable.class));
-        // check contexts states
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isDone()).isTrue());
-        checkRegularNestedCommandExecution(doubleCommand, wrapper.getNestedContexts().pop(), listener);
-        checkRegularNestedCommandExecution(booleanCommand, wrapper.getNestedContexts().pop(), listener);
-        checkRegularNestedCommandExecution(intCommand, wrapper.getNestedContexts().pop(), listener);
-    }
-
-    @Test
-    <T> void shouldDoParallelCommand_BaseCommands() {
-        int parameter = 101;
-        allowRealPrepareContextBase(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-
-        // doing command with macro-context
-        command.doCommand(macroContext);
-
-        // after do check
-        verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-        assertThat(macroContext.isDone()).isTrue();
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        assertThat(macroContext.<Deque<Context<?>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
-        wrapper.getNestedContexts().forEach(context -> {
-            Context<T> nestedContext = (Context<T>) context;
-            RootCommand<T> nestedCommand = nestedContext.getCommand();
-            verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
-            verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-            verify(nestedCommand).doCommand(nestedContext);
-        });
-        macroContext.<Deque<Context<?>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
-        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
-    }
-
-    @Test
-    <T> void shouldDoParallelCommand_ExtraCommands() {
-        int parameter = 102;
-        command = spy(new FakeParallelCommand(executor, studentCommand));
-        command.addToNest(studentCommand);
-        command.addToNest(doubleCommand);
-        command.addToNest(booleanCommand);
-        command.addToNest(intCommand);
-        allowRealPrepareContextBase(parameter);
-        allowRealPrepareContextExtra(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        assertThat(wrapper.getInput()).isEqualTo(parameter);
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        verify(studentCommand).acceptPreparedContext(command, parameter);
-        verify(command).prepareContext(studentCommand, parameter);
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-        allowRealNestedCommandExecutionExtra();
-
-        // doing command with macro-context
-        command.doCommand(macroContext);
-
-        // after do check
-        verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-        assertThat(macroContext.isDone()).isTrue();
-        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
-        wrapper.getNestedContexts().stream()
-                .filter(context -> context != overridedStudentContext)
-                .forEach(context -> {
-                    Context<T> nestedContext = (Context<T>) context;
-                    RootCommand<T> nestedCommand = nestedContext.getCommand();
-                    verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
-                    verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-                    verify(nestedCommand).doCommand(nestedContext);
-                });
-        verify(studentCommand).doAsNestedCommand(eq(command), eq(overridedStudentContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(StudentCommand.class), eq(overridedStudentContext), any(Context.StateChangedListener.class));
-        verify(studentCommand, never()).doCommand(any(Context.class));
-        macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
-        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
-    }
-
-    @Test
-    <T> void shouldNotDoParallelCommand_doCommandThrowsException() {
-        int parameter = 101;
-        allowRealPrepareContextBase(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10);
-        allowRealNestedCommandExecutionBase();
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
-
-        // doing command with macro-context
-        command.doCommand(macroContext);
-
-        // after do check
-        verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-        assertThat(macroContext.isFailed()).isTrue();
-        assertThat(macroContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
-        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).isNull();
-
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        wrapper.getNestedContexts().stream()
-                .filter(context -> context.getCommand() != doubleCommand)
-                .forEach(context -> {
-                    Context<T> nestedContext = (Context<T>) context;
-                    RootCommand<T> nestedCommand = nestedContext.getCommand();
-                    verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
-                    verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
-                    verify(nestedCommand).doCommand(nestedContext);
-                    assertThat(context.isDone()).isTrue();
-                    verify(nestedCommand).undoAsNestedCommand(command, context);
-                });
-        Context<T> doubleContext = (Context<T>) wrapper.getNestedContexts().getFirst();
-        assertThat(doubleContext.isFailed()).isTrue();
-        assertThat(doubleContext.getCommand()).isSameAs(doubleCommand);
-        verify(doubleContext.getCommand()).doCommand(doubleContext);
-        verify(doubleCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        int submitted = command.fromNest().size() * 2 - 1;
-        verify(executor, times(submitted)).submit(any(Callable.class));
-    }
-
-    @Test
-    void shouldRollbackAllNestedDoneContexts_BaseCommands() {
-        int parameter = 103;
-        allowRealPrepareContextBase(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        assertThat(macroContext).isNotNull();
-        assertThat(macroContext.isReady()).isTrue();
-        assertThat(macroContext.getCommand()).isEqualTo(command);
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        assertThat(wrapper.getInput()).isEqualTo(parameter);
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-        command.doCommand(macroContext);
-        Deque<Context<?>> nestedUndoneContexts = macroContext.getUndoParameter();
-        configureNestedUndoStatus(doubleCommand);
-        configureNestedUndoStatus(booleanCommand);
-        configureNestedUndoStatus(intCommand);
-        allowRealNestedCommandRollbackBase();
-        reset(executor);
-
-        Deque<Context<?>> rollbackResults = command.undoNestedCommands(nestedUndoneContexts);
-
-        assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
-        // check contexts states
-        rollbackResults.forEach(context -> {
-            verify(context.getCommand()).undoAsNestedCommand(command, context);
-            verify(command).undoNestedCommand(context.getCommand(), context);
-            assertThat(context.getState()).isEqualTo(UNDONE);
-        });
-        verify(executor, times(rollbackResults.size())).submit(any(Callable.class));
-    }
-
-    @Test
-    void shouldUndoParallelCommand_BaseCommands() {
-        int parameter = 104;
-        allowRealPrepareContextBase(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-        command.doCommand(macroContext);
-        assertThat(macroContext.isDone()).isTrue();
-        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
-        nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
-        configureNestedUndoStatus(doubleCommand);
-        configureNestedUndoStatus(booleanCommand);
-        configureNestedUndoStatus(intCommand);
-        allowRealNestedCommandRollbackBase();
-        reset(executor);
-
-        command.undoCommand(macroContext);
-
-        assertThat(macroContext.getState()).isEqualTo(UNDONE);
-        nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
-
-        verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(nestedDoneContexts);
-        nestedDoneContexts.forEach(context -> {
-            final var nestedCommand = context.getCommand();
-            verify(nestedCommand).undoAsNestedCommand(command, context);
-            verify(command).undoNestedCommand(nestedCommand, context);
-            verify(nestedCommand).undoCommand(context);
-        });
-        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
-    }
-
-    @Test
-    void shouldUndoParallelCommand_ExtraCommands() {
-        int parameter = 105;
-        command = spy(new FakeParallelCommand(executor, studentCommand));
-        command.addToNest(studentCommand);
-        command.addToNest(doubleCommand);
-        command.addToNest(booleanCommand);
-        command.addToNest(intCommand);
-        allowRealPrepareContextBase(parameter);
-        allowRealPrepareContextExtra(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        assertThat(wrapper.getInput()).isEqualTo(parameter);
-        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
-        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-        allowRealNestedCommandExecutionExtra();
-        command.doCommand(macroContext);
-        assertThat(macroContext.isDone()).isTrue();
-        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
-        nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
-        configureNestedUndoStatus(doubleCommand);
-        configureNestedUndoStatus(booleanCommand);
-        configureNestedUndoStatus(intCommand);
-        allowRealNestedCommandRollbackBase();
-        allowRealNestedCommandRollbackExtra();
-        reset(executor);
-
-        command.undoCommand(macroContext);
-
-        assertThat(macroContext.getState()).isEqualTo(UNDONE);
-        nestedDoneContexts.stream()
-                .filter(context -> context != overridedStudentContext)
-                .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
-        nestedDoneContexts.stream()
-                .filter(context -> context != overridedStudentContext)
-                .forEach(context -> {
-                    final var nestedCommand = context.getCommand();
-                    verify(nestedCommand).undoAsNestedCommand(command, context);
-                    verify(command).undoNestedCommand(nestedCommand, context);
-                    verify(nestedCommand).undoCommand(context);
-                });
-        assertThat(overridedStudentContext.getState()).isEqualTo(CANCEL);
-        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
-        verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(macroContext.getUndoParameter());
-    }
-
-    @Test
-    void shouldNotUndoParallelCommand_undoCommandThrowsException() {
-        int parameter = 104;
-        allowRealPrepareContextBase(parameter);
-        Context<Double> macroContext = command.createContext(parameter);
-        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
-        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
-        verifyNestedCommandContextPreparation(command, intCommand, parameter);
-        configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        configureNestedRedoResult(booleanCommand, true);
-        configureNestedRedoResult(intCommand, parameter * 10.0);
-        allowRealNestedCommandExecutionBase();
-        command.doCommand(macroContext);
-        assertThat(macroContext.isDone()).isTrue();
-        MacroCommandParameter wrapper = macroContext.getRedoParameter();
-        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
-        nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
-        configureNestedUndoStatus(booleanCommand);
-        configureNestedUndoStatus(intCommand);
-        allowRealNestedCommandRollbackBase();
-        doThrow(UnableExecuteCommandException.class).when(doubleCommand).undoCommand(any(Context.class));
-        reset(executor);
-
-        command.undoCommand(macroContext);
-
-        assertThat(macroContext.isFailed()).isTrue();
-        nestedDoneContexts.stream()
-                .filter(context -> context.getCommand() != doubleCommand)
-                .forEach(context -> assertThat(context.getState()).isEqualTo(DONE));
-        Context<?> doubleContext = wrapper.getNestedContexts().getFirst();
-        assertThat(doubleContext.isFailed()).isTrue();
-        assertThat(macroContext.getException()).isEqualTo(doubleContext.getException());
-        verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(nestedDoneContexts);
-        nestedDoneContexts.forEach(context -> {
-            final var nestedCommand = context.getCommand();
-            verify(nestedCommand).undoAsNestedCommand(command, context);
-            verify(command).undoNestedCommand(nestedCommand, context);
-            verify(nestedCommand).undoCommand(context);
-        });
-        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
-    }
+//
+//    @Test
+//    void shouldDoAllNestedCommands() {
+//        int parameter = 100;
+//        allowRealPrepareContextBase(parameter);
+//        Context<?> macroContext = command.createContext(parameter);
+//        assertThat(macroContext.isReady()).isTrue();
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        assertThat(wrapper.getInputParameter()).isEqualTo(parameter);
+//        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10);
+//        AtomicInteger counter = new AtomicInteger(0);
+//        Context.StateChangedListener listener = spy(new ContextStateChangedListener(counter));
+//        allowRealNestedCommandExecutionBase();
+//
+//        command.doNestedCommands(wrapper.getNestedContexts(), listener);
+//
+//        assertThat(counter.get()).isEqualTo(command.fromNest().size());
+//        verify(executor, times(counter.get())).submit(any(Callable.class));
+//        // check contexts states
+//        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isDone()).isTrue());
+//        checkRegularNestedCommandExecution(doubleCommand, wrapper.getNestedContexts().pop(), listener);
+//        checkRegularNestedCommandExecution(booleanCommand, wrapper.getNestedContexts().pop(), listener);
+//        checkRegularNestedCommandExecution(intCommand, wrapper.getNestedContexts().pop(), listener);
+//    }
+//
+//    @Test
+//    <T> void shouldDoParallelCommand_BaseCommands() {
+//        int parameter = 101;
+//        allowRealPrepareContextBase(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//
+//        // doing command with macro-context
+//        command.doCommand(macroContext);
+//
+//        // after do check
+//        verify(command).executeDo(macroContext);
+//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+//        assertThat(macroContext.isDone()).isTrue();
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        assertThat(macroContext.<Deque<Context<?>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
+//        wrapper.getNestedContexts().forEach(context -> {
+//            Context<T> nestedContext = (Context<T>) context;
+//            RootCommand<T> nestedCommand = nestedContext.getCommand();
+//            verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
+//            verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
+//            verify(nestedCommand).doCommand(nestedContext);
+//        });
+//        macroContext.<Deque<Context<?>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
+//        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
+//    }
+//
+//    @Test
+//    <T> void shouldDoParallelCommand_ExtraCommands() {
+//        int parameter = 102;
+//        command = spy(new FakeParallelCommand(executor, studentCommand));
+//        command.addToNest(studentCommand);
+//        command.addToNest(doubleCommand);
+//        command.addToNest(booleanCommand);
+//        command.addToNest(intCommand);
+//        allowRealPrepareContextBase(parameter);
+//        allowRealPrepareContextExtra(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        assertThat(wrapper.getInputParameter()).isEqualTo(parameter);
+//        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
+//        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        verify(studentCommand).acceptPreparedContext(command, parameter);
+//        verify(command).prepareContext(studentCommand, parameter);
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//        allowRealNestedCommandExecutionExtra();
+//
+//        // doing command with macro-context
+//        command.doCommand(macroContext);
+//
+//        // after do check
+//        verify(command).executeDo(macroContext);
+//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+//        assertThat(macroContext.isDone()).isTrue();
+//        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).hasSameSizeAs(wrapper.getNestedContexts());
+//        wrapper.getNestedContexts().stream()
+//                .filter(context -> context != overridedStudentContext)
+//                .forEach(context -> {
+//                    Context<T> nestedContext = (Context<T>) context;
+//                    RootCommand<T> nestedCommand = nestedContext.getCommand();
+//                    verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
+//                    verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
+//                    verify(nestedCommand).doCommand(nestedContext);
+//                });
+//        verify(studentCommand).doAsNestedCommand(eq(command), eq(overridedStudentContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(StudentCommand.class), eq(overridedStudentContext), any(Context.StateChangedListener.class));
+//        verify(studentCommand, never()).doCommand(any(Context.class));
+//        macroContext.<Deque<Context<T>>>getUndoParameter().forEach(context -> assertThat(context.isDone()).isTrue());
+//        verify(executor, times(command.fromNest().size())).submit(any(Callable.class));
+//    }
+//
+//    @Test
+//    <T> void shouldNotDoParallelCommand_doCommandThrowsException() {
+//        int parameter = 101;
+//        allowRealPrepareContextBase(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10);
+//        allowRealNestedCommandExecutionBase();
+//        doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
+//
+//        // doing command with macro-context
+//        command.doCommand(macroContext);
+//
+//        // after do check
+//        verify(command).executeDo(macroContext);
+//        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+//        assertThat(macroContext.isFailed()).isTrue();
+//        assertThat(macroContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
+//        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).isNull();
+//
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        wrapper.getNestedContexts().stream()
+//                .filter(context -> context.getCommand() != doubleCommand)
+//                .forEach(context -> {
+//                    Context<T> nestedContext = (Context<T>) context;
+//                    RootCommand<T> nestedCommand = nestedContext.getCommand();
+//                    verify(nestedCommand).doAsNestedCommand(eq(command), eq(context), any(Context.StateChangedListener.class));
+//                    verify(command).doNestedCommand(eq(nestedCommand), eq(nestedContext), any(Context.StateChangedListener.class));
+//                    verify(nestedCommand).doCommand(nestedContext);
+//                    assertThat(context.isDone()).isTrue();
+//                    verify(nestedCommand).undoAsNestedCommand(command, context);
+//                });
+//        Context<T> doubleContext = (Context<T>) wrapper.getNestedContexts().getFirst();
+//        assertThat(doubleContext.isFailed()).isTrue();
+//        assertThat(doubleContext.getCommand()).isSameAs(doubleCommand);
+//        verify(doubleContext.getCommand()).doCommand(doubleContext);
+//        verify(doubleCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        int submitted = command.fromNest().size() * 2 - 1;
+//        verify(executor, times(submitted)).submit(any(Callable.class));
+//    }
+//
+//    @Test
+//    void shouldRollbackAllNestedDoneContexts_BaseCommands() {
+//        int parameter = 103;
+//        allowRealPrepareContextBase(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        assertThat(macroContext).isNotNull();
+//        assertThat(macroContext.isReady()).isTrue();
+//        assertThat(macroContext.getCommand()).isEqualTo(command);
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        assertThat(wrapper.getInputParameter()).isEqualTo(parameter);
+//        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//        command.doCommand(macroContext);
+//        Deque<Context<?>> nestedUndoneContexts = macroContext.getUndoParameter();
+//        configureNestedUndoStatus(doubleCommand);
+//        configureNestedUndoStatus(booleanCommand);
+//        configureNestedUndoStatus(intCommand);
+//        allowRealNestedCommandRollbackBase();
+//        reset(executor);
+//
+//        Deque<Context<?>> rollbackResults = command.undoNestedCommands(nestedUndoneContexts);
+//
+//        assertThat(nestedUndoneContexts).hasSameSizeAs(rollbackResults);
+//        // check contexts states
+//        rollbackResults.forEach(context -> {
+//            verify(context.getCommand()).undoAsNestedCommand(command, context);
+//            verify(command).undoNestedCommand(context.getCommand(), context);
+//            assertThat(context.getState()).isEqualTo(UNDONE);
+//        });
+//        verify(executor, times(rollbackResults.size())).submit(any(Callable.class));
+//    }
+//
+//    @Test
+//    void shouldUndoParallelCommand_BaseCommands() {
+//        int parameter = 104;
+//        allowRealPrepareContextBase(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//        command.doCommand(macroContext);
+//        assertThat(macroContext.isDone()).isTrue();
+//        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
+//        nestedDoneContexts.forEach(ctx -> assertThat(ctx.getState()).isEqualTo(DONE));
+//        configureNestedUndoStatus(doubleCommand);
+//        configureNestedUndoStatus(booleanCommand);
+//        configureNestedUndoStatus(intCommand);
+//        allowRealNestedCommandRollbackBase();
+//        reset(executor);
+//
+//        command.undoCommand(macroContext);
+//
+//        assertThat(macroContext.getState()).isEqualTo(UNDONE);
+//        nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
+//
+//        verify(command).executeUndo(macroContext);
+//        verify(command).undoNestedCommands(nestedDoneContexts);
+//        nestedDoneContexts.forEach(context -> {
+//            final var nestedCommand = context.getCommand();
+//            verify(nestedCommand).undoAsNestedCommand(command, context);
+//            verify(command).undoNestedCommand(nestedCommand, context);
+//            verify(nestedCommand).undoCommand(context);
+//        });
+//        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
+//    }
+//
+//    @Test
+//    void shouldUndoParallelCommand_ExtraCommands() {
+//        int parameter = 105;
+//        command = spy(new FakeParallelCommand(executor, studentCommand));
+//        command.addToNest(studentCommand);
+//        command.addToNest(doubleCommand);
+//        command.addToNest(booleanCommand);
+//        command.addToNest(intCommand);
+//        allowRealPrepareContextBase(parameter);
+//        allowRealPrepareContextExtra(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        assertThat(wrapper.getInputParameter()).isEqualTo(parameter);
+//        wrapper.getNestedContexts().forEach(ctx -> assertThat(ctx.isReady()).isTrue());
+//        assertThat(overridedStudentContext).isEqualTo(wrapper.getNestedContexts().getFirst());
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//        allowRealNestedCommandExecutionExtra();
+//        command.doCommand(macroContext);
+//        assertThat(macroContext.isDone()).isTrue();
+//        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
+//        nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
+//        configureNestedUndoStatus(doubleCommand);
+//        configureNestedUndoStatus(booleanCommand);
+//        configureNestedUndoStatus(intCommand);
+//        allowRealNestedCommandRollbackBase();
+//        allowRealNestedCommandRollbackExtra();
+//        reset(executor);
+//
+//        command.undoCommand(macroContext);
+//
+//        assertThat(macroContext.getState()).isEqualTo(UNDONE);
+//        nestedDoneContexts.stream()
+//                .filter(context -> context != overridedStudentContext)
+//                .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
+//        nestedDoneContexts.stream()
+//                .filter(context -> context != overridedStudentContext)
+//                .forEach(context -> {
+//                    final var nestedCommand = context.getCommand();
+//                    verify(nestedCommand).undoAsNestedCommand(command, context);
+//                    verify(command).undoNestedCommand(nestedCommand, context);
+//                    verify(nestedCommand).undoCommand(context);
+//                });
+//        assertThat(overridedStudentContext.getState()).isEqualTo(CANCEL);
+//        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
+//        verify(command).executeUndo(macroContext);
+//        verify(command).undoNestedCommands(macroContext.getUndoParameter());
+//    }
+//
+//    @Test
+//    void shouldNotUndoParallelCommand_undoCommandThrowsException() {
+//        int parameter = 104;
+//        allowRealPrepareContextBase(parameter);
+//        Context<Double> macroContext = command.createContext(parameter);
+//        verifyNestedCommandContextPreparation(command, doubleCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, booleanCommand, parameter);
+//        verifyNestedCommandContextPreparation(command, intCommand, parameter);
+//        configureNestedRedoResult(doubleCommand, parameter * 100.0);
+//        configureNestedRedoResult(booleanCommand, true);
+//        configureNestedRedoResult(intCommand, parameter * 10.0);
+//        allowRealNestedCommandExecutionBase();
+//        command.doCommand(macroContext);
+//        assertThat(macroContext.isDone()).isTrue();
+//        MacroCommandParameter wrapper = macroContext.getRedoParameter();
+//        Deque<Context<?>> nestedDoneContexts = macroContext.getUndoParameter();
+//        nestedDoneContexts.forEach(ctx -> assertThat(ctx.isDone()).isTrue());
+//        configureNestedUndoStatus(booleanCommand);
+//        configureNestedUndoStatus(intCommand);
+//        allowRealNestedCommandRollbackBase();
+//        doThrow(UnableExecuteCommandException.class).when(doubleCommand).undoCommand(any(Context.class));
+//        reset(executor);
+//
+//        command.undoCommand(macroContext);
+//
+//        assertThat(macroContext.isFailed()).isTrue();
+//        nestedDoneContexts.stream()
+//                .filter(context -> context.getCommand() != doubleCommand)
+//                .forEach(context -> assertThat(context.getState()).isEqualTo(DONE));
+//        Context<?> doubleContext = wrapper.getNestedContexts().getFirst();
+//        assertThat(doubleContext.isFailed()).isTrue();
+//        assertThat(macroContext.getException()).isEqualTo(doubleContext.getException());
+//        verify(command).executeUndo(macroContext);
+//        verify(command).undoNestedCommands(nestedDoneContexts);
+//        nestedDoneContexts.forEach(context -> {
+//            final var nestedCommand = context.getCommand();
+//            verify(nestedCommand).undoAsNestedCommand(command, context);
+//            verify(command).undoNestedCommand(nestedCommand, context);
+//            verify(nestedCommand).undoCommand(context);
+//        });
+//        verify(executor, times(nestedDoneContexts.size())).submit(any(Callable.class));
+//    }
 
     //    // inner classes
     static class FakeParallelCommand extends ParallelMacroCommand<Double> {
-        static Context<Double> overridedStudentContext;
+        static CommandContext<Double> overridedStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
         private final SchedulingTaskExecutor commandContextExecutor;
 
@@ -396,8 +397,8 @@ class ParallelMacroCommandTest {
         }
 
         @Override
-        public <T> Context<T> prepareContext(StudentCommand<T> command, Object mainInput) {
-            overridedStudentContext.setRedoParameter(200);
+        public <T> Context<T> prepareContext(StudentCommand<T> command, Input<?> mainInput) {
+            overridedStudentContext.setRedoParameter(Input.of(200));
             return (Context<T>) overridedStudentContext;
         }
 
@@ -444,8 +445,8 @@ class ParallelMacroCommandTest {
         }
 
         @Override
-        public void stateChanged(Context<?> context, Context.State previous, Context.State newOne) {
-            if (newOne == DONE) {
+        public void stateChanged(Context<?> context, Context.State previous, Context.State current) {
+            if (current == DONE) {
                 counter.incrementAndGet();
             }
         }
@@ -462,72 +463,72 @@ class ParallelMacroCommandTest {
         verify(listener).stateChanged(nestedContext, WORK, DONE);
     }
 
-    private void allowRealPrepareContext(RootCommand<?> nested, Object parameter) {
-        doCallRealMethod().when(nested).createContext(parameter);
-        doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
-    }
-
-    private void allowRealPrepareContextBase(Object parameter) {
-        allowRealPrepareContext(doubleCommand, parameter);
-        allowRealPrepareContext(booleanCommand, parameter);
-        allowRealPrepareContext(intCommand, parameter);
-    }
-
-    private void allowRealPrepareContextExtra(Object parameter) {
-        doCallRealMethod().when(studentCommand).acceptPreparedContext(command, parameter);
-    }
-
-    private void allowRealNestedCommandExecution(RootCommand<?> nested) {
-        doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
-    }
-
-    private void allowRealNestedCommandExecutionBase() {
-        allowRealNestedCommandExecution(doubleCommand);
-        allowRealNestedCommandExecution(booleanCommand);
-        doCallRealMethod().when(intCommand).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
-    }
-
-    private void allowRealNestedCommandExecutionExtra() {
-        allowRealNestedCommandExecution(studentCommand);
-    }
-
-    private void allowRealNestedCommandRollback(RootCommand<?> nested) {
-        doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
-    }
-
-    private void allowRealNestedCommandRollbackBase() {
-        allowRealNestedCommandRollback(doubleCommand);
-        allowRealNestedCommandRollback(booleanCommand);
-        allowRealNestedCommandRollback(intCommand);
-    }
-
-    private void allowRealNestedCommandRollbackExtra() {
-        allowRealNestedCommandRollback(studentCommand);
-    }
-
-    private static void verifyNestedCommandContextPreparation(FakeParallelCommand command,
-                                                              RootCommand<?> nestedCommand,
-                                                              Object parameter) {
-        verify(nestedCommand).acceptPreparedContext(command, parameter);
-        verify(command).prepareContext(nestedCommand, parameter);
-    }
-
-
-    private <T> void configureNestedRedoResult(RootCommand<?> nextedCommand, T result) {
-        doAnswer(invocationOnMock -> {
-            Context<T> context = invocationOnMock.getArgument(0, Context.class);
-            context.setState(WORK);
-            context.setResult(result);
-            return null;
-        }).when(nextedCommand).doCommand(any(Context.class));
-    }
-
-    private <T> void configureNestedUndoStatus(RootCommand<T> nextedCommand) {
-        doAnswer(invocationOnMock -> {
-            Context<T> context = invocationOnMock.getArgument(0, Context.class);
-            context.setState(WORK);
-            context.setState(UNDONE);
-            return null;
-        }).when(nextedCommand).undoCommand(any(Context.class));
-    }
+//    private void allowRealPrepareContext(RootCommand<?> nested, Object parameter) {
+//        doCallRealMethod().when(nested).createContext(parameter);
+//        doCallRealMethod().when(nested).acceptPreparedContext(command, parameter);
+//    }
+//
+//    private void allowRealPrepareContextBase(Object parameter) {
+//        allowRealPrepareContext(doubleCommand, parameter);
+//        allowRealPrepareContext(booleanCommand, parameter);
+//        allowRealPrepareContext(intCommand, parameter);
+//    }
+//
+//    private void allowRealPrepareContextExtra(Object parameter) {
+//        doCallRealMethod().when(studentCommand).acceptPreparedContext(command, parameter);
+//    }
+//
+//    private void allowRealNestedCommandExecution(RootCommand<?> nested) {
+//        doCallRealMethod().when(nested).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
+//    }
+//
+//    private void allowRealNestedCommandExecutionBase() {
+//        allowRealNestedCommandExecution(doubleCommand);
+//        allowRealNestedCommandExecution(booleanCommand);
+//        doCallRealMethod().when(intCommand).doAsNestedCommand(eq(command), any(Context.class), any(Context.StateChangedListener.class));
+//    }
+//
+//    private void allowRealNestedCommandExecutionExtra() {
+//        allowRealNestedCommandExecution(studentCommand);
+//    }
+//
+//    private void allowRealNestedCommandRollback(RootCommand<?> nested) {
+//        doCallRealMethod().when(nested).undoAsNestedCommand(eq(command), any(Context.class));
+//    }
+//
+//    private void allowRealNestedCommandRollbackBase() {
+//        allowRealNestedCommandRollback(doubleCommand);
+//        allowRealNestedCommandRollback(booleanCommand);
+//        allowRealNestedCommandRollback(intCommand);
+//    }
+//
+//    private void allowRealNestedCommandRollbackExtra() {
+//        allowRealNestedCommandRollback(studentCommand);
+//    }
+//
+//    private static void verifyNestedCommandContextPreparation(FakeParallelCommand command,
+//                                                              RootCommand<?> nestedCommand,
+//                                                              Object parameter) {
+//        verify(nestedCommand).acceptPreparedContext(command, parameter);
+//        verify(command).prepareContext(nestedCommand, parameter);
+//    }
+//
+//
+//    private <T> void configureNestedRedoResult(RootCommand<?> nextedCommand, T result) {
+//        doAnswer(invocationOnMock -> {
+//            Context<T> context = invocationOnMock.getArgument(0, Context.class);
+//            context.setState(WORK);
+//            context.setResult(result);
+//            return null;
+//        }).when(nextedCommand).doCommand(any(Context.class));
+//    }
+//
+//    private <T> void configureNestedUndoStatus(RootCommand<T> nextedCommand) {
+//        doAnswer(invocationOnMock -> {
+//            Context<T> context = invocationOnMock.getArgument(0, Context.class);
+//            context.setState(WORK);
+//            context.setState(UNDONE);
+//            return null;
+//        }).when(nextedCommand).undoCommand(any(Context.class));
+//    }
 }

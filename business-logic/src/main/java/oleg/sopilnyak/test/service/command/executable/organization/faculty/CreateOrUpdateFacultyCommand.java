@@ -6,6 +6,8 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -70,8 +72,12 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
                         id, persistence::findFacultyById, payloadMapper::toPayload,
                         () -> new FacultyNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                context.setUndoParameter(entity);
+                if (context instanceof CommandContext<?> commandContext) {
+                    log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
+                    commandContext.setRedoParameter(Input.of(entity));
+                }
+//                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
+//                context.setUndoParameter(entity);
             } else {
                 log.debug("Trying to create faculty using: {}", parameter);
             }

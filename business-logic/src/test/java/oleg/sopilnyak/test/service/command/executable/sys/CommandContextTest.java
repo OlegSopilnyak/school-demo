@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.junit.jupiter.api.Test;
@@ -76,7 +77,10 @@ class CommandContextTest<T> {
         assertThat(commandContext.getStartedAt()).isNull();
         assertThat(commandContext.getDuration()).isNull();
 
-        commandContext.setRedoParameter(Boolean.TRUE);
+        if (commandContext instanceof CommandContext<?> cContext) {
+            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+        }
+//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         assertThat(commandContext.getStartedAt()).isNull();
         assertThat(commandContext.getDuration()).isNull();
@@ -97,7 +101,10 @@ class CommandContextTest<T> {
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
-        commandContext.setRedoParameter(Boolean.TRUE);
+        if (commandContext instanceof CommandContext<?> cContext) {
+            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+        }
+//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
@@ -121,7 +128,10 @@ class CommandContextTest<T> {
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
-        commandContext.setRedoParameter(Boolean.TRUE);
+        if (commandContext instanceof CommandContext<?> cContext) {
+            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+        }
+//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
@@ -148,7 +158,10 @@ class CommandContextTest<T> {
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
-        commandContext.setRedoParameter(Boolean.TRUE);
+        if (commandContext instanceof CommandContext<?> cContext) {
+            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+        }
+//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
@@ -158,7 +171,10 @@ class CommandContextTest<T> {
         commandContext.setState(WORK);
         TimeUnit.MILLISECONDS.sleep(sleepTime);
 //        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
-        commandContext.setUndoParameter(Boolean.TRUE);
+        if (commandContext instanceof CommandContext<?> cContext) {
+            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+        }
+//        commandContext.setUndoParameter(Boolean.TRUE);
         commandContext.setState(UNDONE);
 
         assertThat(commandContext.getState()).isEqualTo(UNDONE);

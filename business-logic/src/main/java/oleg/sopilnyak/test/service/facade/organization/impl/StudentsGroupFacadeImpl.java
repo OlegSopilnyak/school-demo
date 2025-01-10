@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNot
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -67,7 +68,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
         log.debug("Find students group by ID:{}", id);
-        final Optional<StudentsGroup> result = doSimpleCommand(FIND_BY_ID, id, factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
         log.debug("Found students group {}", result);
         return result.map(convert);
     }
@@ -84,7 +85,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
         log.debug("Create or Update students group {}", instance);
-        final Optional<StudentsGroup> result = doSimpleCommand(CREATE_OR_UPDATE, convert.apply(instance), factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed students group {}", result);
         return result.map(convert);
     }
@@ -101,7 +102,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         log.debug("Delete students group with ID:{}", id);
         final String commandId = DELETE;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(id);
+        final Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 

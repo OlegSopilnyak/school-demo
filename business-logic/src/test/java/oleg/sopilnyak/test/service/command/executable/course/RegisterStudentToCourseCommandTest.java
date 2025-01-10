@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExcee
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
@@ -62,7 +64,7 @@ class RegisterStudentToCourseCommandTest {
         when(payloadMapper.toPayload(course)).thenReturn(coursePayload);
         when(persistence.link(student, course)).thenReturn(true);
 
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -89,7 +91,7 @@ class RegisterStudentToCourseCommandTest {
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
 
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -107,7 +109,7 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotDoCommand_NoStudent() {
         Long id = 121L;
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -123,7 +125,7 @@ class RegisterStudentToCourseCommandTest {
     void shouldNotDoCommand_NoCourse() {
         Long id = 122L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -142,7 +144,7 @@ class RegisterStudentToCourseCommandTest {
         when(course.getStudents()).thenReturn(List.of(student, student));
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -162,7 +164,7 @@ class RegisterStudentToCourseCommandTest {
         when(course.getStudents()).thenReturn(List.of(student));
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -182,7 +184,7 @@ class RegisterStudentToCourseCommandTest {
         doThrow(cannotExecute).when(persistence).link(student, course);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        Context<Boolean> context = command.createContext(new Long[]{id, id});
+        Context<Boolean> context = command.createContext(Input.of(id, id));
 
         command.doCommand(context);
 
@@ -199,8 +201,12 @@ class RegisterStudentToCourseCommandTest {
     void shouldUndoCommand_Linked() {
         final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(forUndo);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(forUndo));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
@@ -211,8 +217,12 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldUndoCommand_NotLinked() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(null);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.empty());
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -223,8 +233,12 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter("null");
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of("null"));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 
@@ -239,8 +253,12 @@ class RegisterStudentToCourseCommandTest {
         doThrow(cannotExecute).when(persistence).unLink(student, course);
         final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
-        context.setState(Context.State.DONE);
-        context.setUndoParameter(forUndo);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(forUndo));
+        }
+//        context.setState(Context.State.DONE);
+//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 

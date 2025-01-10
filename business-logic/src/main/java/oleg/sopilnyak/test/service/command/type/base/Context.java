@@ -1,7 +1,10 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import oleg.sopilnyak.test.service.command.io.Input;
+
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Deque;
 import java.util.Optional;
 
 /**
@@ -52,34 +55,37 @@ public interface Context<T> {
     void setState(State state);
 
     /**
-     * To get parameter value for command execution
+     * To get input parameter value for do command execution
      *
      * @param <R> type of do-input-parameter
-     * @return the value of parameter
+     * @return the value of parameter as Input
+     * @see Input
      */
-    <R> R getRedoParameter();
+    <R> Input<R> getRedoParameter();
+//    <R> R getRedoParameter();
 
     /**
      * To set up parameter value for command execution
      *
      * @param parameter the value
      */
-    void setRedoParameter(Object parameter);
+//    void setRedoParameter(Object parameter);
 
     /**
-     * To get parameter value for rollback previous command execution changes
+     * To get input parameter value for rollback previous command execution changes
      *
      * @param <U> type of undo-parameter
-     * @return the value of parameter
+     * @return the value of parameter as Input
      */
-    <U> U getUndoParameter();
+    <U> Input<U> getUndoParameter();
+//    <U> U getUndoParameter();
 
     /**
      * To set up parameter value for rollback changes
      *
      * @param parameter the value
      */
-    void setUndoParameter(Object parameter);
+//    void setUndoParameter(Object parameter);
 
     /**
      * To get the result of command execution
@@ -113,6 +119,13 @@ public interface Context<T> {
      * @see Exception
      */
     void setException(Exception exception);
+
+    /**
+     * To get context's life-cycle activities history
+     *
+     * @return context's history instance
+     */
+    LifeCycleHistory getHistory();
 
     /**
      * Mark context as failed
@@ -215,11 +228,11 @@ public interface Context<T> {
         WORK,
         // command redo(...) is finished successfully
         DONE,
-        // command execution is finished unsuccessfully
+        // command do execution is finished unsuccessfully
         FAIL,
         // further command execution is canceled
         CANCEL,
-        // command undo(...) is finished successfully
+        // command undo execution is finished successfully
         UNDONE
     }
 
@@ -227,6 +240,39 @@ public interface Context<T> {
      * The listener of context's state changing
      */
     interface StateChangedListener {
-        void stateChanged(Context<?> context, State previous, State newOne);
+        /**
+         * State changed event processing method
+         *
+         * @param context the context where state was changed
+         * @param previous previous context state value
+         * @param current new context state value
+         */
+        void stateChanged(Context<?> context, State previous, State current);
+    }
+
+    /**
+     * The history of context's life cycle
+     */
+    interface LifeCycleHistory {
+        /**
+         * To get context's states history
+         *
+         * @return deque of states
+         */
+        Deque<State> states();
+
+        /**
+         * To get when context started history (do/undo)
+         *
+         * @return deque of time-marks
+         */
+        Deque<Instant> started();
+
+        /**
+         * To get the duration of context running history (do/undo)
+         *
+         * @return deque of durations
+         */
+        Deque<Duration> durations();
     }
 }

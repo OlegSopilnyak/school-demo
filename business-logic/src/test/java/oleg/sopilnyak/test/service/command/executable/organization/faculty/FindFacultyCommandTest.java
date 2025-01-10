@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +33,7 @@ class FindFacultyCommandTest {
     void shouldDoCommand_EntityExists() {
         long id = 420L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -45,7 +47,7 @@ class FindFacultyCommandTest {
     @Test
     void shouldDoCommand_EntityNotExists() {
         long id = 421L;
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
@@ -59,7 +61,7 @@ class FindFacultyCommandTest {
     @Test
     void shouldNotDoCommand_FindThrowsException() {
         long id = 422L;
-        Context<Optional<Faculty>> context = command.createContext(id);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
         doThrow(RuntimeException.class).when(persistence).findFacultyById(id);
 
         command.doCommand(context);
@@ -73,9 +75,13 @@ class FindFacultyCommandTest {
     @Test
     void shouldUndoCommand_NothingToDo() {
         long id = 423L;
-        Context<Optional<Faculty>> context = command.createContext(id);
-        context.setState(DONE);
-        context.setUndoParameter(entity);
+        Context<Optional<Faculty>> context = command.createContext(Input.of(id));
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(entity));
+        }
+//        context.setState(DONE);
+//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
