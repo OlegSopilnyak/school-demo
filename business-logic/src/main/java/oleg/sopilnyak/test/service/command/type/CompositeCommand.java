@@ -39,7 +39,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
     /**
      * To create command's context of macro command for input
      *
-     * @param inputParameter command context's parameter value
+     * @param inputParameter command do input parameter value
      * @return context instance
      * @see Input
      * @see Context
@@ -56,27 +56,17 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
         final Optional<? extends Context<?>> failedContext = nestedContextsDeque.stream()
                 .filter(Objects::nonNull).filter(Context::isFailed)
                 .findFirst();
-////        final Context<T> macroCommandContext = createContext();
-//        if (failed.isPresent()) {
-//            return RootCommand.super.createContext().failed(failed.get().getException());
-////            macroCommandContext.failed(failed.get().getException());
-//        } else {
-//            return RootCommand.super.createContext(new MacroCommandParameter(inputParameter, nested));
-////            final var redoParameter = new MacroCommandParameter(inputParameter, nested);
-////            macroCommandContext.setRedoParameter(redoParameter);
-//        }
         return failedContext.isEmpty() ?
                 RootCommand.super.createContext(new MacroCommandParameter(inputParameter, nestedContextsDeque)) :
                 RootCommand.super.createContext().failed(failedContext.get().getException());
-//        return macroCommandContext;
     }
 
-// For commands playing Nested Command Role
+    // For commands playing Nested Command Role
 
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor        visitor of prepared contexts
+     * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)

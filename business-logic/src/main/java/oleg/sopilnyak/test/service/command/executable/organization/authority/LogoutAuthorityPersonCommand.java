@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import org.slf4j.Logger;
@@ -35,10 +36,10 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<String> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            final String token = commandParameter(parameter);
+            final String token = parameter.value();
             log.debug("Trying to logout authority person by token:'{}'", token);
 
             context.setResult(true);

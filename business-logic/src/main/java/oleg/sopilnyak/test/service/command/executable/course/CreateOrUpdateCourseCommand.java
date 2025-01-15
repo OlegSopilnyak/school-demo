@@ -56,13 +56,14 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      */
     @Override
     public void executeDo(Context<Optional<Course>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Course> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to create or update course {}", parameter);
-            final Long id = ((Course) parameter).getId();
+            final Course doParameter = parameter.value();
+            final Long id = doParameter.getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
+                log.debug("Trying to update course using: {}", doParameter);
                 // previous version of course is storing to context for further rollback (undo)
                 final Course entity = retrieveEntity(
                         id, persistence::findCourseById, payloadMapper::toPayload,
@@ -73,7 +74,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
                     commandContext.setUndoParameter(Input.of(entity));
                 }
             } else {
-                log.debug("Trying to create course using: {}", parameter);
+                log.debug("Trying to create course using: {}", doParameter);
             }
             // persisting entity trough persistence layer
             final Optional<Course> persisted = persistRedoEntity(context, persistence::save);
@@ -95,6 +96,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      *
      * @param context context of redo execution
      * @see Context
+     * @see Input
      * @see Context#getUndoParameter()
      * @see CoursesPersistenceFacade#save(Course)
      * @see CoursesPersistenceFacade#deleteCourse(Long)
@@ -103,7 +105,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo course changes using: {}", parameter);

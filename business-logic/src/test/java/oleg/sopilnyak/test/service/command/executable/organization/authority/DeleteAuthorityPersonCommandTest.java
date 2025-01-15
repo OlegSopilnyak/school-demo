@@ -55,7 +55,7 @@ class DeleteAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(entity);
@@ -123,12 +123,10 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
@@ -142,12 +140,10 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("person"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("person");
 
         command.undoCommand(context);
 
@@ -161,12 +157,10 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -180,14 +174,12 @@ class DeleteAuthorityPersonCommandTest {
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
-        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

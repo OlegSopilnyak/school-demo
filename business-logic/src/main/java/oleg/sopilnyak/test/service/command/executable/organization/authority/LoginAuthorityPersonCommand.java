@@ -7,6 +7,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -43,29 +45,30 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
      */
     @Override
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<?> parameter = context.getRedoParameter();
         try {
+            checkNullParameter(parameter);
             log.debug("Trying to login authority person by credentials:{}", parameter);
-            final String[] credentials = commandParameter(parameter);
-            final String userName = credentials[0];
-            final String password = credentials[1];
+            PairParameter<String> credentials = PairParameter.class.cast(parameter);
+            final String username = credentials.first();
+            final String password = credentials.second();
 
-            log.debug("Trying to get principal-profile by username:{}", userName);
-            final PrincipalProfile profile = persistence.findPrincipalProfileByLogin(userName)
+            log.debug("Trying to get principal-profile by username:{}", username);
+            final PrincipalProfile profile = persistence.findPrincipalProfileByLogin(username)
                     .map(payloadMapper::toPayload)
-                    .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + userName + "', is not found"));
+                    .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + username + "', is not found"));
 
-            log.debug("Checking the password for principal-profile by username:{}", userName);
+            log.debug("Checking the password for principal-profile by username:{}", username);
             if (!profile.isPassword(password)) {
-                log.warn("Password for login: {} is incorrect", userName);
-                throw new SchoolAccessDeniedException("Login authority person command failed for username:" + userName);
+                log.warn("Password for login: {} is incorrect", username);
+                throw new SchoolAccessDeniedException("Login authority person command failed for username:" + username);
             }
 
             Long id = profile.getId();
             log.debug("Trying to find principal person with profileId:{}", id);
             final Optional<AuthorityPerson> person = persistence.findAuthorityPersonByProfileId(id);
 
-            log.debug("Got authority person with login:'{}' {}", person, userName);
+            log.debug("Got authority person with login:'{}' {}", person, username);
             context.setResult(person.isEmpty() ? person : person.map(payloadMapper::toPayload));
         } catch (Exception e) {
             log.error("Cannot find the authority person with login:'{}'", parameter, e);

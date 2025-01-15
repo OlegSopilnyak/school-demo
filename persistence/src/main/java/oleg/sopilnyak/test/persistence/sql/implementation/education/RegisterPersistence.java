@@ -91,7 +91,7 @@ public interface RegisterPersistence extends RegisterPersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default boolean link(Student student, Course course) {
+    default boolean link(final Student student, final Course course) {
         getLog().debug("Linking the Student '{}'\n to the Course '{}'", student, course);
         final StudentEntity studentEntity = getStudentRepository().findById(student.getId()).orElse(null);
         if (isNull(studentEntity)) {
@@ -123,7 +123,7 @@ public interface RegisterPersistence extends RegisterPersistenceFacade {
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    default boolean unLink(Student student, Course course) {
+    default boolean unLink(final Student student, final Course course) {
         getLog().debug("UnLinking the Student '{}'\n from the Course '{}'", student, course);
         final StudentEntity studentEntity = getStudentRepository().findById(student.getId()).orElse(null);
         if (isNull(studentEntity)) {

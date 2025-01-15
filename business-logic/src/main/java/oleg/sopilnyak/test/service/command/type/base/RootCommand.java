@@ -36,9 +36,15 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @param <P>       type of the parameter
      * @return parameter cast to particular type
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     default <P> P commandParameter(Object parameter) {
         return (P) parameter;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <P> P commandParameter(Input<?> parameter) {
+        return (P) parameter.value();
     }
 
     /**
@@ -46,6 +52,13 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param parameter input value to check
      */
+    default void checkNullParameter(Input<?> parameter) {
+        if (isNull(parameter)  || parameter.isEmpty()) {
+            throw new NullPointerException("Wrong input parameter value null");
+        }
+    }
+
+    @Deprecated
     default void checkNullParameter(Object parameter) {
         if (isNull(parameter)) {
             throw new NullPointerException("Wrong input parameter value null");

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -32,11 +33,12 @@ public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>>
      */
     @Override
     public void executeDo(Context<Set<Student>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find enrolled students by the course ID:{}", parameter);
+            checkNullParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to find enrolled students by the course ID:{}", id);
 
-            final Long id = commandParameter(parameter);
             final Set<Student> students = persistenceFacade.findEnrolledStudentsByCourseId(id);
 
             log.debug("Got students {} by ID:{}", students, id);

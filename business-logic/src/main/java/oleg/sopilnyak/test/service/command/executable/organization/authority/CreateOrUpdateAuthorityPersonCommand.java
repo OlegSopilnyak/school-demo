@@ -60,26 +60,26 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      */
     @Override
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<AuthorityPerson> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to create or update authority person {}", parameter);
-            final Long id = ((AuthorityPerson) parameter).getId();
+            final AuthorityPerson doParameter = parameter.value();
+            final Long id = doParameter.getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
+                log.debug("Trying to update authority person using: {}", doParameter);
                 // previous version of authority person is storing to context for further rollback (undo)
                 final AuthorityPerson entity = retrieveEntity(
                         id, persistence::findAuthorityPersonById, payloadMapper::toPayload,
                         () -> new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + id + " is not exists.")
                 );
+                // save undo input parameter
                 if (context instanceof CommandContext<?> commandContext) {
                     log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                    commandContext.setRedoParameter(Input.of(entity));
+                    commandContext.setUndoParameter(Input.of(entity));
                 }
-//                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-//                context.setUndoParameter(entity);
             } else {
-                log.debug("Trying to create authority person using: {}", parameter);
+                log.debug("Trying to create authority person using: {}", doParameter);
             }
             // persisting entity trough persistence layer
             final Optional<AuthorityPerson> persisted = persistRedoEntity(context, persistence::save);
@@ -110,7 +110,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo authority person changes using: {}", parameter);

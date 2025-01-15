@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -56,11 +55,11 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to delete course by ID: {}", parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to delete course by ID: {}", id);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
@@ -76,7 +75,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             // removing course instance by ID from the database
             persistenceFacade.deleteCourse(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(Boolean.TRUE);
             getLog().debug("Deleted course with ID: {}", id);
@@ -97,19 +96,19 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<Course> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to undo course deletion using: {}", parameter);
+            log.debug("Trying to undo course deletion using: {}", parameter.value());
 
             final Course entity = rollbackCachedEntity(context, persistenceFacade::save).orElseThrow();
 
             log.debug("Updated in database: '{}'", entity);
             // change course-id value for further do command action
-            if (context instanceof CommandContext commandContext) {
-                commandContext.setUndoParameter(Input.of(entity.getId()));
-                commandContext.setState(Context.State.UNDONE);
+            if (context instanceof CommandContext<?> commandContext) {
+                commandContext.setRedoParameter(Input.of(entity.getId()));
             }
+            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo course deletion {}", parameter, e);
             context.failed(e);

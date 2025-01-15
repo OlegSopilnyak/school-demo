@@ -80,11 +80,11 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            getLog().debug("Trying to delete profile using: {}", parameter);
-            final Long id = commandParameter(parameter);
+            getLog().debug("Trying to delete profile using: {}", parameter.value());
+            final Long id = parameter.value();
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 getLog().warn("Invalid id {}", id);
                 throw exceptionFor(id);
@@ -94,7 +94,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
             // removing profile instance by ID from the database
             persistence.deleteProfileById(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             getLog().debug("Deleted person profile with ID: {}", id);
@@ -117,7 +117,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             getLog().debug("Trying to undo person's profile deletion using: {}", parameter);
@@ -127,10 +127,8 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
             // change profile-id value for further do command action
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
-                commandContext.setState(Context.State.UNDONE);
             }
-//            context.setRedoParameter(entity.getId());
-//            context.setState(Context.State.UNDONE);
+            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             getLog().error("Cannot undo profile deletion {}", parameter, e);
             context.failed(e);

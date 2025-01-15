@@ -53,7 +53,7 @@ class CreateOrUpdateStudentCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        assertThat(context.getUndoParameter().value()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Student> result = context.getResult().orElseThrow();
         assertThat(result).isPresent().contains(entity);
@@ -73,7 +73,7 @@ class CreateOrUpdateStudentCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         assertThat(context.getResult()).isPresent();
         assertThat(context.getResult().orElseThrow()).isPresent().contains(entity);
         verify(command).executeDo(context);
@@ -131,19 +131,18 @@ class CreateOrUpdateStudentCommandTest {
         when(entity.getId()).thenReturn(id);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
-        RuntimeException cannotExecute = new RuntimeException("Cannot update");
-        when(persistence.save(entity)).thenThrow(cannotExecute).thenReturn(Optional.of(entity));
         Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
+        RuntimeException cannotExecute = new RuntimeException("Cannot update");
+        when(persistence.save(entity)).thenThrow(cannotExecute).thenReturn(Optional.of(entity));
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(payloadMapper).toPayload(entity);
-        verify(persistence).save(entity);
+        verify(persistence).save(payload);
     }
 
     @Test
@@ -203,12 +202,26 @@ class CreateOrUpdateStudentCommandTest {
     @Test
     void shouldNotUndoCommand_NullParameter() {
         Context<Optional<Student>> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(null);
+        }
+
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        verify(command).executeUndo(context);
+        verify(persistence, never()).save(entity);
+    }
+
+    @Test
+    void shouldNotUndoCommand_EmptyParameter() {
+        Context<Optional<Student>> context = command.createContext();
+        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 

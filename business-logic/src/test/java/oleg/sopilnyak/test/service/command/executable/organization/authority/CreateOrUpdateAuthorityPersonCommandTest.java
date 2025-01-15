@@ -55,7 +55,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        assertThat(context.getUndoParameter().value()).isEqualTo(id);
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
@@ -65,7 +65,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     @Test
     void shouldDoCommand_UpdateEntity() {
         Long id = 300L;
-        when(entity.getId()).thenReturn(id);
+        doReturn(id).when(entity).getId();
         when(persistence.findAuthorityPersonById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
@@ -74,7 +74,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
@@ -87,7 +87,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     @Test
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 301L;
-        when(entity.getId()).thenReturn(id);
+        doReturn(id).when(entity).getId();
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
@@ -96,7 +96,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, atLeastOnce()).getId();
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
         verify(persistence, never()).save(any());
@@ -192,16 +192,14 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = 304L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isUndone()).isTrue();
         verify(command).executeUndo(context);
         verify(persistence).deleteAuthorityPerson(id);
     }
@@ -210,12 +208,10 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldUndoCommand_UpdateEntity() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -251,12 +247,10 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 

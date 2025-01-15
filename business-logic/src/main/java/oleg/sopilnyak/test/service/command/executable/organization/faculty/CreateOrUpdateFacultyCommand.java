@@ -60,11 +60,11 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
      */
     @Override
     public void executeDo(Context<Optional<Faculty>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Faculty> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to create or update faculty {}", parameter);
-            final Long id = ((Faculty) parameter).getId();
+            final Long id = parameter.value().getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
                 // previous version of faculty is storing to context for further rollback (undo)
@@ -74,10 +74,8 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
                 );
                 if (context instanceof CommandContext<?> commandContext) {
                     log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                    commandContext.setRedoParameter(Input.of(entity));
+                    commandContext.setUndoParameter(Input.of(entity));
                 }
-//                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-//                context.setUndoParameter(entity);
             } else {
                 log.debug("Trying to create faculty using: {}", parameter);
             }
@@ -110,7 +108,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo faculty changes using: {}", parameter);

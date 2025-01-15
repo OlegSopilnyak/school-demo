@@ -36,6 +36,7 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
     @Override
     public void executeDo(Context<Set<AuthorityPerson>> context) {
         try {
+            // no command do input
             log.debug("Trying to get all authority persons");
 
             final Set<AuthorityPerson> staff = persistence.findAllAuthorityPersons();

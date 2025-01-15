@@ -18,7 +18,7 @@ public interface NestedCommand<T> {
      * @param macroInputParameter   Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(NestedCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Object)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     Context<T> acceptPreparedContext(PrepareContextVisitor visitor, Input<?> macroInputParameter);
 

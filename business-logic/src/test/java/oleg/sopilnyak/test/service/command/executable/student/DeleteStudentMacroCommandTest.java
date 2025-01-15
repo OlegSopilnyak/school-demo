@@ -99,13 +99,13 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInputParameter()).isSameAs(studentId);
+        assertThat(redoParameter.getInputParameter().value()).isSameAs(studentId);
         Context<?> studentContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(studentContext.isReady()).isTrue();
         assertThat(profileContext.isReady()).isTrue();
-        assertThat(studentContext.<Long>getRedoParameter()).isSameAs(studentId);
-        assertThat(profileContext.<Long>getRedoParameter()).isSameAs(profileId);
+        assertThat(studentContext.getRedoParameter().value()).isSameAs(studentId);
+        assertThat(profileContext.getRedoParameter().value()).isSameAs(profileId);
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -250,8 +250,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-        assertThat(studentContext.<Long>getRedoParameter()).isEqualTo(studentId);
-        assertThat(profileContext.<Long>getRedoParameter()).isEqualTo(profileId);
+        assertThat(studentContext.getRedoParameter().value()).isEqualTo(studentId);
+        assertThat(profileContext.getRedoParameter().value()).isEqualTo(profileId);
 
         verifyStudentDoCommand(studentContext);
         verifyProfileDoCommand(profileContext);

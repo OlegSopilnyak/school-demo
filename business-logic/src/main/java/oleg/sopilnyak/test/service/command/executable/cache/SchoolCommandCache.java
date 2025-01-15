@@ -49,7 +49,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see StudentsPersistenceFacade
      * @see StudentsPersistenceFacade#findStudentById(Long)
      * @see Context
-     * @see Context#setUndoParameter(Object)
+     * @see CommandContext#setUndoParameter(Input)
      * @see BusinessMessagePayloadMapper#toPayload(BaseType)
      */
     protected T retrieveEntity(final Long inputId,
@@ -100,19 +100,42 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     protected Optional<T> rollbackCachedEntity(final Context<?> context,
                                                final Function<T, Optional<T>> facadeSave,
                                                final LongConsumer facadeDeleteById) {
-        final Object parameter = context.getUndoParameter();
-        if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
+        // process the value of input parameter
+        final Object parameter = inputParameter(context.getUndoParameter());
+        // rollback updating exists entity
+        if (entityType.isAssignableFrom(parameter.getClass())) {
+            // save entity from parameter
             getLog().debug("Restoring changed value of {}\n'{}'", entityName, parameter);
-//            return facadeSave.apply(context.getUndoParameter());
+            return facadeSave.apply(entityType.cast(parameter));
         } else if (isNull(facadeDeleteById)) {
+            // delete function isn't passed to the method
             throw new InvalidParameterTypeException(entityName, parameter);
         }
+        // rollback deleting new entity
         getLog().info("Deleting created value of {} with ID:{}", entityName, parameter);
         if (parameter instanceof Long id) {
+            // remove created entity by id from the parameter
             facadeDeleteById.accept(id);
-            getLog().debug("Got deleted {} with ID:{} successfully", entityName, id);
-            return Optional.empty();
+            final Input<?> doInput = context.getRedoParameter();
+            if(isNull(doInput) || doInput.isEmpty()) {
+                // command do input is empty
+                getLog().debug("No input entity to clean entity-id.");
+                return Optional.empty();
+            }
+            // cleaning input entity-id and do command result
+            if (doInput.value() instanceof BasePayload payload) {
+                // clear ID for further CREATE entity
+                payload.setId(null);
+                // clear the do command result after entity deleting
+                context.setResult(null);
+
+                getLog().debug("Got deleted {} with ID:{} successfully", entityName, id);
+                return Optional.empty();
+            } else {
+                throw new InvalidParameterTypeException(entityName, doInput);
+            }
         } else {
+            // wrong type of input parameter
             getLog().info("Cannot delete {} with ID:{} because of wrong parameter type", entityName, parameter);
             throw new InvalidParameterTypeException("Long", parameter);
         }
@@ -145,10 +168,12 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see StudentNotFoundException
      */
     protected Optional<T> persistRedoEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
-        final Object parameter = context.getRedoParameter();
-        if (nonNull(parameter) && entityType.isAssignableFrom(parameter.getClass())) {
+        // process the value of input parameter
+        final Object parameter = inputParameter(context.getRedoParameter());
+        if (entityType.isAssignableFrom(parameter.getClass())) {
             getLog().debug("Storing changed value of {} '{}'", entityName, parameter);
-//            return facadeSave.apply(context.getRedoParameter());
+            final T entity = entityType.cast(parameter);
+            return facadeSave.apply(entity);
         }
         getLog().warn("Invalid redo parameter type (expected '{}' for [{}])", entityName, parameter);
         throw new InvalidParameterTypeException(entityName, parameter);
@@ -199,7 +224,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * Setup context's undo parameter after entity removing
      *
      * @param context           command's do context
-     * @param entity            removed from database entity
+     * @param undoEntity            removed from database entity
      * @param exceptionSupplier function-source of entity-not-found exception
      * @param <E>               type of command result
      * @see BasePayload
@@ -207,18 +232,28 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * @see CommandContext#setUndoParameter(Input)
      * @see Supplier#get()
      */
-    protected <E> void setupUndoParameter(final Context<E> context,
-                                          final T entity,
-                                          final Supplier<? extends EntityNotFoundException> exceptionSupplier) {
+    protected <E> void prepareDeleteEntityUndo(final Context<E> context, final T undoEntity,
+                                               final Supplier<? extends EntityNotFoundException> exceptionSupplier) {
         // clear id of the deleted entity
-        if (entity instanceof BasePayload<?> payload) {
-            payload.setId(null);
+        if (undoEntity instanceof BasePayload<?> undo) {
+            // prepare entity for further creation (clear ID)
+            undo.setId(null);
         } else {
+            // wrong type of the undo entity
             throw exceptionSupplier.get();
         }
         // cached profile is storing to context for further rollback (undo)
         if (context instanceof CommandContext<E> commandContext) {
-            commandContext.setUndoParameter(Input.of(entity));
+            commandContext.setUndoParameter(Input.of(undoEntity));
+        }
+    }
+
+    // private methods
+    private <T> T inputParameter(final Input<T> parameter) {
+        if (isNull(parameter) || parameter.isEmpty()) {
+            throw new InvalidParameterTypeException(entityName, parameter);
+        } else {
+            return parameter.value();
         }
     }
 }

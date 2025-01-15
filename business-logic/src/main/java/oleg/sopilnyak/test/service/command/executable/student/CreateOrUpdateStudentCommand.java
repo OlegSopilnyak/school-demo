@@ -56,11 +56,11 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
      */
     @Override
     public void executeDo(Context<Optional<Student>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Student> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to change student using: {}", parameter);
-            final Long id = ((Student) parameter).getId();
+            final Long id = parameter.value().getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
                 // previous version of student is getting and storing to context for further rollback (undo)
@@ -70,10 +70,8 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
                 );
                 if (context instanceof CommandContext<?> commandContext) {
                     log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                    commandContext.setRedoParameter(Input.of(entity));
+                    commandContext.setUndoParameter(Input.of(entity));
                 }
-//                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-//                context.setUndoParameter(entity);
             } else {
                 log.debug("Trying to create student using: {}", parameter);
             }
@@ -104,7 +102,7 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo student changes using: {}", parameter);

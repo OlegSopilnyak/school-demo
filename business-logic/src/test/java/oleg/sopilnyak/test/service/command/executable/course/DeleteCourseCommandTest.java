@@ -58,7 +58,7 @@ class DeleteCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(mockedCoursePayload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(mockedCoursePayload);
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();

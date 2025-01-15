@@ -17,8 +17,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
-
 /**
  * Command-Base: macro-command the command with nest of commands inside
  *
@@ -76,13 +74,10 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
             checkNullParameter(inputParameter);
             getLog().debug("Do redo for {}", inputParameter.value());
             final Deque<Context<?>> nested = inputParameter.value().getNestedContexts();
-//            final Deque<Context<?>> nested = doContext.<MacroCommandParameter>getRedoParameter().value().getNestedContexts();
             final int nestedCount = nested.size();
 
             final ContextDeque<Context<?>> done = new ContextDeque<>();
-//            final Deque<Context<?>> successDeque = done.deque;
             final ContextDeque<Context<?>> failed = new ContextDeque<>();
-//            final Deque<Context<?>> failDeque = failed.deque;
             final CountDownLatch nestedCommandsExecuted = new CountDownLatch(nestedCount);
 
             // run nested command's do for nested contexts
@@ -95,7 +90,6 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
 
             // after run, success and fail dequeues processing
             afterDoneSetup(doContext, done.deque, failed.deque, nested);
-//            afterDoneSetup(doContext, successDeque, failDeque, nested);
         } catch (InterruptedException e) {
             getLog().error("Could not wait do finished '{}' with input {}", getId(), inputParameter, e);
             doContext.failed(e);
@@ -132,16 +126,17 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      * @see Context
      * @see Context.State#DONE
      * @see Context#getUndoParameter()
-//     * @see MacroCommand#undoNestedCommands(Input<Deque>)
+     * //     * @see MacroCommand#undoNestedCommands(Input<Deque>)
      * @see MacroCommand#afterRollbackDoneCheck(Context)
      */
     @Override
     public void executeUndo(final Context<?> undoContext) {
-        final Object parameter = undoContext.getUndoParameter();
+        final Input<Deque<Context<?>>> parameter = undoContext.getUndoParameter();
         getLog().debug("Do undo for {}", parameter);
         try {
+            checkNullParameter(parameter);
             // rolling back successful nested do command contexts
-//            undoNestedCommands(undoContext.getUndoParameter());
+            undoNestedCommands(parameter);
             // after rollback process, check the contexts' states
             afterRollbackDoneCheck(undoContext);
         } catch (Exception e) {
@@ -159,7 +154,6 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      * @see Context.State#DONE
      */
     public Deque<Context<?>> undoNestedCommands(final Input<Deque<Context<?>>> doneContexts) {
-//        public Deque<Context<?>> undoNestedCommands(final Deque<Context<?>> doneContexts) {
         return doneContexts.value().stream().filter(Context::isDone).map(context -> {
             final NestedCommand<?> command = context.getCommand();
             return command.undoAsNestedCommand(this, context);
@@ -182,7 +176,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
                                 final Deque<Context<?>> done,
                                 final Deque<Context<?>> failed,
                                 final Deque<Context<?>> nested) {
-        if(doneContext instanceof CommandContext<T> commandContext) {
+        if (doneContext instanceof CommandContext<T> commandContext) {
             final Input<Deque<Context<?>>> undoInput = Input.of(done);
             // check failed contexts
             if (ObjectUtils.isEmpty(failed)) {

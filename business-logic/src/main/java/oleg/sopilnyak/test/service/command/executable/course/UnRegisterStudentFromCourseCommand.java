@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -25,6 +26,7 @@ import static java.util.Objects.isNull;
 @AllArgsConstructor
 @Component
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
+    @Getter
     private final EducationPersistenceFacade persistenceFacade;
     @Getter
     private final BusinessMessagePayloadMapper payloadMapper;
@@ -40,38 +42,33 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      * @see EducationPersistenceFacade#findCourseById(Long)
      * @see EducationPersistenceFacade#unLink(Student, Course)
      * @see Context
-     * @see Context#setUndoParameter(Object)
+     * @see CommandContext#setUndoParameter(Input)
      * @see Context#setResult(Object)
      * @see Context.State#WORK
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<?> parameter = context.getRedoParameter();
         try {
             log.debug("Trying to un-link student from course: {}", parameter);
-            final Long[] ids = commandParameter(parameter);
-            final Long studentId = ids[0];
-            final Long courseId = ids[1];
-            final Student student = persistenceFacade.findStudentById(studentId)
-                    .orElseThrow(() -> new StudentNotFoundException("Student with ID:" + studentId + " is not exists."));
-            final Course course = persistenceFacade.findCourseById(courseId)
-                    .orElseThrow(() -> new CourseNotFoundException("Course with ID:" + courseId + " is not exists."));
+            checkNullParameter(parameter);
+            log.debug("Trying to register student to course: {}", parameter);
+            final PairParameter<Long> input = PairParameter.class.cast(parameter);
+            final Student student = retrieveStudent(input);
+            final Course course = retrieveCourse(input);
+            final Long studentId = student.getId();
+            final Long courseId = course.getId();
 
-            final var undoLink = new StudentToCourseLink(detached(student), detached(course));
             log.debug("Un-linking student-id:{} from course-id:{}", studentId, courseId);
 
             final boolean successful = persistenceFacade.unLink(student, course);
 
-            if (context instanceof CommandContext commandContext) {
-                commandContext.setUndoParameter(Input.of(undoLink));
-                commandContext.setResult(successful);
-                log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
+            if (successful && context instanceof CommandContext commandContext) {
+                commandContext.setUndoParameter(Input.of(studentId, courseId));
             }
-//            if (successful) {
-//                context.setUndoParameter(undoLink);
-//            }
-//            context.setResult(successful);
-//            log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
+
+            context.setResult(successful);
+            log.debug("Un-linked student-id:{} from course-id:{} successful: {}", studentId, courseId, successful);
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
             context.failed(e);
@@ -89,17 +86,17 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
-        if (isNull(parameter)) {
+        final Input<?> parameter = context.getUndoParameter();
+        if (isNull(parameter) || parameter.isEmpty()) {
             log.debug("Undo parameter is null");
             context.setState(Context.State.UNDONE);
             return;
         }
         log.debug("Trying to undo student to course un-linking using: {}", parameter);
         try {
-            final StudentToCourseLink undoLink = commandParameter(parameter);
+            final PairParameter<Long> input = PairParameter.class.cast(parameter);
 
-            final boolean successful = persistenceFacade.link(undoLink.getStudent(), undoLink.getCourse());
+            final boolean successful = persistenceFacade.link(retrieveStudent(input), retrieveCourse(input));
 
             context.setState(Context.State.UNDONE);
             log.debug("Undone student to course linking {}", successful);

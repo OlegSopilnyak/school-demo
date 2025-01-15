@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -32,11 +33,12 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
      */
     @Override
     public void executeDo(Context<Set<Course>> context) {
-        final Object parameter = context.getRedoParameter();
-        log.debug("Trying to find courses registered to student ID: {}", parameter);
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to find courses registered to student ID: {}", id);
+
             final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
 
             log.debug("Got courses {} for student with ID:{}", courses, id);

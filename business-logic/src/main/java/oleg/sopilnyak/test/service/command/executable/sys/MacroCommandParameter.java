@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import lombok.Data;
 import lombok.ToString;
+import lombok.Value;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 
@@ -11,7 +12,7 @@ import java.util.LinkedList;
 /**
  * Type-wrapper: The wrapper of MacroCommand input parameter
  */
-@Data
+@Value
 @ToString
 public class MacroCommandParameter implements Input<MacroCommandParameter> {
     private final Input<?> inputParameter;

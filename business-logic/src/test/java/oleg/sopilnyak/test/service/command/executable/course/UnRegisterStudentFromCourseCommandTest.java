@@ -9,8 +9,6 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.CoursePayload;
-import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,11 +28,7 @@ class UnRegisterStudentFromCourseCommandTest {
     @Mock
     Course course;
     @Mock
-    CoursePayload coursePayload;
-    @Mock
     Student student;
-    @Mock
-    StudentPayload studentPayload;
     @Mock
     EducationPersistenceFacade persistence;
     @Mock
@@ -53,10 +47,12 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldDoCommand_Linked() {
         Long id = 130L;
+        Long courseId = 1301L;
+        Long studentId = 1302L;
+        when(student.getId()).thenReturn(studentId);
+        when(course.getId()).thenReturn(courseId);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
-        when(payloadMapper.toPayload(student)).thenReturn(studentPayload);
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(payloadMapper.toPayload(course)).thenReturn(coursePayload);
         when(persistence.unLink(student, course)).thenReturn(true);
         Context<Boolean> context = command.createContext(Input.of(id, id));
 
@@ -68,10 +64,8 @@ class UnRegisterStudentFromCourseCommandTest {
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(payloadMapper).toPayload(student);
         verify(persistence).findCourseById(id);
-        verify(payloadMapper).toPayload(course);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(studentPayload, coursePayload));
+        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId));
         verify(persistence).unLink(student, course);
     }
 
@@ -126,19 +120,19 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);
         verify(persistence).unLink(student, course);
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
     }
 
     @Test
     void shouldUndoCommand_LinkedParameter() {
-        final var forUndo = new StudentToCourseLink(student, course);
+        Long id = 134L;
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(id, id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
@@ -149,12 +143,10 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldUndoCommand_IgnoreParameter() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -165,12 +157,10 @@ class UnRegisterStudentFromCourseCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("null"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 
@@ -181,16 +171,16 @@ class UnRegisterStudentFromCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
-        final var forUndo = new StudentToCourseLink(student, course);
+        Long id = 128L;
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
         RuntimeException cannotExecute = new RuntimeException("Cannot un-link");
         doThrow(cannotExecute).when(persistence).link(student, course);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(id, id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 

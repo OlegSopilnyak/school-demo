@@ -88,7 +88,7 @@ class DeletePrincipalProfileCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getException()).isNull();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);

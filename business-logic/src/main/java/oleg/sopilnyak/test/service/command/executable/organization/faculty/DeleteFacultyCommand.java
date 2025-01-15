@@ -58,11 +58,12 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to delete faculty with ID: {}", parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to delete faculty with ID: {}", id);
+
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
@@ -79,7 +80,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
             // removing faculty instance by ID from the database
             persistence.deleteFaculty(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted faculty with ID: {} successfully.", id);
@@ -102,20 +103,18 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to undo faculty deletion using: {}", parameter);
+            log.debug("Trying to undo faculty deletion using: {}", parameter.value());
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
             // change faculty-id value for further do command action
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
-                commandContext.setState(Context.State.UNDONE);
             }
-//            context.setRedoParameter(entity.getId());
-//            context.setState(Context.State.UNDONE);
+            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo faculty deletion {}", parameter, e);
             context.failed(e);

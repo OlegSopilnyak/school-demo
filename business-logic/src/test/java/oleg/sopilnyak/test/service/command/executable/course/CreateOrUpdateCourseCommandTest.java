@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class CreateOrUpdateCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        assertThat(context.getUndoParameter().value()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
         assertThat(result).contains(mockedCourse);
@@ -74,7 +74,7 @@ class CreateOrUpdateCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(mockedCoursePayload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(mockedCoursePayload);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
         assertThat(result).contains(mockedCourse);
@@ -99,6 +99,18 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<Course>> context = command.createContext(null);
+
+        command.doCommand(context);
+
+        assertThat(context.isDone()).isFalse();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        verify(command).executeDo(context);
+    }
+
+    @Test
+    void shouldNotDoCommand_EmptyParameter() {
+        Context<Optional<Course>> context = command.createContext(Input.empty());
 
         command.doCommand(context);
 
@@ -150,17 +162,16 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldUndoCommand_CreateCourse() {
         Long id = 103L;
-        Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+        Context<Optional<Course>> context = command.createContext(Input.of(mockedCoursePayload));
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isUndone()).isTrue();
         verify(command).executeUndo(context);
         verify(persistence).deleteCourse(id);
     }
@@ -168,12 +179,11 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldUndoCommand_UpdateCourse() {
         Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(mockedCourse));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(mockedCourse);
 
         command.undoCommand(context);
 
@@ -185,12 +195,11 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("id"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("id");
 
         command.undoCommand(context);
 
@@ -219,12 +228,11 @@ class CreateOrUpdateCourseCommandTest {
     void shouldNotUndoCommand_CreateExceptionThrown() {
         Long id = 104L;
         Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo create");
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
 
@@ -239,12 +247,11 @@ class CreateOrUpdateCourseCommandTest {
     @Test
     void shouldNotUndoCommand_UpdateExceptionThrown() {
         Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(mockedCourse));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(mockedCourse);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo update");
         doThrow(cannotExecute).when(persistence).save(mockedCourse);
 

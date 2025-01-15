@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 import lombok.Getter;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 
@@ -44,11 +45,11 @@ public abstract class FindProfileCommand<E extends PersonProfile> implements Pro
      */
     @Override
     public void executeDo(Context<Optional<E>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             getLog().debug("Trying to find profile by ID:{}", parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
 
             final Optional<E> profile = functionFindById().apply(id);
 

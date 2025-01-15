@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import org.slf4j.Logger;
@@ -37,10 +38,11 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
      */
     @Override
     public  void executeDo(Context<Optional<Faculty>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find faculty by ID:{}", parameter);
-            final Long id = commandParameter(parameter);
+            checkNullParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to find faculty by ID:{}", id);
 
             final Optional<Faculty> entity = persistenceFacade.findFacultyById(id);
 

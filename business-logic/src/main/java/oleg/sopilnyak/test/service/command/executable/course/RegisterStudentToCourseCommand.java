@@ -1,17 +1,15 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -35,10 +32,6 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Getter
 @Component
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
-    public static final String STUDENT_WITH_ID_PREFIX = "Student with ID:";
-    public static final String COURSE_WITH_ID_PREFIX = "Course with ID:";
-    public static final String IS_NOT_EXISTS_SUFFIX = " is not exists.";
-    @Getter(AccessLevel.NONE)
     private final EducationPersistenceFacade persistenceFacade;
     private final BusinessMessagePayloadMapper payloadMapper;
     private final int maximumRooms;
@@ -65,23 +58,21 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      * @see EducationPersistenceFacade#findCourseById(Long)
      * @see EducationPersistenceFacade#link(Student, Course)
      * @see Context
-     * @see Context#setUndoParameter(Object)
+     * @see CommandContext#setUndoParameter(Input)
      * @see Context#setResult(Object)
      * @see Context.State#WORK
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<?> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to register student to course: {}", parameter);
-            final Long[] ids = commandParameter(parameter);
-            final Long studentId = ids[0];
-            final Long courseId = ids[1];
-            final Student student = persistenceFacade.findStudentById(studentId)
-                    .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX));
-            final Course course = persistenceFacade.findCourseById(courseId)
-                    .orElseThrow(() -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX));
+            final PairParameter<Long> input = PairParameter.class.cast(parameter);
+            final Student student = retrieveStudent(input);
+            final Course course = retrieveCourse(input);
+            final Long studentId = student.getId();
+            final Long courseId = course.getId();
 
             if (isLinked(student, course)) {
                 log.debug("student: {} with course {} are already linked", studentId, courseId);
@@ -91,23 +82,17 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
                 throw new CourseHasNoRoomException(COURSE_WITH_ID_PREFIX + courseId + " does not have enough rooms.");
             } else if (student.getCourses().size() >= coursesExceed) {
                 log.error("Student with id:{} has more than {} courses", studentId, coursesExceed);
-                throw new StudentCoursesExceedException(STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses.");
+                throw new StudentCoursesExceedException(LINK_STUDENT_WITH_ID_PREFIX + studentId + " exceeds maximum courses.");
             } else {
-                log.debug("Linking student:{} to course:{}", studentId, courseId);
-                final var undoLink = new StudentToCourseLink(detached(student), detached(course));
+                log.debug("Linking student with ID:{} to course with ID:{}", studentId, courseId);
 
                 final boolean successful = persistenceFacade.link(student, course);
 
-                if (context instanceof CommandContext commandContext) {
-                    commandContext.setUndoParameter(Input.of(undoLink));
-                    commandContext.setResult(successful);
-                    log.debug("Linked student:{} to course {} successful: {}", studentId, courseId, successful);
+                context.setResult(successful);
+                if (successful && context instanceof CommandContext commandContext) {
+                    commandContext.setUndoParameter(Input.of(studentId, courseId));
                 }
-//                if (successful) {
-//                    context.setUndoParameter(undoLink);
-//                }
-//                context.setResult(successful);
-//                log.debug("Linked student:{} to course {} successful: {}", studentId, courseId, successful);
+                log.debug("Linked student with ID:{} to course with ID:{} successfully: {}", studentId, courseId, successful);
             }
         } catch (Exception e) {
             log.error("Cannot link student to course {}", parameter, e);
@@ -126,17 +111,17 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
-        if (isNull(parameter)) {
+        final Input<?> parameter = context.getUndoParameter();
+        if (isNull(parameter) || parameter.isEmpty()) {
             log.debug("Undo parameter is null");
             context.setState(Context.State.UNDONE);
             return;
         }
         log.debug("Trying to undo student to course linking using: {}", parameter);
         try {
-            final StudentToCourseLink undoLink = commandParameter(parameter);
+            final PairParameter<Long> input = PairParameter.class.cast(parameter);
 
-            final boolean successful = persistenceFacade.unLink(undoLink.getStudent(), undoLink.getCourse());
+            final boolean successful = persistenceFacade.unLink(retrieveStudent(input), retrieveCourse(input));
 
             context.setState(Context.State.UNDONE);
             log.debug("Undone student to course linking {}", successful);
@@ -167,6 +152,22 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
     }
 
     // private methods
+//    private Student retrieveStudent(final PairParameter<Long> input) {
+//        final Long studentId = input.first();
+//        return persistenceFacade.findStudentById(studentId)
+//                .orElseThrow(
+//                        () -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX)
+//                );
+//    }
+//
+//    private Course retrieveCourse(final PairParameter<Long> input) {
+//        final Long courseId = input.second();
+//        return persistenceFacade.findCourseById(courseId)
+//                .orElseThrow(
+//                        () -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX)
+//                );
+//    }
+
     private static boolean isLinked(final Student student, final Course course) {
         return studentsHaveCourse(course.getStudents(), course.getId()) &&
                 coursesHaveStudent(student.getCourses(), student.getId());

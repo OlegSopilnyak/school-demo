@@ -92,7 +92,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+        return macroInputParameter.value() instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createPersonContext(command, person) : cannotCreateNestedContextFor(command);
     }
 
@@ -130,7 +130,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
+        return macroInputParameter.value() instanceof AuthorityPerson person && PrincipalProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
                 createProfileContext(command, person) : cannotCreateNestedContextFor(command);
     }
 

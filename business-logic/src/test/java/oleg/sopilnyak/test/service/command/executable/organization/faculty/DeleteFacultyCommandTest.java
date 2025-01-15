@@ -55,7 +55,7 @@ class DeleteFacultyCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).contains(true);
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
         verify(payloadMapper).toPayload(entity);

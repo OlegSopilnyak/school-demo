@@ -1,9 +1,12 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.service.command.io.parameter.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
+import org.mapstruct.factory.Mappers;
+import org.mockito.internal.util.MockUtil;
 
 import java.util.Deque;
 
@@ -15,6 +18,9 @@ import java.util.Deque;
  * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
  */
 public interface Input<P> extends IOBase<P> {
+
+    BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
+
     /**
      * To create new empty input instance
      *
@@ -63,6 +69,7 @@ public interface Input<P> extends IOBase<P> {
     static PairParameter<String> of(final String firstValue, final String secondValue) {
         return new StringPairParameter(firstValue, secondValue);
     }
+
     /**
      * To create new input instance for Payload
      *
@@ -92,6 +99,14 @@ public interface Input<P> extends IOBase<P> {
         return new PayloadPairParameter<>(firstPayload, secondPayload);
     }
 
+//    static <T extends BaseType> PairParameter<?> of(final T firstPayload, final T secondPayload) {
+//        return new PayloadPairParameter<>(toPayload(firstPayload), toPayload(secondPayload));
+//    }
+//
+//    private static <T extends BaseType> BasePayload<T> toPayload(T value) {
+//        return value instanceof BasePayload<?> payload ? (BasePayload<T>) payload : (BasePayload<T>) payloadMapper.toPayload(value);
+//    }
+
     /**
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
@@ -108,13 +123,41 @@ public interface Input<P> extends IOBase<P> {
     }
 
     static Input<?> of(final Object parameter) {
-        if (parameter instanceof BasePayload basePayload) {
-            return of(basePayload);
+        if (MockUtil.isMock(parameter)) {
+            // mocked parameter
+            return new RawValueParameter(parameter);
+        } else if (parameter instanceof Input input) {
+            return input;
+//        }else if (parameter instanceof BasePayload basePayload) {
+//            return of(basePayload);
+//        }else if(parameter instanceof BaseType type) {
+//            return of(payloadMapper.toPayload(type));
         } else if (parameter instanceof Long longId) {
             return of(longId);
         } else if (parameter instanceof String stringId) {
             return of(stringId);
         }
         throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
+    }
+
+    static <T extends BaseType> Input<?> of(final T type) {
+        if (MockUtil.isMock(type))
+            // mocked parameter
+            return new RawValueParameter(type);
+        if (type instanceof Student base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof Course base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof AuthorityPerson base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof Faculty base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof StudentsGroup base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof PrincipalProfile base)
+            return of(payloadMapper.toPayload(base));
+        if (type instanceof StudentProfile base)
+            return of(payloadMapper.toPayload(base));
+        throw new IllegalArgumentException("Parameter type not supported: " + type.getClass());
     }
 }

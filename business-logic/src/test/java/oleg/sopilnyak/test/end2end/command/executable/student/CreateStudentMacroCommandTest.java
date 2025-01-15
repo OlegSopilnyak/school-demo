@@ -184,7 +184,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, newStudentInput);
         verify(command).prepareContext(nestedProfileCommand, newStudentInput);

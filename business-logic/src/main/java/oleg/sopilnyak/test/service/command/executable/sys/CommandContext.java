@@ -22,8 +22,6 @@ public class CommandContext<T> implements Context<T> {
     private RootCommand<T> command;
     private Input<?> redoParameter;
     private Input<?> undoParameter;
-    //    private Object redoParameter;
-//    private Object undoParameter;
     private T resultData;
     private Exception exception;
     // the time when execution starts
@@ -60,31 +58,11 @@ public class CommandContext<T> implements Context<T> {
     }
 
     /**
-     * To set up parameter value for command execution
-     *
-     * @param parameter the value
-     */
-//    @Override
-//    public void setRedoParameter(Object parameter) {
-//        redoParameter = parameter;
-//    }
-
-    /**
-     * To set up parameter value for rollback changes
-     *
-     * @param parameter the value
-     */
-//    @Override
-//    public void setUndoParameter(Object parameter) {
-//        undoParameter = parameter;
-//    }
-
-    /**
      * To set up input parameter value for command execution
      *
      * @param parameter the value
+     * @param <R> type of do input parameter
      */
-//    @Override
     public <R> void setRedoParameter(final Input<R> parameter) {
         this.redoParameter = parameter;
         if (state == INIT) {
@@ -96,8 +74,8 @@ public class CommandContext<T> implements Context<T> {
      * To set up input parameter value for rollback changes
      *
      * @param parameter the value
+     * @param <U> type of undo input parameter
      */
-//    @Override
     public <U> void setUndoParameter(final Input<U> parameter) {
         if (canUndo(state)) {
             undoParameter = nonNull(parameter) ? parameter : Input.empty();

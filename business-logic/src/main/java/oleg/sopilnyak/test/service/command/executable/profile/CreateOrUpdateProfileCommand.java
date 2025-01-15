@@ -79,10 +79,10 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
      */
     @Override
     public void executeDo(Context<Optional<E>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<?> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            final E profile = commandParameter(parameter);
+            final E profile = (E) parameter.value();
             final Long id = profile.getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
@@ -92,11 +92,11 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
                         id, functionFindById(), functionAdoptEntity(),
                         () -> new ProfileNotFoundException(PROFILE_WITH_ID_PREFIX + id + " is not exists.")
                 );
+
+                getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
                 if (context instanceof CommandContext<?> commandContext) {
-                    getLog().debug("Previous value of the entity stored for possible undo: {}", entity);
-                    commandContext.setRedoParameter(Input.of(entity));
+                    commandContext.setUndoParameter(Input.of(entity));
                 }
-//                context.setUndoParameter(entity);
             } else {
                 getLog().debug("Trying to create profile using: {}", profile);
             }
@@ -128,7 +128,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             getLog().debug("Trying to undo person profile changes using: {}", parameter);

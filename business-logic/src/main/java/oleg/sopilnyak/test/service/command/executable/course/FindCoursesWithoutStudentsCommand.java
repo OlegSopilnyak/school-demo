@@ -33,6 +33,7 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
     @Override
     public void executeDo(Context<Set<Course>> context) {
         try {
+            // no input parameters
             log.debug("Trying to find courses without students");
 
             final Set<Course> courses = persistenceFacade.findCoursesWithoutStudents();

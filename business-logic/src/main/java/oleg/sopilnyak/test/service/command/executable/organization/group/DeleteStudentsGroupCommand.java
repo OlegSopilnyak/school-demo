@@ -79,7 +79,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
             // removing students group instance by ID from the database
             persistence.deleteStudentsGroup(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted students group with ID: {} successfully.", id);

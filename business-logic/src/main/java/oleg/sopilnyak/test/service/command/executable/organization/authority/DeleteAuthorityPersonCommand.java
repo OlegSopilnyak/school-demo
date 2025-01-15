@@ -59,11 +59,11 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to delete authority person using: {}", parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
@@ -79,7 +79,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
             // removing authority person instance by ID from the database
             persistence.deleteAuthorityPerson(id);
             // setup undo parameter for deleted entity
-            setupUndoParameter(context, entity, () -> exceptionFor(id));
+            prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
             context.setResult(true);
             log.debug("Deleted authority person with ID: {} successfully.", id);
@@ -101,7 +101,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo authority person deletion using: {}", parameter);
@@ -111,10 +111,8 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
             // change authority-person-id value for further do command action
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
-                commandContext.setState(Context.State.UNDONE);
             }
-//            context.setRedoParameter(entity.getId());
-//            context.setState(Context.State.UNDONE);
+            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo authority person deletion {}", parameter, e);
             context.failed(e);

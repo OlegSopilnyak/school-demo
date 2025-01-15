@@ -58,10 +58,12 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldDoCommand_LinkStudentWithCourse() {
         Long id = 120L;
+        Long courseId = 1201L;
+        Long studentId = 1202L;
+        when(student.getId()).thenReturn(studentId);
+        when(course.getId()).thenReturn(courseId);
         when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
-        when(payloadMapper.toPayload(student)).thenReturn(studentPayload);
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
-        when(payloadMapper.toPayload(course)).thenReturn(coursePayload);
         when(persistence.link(student, course)).thenReturn(true);
 
         Context<Boolean> context = command.createContext(Input.of(id, id));
@@ -69,15 +71,13 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(studentPayload, coursePayload));
+        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId));
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(payloadMapper).toPayload(student);
         verify(persistence).findCourseById(id);
-        verify(payloadMapper).toPayload(course);
         verify(persistence).link(student, course);
     }
 
@@ -199,14 +199,15 @@ class RegisterStudentToCourseCommandTest {
 
     @Test
     void shouldUndoCommand_Linked() {
-        final var forUndo = new StudentToCourseLink(student, course);
+        Long id = 124L;
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
         Context<Boolean> context = command.createContext();
+
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(id, id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
@@ -215,19 +216,30 @@ class RegisterStudentToCourseCommandTest {
     }
 
     @Test
-    void shouldUndoCommand_NotLinked() {
+    void shouldUndoCommand_NotLinked_InputIsNull() {
         Context<Boolean> context = command.createContext();
-        if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.empty());
-        }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
+
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
-        verify(persistence, never()).unLink(student, course);
+        verify(persistence, never()).unLink(any(Student.class), any(Course.class));
+    }
+
+    @Test
+    void shouldUndoCommand_NotLinked_InputIsEmpty() {
+        Context<Boolean> context = command.createContext();
+
+        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setUndoParameter(Input.empty());
+        }
+
+        command.undoCommand(context);
+
+        assertThat(context.getState()).isEqualTo(UNDONE);
+        verify(persistence, never()).unLink(any(Student.class), any(Course.class));
     }
 
     @Test
@@ -249,17 +261,17 @@ class RegisterStudentToCourseCommandTest {
 
     @Test
     void shouldNotUndoCommand_ExceptionThrown() {
+        Long id = 128L;
+        when(persistence.findStudentById(id)).thenReturn(Optional.of(student));
+        when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
-        doThrow(cannotExecute).when(persistence).unLink(student, course);
-        final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(id, id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
+        doThrow(cannotExecute).when(persistence).unLink(student, course);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

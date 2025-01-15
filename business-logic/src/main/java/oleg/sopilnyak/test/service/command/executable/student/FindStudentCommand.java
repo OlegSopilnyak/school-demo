@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.slf4j.Logger;
@@ -32,11 +33,12 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
      */
     @Override
     public void executeDo(Context<Optional<Student>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
-            log.debug("Trying to find student by ID:{}", parameter.toString());
+            checkNullParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to find student by ID:{}", id);
 
-            final Long id = commandParameter(parameter);
             final Optional<Student> student = persistenceFacade.findStudentById(id);
 
             log.debug("Got student {} by ID:{}", student, id);
