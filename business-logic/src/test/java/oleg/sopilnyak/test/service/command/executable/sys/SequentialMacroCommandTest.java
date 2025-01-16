@@ -56,7 +56,7 @@ class SequentialMacroCommandTest {
         command.addToNest(doubleCommand);
         command.addToNest(booleanCommand);
         command.addToNest(intCommand);
-//        wrapBaseCommands();
+        wrapBaseCommands();
     }
 
     @Test
@@ -718,22 +718,22 @@ class SequentialMacroCommandTest {
 //        overridedCourseContext.setRedoParameter(300);
         return (Context<T>) overridedCourseContext;
     }
-//
-//    private void wrapBaseCommands() {
-//        Deque<NestedCommand<?>> commands = new LinkedList<>(command.fromNest());
-//        doubleCommand = (RootCommand<?>) commands.pop();
-//        booleanCommand = (RootCommand<?>) commands.pop();
-//        intCommand = (RootCommand<?>) commands.pop();
-//    }
-//
-//    private void wrapAllCommands() {
-//        Deque<NestedCommand<?>> commands = new LinkedList<>(command.fromNest());
-//        studentCommand = (StudentCommand<?>) commands.pop();
-//        courseCommand = (CourseCommand<?>) commands.pop();
-//        doubleCommand = (RootCommand<?>) commands.pop();
-//        booleanCommand = (RootCommand<?>) commands.pop();
-//        intCommand = (RootCommand<?>) commands.pop();
-//    }
+
+    private void wrapBaseCommands() {
+        Deque<NestedCommand<?>> commands = new LinkedList<>(command.fromNest());
+        doubleCommand = (RootCommand<?>) commands.pop();
+        booleanCommand = (RootCommand<?>) commands.pop();
+        intCommand = (RootCommand<?>) commands.pop();
+    }
+
+    private void wrapAllCommands() {
+        Deque<NestedCommand<?>> commands = new LinkedList<>(command.fromNest());
+        studentCommand = (StudentCommand<?>) commands.pop();
+        courseCommand = (CourseCommand<?>) commands.pop();
+        doubleCommand = (RootCommand<?>) commands.pop();
+        booleanCommand = (RootCommand<?>) commands.pop();
+        intCommand = (RootCommand<?>) commands.pop();
+    }
 
     // inner classes
     private static class RootInSequenceCommand extends SequentialMacroCommand.Chained<RootCommand<?>> implements RootCommand<Void> {

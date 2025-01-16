@@ -66,6 +66,17 @@ public interface Input<P> extends IOBase<P> {
         return new StringIdParameter(id);
     }
 
+    /**
+     * To create new input instance for Boolean flag
+     *
+     * @param flag flag value
+     * @return new instance of the input
+     * @see BooleanParameter
+     */
+    static Input<Boolean> of(final Boolean flag) {
+        return new BooleanParameter(flag);
+    }
+
     static PairParameter<String> of(final String firstValue, final String secondValue) {
         return new StringPairParameter(firstValue, secondValue);
     }
@@ -99,14 +110,6 @@ public interface Input<P> extends IOBase<P> {
         return new PayloadPairParameter<>(firstPayload, secondPayload);
     }
 
-//    static <T extends BaseType> PairParameter<?> of(final T firstPayload, final T secondPayload) {
-//        return new PayloadPairParameter<>(toPayload(firstPayload), toPayload(secondPayload));
-//    }
-//
-//    private static <T extends BaseType> BasePayload<T> toPayload(T value) {
-//        return value instanceof BasePayload<?> payload ? (BasePayload<T>) payload : (BasePayload<T>) payloadMapper.toPayload(value);
-//    }
-
     /**
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
@@ -126,12 +129,8 @@ public interface Input<P> extends IOBase<P> {
         if (MockUtil.isMock(parameter)) {
             // mocked parameter
             return new RawValueParameter(parameter);
-        } else if (parameter instanceof Input input) {
+        } else if (parameter instanceof Input<?> input) {
             return input;
-//        }else if (parameter instanceof BasePayload basePayload) {
-//            return of(basePayload);
-//        }else if(parameter instanceof BaseType type) {
-//            return of(payloadMapper.toPayload(type));
         } else if (parameter instanceof Long longId) {
             return of(longId);
         } else if (parameter instanceof String stringId) {

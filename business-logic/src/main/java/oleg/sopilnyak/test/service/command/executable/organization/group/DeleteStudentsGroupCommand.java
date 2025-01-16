@@ -60,11 +60,11 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      */
     @Override
     public void executeDo(Context<Boolean> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<Long> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to delete students group with ID: {}", parameter);
-            final Long id = commandParameter(parameter);
+            final Long id = parameter.value();
+            log.debug("Trying to delete students group with ID: {}", id);
             if (PersistenceFacadeUtilities.isInvalidId(id)) {
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
@@ -102,21 +102,19 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo students group deletion using: {}", parameter);
 
-            final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
+            final StudentsGroup entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
             log.debug("Updated in database: '{}'", entity);
             // change students-group-id value for further do command action
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
-                commandContext.setState(Context.State.UNDONE);
             }
-//            context.setRedoParameter(entity.getId());
-//            context.setState(Context.State.UNDONE);
+            context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo students group deletion {}", parameter, e);
             context.failed(e);

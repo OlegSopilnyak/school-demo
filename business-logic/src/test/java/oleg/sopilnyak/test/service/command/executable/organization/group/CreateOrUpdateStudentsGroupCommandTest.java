@@ -56,7 +56,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(id);
+        assertThat(context.getUndoParameter().value()).isEqualTo(id);
         Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
@@ -75,7 +75,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(payload);
+        assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
@@ -194,11 +194,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -212,11 +210,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -253,11 +249,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -273,11 +267,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteStudentsGroup(id);
 
         command.undoCommand(context);
@@ -293,11 +285,9 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
         command.undoCommand(context);

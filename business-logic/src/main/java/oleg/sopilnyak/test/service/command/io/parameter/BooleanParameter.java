@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import oleg.sopilnyak.test.service.command.io.Input;
 
@@ -18,49 +18,49 @@ import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAM
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
- * Type: I/O school-command String-id input parameter
+ * Type: I/O school-command boolean input parameter
  *
  * @see Input
  */
-@JsonSerialize(using = StringIdParameter.Serializer.class)
-@JsonDeserialize(using = StringIdParameter.Deserializer.class)
-public record StringIdParameter(String value) implements Input<String> {
+@JsonSerialize(using = BooleanParameter.Serializer.class)
+@JsonDeserialize(using = BooleanParameter.Deserializer.class)
+public record BooleanParameter(Boolean value) implements Input<Boolean> {
     /**
-     * JSON: Serializer for StringIdParameter
+     * JSON: Serializer for BooleanParameter
      *
      * @see StdSerializer
-     * @see StringIdParameter
+     * @see BooleanParameter
      */
-    static class Serializer extends StdSerializer<StringIdParameter> {
+    static class Serializer extends StdSerializer<BooleanParameter> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<StringIdParameter> t) {
+        protected Serializer(Class<BooleanParameter> t) {
             super(t);
         }
 
         @Override
-        public void serialize(final StringIdParameter parameter,
+        public void serialize(final BooleanParameter parameter,
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(TYPE_FIELD_NAME, StringIdParameter.class.getName());
-            generator.writeStringField(VALUE_FIELD_NAME, parameter.value());
+            generator.writeStringField(TYPE_FIELD_NAME, BooleanParameter.class.getName());
+            generator.writeBooleanField(VALUE_FIELD_NAME, parameter.value());
             generator.writeEndObject();
         }
     }
 
     /**
-     * JSON: Deserializer for StringIdParameter
+     * JSON: Deserializer for BooleanParameter
      *
      * @see StdDeserializer
-     * @see StringIdParameter
+     * @see BooleanParameter
      */
-    static class Deserializer extends StdDeserializer<StringIdParameter> {
+    static class Deserializer extends StdDeserializer<BooleanParameter> {
 
         public Deserializer() {
-            this(StringIdParameter.class);
+            this(BooleanParameter.class);
         }
 
         protected Deserializer(Class<?> vc) {
@@ -68,10 +68,10 @@ public record StringIdParameter(String value) implements Input<String> {
         }
 
         @Override
-        public StringIdParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
+        public BooleanParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
             final TreeNode valueNode = jsonParser.readValueAsTree().get(VALUE_FIELD_NAME);
-            return new StringIdParameter(valueNode instanceof TextNode textNode ? textNode.asText() : "");
+            return new BooleanParameter(valueNode instanceof BooleanNode booleanNode && booleanNode.asBoolean());
         }
     }
 }

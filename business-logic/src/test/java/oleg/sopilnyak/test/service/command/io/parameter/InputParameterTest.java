@@ -13,11 +13,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +26,30 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {
     private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+
+    @Test
+    void shouldCreateBooleanParameter() {
+        boolean flag = true;
+
+        Input<Boolean> parameter = Input.of(flag);
+
+        assertThat(parameter.value()).isSameAs(flag);
+        assertThat(parameter).isInstanceOf(BooleanParameter.class);
+    }
+
+    @Test
+    void shouldRestoreBooleanParameter() throws JsonProcessingException {
+        boolean flag = true;
+
+        Input<Boolean> parameter = Input.of(flag);
+
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(BooleanParameter.class.getName());
+        BooleanParameter restored = objectMapper.readValue(json, BooleanParameter.class);
+
+        assertThat(restored.value()).isSameAs(flag);
+        assertThat(restored).isInstanceOf(Input.class);
+    }
 
     @Test
     void shouldCreateLongIdParameter() {
@@ -672,7 +696,7 @@ class InputParameterTest {
     void shouldCreateUndoDequeContextsParameter() {
         Context<?> context1 = mock(Context.class);
         Context<?> context2 = mock(Context.class);
-        Deque<Context<?>> contexts = List.of(context1,context2).stream().collect(Collectors.toCollection(LinkedList::new));
+        Deque<Context<?>> contexts = Stream.of(context1, context2).collect(Collectors.toCollection(LinkedList::new));
 
         Input<Deque<Context<?>>> parameter = Input.of(contexts);
 

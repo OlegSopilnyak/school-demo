@@ -19,6 +19,7 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ExtendWith(MockitoExtension.class)
 class CommandContextTest<T> {
@@ -48,7 +49,7 @@ class CommandContextTest<T> {
 
         states.forEach(state -> context.setState(state));
 
-        assertThat(context.getStatesHistory()).isEqualTo(states);
+        assertThat(context.getHistory().states()).isEqualTo(states);
         verify(context, times(states.size())).setState(any(Context.State.class));
     }
 
@@ -80,7 +81,6 @@ class CommandContextTest<T> {
         if (commandContext instanceof CommandContext<?> cContext) {
             cContext.setRedoParameter(Input.of(Boolean.TRUE));
         }
-//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         assertThat(commandContext.getStartedAt()).isNull();
         assertThat(commandContext.getDuration()).isNull();
@@ -89,7 +89,7 @@ class CommandContextTest<T> {
         List<Context.State> states = List.of(INIT, READY, WORK);
         assertThat(commandContext.getStartedAt()).isNotNull();
         assertThat(commandContext.getDuration()).isNull();
-        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getHistory().states()).isEqualTo(states);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
         TimeUnit.MILLISECONDS.sleep(100);
         assertThat(Instant.now().isAfter(commandContext.getStartedAt())).isTrue();
@@ -97,26 +97,25 @@ class CommandContextTest<T> {
 
     @Test
     void shouldSetDurationValueStateDone() throws InterruptedException {
-        long sleepTime = 100;
+        long sleepTime = 150;
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
         if (commandContext instanceof CommandContext<?> cContext) {
             cContext.setRedoParameter(Input.of(Boolean.TRUE));
         }
-//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
         assertThat(commandContext.getDuration()).isNull();
         TimeUnit.MILLISECONDS.sleep(sleepTime);
-//        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
+//        await().atMost(sleepTime, TimeUnit.MILLISECONDS).until(()->true);
 
         commandContext.setResult(Boolean.FALSE);
 
         assertThat(commandContext.getState()).isEqualTo(DONE);
         List<Context.State> states = List.of(INIT, READY, WORK, DONE);
-        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getHistory().states()).isEqualTo(states);
         assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
         assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
         verify((CommandContext<T>) commandContext).setDuration(any(Duration.class));
@@ -131,7 +130,6 @@ class CommandContextTest<T> {
         if (commandContext instanceof CommandContext<?> cContext) {
             cContext.setRedoParameter(Input.of(Boolean.TRUE));
         }
-//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
@@ -146,7 +144,7 @@ class CommandContextTest<T> {
         assertThat(commandContext.getResult()).isEmpty();
         assertThat(commandContext.getException()).isSameAs(failure);
         List<Context.State> states = List.of(INIT, READY, WORK, FAIL);
-        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getHistory().states()).isEqualTo(states);
         assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
         assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
         verify((CommandContext<T>) commandContext).setDuration(any(Duration.class));
@@ -161,7 +159,6 @@ class CommandContextTest<T> {
         if (commandContext instanceof CommandContext<?> cContext) {
             cContext.setRedoParameter(Input.of(Boolean.TRUE));
         }
-//        commandContext.setRedoParameter(Boolean.TRUE);
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
@@ -172,15 +169,14 @@ class CommandContextTest<T> {
         TimeUnit.MILLISECONDS.sleep(sleepTime);
 //        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+            cContext.setUndoParameter(Input.of(Boolean.TRUE));
         }
-//        commandContext.setUndoParameter(Boolean.TRUE);
         commandContext.setState(UNDONE);
 
         assertThat(commandContext.getState()).isEqualTo(UNDONE);
         assertThat(commandContext.getResult().orElseThrow()).isFalse();
         List<Context.State> states = List.of(INIT, READY, WORK, DONE, WORK, UNDONE);
-        assertThat(((CommandContext<T>) commandContext).getStatesHistory()).isEqualTo(states);
+        assertThat(commandContext.getHistory().states()).isEqualTo(states);
         assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
         assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
         int invokeTimes = 2;

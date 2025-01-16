@@ -60,24 +60,23 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      */
     @Override
     public void executeDo(Context<Optional<StudentsGroup>> context) {
-        final Object parameter = context.getRedoParameter();
+        final Input<StudentsGroup> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to create or update students group {}", parameter);
-            final Long id = ((StudentsGroup) parameter).getId();
+            final Long id = parameter.value().getId();
+            log.debug("Trying to create or update students group {}", id);
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
                 // cached students group is storing to context for further rollback (undo)
-                final var entity = retrieveEntity(
+                final StudentsGroup entity = retrieveEntity(
                         id, persistence::findStudentsGroupById, payloadMapper::toPayload,
                         () -> new StudentsGroupNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
                 );
+
+                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                 if (context instanceof CommandContext<?> commandContext) {
-                    log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                    commandContext.setRedoParameter(Input.of(entity));
+                    commandContext.setUndoParameter(Input.of(entity));
                 }
-//                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-//                context.setUndoParameter(entity);
             } else {
                 log.debug("Trying to create students group using: {}", parameter);
             }
@@ -110,7 +109,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      */
     @Override
     public void executeUndo(Context<?> context) {
-        final Object parameter = context.getUndoParameter();
+        final Input<StudentsGroup> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to undo students group changes using: {}", parameter);
