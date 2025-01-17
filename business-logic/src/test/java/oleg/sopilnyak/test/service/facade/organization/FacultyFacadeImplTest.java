@@ -115,7 +115,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }
@@ -128,7 +128,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculty).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
+        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }

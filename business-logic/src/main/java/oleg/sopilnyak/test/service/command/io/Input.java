@@ -92,7 +92,7 @@ public interface Input<P> extends IOBase<P> {
      * @see BaseType
      */
     static <T extends BasePayload<? extends BaseType>> Input<T> of(final T payload) {
-        return new PayloadParameter<>(payload);
+        return MockUtil.isMock(payload) ? () -> payload : new PayloadParameter<>(payload);
     }
 
     /**
@@ -126,23 +126,22 @@ public interface Input<P> extends IOBase<P> {
     }
 
     static Input<?> of(final Object parameter) {
-        if (MockUtil.isMock(parameter)) {
+        if (MockUtil.isMock(parameter))
             // mocked parameter
-            return new RawValueParameter(parameter);
-        } else if (parameter instanceof Input<?> input) {
+            return () -> parameter;
+        else if (parameter instanceof Input<?> input)
             return input;
-        } else if (parameter instanceof Long longId) {
+        else if (parameter instanceof Long longId)
             return of(longId);
-        } else if (parameter instanceof String stringId) {
+        else if (parameter instanceof String stringId)
             return of(stringId);
-        }
         throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
     }
 
     static <T extends BaseType> Input<?> of(final T type) {
         if (MockUtil.isMock(type))
             // mocked parameter
-            return new RawValueParameter(type);
+            return () -> type;
         if (type instanceof Student base)
             return of(payloadMapper.toPayload(base));
         if (type instanceof Course base)

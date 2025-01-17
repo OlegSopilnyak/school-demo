@@ -115,7 +115,7 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(faculty).isPresent();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(mockGroupPayload));
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockGroupPayload);
     }

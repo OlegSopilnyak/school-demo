@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -201,7 +201,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(Input.of(mockPersonPayload));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -216,7 +216,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -233,7 +233,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).contains(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);

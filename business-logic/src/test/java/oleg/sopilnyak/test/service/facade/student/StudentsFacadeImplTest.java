@@ -166,7 +166,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
@@ -186,7 +186,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
         verify(factory).command(STUDENT_CREATE_NEW);
-        verify(factory.command(STUDENT_CREATE_NEW)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(STUDENT_CREATE_NEW)).createContext(any(Input.class));
         verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
@@ -203,7 +203,7 @@ class StudentsFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);

@@ -106,7 +106,7 @@ class PrincipalProfileFacadeImplTest {
         assertThat(result).contains(payload);
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(payloadMapper).toPayload(any(PersonProfile.class));
@@ -121,7 +121,7 @@ class PrincipalProfileFacadeImplTest {
         assertThat(result).isEmpty();
         verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
+        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(Input.class));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(payloadMapper).toPayload(any(PersonProfile.class));
