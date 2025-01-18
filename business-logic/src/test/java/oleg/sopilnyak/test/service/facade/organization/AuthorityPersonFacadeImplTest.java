@@ -201,7 +201,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result.orElseThrow()).isEqualTo(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(any(Input.class));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -216,7 +216,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(any(Input.class));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
@@ -233,7 +233,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).contains(mockPersonPayload);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(any(Input.class));
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);

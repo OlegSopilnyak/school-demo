@@ -160,13 +160,13 @@ class CommandMessageJsonSerializationTest {
     void shouldDeserializeInputUsingInputParameterDeserializer_LongIdParameter() throws IOException {
         long id = 102;
         CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
-        LongIdParameter input = new LongIdParameter(id);
+        NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        Input restored = inputParameterDeserializer.deserialize(parser, null);
+        Input<?> restored = inputParameterDeserializer.deserialize(parser, null);
 
-        assertThat(restored).isNotNull().isInstanceOf(LongIdParameter.class);
+        assertThat(restored).isNotNull().isInstanceOf(NumberIdParameter.class);
         assertThat(restored.value()).isEqualTo(id);
     }
 
@@ -178,7 +178,7 @@ class CommandMessageJsonSerializationTest {
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        Input restored = inputParameterDeserializer.deserialize(parser, null);
+        Input<?> restored = inputParameterDeserializer.deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(StringIdParameter.class);
         assertThat(restored.value()).isEqualTo(id);
@@ -192,7 +192,7 @@ class CommandMessageJsonSerializationTest {
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        PairParameter restored = (PairParameter) inputParameterDeserializer.deserialize(parser, null);
+        PairParameter<?> restored = (PairParameter<?>) inputParameterDeserializer.deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(LongIdPairParameter.class);
         assertThat(restored.value().first()).isEqualTo(id);
@@ -208,7 +208,7 @@ class CommandMessageJsonSerializationTest {
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        PayloadParameter restored = (PayloadParameter) inputParameterDeserializer.deserialize(parser, null);
+        PayloadParameter<?> restored = (PayloadParameter<?>) inputParameterDeserializer.deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(PayloadParameter.class);
         assertThat(restored.value()).isEqualTo(entity);
@@ -224,7 +224,7 @@ class CommandMessageJsonSerializationTest {
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        PayloadPairParameter<StudentPayload> restored = (PayloadPairParameter) inputParameterDeserializer.deserialize(parser, null);
+        PayloadPairParameter<StudentPayload> restored = (PayloadPairParameter<StudentPayload>) inputParameterDeserializer.deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(PayloadPairParameter.class);
         assertThat(restored.value().first()).isEqualTo(firstEntity);

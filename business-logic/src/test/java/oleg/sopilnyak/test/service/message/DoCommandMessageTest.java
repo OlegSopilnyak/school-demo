@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
-import oleg.sopilnyak.test.service.command.io.parameter.LongIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.junit.jupiter.api.Test;
@@ -126,7 +126,7 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(1, ChronoUnit.SECONDS)));
         DoCommandMessage<Long, Boolean> message = spy(new DoCommandMessage<>());
-        LongIdParameter input = new LongIdParameter(id);
+        NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         BooleanResult result = new BooleanResult(value);
         message.setCorrelationId(correlationCommandId);
         message.setCommandId(commandId);
@@ -159,7 +159,7 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         DoCommandMessage<Long, Boolean> message = new DoCommandMessage<>();
-        LongIdParameter input = new LongIdParameter(id);
+        NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         BooleanResult result = new BooleanResult(resultValue);
         message.setCorrelationId(correlationCommandId);
         message.setCommandId(commandId);
@@ -174,7 +174,7 @@ class DoCommandMessageTest {
         assertThat(json).isNotBlank()
                 .contains("test-action")
                 .contains("test-action")
-                .contains(LongIdParameter.class.getName())
+                .contains(NumberIdParameter.class.getName())
                 .contains(BooleanResult.class.getName());
 
     }
@@ -190,7 +190,7 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         DoCommandMessage<Long, Boolean> message = new DoCommandMessage<>();
-        LongIdParameter input = new LongIdParameter(id);
+        NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         BooleanResult result = new BooleanResult(resultValue);
         message.setCorrelationId(correlationCommandId);
         message.setCommandId(commandId);

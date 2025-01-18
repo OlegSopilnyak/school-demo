@@ -19,7 +19,6 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @ExtendWith(MockitoExtension.class)
 class CommandContextTest<T> {
@@ -70,7 +69,7 @@ class CommandContextTest<T> {
     }
 
     @Test
-    void shouldSetStartedAtValue() throws InterruptedException {
+    void shouldSetStartedAtValue() {
         doCallRealMethod().when(rootCommand).createContext();
         Context<T> commandContext = spy(rootCommand.createContext());
         assertThat(commandContext.getCommand()).isEqualTo(rootCommand);
@@ -79,7 +78,7 @@ class CommandContextTest<T> {
         assertThat(commandContext.getDuration()).isNull();
 
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+            cContext.setRedoParameter(Input.of(-1));
         }
         assertThat(commandContext.getState()).isEqualTo(READY);
         assertThat(commandContext.getStartedAt()).isNull();
@@ -91,25 +90,24 @@ class CommandContextTest<T> {
         assertThat(commandContext.getDuration()).isNull();
         assertThat(commandContext.getHistory().states()).isEqualTo(states);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
-        TimeUnit.MILLISECONDS.sleep(100);
+        sleepMilliseconds(100);
         assertThat(Instant.now().isAfter(commandContext.getStartedAt())).isTrue();
     }
 
     @Test
-    void shouldSetDurationValueStateDone() throws InterruptedException {
+    void shouldSetDurationValueStateDone() {
         long sleepTime = 150;
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+            cContext.setRedoParameter(Input.of(-1));
         }
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
         assertThat(commandContext.getDuration()).isNull();
-        TimeUnit.MILLISECONDS.sleep(sleepTime);
-//        await().atMost(sleepTime, TimeUnit.MILLISECONDS).until(()->true);
+        sleepMilliseconds(sleepTime);
 
         commandContext.setResult(Boolean.FALSE);
 
@@ -122,20 +120,19 @@ class CommandContextTest<T> {
     }
 
     @Test
-    void shouldSetDurationValueStateFailed() throws InterruptedException {
+    void shouldSetDurationValueStateFailed() {
         long sleepTime = 100;
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+            cContext.setRedoParameter(Input.of(-1));
         }
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
         verify((CommandContext<T>) commandContext).setStartedAt(any(Instant.class));
         assertThat(commandContext.getDuration()).isNull();
-        TimeUnit.MILLISECONDS.sleep(sleepTime);
-//        await().atMost(sleepTime, TimeUnit.MILLISECONDS).until(() -> true);
+        sleepMilliseconds(sleepTime);
         Exception failure = new Exception();
 
         commandContext.failed(failure);
@@ -151,13 +148,13 @@ class CommandContextTest<T> {
     }
 
     @Test
-    void shouldSetDurationValueStateUndo() throws InterruptedException {
+    void shouldSetDurationValueStateUndo() {
         long sleepTime = 100;
         RootCommand<Boolean> command = mock(RootCommand.class);
         doCallRealMethod().when(command).createContext();
         Context<Boolean> commandContext = spy(command.createContext());
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setRedoParameter(Input.of(Boolean.TRUE));
+            cContext.setRedoParameter(Input.of(-1));
         }
         assertThat(commandContext.getState()).isEqualTo(READY);
         commandContext.setState(WORK);
@@ -166,10 +163,9 @@ class CommandContextTest<T> {
         commandContext.setResult(Boolean.FALSE);
 
         commandContext.setState(WORK);
-        TimeUnit.MILLISECONDS.sleep(sleepTime);
-//        await().atMost(sleepTime, TimeUnit.MILLISECONDS);
+        sleepMilliseconds(sleepTime);
         if (commandContext instanceof CommandContext<?> cContext) {
-            cContext.setUndoParameter(Input.of(Boolean.TRUE));
+            cContext.setUndoParameter(Input.of(-2));
         }
         commandContext.setState(UNDONE);
 
@@ -184,5 +180,16 @@ class CommandContextTest<T> {
         assertThat(((CommandContext<T>) commandContext).getWorkedHistory()).hasSize(invokeTimes);
         verify((CommandContext<T>) commandContext, times(invokeTimes)).setStartedAt(any(Instant.class));
         verify((CommandContext<T>) commandContext, times(invokeTimes)).setDuration(any(Duration.class));
+    }
+
+    /**
+    await().atMost(sleepTime, TimeUnit.MILLISECONDS).until(() -> true);
+     */
+    private static void sleepMilliseconds(long sleepTime) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
     }
 }

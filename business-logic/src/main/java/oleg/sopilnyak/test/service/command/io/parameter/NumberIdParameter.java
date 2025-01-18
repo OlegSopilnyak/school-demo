@@ -8,59 +8,61 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import oleg.sopilnyak.test.service.command.io.Input;
 
 import java.io.IOException;
 
+import static java.util.Objects.isNull;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
- * Type: I/O school-command boolean input parameter
+ * Type: I/O school-command Long-id input parameter
  *
  * @see Input
  */
-@JsonSerialize(using = BooleanParameter.Serializer.class)
-@JsonDeserialize(using = BooleanParameter.Deserializer.class)
-public record BooleanParameter(Boolean value) implements Input<Boolean> {
+@JsonSerialize(using = NumberIdParameter.Serializer.class)
+@JsonDeserialize(using = NumberIdParameter.Deserializer.class)
+public record NumberIdParameter<T extends Number>(T value) implements Input<T> {
     /**
-     * JSON: Serializer for BooleanParameter
+     * JSON: Serializer for NumberIdParameter
      *
      * @see StdSerializer
-     * @see BooleanParameter
+     * @see NumberIdParameter
      */
-    static class Serializer extends StdSerializer<BooleanParameter> {
+    static class Serializer extends StdSerializer<NumberIdParameter<?>> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<BooleanParameter> t) {
+        protected Serializer(Class<NumberIdParameter<?>> t) {
             super(t);
         }
 
         @Override
-        public void serialize(final BooleanParameter parameter,
+        public void serialize(final NumberIdParameter parameter,
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(TYPE_FIELD_NAME, BooleanParameter.class.getName());
-            generator.writeBooleanField(VALUE_FIELD_NAME, parameter.value());
+            generator.writeStringField(TYPE_FIELD_NAME, NumberIdParameter.class.getName());
+            generator.writeNumberField(VALUE_FIELD_NAME, parameter.value().longValue());
             generator.writeEndObject();
         }
     }
 
     /**
-     * JSON: Deserializer for BooleanParameter
+     * JSON: Deserializer for NumberIdParameter
      *
      * @see StdDeserializer
-     * @see BooleanParameter
+     * @see NumberIdParameter
      */
-    static class Deserializer extends StdDeserializer<BooleanParameter> {
+    static class Deserializer extends StdDeserializer<NumberIdParameter<?>> {
 
         public Deserializer() {
-            this(BooleanParameter.class);
+            this(NumberIdParameter.class);
         }
 
         protected Deserializer(Class<?> vc) {
@@ -68,10 +70,18 @@ public record BooleanParameter(Boolean value) implements Input<Boolean> {
         }
 
         @Override
-        public BooleanParameter deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
+        public NumberIdParameter<?> deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
             final TreeNode valueNode = jsonParser.readValueAsTree().get(VALUE_FIELD_NAME);
-            return new BooleanParameter(valueNode instanceof BooleanNode booleanNode && booleanNode.asBoolean());
+            return new NumberIdParameter<>(isNull(valueNode) ? -1L : longValueOf(valueNode));
+        }
+
+        private long longValueOf(final TreeNode node) {
+            return switch (node.numberType()) {
+                case INT -> ((IntNode) node).intValue();
+                case LONG -> ((LongNode) node).longValue();
+                default -> -1L;
+            };
         }
     }
 }

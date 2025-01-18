@@ -29,7 +29,7 @@ public record LongIdPairParameter(Long first, Long second) implements PairParame
      * JSON: Serializer for LongIdParameter
      *
      * @see StdSerializer
-     * @see LongIdParameter
+     * @see NumberIdParameter
      */
     static class Serializer extends StdSerializer<LongIdPairParameter> {
         public Serializer() {
@@ -60,12 +60,12 @@ public record LongIdPairParameter(Long first, Long second) implements PairParame
      * JSON: Deserializer for LongIdParameter
      *
      * @see StdDeserializer
-     * @see LongIdParameter
+     * @see NumberIdParameter
      */
     static class Deserializer extends StdDeserializer<LongIdPairParameter> {
 
         public Deserializer() {
-            this(LongIdParameter.class);
+            this(NumberIdParameter.class);
         }
 
         protected Deserializer(Class<?> vc) {

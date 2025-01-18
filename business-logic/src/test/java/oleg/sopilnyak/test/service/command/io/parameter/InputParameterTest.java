@@ -28,37 +28,13 @@ class InputParameterTest {
     private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
-    void shouldCreateBooleanParameter() {
-        boolean flag = true;
-
-        Input<Boolean> parameter = Input.of(flag);
-
-        assertThat(parameter.value()).isSameAs(flag);
-        assertThat(parameter).isInstanceOf(BooleanParameter.class);
-    }
-
-    @Test
-    void shouldRestoreBooleanParameter() throws JsonProcessingException {
-        boolean flag = true;
-
-        Input<Boolean> parameter = Input.of(flag);
-
-        String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(BooleanParameter.class.getName());
-        BooleanParameter restored = objectMapper.readValue(json, BooleanParameter.class);
-
-        assertThat(restored.value()).isSameAs(flag);
-        assertThat(restored).isInstanceOf(Input.class);
-    }
-
-    @Test
     void shouldCreateLongIdParameter() {
         long id = 1L;
 
         Input<Long> parameter = Input.of(id);
 
         assertThat(parameter.value()).isSameAs(id);
-        assertThat(parameter).isInstanceOf(LongIdParameter.class);
+        assertThat(parameter).isInstanceOf(NumberIdParameter.class);
     }
 
     @Test
@@ -68,8 +44,8 @@ class InputParameterTest {
         Input<Long> parameter = Input.of(id);
 
         String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(LongIdParameter.class.getName());
-        LongIdParameter restored = objectMapper.readValue(json, LongIdParameter.class);
+        assertThat(json).contains(NumberIdParameter.class.getName());
+        NumberIdParameter<?> restored = objectMapper.readValue(json, NumberIdParameter.class);
 
         assertThat(restored.value()).isSameAs(id);
         assertThat(restored).isInstanceOf(Input.class);

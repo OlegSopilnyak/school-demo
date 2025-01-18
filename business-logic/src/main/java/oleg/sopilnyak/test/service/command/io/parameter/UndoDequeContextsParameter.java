@@ -16,17 +16,23 @@ import java.util.stream.Collectors;
  * @see Context
  */
 public class UndoDequeContextsParameter  implements Input<Deque<Context<?>>> {
+    // TODO JSON serializer/deserializer should be added
     private final Deque<Context<?>> deque;
 
     public UndoDequeContextsParameter(Deque<Context<?>> contextDeque) {
         this.deque = contextDeque.stream().collect(Collectors.toCollection(LinkedList::new));
     }
 
-    /**
-     * To get the value of command input-output entity
-     *
-     * @return value of the parameter
-     */
+    @Override
+    public final boolean equals(Object o) {
+        return o instanceof UndoDequeContextsParameter that && deque.equals(that.deque);
+    }
+
+    @Override
+    public int hashCode() {
+        return deque.hashCode();
+    }
+
     @Override
     public Deque<Context<?>> value() {
         return deque;

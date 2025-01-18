@@ -32,14 +32,26 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input instance for Long ID
+     * To create new mocked input instance
+     *
+     * @param instance mocked value instance
+     * @param <T>      type of the input
+     * @return new instance of the input
+     * @see MockedInput
+     */
+    static <T> Input<T> mock(T instance) {
+        return new MockedInput<>(instance);
+    }
+
+    /**
+     * To create new input instance for Number ID
      *
      * @param id ID value
      * @return new instance of the input
-     * @see LongIdParameter
+     * @see NumberIdParameter
      */
-    static Input<Long> of(final Long id) {
-        return new LongIdParameter(id);
+    static <T extends Number> Input<T> of(final T id) {
+        return new NumberIdParameter<>(id);
     }
 
     /**
@@ -67,16 +79,14 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input instance for Boolean flag
+     * To create new input string-pair-parameter instance
      *
-     * @param flag flag value
+     * @param firstValue  first value
+     * @param secondValue second value
      * @return new instance of the input
-     * @see BooleanParameter
+     * @see StringPairParameter
+     * @see PairParameter
      */
-    static Input<Boolean> of(final Boolean flag) {
-        return new BooleanParameter(flag);
-    }
-
     static PairParameter<String> of(final String firstValue, final String secondValue) {
         return new StringPairParameter(firstValue, secondValue);
     }
@@ -87,12 +97,13 @@ public interface Input<P> extends IOBase<P> {
      * @param payload value of the payload
      * @param <T>     type of payload
      * @return new instance of the input
+     * @see Input#mock(Object)
      * @see PayloadParameter
      * @see BasePayload
      * @see BaseType
      */
     static <T extends BasePayload<? extends BaseType>> Input<T> of(final T payload) {
-        return MockUtil.isMock(payload) ? () -> payload : new PayloadParameter<>(payload);
+        return MockUtil.isMock(payload) ? mock(payload) : new PayloadParameter<>(payload);
     }
 
     /**
@@ -127,21 +138,20 @@ public interface Input<P> extends IOBase<P> {
 
     static Input<?> of(final Object parameter) {
         if (MockUtil.isMock(parameter))
-            // mocked parameter
-            return () -> parameter;
+            return mock(parameter);
         else if (parameter instanceof Input<?> input)
             return input;
-        else if (parameter instanceof Long longId)
-            return of(longId);
+        else if (parameter instanceof Number numberId)
+            return of(numberId);
         else if (parameter instanceof String stringId)
             return of(stringId);
         throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
     }
 
+
     static <T extends BaseType> Input<?> of(final T type) {
         if (MockUtil.isMock(type))
-            // mocked parameter
-            return () -> type;
+            return mock(type);
         if (type instanceof Student base)
             return of(payloadMapper.toPayload(base));
         if (type instanceof Course base)
@@ -157,5 +167,17 @@ public interface Input<P> extends IOBase<P> {
         if (type instanceof StudentProfile base)
             return of(payloadMapper.toPayload(base));
         throw new IllegalArgumentException("Parameter type not supported: " + type.getClass());
+    }
+
+    // private classes
+    record MockedInput<T>(T value) implements Input<T> {
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof MockedInput<?> that)
+                return value.equals(that.value);
+            return false;
+        }
+
     }
 }
