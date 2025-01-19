@@ -68,10 +68,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         Course result = context.getResult().orElseThrow().orElseThrow();
-        assertThat(context.<Long>getUndoParameter()).isEqualTo(result.getId());
+        assertThat(context.<Long>getUndoParameter().value()).isEqualTo(result.getId());
         assertCourseEquals(course, result, false);
         verify(command).executeDo(context);
-        verify(persistence).save(course);
+        verify(persistence).save(payloadMapper.toPayload(course));
     }
 
     @Test
@@ -87,7 +87,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Course>getUndoParameter()).isEqualTo(course);
+        assertThat(context.<Course>getUndoParameter().value()).isEqualTo(course);
         assertCourseEquals(courseUpdated, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
@@ -129,17 +129,19 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CreateExceptionThrown() {
         Course course = makeClearCourse(1);
-        RuntimeException cannotExecute = new RuntimeException("Cannot create");
-        doThrow(cannotExecute).when(persistence).save(course);
+        CoursePayload payload = payloadMapper.toPayload(course);
+        reset(payloadMapper);
         Context<Optional<Course>> context = command.createContext(Input.of(course));
 
+        RuntimeException cannotExecute = new RuntimeException("Cannot create");
+        doThrow(cannotExecute).when(persistence).save(payload);
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeDo(context);
-        verify(persistence).save(course);
+        verify(persistence).save(payload);
         verify(payloadMapper, never()).toPayload(any(Course.class));
     }
 
@@ -186,12 +188,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UpdateCourse() {
         Course course = persistCourse();
         Context<Optional<Course>> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(course));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(course);
 
         command.undoCommand(context);
 
@@ -205,12 +205,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Course>> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("id"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("id");
 
         command.undoCommand(context);
 
@@ -243,12 +241,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_CreateExceptionThrown() {
         Long id = 104L;
         Context<Optional<Course>> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(id);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo create");
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
 
@@ -265,12 +261,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_UpdateExceptionThrown() {
         Course course = persistCourse();
         Context<Optional<Course>> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(course));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(course);
         RuntimeException cannotExecute = new RuntimeException("Cannot undo update");
         doThrow(cannotExecute).when(persistence).save(course);
 

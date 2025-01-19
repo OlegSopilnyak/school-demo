@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -39,7 +38,7 @@ class FindAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
     }
@@ -53,7 +52,7 @@ class FindAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
     }
@@ -76,12 +75,10 @@ class FindAuthorityPersonCommandTest {
     void shouldUndoCommand_NothingToDo() {
         long id = 323L;
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(id));
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

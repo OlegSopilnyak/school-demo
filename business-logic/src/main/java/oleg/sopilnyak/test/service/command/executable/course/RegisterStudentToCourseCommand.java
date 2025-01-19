@@ -89,7 +89,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
                 final boolean successful = persistenceFacade.link(student, course);
 
                 context.setResult(successful);
-                if (successful && context instanceof CommandContext commandContext) {
+                if (successful && context instanceof CommandContext<?> commandContext) {
                     commandContext.setUndoParameter(Input.of(studentId, courseId));
                 }
                 log.debug("Linked student with ID:{} to course with ID:{} successfully: {}", studentId, courseId, successful);
@@ -152,22 +152,6 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
     }
 
     // private methods
-//    private Student retrieveStudent(final PairParameter<Long> input) {
-//        final Long studentId = input.first();
-//        return persistenceFacade.findStudentById(studentId)
-//                .orElseThrow(
-//                        () -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX)
-//                );
-//    }
-//
-//    private Course retrieveCourse(final PairParameter<Long> input) {
-//        final Long courseId = input.second();
-//        return persistenceFacade.findCourseById(courseId)
-//                .orElseThrow(
-//                        () -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX)
-//                );
-//    }
-
     private static boolean isLinked(final Student student, final Course course) {
         return studentsHaveCourse(course.getStudents(), course.getId()) &&
                 coursesHaveStudent(student.getCourses(), student.getId());

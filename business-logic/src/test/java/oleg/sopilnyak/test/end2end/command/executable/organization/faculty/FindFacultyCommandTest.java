@@ -58,7 +58,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
         assertThat(context.getResult().orElseThrow())
@@ -75,7 +75,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
     }
@@ -100,12 +100,10 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         long id = 423L;
         Context<Optional<Faculty>> context = command.createContext(Input.of(id));
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(persist()));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(persist());
 
         command.undoCommand(context);
 

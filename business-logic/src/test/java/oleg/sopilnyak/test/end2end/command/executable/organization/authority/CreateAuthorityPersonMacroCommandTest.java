@@ -19,10 +19,6 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
-import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
-import oleg.sopilnyak.test.service.message.payload.StudentPayload;
-import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,7 +111,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(parameter).isNotNull();
-        assertThat(parameter.getInputParameter()).isSameAs(newPerson);
+        assertThat(parameter.getInputParameter().value()).isSameAs(newPerson);
         Deque<Context<?>> nested = parameter.getNestedContexts();
         assertThat(nested).hasSameSizeAs(command.fromNest());
         Context<?> profileContext = nested.pop();
@@ -159,7 +155,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CREATE_OR_UPDATE);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInputParameter);
         verify(command).prepareContext(nestedProfileCommand, wrongInputParameter);
@@ -175,31 +171,31 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreateProfileContextThrows() {
-        String errorMessage = "Cannot create nested profile context";
-        RuntimeException exception = new RuntimeException(errorMessage);
         AuthorityPerson newPerson = makeCleanAuthorityPerson(2);
+        Input<AuthorityPerson> newPersonInput = (Input<AuthorityPerson>) Input.of(newPerson);
         Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
         PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
         AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
-        doThrow(exception).when(nestedProfileCommand).createContext(any(Input.class));
 
-        Input<?> newPersonInput = Input.of(newPerson);
+        String errorMessage = "Cannot create nested profile context";
+        RuntimeException exception = new RuntimeException(errorMessage);
+        doThrow(exception).when(nestedProfileCommand).createContext(any(Input.class));
         Context<Optional<AuthorityPerson>> context = command.createContext(newPersonInput);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, newPersonInput);
         verify(command).prepareContext(nestedProfileCommand, newPersonInput);
-        verify(command).createProfileContext(nestedProfileCommand, newPerson);
+        verify(command).createProfileContext(nestedProfileCommand, newPersonInput.value());
         verify(nestedProfileCommand).createContext(any(Input.class));
 
         verify(nestedPersonCommand).acceptPreparedContext(command, newPersonInput);
         verify(command).prepareContext(nestedPersonCommand, newPersonInput);
-        verify(command).createPersonContext(nestedPersonCommand, newPerson);
-        verify(nestedPersonCommand).createContext(any(Input.class));
+        verify(command).createPersonContext(nestedPersonCommand, newPersonInput.value());
+        verify(nestedPersonCommand).createContext(newPersonInput);
     }
 
     @Test
@@ -208,28 +204,28 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         String errorMessage = "Cannot create nested person context";
         RuntimeException exception = new RuntimeException(errorMessage);
         AuthorityPerson newPerson = makeCleanAuthorityPerson(3);
+        Input<AuthorityPerson> newPersonInput = (Input<AuthorityPerson>) Input.of(newPerson);
         Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
         PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nestedCommands.pop();
         AuthorityPersonCommand<?> nestedPersonCommand = (AuthorityPersonCommand<?>) nestedCommands.pop();
-        doThrow(exception).when(nestedPersonCommand).createContext(any(Input.class));
 
-        Input<?> newPersonInput = Input.of(newPerson);
+        doThrow(exception).when(nestedPersonCommand).createContext(newPersonInput);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPersonInput);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, newPersonInput);
         verify(command).prepareContext(nestedProfileCommand, newPersonInput);
-        verify(command).createProfileContext(nestedProfileCommand, newPerson);
+        verify(command).createProfileContext(nestedProfileCommand, newPersonInput.value());
         verify(nestedProfileCommand).createContext(any(Input.class));
 
         verify(nestedPersonCommand).acceptPreparedContext(command, newPersonInput);
         verify(command).prepareContext(nestedPersonCommand, newPersonInput);
-        verify(command).createPersonContext(nestedPersonCommand, newPerson);
-        verify(nestedPersonCommand).createContext(any(Input.class));
+        verify(command).createPersonContext(nestedPersonCommand, newPersonInput.value());
+        verify(nestedPersonCommand).createContext(newPersonInput);
     }
 
     @Test
@@ -248,7 +244,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         checkContextAfterDoCommand(profileContext);
         Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
         Long profileId = profileResult.orElseThrow().getId();
-        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+        assertThat(profileContext.<Long>getUndoParameter().value()).isEqualTo(profileId);
 
         checkContextAfterDoCommand(context);
         Optional<AuthorityPerson> savedPerson = context.getResult().orElseThrow();
@@ -262,7 +258,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertAuthorityPersonEquals(person, newPerson, false);
         assertThat(person.getId()).isEqualTo(personId);
         assertThat(person.getProfileId()).isEqualTo(profileId);
-        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(personId);
+        assertThat(personContext.<Long>getUndoParameter().value()).isEqualTo(personId);
         assertThat(savedPerson.orElseThrow()).isSameAs(person);
 
         verify(command).executeDo(context);
@@ -271,7 +267,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
 
@@ -314,7 +310,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         checkContextAfterDoCommand(profileContext);
         Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
         Long profileId = profileResult.orElseThrow().getId();
-        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
+        assertThat(profileContext.<Long>getUndoParameter().value()).isEqualTo(profileId);
 
         checkContextAfterDoCommand(personContext);
         Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
@@ -322,7 +318,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertAuthorityPersonEquals(person, newPerson, false);
         Long studentId = person.getId();
         assertThat(person.getProfileId()).isEqualTo(profileId);
-        assertThat(personContext.<Long>getUndoParameter()).isEqualTo(studentId);
+        assertThat(personContext.<Long>getUndoParameter().value()).isEqualTo(studentId);
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
@@ -330,7 +326,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
 
@@ -374,39 +370,39 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotExecuteDoCommand_CreateStudentDoNestedCommandsThrows() {
-        RuntimeException exception = new RuntimeException("Cannot process person nested command");
-        doThrow(exception).when(persistence).save(any(AuthorityPerson.class));
+    void shouldNotExecuteDoCommand_CreateAuthorityPersonDoNestedCommandsThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(7);
-        Input<?> newPersonInput = Input.of(newPerson);
+        Input<AuthorityPerson> newPersonInput = (Input<AuthorityPerson>) Input.of(newPerson);
         Context<Optional<AuthorityPerson>> context = command.createContext(newPersonInput);
 
+        RuntimeException exception = new RuntimeException("Cannot process person nested command");
+        doThrow(exception).when(persistence).save(newPersonInput.value());
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
+
         Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
         Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
 
-        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
-        Long profileId = profileResult.orElseThrow().getId();
-        assertThat(profileContext.<Long>getUndoParameter()).isEqualTo(profileId);
-        assertThat(profileContext.getState()).isEqualTo(UNDONE);
-        assertThat(profileContext.getResult()).isPresent();
-
+        assertThat(personContext.isFailed()).isTrue();
         AuthorityPerson person = personContext.<AuthorityPerson>getRedoParameter().value();
+        Long profileId = person.getProfileId();
         assertAuthorityPersonEquals(person, newPerson, false);
-        assertThat(person.getProfileId()).isEqualTo(profileId);
+
+        assertThat(profileContext.isUndone()).isTrue();
+        assertThat(profileContext.<Long>getUndoParameter().value()).isEqualTo(profileId);
+        assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
-        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferPreviousExecuteDoResult(eq(profileCommand), any(Optional.class), eq(personContext));
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
 

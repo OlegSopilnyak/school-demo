@@ -117,13 +117,13 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInputParameter()).isSameAs(personId);
+        assertThat(redoParameter.getInputParameter().value()).isSameAs(personId);
         Context<?> personContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(personContext.isReady()).isTrue();
         assertThat(profileContext.isReady()).isTrue();
-        assertThat(personContext.<Long>getRedoParameter()).isSameAs(personId);
-        assertThat(profileContext.<Long>getRedoParameter()).isSameAs(profileId);
+        assertThat(personContext.<Long>getRedoParameter().value()).isSameAs(personId);
+        assertThat(profileContext.<Long>getRedoParameter().value()).isSameAs(profileId);
 
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCommand, inputId);
@@ -133,7 +133,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(command).prepareContext(profileCommand, inputId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(inputId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -150,7 +150,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCommand, inputId);
@@ -176,7 +176,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.DELETE_BY_ID);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCommand, inputId);
@@ -199,16 +199,16 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
+
         String errorMessage = "Cannot create nested profile context";
         RuntimeException exception = new RuntimeException(errorMessage);
-        doThrow(exception).when(profileCommand).createContext(inputId);
-
+        doThrow(exception).when(profileCommand).createContext(Input.of(profileId));
         Context<Boolean> context = command.createContext(inputId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCommand, inputId);
@@ -218,7 +218,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(command).prepareContext(profileCommand, inputId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(inputId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -231,16 +231,16 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
+
         String errorMessage = "Cannot create nested person context";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(personCommand).createContext(inputId);
-
         Context<Boolean> context = command.createContext(inputId);
 
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCommand, inputId);
@@ -250,7 +250,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(command).prepareContext(profileCommand, inputId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
-        verify(profileCommand).createContext(inputId);
+        verify(profileCommand).createContext(Input.of(profileId));
     }
 
     @Test
@@ -281,8 +281,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         verify(command).executeDo(context);
         verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
-        assertThat(personContext.<Long>getRedoParameter()).isEqualTo(personId);
-        assertThat(profileContext.<Long>getRedoParameter()).isEqualTo(profileId);
+        assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
+        assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 
         verifyPersonDoCommand(personContext);
         verifyProfileDoCommand(profileContext);
@@ -303,7 +303,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
         verify(command, never()).executeDo(any(Context.class));
     }
 

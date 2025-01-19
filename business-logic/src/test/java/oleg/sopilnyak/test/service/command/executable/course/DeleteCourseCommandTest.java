@@ -77,7 +77,7 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
@@ -124,12 +124,10 @@ class DeleteCourseCommandTest {
     @Test
     void shouldUndoCommand_CourseFound() {
         Context<Boolean> context = command.createContext();
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(mockedCourse));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(mockedCourse);
         when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 
         command.undoCommand(context);
@@ -143,12 +141,10 @@ class DeleteCourseCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("course"));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter("course");
 
         command.undoCommand(context);
 
@@ -177,12 +173,10 @@ class DeleteCourseCommandTest {
         Context<Boolean> context = command.createContext();
         RuntimeException cannotExecute = new RuntimeException("Cannot restore");
         doThrow(cannotExecute).when(persistence).save(mockedCourse);
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(mockedCourse));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(mockedCourse);
 
         command.undoCommand(context);
 

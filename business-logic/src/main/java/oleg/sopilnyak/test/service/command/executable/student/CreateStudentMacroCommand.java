@@ -190,12 +190,10 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         final StudentPayload personPayload = target.<StudentPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
-        if (target instanceof CommandContext commandContext) {
+        if (target instanceof CommandContext<?> commandContext) {
             commandContext.setRedoParameter(Input.of(personPayload));
             log.debug("Transferred to student changed input parameter: {}", personPayload);
         }
-//        personPayload.setProfileId(profileId);
-//        target.setRedoParameter(personPayload);
     }
 
     /**

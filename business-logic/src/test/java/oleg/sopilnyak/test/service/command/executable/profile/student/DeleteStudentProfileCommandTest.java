@@ -151,12 +151,10 @@ class DeleteStudentProfileCommandTest {
     void shouldUndoCommand_UndoProfileExists() {
         doCallRealMethod().when(persistence).save(profile);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
 
         command.undoCommand(context);
@@ -171,12 +169,10 @@ class DeleteStudentProfileCommandTest {
     @Test
     void shouldNotUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("input"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("input");
 
         command.undoCommand(context);
 
@@ -188,14 +184,29 @@ class DeleteStudentProfileCommandTest {
     }
 
     @Test
-    void shouldNotUndoCommand_NullUndoCommandParameter() {
+    void shouldNotUndoCommand_EmptyUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
+
+        command.undoCommand(context);
+
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException()).isInstanceOf(NullPointerException.class);
+        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        verify(command).executeUndo(context);
+        verify(persistence, never()).save(profile);
+    }
+
+    @Test
+    void shouldNotUndoCommand_NullUndoCommandParameter() {
+        Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
+        if (context instanceof CommandContext<?> commandContext) {
+            commandContext.setUndoParameter(null);
+        }
 
         command.undoCommand(context);
 
@@ -210,14 +221,12 @@ class DeleteStudentProfileCommandTest {
     void shouldNotUndoCommand_ExceptionThrown() {
         doCallRealMethod().when(persistence).save(profile);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
-        doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -108,12 +107,10 @@ class FindStudentProfileCommandTest {
     void shouldUndoCommand_NothingToDo() {
         Long id = 818L;
         Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 

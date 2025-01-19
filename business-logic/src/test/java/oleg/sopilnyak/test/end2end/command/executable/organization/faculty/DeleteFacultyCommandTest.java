@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.faculty;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -12,7 +13,6 @@ import oleg.sopilnyak.test.service.command.executable.organization.faculty.Delet
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -143,32 +143,29 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Faculty entity = makeCleanFacultyNoDean(0);
+        Input<Faculty> input = (Input<Faculty>) Input.of(entity);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(entity));
+            commandContext.setUndoParameter(input);
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
-        verify(persistence).save(entity);
+        verify(persistence).save(input.value());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("faculty"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("faculty");
 
         command.undoCommand(context);
 
@@ -198,21 +195,20 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
         Faculty entity = makeCleanFacultyNoDean(0);
+        Input<Faculty> input = (Input<Faculty>) Input.of(entity);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(entity));
+            commandContext.setUndoParameter(input);
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
-        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).save(input.value());
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeUndo(context);
-        verify(persistence).save(entity);
+        verify(persistence).save(input.value());
     }
 
     // private methods

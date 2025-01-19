@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -124,12 +123,10 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         Long id = 818L;
         Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
@@ -139,11 +136,9 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private StudentProfile persistStudentProfile() {
-        return persistStudentProfile(0);
-    }
 
-    private StudentProfile persistStudentProfile(int order) {
+    private StudentProfile persistStudentProfile() {
+        int order = 0;
         try {
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {

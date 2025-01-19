@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import lombok.Data;
 import lombok.ToString;
 import lombok.Value;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -15,8 +14,8 @@ import java.util.LinkedList;
 @Value
 @ToString
 public class MacroCommandParameter implements Input<MacroCommandParameter> {
-    private final Input<?> inputParameter;
-    private final Deque<Context<?>> nestedContexts = new LinkedList<>();
+    Input<?> inputParameter;
+    Deque<Context<?>> nestedContexts = new LinkedList<>();
 
     public MacroCommandParameter(final Input<?> macroOriginalParameter, final Deque<Context<?>> nestedContexts) {
         this.inputParameter = macroOriginalParameter;

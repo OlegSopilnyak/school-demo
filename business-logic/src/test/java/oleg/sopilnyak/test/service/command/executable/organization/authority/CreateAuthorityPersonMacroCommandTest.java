@@ -32,7 +32,6 @@ import java.util.LinkedList;
 import java.util.Optional;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -148,7 +147,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CREATE_OR_UPDATE);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(nestedProfileCommand, wrongInput);
@@ -175,7 +174,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(nestedProfileCommand, input);
@@ -205,7 +204,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(nestedProfileCommand, input);
@@ -259,7 +258,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
     }
@@ -317,7 +316,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
     }
@@ -387,7 +386,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
         verify(command).transferPreviousExecuteDoResult(eq(profileCommand), any(Optional.class), eq(personContext));
-        verify(command).transferProfileIdToStudentInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
 

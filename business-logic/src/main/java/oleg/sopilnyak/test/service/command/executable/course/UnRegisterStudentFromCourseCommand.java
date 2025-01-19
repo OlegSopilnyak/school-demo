@@ -3,8 +3,6 @@ package oleg.sopilnyak.test.service.command.executable.course;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
@@ -25,10 +23,9 @@ import static java.util.Objects.isNull;
 @Slf4j
 @AllArgsConstructor
 @Component
+@Getter
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
-    @Getter
     private final EducationPersistenceFacade persistenceFacade;
-    @Getter
     private final BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -37,7 +34,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      *
      * @param context context of redo execution
      * @see EducationLinkCommand#detached(Course)
-     * @see EducationLinkCommand#detached(Student) 
+     * @see EducationLinkCommand#detached(Student)
      * @see EducationPersistenceFacade#findStudentById(Long)
      * @see EducationPersistenceFacade#findCourseById(Long)
      * @see EducationPersistenceFacade#unLink(Student, Course)
@@ -63,7 +60,7 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
 
             final boolean successful = persistenceFacade.unLink(student, course);
 
-            if (successful && context instanceof CommandContext commandContext) {
+            if (successful && context instanceof CommandContext<?> commandContext) {
                 commandContext.setUndoParameter(Input.of(studentId, courseId));
             }
 

@@ -58,7 +58,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> login(String username, String password) {
         log.debug("Try to login using: '{}'", username);
-//        final String[] permissions = new String[]{username, password};
         final String commandId = LOGIN;
         final AuthorityPersonCommand<Optional<AuthorityPerson>> command =
                 (AuthorityPersonCommand<Optional<AuthorityPerson>>) takeValidCommand(commandId, factory);

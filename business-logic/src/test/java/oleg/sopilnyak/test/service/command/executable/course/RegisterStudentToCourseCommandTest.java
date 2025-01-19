@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.course;
 
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
@@ -11,8 +11,6 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.CoursePayload;
-import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +30,7 @@ class RegisterStudentToCourseCommandTest {
     @Mock
     Course course;
     @Mock
-    CoursePayload coursePayload;
-    @Mock
     Student student;
-    @Mock
-    StudentPayload studentPayload;
     @Mock
     EducationPersistenceFacade persistence;
     @Mock
@@ -96,7 +90,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();
@@ -245,12 +239,10 @@ class RegisterStudentToCourseCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("null"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 

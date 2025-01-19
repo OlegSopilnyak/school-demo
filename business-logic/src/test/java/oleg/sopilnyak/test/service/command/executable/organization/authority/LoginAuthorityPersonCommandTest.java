@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -60,7 +59,7 @@ class LoginAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entityPayload));
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
@@ -81,7 +80,7 @@ class LoginAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
@@ -100,7 +99,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -121,7 +120,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -142,7 +141,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(SchoolAccessDeniedException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -168,7 +167,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getException().getMessage()).isEqualTo(error);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
@@ -179,12 +178,10 @@ class LoginAuthorityPersonCommandTest {
         String username = "login";
         String password = "pass";
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

@@ -194,11 +194,9 @@ class CreateOrUpdateFacultyCommandTest {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -212,11 +210,9 @@ class CreateOrUpdateFacultyCommandTest {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -253,11 +249,9 @@ class CreateOrUpdateFacultyCommandTest {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -273,13 +267,11 @@ class CreateOrUpdateFacultyCommandTest {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
-        doThrow(new RuntimeException()).when(persistence).deleteFaculty(id);
+        context.setState(Context.State.DONE);
 
+        doThrow(new RuntimeException()).when(persistence).deleteFaculty(id);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
@@ -293,13 +285,11 @@ class CreateOrUpdateFacultyCommandTest {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
-        doThrow(new RuntimeException()).when(persistence).save(entity);
+        context.setState(Context.State.DONE);
 
+        doThrow(new RuntimeException()).when(persistence).save(entity);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

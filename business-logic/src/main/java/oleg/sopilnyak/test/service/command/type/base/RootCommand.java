@@ -30,37 +30,12 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     String getId();
 
     /**
-     * Cast input parameter to particular type
-     *
-     * @param parameter actual parameter
-     * @param <P>       type of the parameter
-     * @return parameter cast to particular type
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    default <P> P commandParameter(Object parameter) {
-        return (P) parameter;
-    }
-
-    @SuppressWarnings("unchecked")
-    default <P> P commandParameter(Input<?> parameter) {
-        return (P) parameter.value();
-    }
-
-    /**
      * To check nullable of the input parameter
      *
      * @param parameter input value to check
      */
     default void checkNullParameter(Input<?> parameter) {
         if (isNull(parameter)  || parameter.isEmpty()) {
-            throw new NullPointerException("Wrong input parameter value null");
-        }
-    }
-
-    @Deprecated
-    default void checkNullParameter(Object parameter) {
-        if (isNull(parameter)) {
             throw new NullPointerException("Wrong input parameter value null");
         }
     }
@@ -156,7 +131,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(RootCommand, Input<?>)
+     * @see PrepareContextVisitor#prepareContext(RootCommand, Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {

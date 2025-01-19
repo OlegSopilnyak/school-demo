@@ -271,11 +271,9 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -290,11 +288,9 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setUndoParameter(profile);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -332,11 +328,9 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -352,13 +346,11 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
-        doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
+        context.setState(Context.State.DONE);
 
+        doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
@@ -372,14 +364,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setUndoParameter(profile);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doCallRealMethod().when(persistence).save(profile);
-        doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
 
+        doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

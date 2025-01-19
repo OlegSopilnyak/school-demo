@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import oleg.sopilnyak.test.service.command.io.Output;
-import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.message.payload.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

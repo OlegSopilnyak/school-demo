@@ -188,7 +188,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see PrincipalProfileCommand#doCommand(Context)
      * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
-     * @see CreateAuthorityPersonMacroCommand#transferProfileIdToStudentInput(Long, Context)
+     * @see CreateAuthorityPersonMacroCommand#transferProfileIdToAuthorityPersonInput(Long, Context)
      * @see AuthorityPersonPayload#setProfileId(Long)
      * @see CannotTransferCommandResultException
      */
@@ -199,7 +199,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
                 && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
             // send create-profile result (profile-id) to create-person input (AuthorityPersonPayload#setProfileId)
-            transferProfileIdToStudentInput(profile.getId(), target);
+            transferProfileIdToAuthorityPersonInput(profile.getId(), target);
         } else {
             throw new CannotTransferCommandResultException(command.getId());
         }
@@ -214,15 +214,14 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
      * @see AuthorityPersonPayload#setProfileId(Long)
      */
-    public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {
+    public void transferProfileIdToAuthorityPersonInput(final Long profileId, @NonNull final Context<?> target) {
         final AuthorityPersonPayload personPayload = target.<AuthorityPersonPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
-        if (target instanceof CommandContext commandContext) {
+        if (target instanceof CommandContext<?> commandContext) {
             commandContext.setRedoParameter(Input.of(personPayload));
             log.debug("Transferred to student changed input parameter: {}", personPayload);
         }
-//        target.setRedoParameter(personPayload);
     }
 
     /**

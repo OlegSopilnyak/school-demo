@@ -141,12 +141,10 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
         Student student = persistStudent();
         Long id = student.getId();
         Context<Boolean> context = command.createContext();
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(student));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(student);
         persistence.deleteStudent(id);
         assertThat(persistence.isNoStudents()).isTrue();
 
@@ -163,12 +161,10 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("instance"));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter("instance");
 
         command.undoCommand(context);
 

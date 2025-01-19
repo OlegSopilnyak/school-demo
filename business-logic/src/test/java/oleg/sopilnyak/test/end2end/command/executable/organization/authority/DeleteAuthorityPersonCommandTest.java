@@ -149,12 +149,10 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsCorrect() {
         AuthorityPerson entity = spy(makeCleanAuthorityPerson(1));
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -168,12 +166,11 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
             commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("person"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("person");
 
         command.undoCommand(context);
 
@@ -188,12 +185,10 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -209,14 +204,12 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         AuthorityPerson entity = spy(makeCleanAuthorityPerson(1));
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
-        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

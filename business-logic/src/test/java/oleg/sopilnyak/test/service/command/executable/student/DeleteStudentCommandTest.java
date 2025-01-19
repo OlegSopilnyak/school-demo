@@ -123,12 +123,10 @@ class DeleteStudentCommandTest {
     @Test
     void shouldUndoCommand_RestoreStudent() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(entity);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
 
         command.undoCommand(context);
@@ -142,12 +140,10 @@ class DeleteStudentCommandTest {
     @Test
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("instance"));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter("instance");
 
         command.undoCommand(context);
 

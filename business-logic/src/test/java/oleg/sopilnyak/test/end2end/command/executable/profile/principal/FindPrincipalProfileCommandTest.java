@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -124,12 +123,10 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         Long id = 408L;
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(id);
 
         command.undoCommand(context);
 
@@ -140,10 +137,7 @@ class FindPrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private PrincipalProfile persistPrincipalProfile() {
-        return persistPrincipalProfile(0);
-    }
-
-    private PrincipalProfile persistPrincipalProfile(int order) {
+        int order = 0;
         try {
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof TestModelFactory.FakePrincipalProfile fakeProfile) {

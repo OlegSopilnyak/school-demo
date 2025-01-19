@@ -145,12 +145,10 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoParameterIsCorrect() {
         StudentsGroup entity = persistClear();
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 
@@ -164,12 +162,10 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("group"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("group");
 
         command.undoCommand(context);
 
@@ -184,12 +180,10 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -204,21 +198,20 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
         StudentsGroup entity = persistClear();
+        Input<StudentsGroup> input = (Input<StudentsGroup>) Input.of(entity);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(entity));
+            commandContext.setUndoParameter(input);
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(entity);
-        doThrow(new UnsupportedOperationException()).when(persistence).save(entity);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).save(input.value());
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeUndo(context);
-        verify(persistence).save(entity);
+        verify(persistence).save(input.value());
     }
 
     // private methods

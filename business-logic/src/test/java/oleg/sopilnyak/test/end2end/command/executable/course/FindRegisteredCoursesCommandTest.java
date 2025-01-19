@@ -10,6 +10,8 @@ import oleg.sopilnyak.test.service.command.executable.course.FindRegisteredCours
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -141,7 +143,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private Student persistStudent() {
+    private StudentPayload persistStudent() {
         try {
             Student student = makeStudent(0);
             Student entity = persistence.save(student).orElse(null);
@@ -156,7 +158,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
         }
     }
 
-    private Course persistCourse() {
+    private CoursePayload persistCourse() {
         try {
             Course course = makeCourse(0);
             Course entity = persistence.save(course).orElse(null);

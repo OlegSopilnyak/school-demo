@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -124,8 +123,8 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     }
 
     private void kickOffDoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
-                                     final Context<?> context, final Context.StateChangedListener stateListener,
-                                     final CountDownLatch latch) {
+                                 final Context<?> context, final Context.StateChangedListener stateListener,
+                                 final CountDownLatch latch) {
         getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
         final var future = getExecutor().submit(new DoNestedCommandRunner(actionsQueue, context, stateListener, latch));
 
@@ -140,8 +139,8 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     }
 
     private void kickOffUndoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
-                                       final Context<?> context,
-                                       final CountDownLatch latch) {
+                                   final Context<?> context,
+                                   final CountDownLatch latch) {
         getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
         final Future<Context<?>> future =
                 getExecutor().submit(new UndoNestedCommandRunner(actionsQueue, context, latch));

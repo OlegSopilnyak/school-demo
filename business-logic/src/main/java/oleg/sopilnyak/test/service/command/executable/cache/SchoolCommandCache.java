@@ -117,13 +117,13 @@ public abstract class SchoolCommandCache<T extends BaseType> {
             // remove created entity by id from the parameter
             facadeDeleteById.accept(id);
             final Input<?> doInput = context.getRedoParameter();
-            if(isNull(doInput) || doInput.isEmpty()) {
+            if (isNull(doInput) || doInput.isEmpty()) {
                 // command do input is empty
                 getLog().debug("No input entity to clean entity-id.");
                 return Optional.empty();
             }
             // cleaning input entity-id and do command result
-            if (doInput.value() instanceof BasePayload payload) {
+            if (doInput.value() instanceof BasePayload<?> payload) {
                 // clear ID for further CREATE entity
                 payload.setId(null);
                 // clear the do command result after entity deleting
@@ -211,12 +211,11 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
             context.setResult(Optional.ofNullable(persistedEntityCopy));
 
-            if (nonNull(persistedEntityCopy) && isCreateEntityMode) {
-                // storing created entity.id for undo operation
-                if (context instanceof CommandContext<Optional<T>> commandContext) {
-                    commandContext.setUndoParameter(Input.of(persistedEntityCopy.getId()));
-                }
-            }
+            if (nonNull(persistedEntityCopy)
+                    && isCreateEntityMode
+                    && context instanceof CommandContext<Optional<T>> commandContext)
+                commandContext.setUndoParameter(Input.of(persistedEntityCopy.getId()));
+
         }
     }
 
@@ -224,7 +223,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      * Setup context's undo parameter after entity removing
      *
      * @param context           command's do context
-     * @param undoEntity            removed from database entity
+     * @param undoEntity        removed from database entity
      * @param exceptionSupplier function-source of entity-not-found exception
      * @param <E>               type of command result
      * @see BasePayload
@@ -249,7 +248,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     }
 
     // private methods
-    private <T> T inputParameter(final Input<T> parameter) {
+    private <I> I inputParameter(final Input<I> parameter) {
         if (isNull(parameter) || parameter.isEmpty()) {
             throw new InvalidParameterTypeException(entityName, parameter);
         } else {

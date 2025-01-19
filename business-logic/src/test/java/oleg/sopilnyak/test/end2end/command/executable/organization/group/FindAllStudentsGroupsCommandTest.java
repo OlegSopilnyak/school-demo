@@ -70,7 +70,7 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
                 .contains(persistence.findStudentsGroupById(id).orElseThrow());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }
@@ -84,7 +84,7 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }
@@ -108,12 +108,10 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         StudentsGroup entity = persistClear();
         Context<Set<StudentsGroup>> context = command.createContext(null);
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

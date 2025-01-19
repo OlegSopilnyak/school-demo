@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -7,7 +8,6 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.junit.jupiter.api.Test;
@@ -256,11 +256,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -275,11 +273,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setUndoParameter(profile);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -317,11 +313,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -337,11 +331,9 @@ class CreateOrUpdateStudentProfileCommandTest {
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
 
         command.undoCommand(context);
@@ -357,14 +349,12 @@ class CreateOrUpdateStudentProfileCommandTest {
         Context<Optional<StudentProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setUndoParameter(profile);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doCallRealMethod().when(persistence).save(profile);
-        doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
 
+        doThrow(new RuntimeException()).when(persistence).saveProfile(profile);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();

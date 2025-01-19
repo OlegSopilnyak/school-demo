@@ -65,16 +65,17 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
         AuthorityPerson entity = makeCleanAuthorityPerson(1);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
+        Input<AuthorityPerson> input = (Input<AuthorityPerson>) Input.of(entity);
+        Context<Optional<AuthorityPerson>> context = command.createContext(input);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
         AuthorityPerson result = context.getResult().orElseThrow().orElseThrow();
-        assertThat(context.<Long>getUndoParameter()).isEqualTo(result.getId());
+        assertThat(context.<Long>getUndoParameter().value()).isEqualTo(result.getId());
         assertAuthorityPersonEquals(entity, result, false);
         verify(command).executeDo(context);
-        verify(persistence).save(entity);
+        verify(persistence).save(input.value());
     }
 
     @Test
@@ -91,7 +92,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<AuthorityPerson>getUndoParameter()).isEqualTo(entity);
+        assertThat(context.<AuthorityPerson>getUndoParameter().value()).isEqualTo(entity);
         assertAuthorityPersonEquals(entityUpdated, context.getResult().orElseThrow().orElseThrow());
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
@@ -218,11 +219,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -245,11 +244,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entityUpdated));
         }
-//        context.setUndoParameter(entityUpdated);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -290,11 +287,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("param"));
         }
-//        context.setUndoParameter("param");
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
@@ -311,13 +306,11 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(id));
         }
-//        context.setUndoParameter(id);
-//        context.setState(Context.State.DONE);
-        doThrow(new RuntimeException()).when(persistence).deleteAuthorityPerson(id);
+        context.setState(Context.State.DONE);
 
+        doThrow(new RuntimeException()).when(persistence).deleteAuthorityPerson(id);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
@@ -333,11 +326,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setUndoParameter(entity);
-//        context.setState(Context.State.DONE);
+        context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
         command.undoCommand(context);

@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.executable.course.FindCourseCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,7 +118,7 @@ class FindCourseCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private Course persist() {
+    private CoursePayload persist() {
         try {
             Course course = makeCourse(0);
             Course entity = persistence.save(course).orElse(null);

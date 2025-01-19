@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.command.executable.profile.principal;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
@@ -10,7 +11,6 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePr
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -151,12 +151,10 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoProfileExists() {
         PrincipalProfile profile = persistPrincipalProfile();
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
 
         command.undoCommand(context);
 
@@ -171,12 +169,10 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("input"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("input");
 
         command.undoCommand(context);
 
@@ -190,12 +186,10 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -210,12 +204,10 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         PrincipalProfile profile = persistPrincipalProfile();
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
         String errorMessage = "Could not execute undo command";
         Exception exception = new UnsupportedOperationException(errorMessage);
         doThrow(exception).when(persistence).saveProfile(profile);
@@ -232,10 +224,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private PrincipalProfilePayload persistPrincipalProfile() {
-        return persistPrincipalProfile(0);
-    }
-
-    private PrincipalProfilePayload persistPrincipalProfile(int order) {
+        int order = 0;
         try {
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {

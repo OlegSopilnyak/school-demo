@@ -61,7 +61,7 @@ class FindAllFacultiesCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
                 .contains(persistence.findFacultyById(id).orElseThrow());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllFaculties();
     }
@@ -75,7 +75,7 @@ class FindAllFacultiesCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllFaculties();
     }
@@ -98,12 +98,10 @@ class FindAllFacultiesCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         Context<Set<Faculty>> context = command.createContext(null);
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(persist()));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(persist());
 
         command.undoCommand(context);
 

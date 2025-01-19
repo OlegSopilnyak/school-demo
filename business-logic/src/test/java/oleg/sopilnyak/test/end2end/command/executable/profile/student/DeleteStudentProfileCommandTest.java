@@ -151,12 +151,10 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_UndoProfileExists() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
 
         command.undoCommand(context);
 
@@ -171,12 +169,10 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("input"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("input");
 
         command.undoCommand(context);
 
@@ -191,12 +187,10 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -212,14 +206,12 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotUndoCommand_ExceptionThrown() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(profile));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(profile);
-        doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
 
+        doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
@@ -231,10 +223,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private StudentProfilePayload persistStudentProfile() {
-        return persistStudentProfile(0);
-    }
-
-    private StudentProfilePayload persistStudentProfile(int order) {
+        int order = 0;
         try {
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {

@@ -60,7 +60,7 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
                 .contains(persistence.findAuthorityPersonById(entity.getId()).orElseThrow());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }
@@ -74,7 +74,7 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }
@@ -98,12 +98,10 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     void shouldUndoCommand_NothingToDo() {
         AuthorityPerson entity = persist();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
+        context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of(entity));
         }
-//        context.setState(DONE);
-//        context.setUndoParameter(entity);
 
         command.undoCommand(context);
 

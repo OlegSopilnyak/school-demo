@@ -62,14 +62,6 @@ public interface Context<T> {
      * @see Input
      */
     <R> Input<R> getRedoParameter();
-//    <R> R getRedoParameter();
-
-    /**
-     * To set up parameter value for command execution
-     *
-     * @param parameter the value
-     */
-//    void setRedoParameter(Object parameter);
 
     /**
      * To get input parameter value for rollback previous command execution changes
@@ -78,14 +70,6 @@ public interface Context<T> {
      * @return the value of parameter as Input
      */
     <U> Input<U> getUndoParameter();
-//    <U> U getUndoParameter();
-
-    /**
-     * To set up parameter value for rollback changes
-     *
-     * @param parameter the value
-     */
-//    void setUndoParameter(Object parameter);
 
     /**
      * To get the result of command execution

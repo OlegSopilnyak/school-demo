@@ -10,8 +10,6 @@ import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.util.Set;
 
-import static java.util.Objects.isNull;
-
 
 /**
  * Type: I/O school-command execution result

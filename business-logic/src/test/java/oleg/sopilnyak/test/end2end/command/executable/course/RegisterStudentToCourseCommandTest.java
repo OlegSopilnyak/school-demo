@@ -4,19 +4,20 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
-import oleg.sopilnyak.test.service.command.executable.course.StudentToCourseLink;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,25 +71,24 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_LinkStudentWithCourse() {
-        Student student = persistStudent();
-        Course course = persistCourse();
+        StudentPayload student = persistStudent();
+        CoursePayload course = persistCourse();
         Long studentId = student.getId();
         Long courseId = course.getId();
-        Context<Boolean> context = command.createContext(Input.of(studentId, courseId));
+        Input<?> input = Input.of(studentId, courseId);
+        Context<Boolean> context = command.createContext(input);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isEqualTo(new StudentToCourseLink(student, course));
+        assertThat(context.getUndoParameter().value()).isEqualTo(input);
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
         verify(persistence).findCourseById(courseId);
-        verify(persistence).link(any(Student.class), any(Course.class));
-        assertThat(persistence.findStudentById(studentId).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(courseId).orElseThrow());
-        assertThat(persistence.findCourseById(courseId).orElseThrow().getStudents())
-                .contains(persistence.findStudentById(studentId).orElseThrow());
+        verify(persistence).link(student.getOriginal(), course.getOriginal());
+        assertThat(findStudentById(studentId).getCourses()).contains(findCourseById(courseId));
+        assertThat(findCourseById(courseId).getStudents()).contains(findStudentById(studentId));
     }
 
     @Test
@@ -111,7 +111,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.<Object>getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter()).isNull();
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
@@ -224,41 +224,36 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_Linked() {
-        Student student = persistStudent();
-        Course course = persistCourse();
+        StudentPayload student = persistStudent();
+        CoursePayload course = persistCourse();
+        Long studentId = student.getId();
+        Long courseId = course.getId();
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(course.getId()).orElseThrow());
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
-                .contains(persistence.findStudentById(student.getId()).orElseThrow());
+        assertThat(findStudentById(studentId).getCourses()).contains(findCourseById(courseId));
+        assertThat(findCourseById(courseId).getStudents()).contains(findStudentById(studentId));
         reset(persistence);
-        final var forUndo = new StudentToCourseLink(student, course);
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(studentId, courseId));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
         assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses()).isEmpty();
         assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents()).isEmpty();
         assertThat(context.getState()).isEqualTo(UNDONE);
-        verify(persistence).unLink(student, course);
+        verify(persistence).unLink(student.getOriginal(), course.getOriginal());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NotLinked() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.empty());
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(null);
 
         command.undoCommand(context);
 
@@ -270,12 +265,10 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
             commandContext.setUndoParameter(Input.of("null"));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter("null");
 
         command.undoCommand(context);
 
@@ -287,42 +280,38 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
-        Student student = persistStudent();
-        Course course = persistCourse();
+        StudentPayload student = persistStudent();
+        CoursePayload course = persistCourse();
+        Long studentId = student.getId();
+        Long courseId = course.getId();
+        Input<?> input = Input.of(studentId, courseId);
         persistence.link(student, course);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(course.getId()).orElseThrow());
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
-                .contains(persistence.findStudentById(student.getId()).orElseThrow());
+        assertThat(findStudentById(studentId).getCourses()).contains(findCourseById(courseId));
+        assertThat(findCourseById(courseId).getStudents()).contains(findStudentById(studentId));
         reset(persistence);
         RuntimeException cannotExecute = new RuntimeException("Cannot link");
-        doThrow(cannotExecute).when(persistence).unLink(student, course);
-        final var forUndo = new StudentToCourseLink(student, course);
+        doThrow(cannotExecute).when(persistence).unLink(student.getOriginal(), course.getOriginal());
         Context<Boolean> context = command.createContext();
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setState(Context.State.DONE);
-            commandContext.setUndoParameter(Input.of(forUndo));
+            commandContext.setUndoParameter(Input.of(input));
         }
-//        context.setState(Context.State.DONE);
-//        context.setUndoParameter(forUndo);
 
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(course.getId()).orElseThrow());
-        assertThat(persistence.findCourseById(course.getId()).orElseThrow().getStudents())
-                .contains(persistence.findStudentById(student.getId()).orElseThrow());
-        verify(persistence).unLink(student, course);
+        assertThat(findStudentById(studentId).getCourses()).contains(findCourseById(courseId));
+        assertThat(findCourseById(courseId).getStudents()).contains(findStudentById(studentId));
+        verify(persistence).unLink(student.getOriginal(), course.getOriginal());
     }
 
     // private methods
-    private Student persistStudent() {
+    private StudentPayload persistStudent() {
         return persistStudent(0);
     }
 
-    private Student persistStudent(int order) {
+    private StudentPayload persistStudent(int order) {
         try {
             StudentProfile profile = persistence.save(makeStudentProfile(null)).orElse(null);
             assertThat(profile).isNotNull();
@@ -342,11 +331,11 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         }
     }
 
-    private Course persistCourse() {
+    private CoursePayload persistCourse() {
         return persistCourse(0);
     }
 
-    private Course persistCourse(int order) {
+    private CoursePayload persistCourse(int order) {
         try {
             Course course = makeCourse(order);
             Course entity = persistence.save(course).orElse(null);
@@ -359,5 +348,13 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         } finally {
             reset(persistence, payloadMapper);
         }
+    }
+
+    private Student findStudentById(long id) {
+        return persistence.findStudentById(id).orElseThrow();
+    }
+
+    private Course findCourseById(long id) {
+        return persistence.findCourseById(id).orElseThrow();
     }
 }

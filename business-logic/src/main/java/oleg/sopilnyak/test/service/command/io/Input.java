@@ -4,11 +4,13 @@ import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.service.command.io.parameter.*;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.BasePayload;
+import oleg.sopilnyak.test.service.message.payload.*;
 import org.mapstruct.factory.Mappers;
 import org.mockito.internal.util.MockUtil;
 
 import java.util.Deque;
+
+import static java.util.Objects.nonNull;
 
 /**
  * Type: I/O school-command input parameter
@@ -137,36 +139,28 @@ public interface Input<P> extends IOBase<P> {
     }
 
     static Input<?> of(final Object parameter) {
-        if (MockUtil.isMock(parameter))
-            return mock(parameter);
-        else if (parameter instanceof Input<?> input)
-            return input;
-        else if (parameter instanceof Number numberId)
-            return of(numberId);
-        else if (parameter instanceof String stringId)
-            return of(stringId);
+        if (MockUtil.isMock(parameter)) return mock(parameter);
+        else if (parameter instanceof Input<?> input) return input;
+        else if (parameter instanceof Number numberId) return of(numberId);
+        else if (parameter instanceof String stringId) return of(stringId);
+
         throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
     }
 
 
     static <T extends BaseType> Input<?> of(final T type) {
-        if (MockUtil.isMock(type))
-            return mock(type);
-        if (type instanceof Student base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof Course base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof AuthorityPerson base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof Faculty base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof StudentsGroup base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof PrincipalProfile base)
-            return of(payloadMapper.toPayload(base));
-        if (type instanceof StudentProfile base)
-            return of(payloadMapper.toPayload(base));
-        throw new IllegalArgumentException("Parameter type not supported: " + type.getClass());
+        if (MockUtil.isMock(type)) return mock(type);
+
+        final Input<? extends BasePayload<? extends BaseType>> educationInput = educationType(type);
+        if (nonNull(educationInput)) return educationInput;
+
+        final Input<? extends BasePayload<? extends BaseType>> organizationInput = organizationType(type);
+        if (nonNull(organizationInput)) return organizationInput;
+
+        final Input<? extends BaseProfilePayload<? extends PersonProfile>> profileInput = profileType(type);
+        if (nonNull(profileInput)) return profileInput;
+
+        throw new IllegalArgumentException("Parameter type not supported: " + type);
     }
 
     // private classes
@@ -174,10 +168,36 @@ public interface Input<P> extends IOBase<P> {
 
         @Override
         public boolean equals(Object o) {
-            if (o instanceof MockedInput<?> that)
-                return value.equals(that.value);
-            return false;
+            return o instanceof MockedInput<?> that &&  value.equals(that.value);
         }
 
     }
+
+    // private methods
+    private static <T extends BaseType> Input<? extends BaseProfilePayload<? extends PersonProfile>> profileType(T type) {
+        if (type instanceof PrincipalProfile base)
+            return type instanceof PrincipalProfilePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        if (type instanceof StudentProfile base)
+            return type instanceof StudentProfilePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        return null;
+    }
+
+    private static <T extends BaseType> Input<? extends BasePayload<? extends BaseType>> organizationType(T type) {
+        if (type instanceof AuthorityPerson base)
+            return type instanceof AuthorityPersonPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        if (type instanceof Faculty base)
+            return type instanceof FacultyPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        if (type instanceof StudentsGroup base)
+            return type instanceof StudentsGroupPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        return null;
+    }
+
+    private static <T extends BaseType> Input<? extends BasePayload<? extends BaseType>> educationType(T type) {
+        if (type instanceof Student base)
+            return type instanceof StudentPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        else if (type instanceof Course base)
+            return type instanceof CoursePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+        else return null;
+    }
+
 }

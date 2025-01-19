@@ -110,7 +110,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      * @see Context
      * @see Deque
      * @see Context.StateChangedListener
-     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener<?>)
+     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
      */
     public void doNestedCommands(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
         doContexts.forEach(nestedContext ->
@@ -199,7 +199,6 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
 
     private <N> void afterRollbackDoneCheck(Context<?> undoContext) {
         final Deque<Context<N>> undoneContexts = undoContext.<Deque<Context<N>>>getUndoParameter().value();
-//        final Deque<Context<N>> undoneContexts = undoContext.<Deque<Context<N>>>getUndoParameter() ;
         final Optional<Context<N>> failedContext = undoneContexts.stream().filter(Context::isFailed).findFirst();
 
         if (failedContext.isEmpty()) {
