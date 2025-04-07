@@ -52,8 +52,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     public CreateAuthorityPersonMacroCommand(final CreateOrUpdateAuthorityPersonCommand personCommand,
                                              final CreateOrUpdatePrincipalProfileCommand profileCommand,
                                              final BusinessMessagePayloadMapper payloadMapper) {
-        addToNest(profileCommand);
-        addToNest(personCommand);
+        this.putToNest(profileCommand);
+        this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
     }
 
@@ -164,7 +164,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      *
      * @param command nested command to wrap
      * @return wrapped nested command
-     * @see SequentialMacroCommand#addToNest(NestedCommand)
+     * @see SequentialMacroCommand#putToNest(NestedCommand)
      */
     @Override
     public NestedCommand<?> wrap(final NestedCommand<?> command) {

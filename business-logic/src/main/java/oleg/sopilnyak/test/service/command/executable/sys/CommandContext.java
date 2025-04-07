@@ -1,18 +1,42 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import lombok.*;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.FAIL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import org.springframework.util.ObjectUtils;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +44,9 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
 @Builder
 public class CommandContext<T> implements Context<T> {
     private RootCommand<T> command;
+    @JsonDeserialize(using = Input.ParameterDeserializer.class)
     private Input<?> redoParameter;
+    @JsonDeserialize(using = Input.ParameterDeserializer.class)
     private Input<?> undoParameter;
     private T resultData;
     private Exception exception;
@@ -40,20 +66,20 @@ public class CommandContext<T> implements Context<T> {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @Builder.Default
-    private final List<StateChangedListener> listeners =
+    private final transient List<StateChangedListener> listeners =
             Collections.synchronizedList(new LinkedList<>(List.of(new InternalStateChangedListener())));
 
     /**
      * To set up current state of the context
      *
-     * @param newState new current context's state
+     * @param currentState new current context's state
      */
     @Override
-    public void setState(final State newState) {
-        if (newState != this.state) {
+    public void setState(final State currentState) {
+        if (currentState != this.state) {
             final State previousState = this.state;
-            this.state = newState;
-            notifyStateChangedListeners(previousState, newState);
+            this.state = currentState;
+            notifyStateChangedListeners(previousState, currentState);
         }
     }
 
@@ -61,7 +87,7 @@ public class CommandContext<T> implements Context<T> {
      * To set up input parameter value for command execution
      *
      * @param parameter the value
-     * @param <R> type of do input parameter
+     * @param <R>       type of do input parameter
      */
     public <R> void setRedoParameter(final Input<R> parameter) {
         this.redoParameter = parameter;
@@ -74,7 +100,7 @@ public class CommandContext<T> implements Context<T> {
      * To set up input parameter value for rollback changes
      *
      * @param parameter the value
-     * @param <U> type of undo input parameter
+     * @param <U>       type of undo input parameter
      */
     public <U> void setUndoParameter(final Input<U> parameter) {
         if (canUndo(state)) {
@@ -115,6 +141,23 @@ public class CommandContext<T> implements Context<T> {
     @Override
     public LifeCycleHistory getHistory() {
         return history;
+    }
+
+    /**
+     * Mark context as failed
+     *
+     * @param exception cause of failure
+     * @return failed context instance
+     * @see Exception
+     * @see this#setState(State)
+     * @see Context.State#FAIL
+     * @see this#setException(Exception)
+     */
+    @Override
+    public Context<T> failed(Exception exception) {
+        setState(State.FAIL);
+        setException(exception);
+        return this;
     }
 
     /**
@@ -216,7 +259,13 @@ public class CommandContext<T> implements Context<T> {
         }
     }
 
-    private static class History implements LifeCycleHistory {
+    /**
+     * The type of the context's history
+     */
+    @Data
+    @JsonSerialize(using = History.Serializer.class)
+//    @JsonDeserialize(using = History.Deserializer.class)
+    public static class History implements LifeCycleHistory {
         private final List<StateChangedHistoryItem> states = new LinkedList<>();
         private final List<StartedAtHistoryItem> started = new LinkedList<>();
         private final List<WorkedHistoryItem> worked = new LinkedList<>();
@@ -267,6 +316,65 @@ public class CommandContext<T> implements Context<T> {
             return worked.stream()
                     .map(item -> item.worked)
                     .collect(Collectors.toCollection(LinkedList::new));
+        }
+
+        /**
+         * JSON: Serializer for History
+         *
+         * @see StdSerializer
+         * @see History
+         */
+        public static class Serializer extends StdSerializer<LifeCycleHistory> {
+            public Serializer() {
+                this(null);
+            }
+
+            protected Serializer(Class<LifeCycleHistory> t) {
+                super(t);
+            }
+
+            public void serialize(final LifeCycleHistory parameter,
+                                  final JsonGenerator generator,
+                                  final SerializerProvider serializerProvider) throws IOException {
+                generator.writeStartObject();
+                generator.writeStringField(TYPE_FIELD_NAME, parameter.getClass().getName());
+                generator.writeFieldName(VALUE_FIELD_NAME);
+                generator.writeStartObject();
+                serializeStates(parameter.states(), generator);
+                serializeStarted(parameter.started(), generator);
+                serializeDurations(parameter.durations(), generator);
+                generator.writeEndObject();
+                generator.writeEndObject();
+            }
+
+            private void serializeDurations(Deque<Duration> durations, JsonGenerator generator) throws IOException {
+                final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
+                generator.writeFieldName("durations");
+                generator.writeStartArray();
+                for (final Duration duration : durations) {
+                    generator.writeString(mapper.writeValueAsString(duration));
+                }
+                generator.writeEndArray();
+            }
+
+            private void serializeStarted(Deque<Instant> started, JsonGenerator generator) throws IOException {
+                final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
+                generator.writeFieldName("started");
+                generator.writeStartArray();
+                for (Instant startedAt : started) {
+                    generator.writeString(mapper.writeValueAsString(startedAt));
+                }
+                generator.writeEndArray();
+            }
+
+            private void serializeStates(Deque<State> states, JsonGenerator generator) throws IOException {
+                generator.writeFieldName("states");
+                generator.writeStartArray();
+                for (final State state : states) {
+                    generator.writeString(state.name());
+                }
+                generator.writeEndArray();
+            }
         }
     }
 

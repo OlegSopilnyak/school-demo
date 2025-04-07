@@ -1,16 +1,48 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.service.command.io.parameter.*;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import java.util.Deque;
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StringPairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.*;
+import oleg.sopilnyak.test.service.message.CommandMessage;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.BasePayload;
+import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import org.mapstruct.factory.Mappers;
 import org.mockito.internal.util.MockUtil;
-
-import java.util.Deque;
-
-import static java.util.Objects.nonNull;
 
 /**
  * Type: I/O school-command input parameter
@@ -124,21 +156,41 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
+     * To create new input for MacroCommand
+     *
+     * @param rootInput      root command's input parameter instance
+     * @param nestedContexts contexts built for root input parameter from nested commands
+     * @return new instance of the input
+     * @see Input
+     * @see MacroCommandParameter
+     */
+    static Input<MacroCommandParameter> of(final Input<?> rootInput, final Deque<Context<?>> nestedContexts) {
+        return new MacroCommandParameter(rootInput, nestedContexts);
+    }
+
+    /**
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
      *
      * @param contexts sequence context for undo action in CompositeCommand
      * @return new instance of the input
-     * @see UndoDequeContextsParameter
+     * @see DequeContextsParameter
      * @see Deque
      * @see Context
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#executeDo(Context)
      */
     static Input<Deque<Context<?>>> of(final Deque<Context<?>> contexts) {
-        return new UndoDequeContextsParameter(contexts);
+        return new DequeContextsParameter(contexts);
     }
 
+    /**
+     * To create new input by parameter type
+     *
+     * @param parameter instance to wrap
+     * @return new instance of the input
+     */
     static Input<?> of(final Object parameter) {
+        if (isNull(parameter)) return empty();
         if (MockUtil.isMock(parameter)) return mock(parameter);
         else if (parameter instanceof Input<?> input) return input;
         else if (parameter instanceof Number numberId) return of(numberId);
@@ -151,24 +203,58 @@ public interface Input<P> extends IOBase<P> {
     static <T extends BaseType> Input<?> of(final T type) {
         if (MockUtil.isMock(type)) return mock(type);
 
-        final Input<? extends BasePayload<? extends BaseType>> educationInput = educationType(type);
+        final var educationInput = educationType(type);
         if (nonNull(educationInput)) return educationInput;
 
-        final Input<? extends BasePayload<? extends BaseType>> organizationInput = organizationType(type);
+        final var organizationInput = organizationType(type);
         if (nonNull(organizationInput)) return organizationInput;
 
-        final Input<? extends BaseProfilePayload<? extends PersonProfile>> profileInput = profileType(type);
+        final var profileInput = profileType(type);
         if (nonNull(profileInput)) return profileInput;
 
         throw new IllegalArgumentException("Parameter type not supported: " + type);
     }
 
-    // private classes
+    /**
+     * Input for mocked object
+     *
+     * @param value mocked value instance
+     * @param <T> type of the input
+     */
     record MockedInput<T>(T value) implements Input<T> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof MockedInput<?> that &&  value.equals(that.value);
+            return o instanceof MockedInput<?> that && value.equals(that.value);
+        }
+
+    }
+
+    // inner classes for JSON serializing/deserializing
+
+    /**
+     * JSON: Deserializer for Input Parameter field of the command-message
+     *
+     * @see StdDeserializer
+     * @see CommandMessage#getParameter()
+     * @see Input
+     */
+    class ParameterDeserializer<I> extends StdDeserializer<Input<?>> {
+
+        public ParameterDeserializer() {
+            this(Input.class);
+        }
+
+        protected ParameterDeserializer(Class<? extends Input> vc) {
+            super(vc);
+        }
+
+        @Override
+        public Input<I> deserialize(final JsonParser jsonParser,
+                                    final DeserializationContext deserializationContext) throws IOException {
+            final TreeNode parameterNode = jsonParser.readValueAsTree();
+            final Class<? extends Input> inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
+            return ((ObjectMapper) jsonParser.getCodec()).readValue(parameterNode.toString(), inputParameterClass);
         }
 
     }

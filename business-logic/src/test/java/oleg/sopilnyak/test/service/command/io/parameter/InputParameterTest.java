@@ -1,31 +1,40 @@
 package oleg.sopilnyak.test.service.command.io.parameter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import oleg.sopilnyak.test.school.common.model.BaseType;
-import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.message.payload.*;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.BasePayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {
-    private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
     void shouldCreateLongIdParameter() {
@@ -668,17 +677,17 @@ class InputParameterTest {
         assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
+
     @Test
-    void shouldCreateUndoDequeContextsParameter() {
+    void shouldCreateMacroCommandInputParameter() {
+        Input<Long> rootInput = Input.of(1L);
         Context<?> context1 = mock(Context.class);
         Context<?> context2 = mock(Context.class);
         Deque<Context<?>> contexts = Stream.of(context1, context2).collect(Collectors.toCollection(LinkedList::new));
 
-        Input<Deque<Context<?>>> parameter = Input.of(contexts);
+        Input<MacroCommandParameter> parameter = Input.of(rootInput, contexts);
 
-        assertThat(parameter.value()).hasSameSizeAs(contexts);
-        assertThat(parameter.value()).contains(context1).contains(context2);
-        assertThat(parameter).isInstanceOf(UndoDequeContextsParameter.class);
+        assertThat(parameter).isNotNull().isInstanceOf(Input.class).isInstanceOf(MacroCommandParameter.class);
     }
 
     // private methods

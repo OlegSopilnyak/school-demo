@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -111,7 +111,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(parameter).isNotNull();
-        assertThat(parameter.getInputParameter().value()).isSameAs(newPerson);
+        assertThat(parameter.getRootInput().value()).isSameAs(newPerson);
         Deque<Context<?>> nested = parameter.getNestedContexts();
         assertThat(nested).hasSameSizeAs(command.fromNest());
         Context<?> profileContext = nested.pop();

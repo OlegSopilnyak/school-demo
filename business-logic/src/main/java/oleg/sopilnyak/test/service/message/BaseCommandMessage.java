@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -27,17 +28,17 @@ public abstract class BaseCommandMessage<I, O> implements CommandMessage<I, O> {
     // the ID of command to execute
     private String commandId;
     // the context of command's execution
-    @JsonDeserialize(using = CommandMessage.ActionContextDeserializer.class)
+    @JsonDeserialize(using = IOBase.ActionContextDeserializer.class)
     private ActionContext actionContext;
     // the command's parameters
-    @JsonDeserialize(using = CommandMessage.InputParameterDeserializer.class)
+    @JsonDeserialize(using = Input.ParameterDeserializer.class)
     private Input<I> parameter;
     // the result of command's execution
-    @JsonDeserialize(using = CommandMessage.OutputResultDeserializer.class)
+    @JsonDeserialize(using = Output.ResultDeserializer.class)
     private Output<O> result;
     // The error instance when something went wrong
-    @JsonSerialize(using = CommandMessage.ExceptionSerializer.class)
-    @JsonDeserialize(using = CommandMessage.ExceptionDeserializer.class)
+    @JsonSerialize(using = IOBase.ExceptionSerializer.class)
+    @JsonDeserialize(using = IOBase.ExceptionDeserializer.class)
     private Exception error;
     // the state after command execution
     private Context.State resultState;

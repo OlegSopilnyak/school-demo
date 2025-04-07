@@ -1,14 +1,13 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
+import java.util.Optional;
+import java.util.function.LongFunction;
 import lombok.Getter;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
-
-import java.util.Optional;
-import java.util.function.LongFunction;
 
 /**
  * Command-Base-Implementation: command to get profile by id

@@ -1,7 +1,11 @@
 package oleg.sopilnyak.test.service.command.type;
 
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -10,9 +14,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Type: Command to execute the couple of school-commands
@@ -23,41 +24,40 @@ import java.util.stream.Collectors;
  */
 public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisitor {
     /**
-     * To get the collection of nested commands used it composite commands
+     * To get the collection of nested commands living in the composite
      *
      * @return collection of nested commands
      */
     <N> Collection<NestedCommand<N>> fromNest();
 
     /**
-     * To add the command
+     * To put the command to the composite's nest
      *
-     * @param command the instance to add
+     * @param command the instance to put
      */
-    void addToNest(NestedCommand<?> command);
+    void putToNest(NestedCommand<?> command);
 
     /**
      * To create command's context of macro command for input
      *
-     * @param inputParameter command do input parameter value
+     * @param input root input parameter instance for command's do
      * @return context instance
+     * @see CompositeCommand#prepareNestedContexts(CompositeCommand, Input)
+     * @see CompositeCommand#lookingForFailed(Deque)
      * @see Input
-     * @see Context
-     * @see Context#getRedoParameter()
-     * @see CommandContext
-     * @see Context.State#READY
+     * @see Context#failed(Exception)
+     * @see RootCommand#createContext(Input)
      * @see RootCommand#createContext()
      */
     @Override
-    default Context<T> createContext(Input<?> inputParameter) {
-        final Deque<Context<?>> nestedContextsDeque = fromNest().stream()
-                .map(nestedCommand -> prepareNestedContext(nestedCommand, inputParameter))
-                .collect(Collectors.toCollection(LinkedList::new));
-        final Optional<? extends Context<?>> failedContext = nestedContextsDeque.stream()
-                .filter(Objects::nonNull).filter(Context::isFailed)
-                .findFirst();
+    default Context<T> createContext(final Input<?> input) {
+        // preparing contexts for nested commands
+        final var contexts = prepareNestedContexts(this, input);
+        // looking for failed nested command context
+        final var failedContext = lookingForFailed(contexts);
+        // according to failed context presents building composite command context
         return failedContext.isEmpty() ?
-                RootCommand.super.createContext(new MacroCommandParameter(inputParameter, nestedContextsDeque)) :
+                RootCommand.super.createContext(Input.of(input, contexts)) :
                 RootCommand.super.createContext().failed(failedContext.get().getException());
     }
 
@@ -106,11 +106,21 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
     }
 
     // private methods
-    private Context<?> prepareNestedContext(NestedCommand<?> command, Input<?> mainInputParameter) {
+    private static Deque<Context<?>> prepareNestedContexts(final CompositeCommand<?> command, final Input<?> input) {
+        return command.fromNest().stream()
+                .map(nested -> command.prepareNestedContext(nested, input))
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private static Optional<? extends Context<?>> lookingForFailed(final Deque<Context<?>> contexts) {
+        return contexts.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst();
+    }
+
+    private Context<?> prepareNestedContext(final NestedCommand<?> command, final Input<?> input) {
         try {
-            return command.acceptPreparedContext(this, mainInputParameter);
+            return command.acceptPreparedContext(this, input);
         } catch (Exception e) {
-            getLog().error("Cannot prepare nested command context '{}' for value {}", command, mainInputParameter, e);
+            getLog().error("Cannot prepare nested command context '{}' for value {}", command, input, e);
             return command.createContextInit().failed(e);
         }
     }

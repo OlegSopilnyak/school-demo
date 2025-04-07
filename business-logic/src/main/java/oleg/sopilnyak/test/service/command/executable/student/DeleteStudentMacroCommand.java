@@ -55,8 +55,8 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     ) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
-        addToNest(deleteStudentCommand);
-        addToNest(deleteStudentProfileCommand);
+        putToNest(deleteStudentCommand);
+        putToNest(deleteStudentProfileCommand);
     }
 
     /**

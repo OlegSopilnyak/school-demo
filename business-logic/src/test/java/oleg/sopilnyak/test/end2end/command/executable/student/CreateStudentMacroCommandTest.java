@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.student.CreateStudentMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -109,7 +109,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(parameter).isNotNull();
-        assertThat(parameter.getInputParameter().value()).isSameAs(newStudent);
+        assertThat(parameter.getRootInput().value()).isSameAs(newStudent);
         Deque<Context<?>> nested = parameter.getNestedContexts();
         assertThat(nested).hasSameSizeAs(command.fromNest());
         Context<?> profileContext = nested.pop();

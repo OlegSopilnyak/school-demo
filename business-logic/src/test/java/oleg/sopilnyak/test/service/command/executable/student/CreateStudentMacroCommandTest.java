@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
@@ -104,7 +104,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(parameter).isNotNull();
-        assertThat(parameter.getInputParameter().value()).isSameAs(newStudent);
+        assertThat(parameter.getRootInput().value()).isSameAs(newStudent);
         Deque<Context<?>> nested = parameter.getNestedContexts();
         assertThat(nested).hasSameSizeAs(command.fromNest());
         Context<?> profileContext = nested.pop();
@@ -147,7 +147,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.CREATE_OR_UPDATE);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(nestedProfileCommand, wrongInput);
@@ -174,7 +174,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, inputParameter);
         verify(command).prepareContext(nestedProfileCommand, inputParameter);

@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -49,7 +50,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      * @see RootCommand
      */
     @Override
-    public void addToNest(final NestedCommand<?> command) {
+    public void putToNest(final NestedCommand<?> command) {
         synchronized (netsedCommandsList) {
             netsedCommandsList.add(command);
         }
@@ -209,11 +210,14 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
         }
         // something went wrong during undo nested commands
         undoContext.failed(failedContext.orElseThrow().getException());
+
         // rolling back nested undo changes calling nested.doAsNestedCommand(...)
         log.debug("Rolling back from undone {} command(s)", undoneContexts.size());
         final String logTemplate = "Changed state of '{}' from State:{} to :{}";
-        final Context.StateChangedListener stateListener = (c, p, n) -> log.debug(logTemplate, getId(), p, n);
-        // to rollback undone nested contexts
+        final Context.StateChangedListener stateListener =
+                (c, ps, cs) -> log.debug(logTemplate, getId(), ps, cs);
+
+        // to do rollback undone nested contexts
         undoneContexts.stream().filter(Context::isUndone).forEach(context -> {
             final NestedCommand<N> command = context.getCommand();
             context.setState(Context.State.READY);

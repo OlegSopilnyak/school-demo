@@ -12,7 +12,7 @@ import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfigur
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -117,7 +117,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInputParameter().value()).isSameAs(personId);
+        assertThat(redoParameter.getRootInput().value()).isSameAs(personId);
         Context<?> personContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(personContext.isReady()).isTrue();

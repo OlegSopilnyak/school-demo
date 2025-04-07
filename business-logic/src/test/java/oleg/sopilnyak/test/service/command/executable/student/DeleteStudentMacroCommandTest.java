@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommandParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -99,7 +99,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isReady()).isTrue();
         MacroCommandParameter redoParameter = context.<MacroCommandParameter>getRedoParameter().value();
         assertThat(redoParameter).isNotNull();
-        assertThat(redoParameter.getInputParameter().value()).isSameAs(studentId);
+        assertThat(redoParameter.getRootInput().value()).isSameAs(studentId);
         Context<?> studentContext = redoParameter.getNestedContexts().pop();
         Context<?> profileContext = redoParameter.getNestedContexts().pop();
         assertThat(studentContext.isReady()).isTrue();
@@ -129,7 +129,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -153,7 +153,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.DELETE_BY_ID);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(studentCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(studentCommand, wrongInput);
@@ -182,7 +182,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -211,7 +211,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -268,7 +268,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
-        assertThat(context.<Object>getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter()).isNull();
         verify(command, never()).executeDo(any(Context.class));
     }
 

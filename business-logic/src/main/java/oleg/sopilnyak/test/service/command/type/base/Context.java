@@ -1,11 +1,10 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import oleg.sopilnyak.test.service.command.io.Input;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
 import java.util.Optional;
+import oleg.sopilnyak.test.service.command.io.Input;
 
 /**
  * Type: The context of the command execution
@@ -14,6 +13,26 @@ import java.util.Optional;
  * @see RootCommand
  */
 public interface Context<T> {
+    /**
+     * The enumeration of context's state
+     */
+    enum State {
+        // context is built
+        INIT,
+        // context is ready to command redo(...)
+        READY,
+        // command execution is in progress
+        WORK,
+        // command redo(...) is finished successfully
+        DONE,
+        // command do execution is finished unsuccessfully
+        FAIL,
+        // further command execution is canceled
+        CANCEL,
+        // command undo execution is finished successfully
+        UNDONE
+    }
+
     /**
      * To get the command associated with the context
      *
@@ -97,12 +116,13 @@ public interface Context<T> {
     Exception getException();
 
     /**
-     * To set up exception occurring during command execution
+     * Mark context as failed
      *
-     * @param exception thrown exception instance
+     * @param exception cause of failure
+     * @return failed context instance
      * @see Exception
      */
-    void setException(Exception exception);
+    Context<T> failed(Exception exception);
 
     /**
      * To get context's life-cycle activities history
@@ -110,22 +130,6 @@ public interface Context<T> {
      * @return context's history instance
      */
     LifeCycleHistory getHistory();
-
-    /**
-     * Mark context as failed
-     *
-     * @param exception cause of failure
-     * @return failed context instance
-     * @see Exception
-     * @see this#setState(State)
-     * @see Context.State#FAIL
-     * @see this#setException(Exception)
-     */
-    default Context<T> failed(Exception exception) {
-        setState(State.FAIL);
-        setException(exception);
-        return this;
-    }
 
     /**
      * To check is context is done
@@ -199,27 +203,6 @@ public interface Context<T> {
      */
     void removeStateListener(StateChangedListener listener);
 
-
-    /**
-     * The enumeration of context's state
-     */
-    enum State {
-        // context is built
-        INIT,
-        // context is ready to command redo(...)
-        READY,
-        // command execution is in progress
-        WORK,
-        // command redo(...) is finished successfully
-        DONE,
-        // command do execution is finished unsuccessfully
-        FAIL,
-        // further command execution is canceled
-        CANCEL,
-        // command undo execution is finished successfully
-        UNDONE
-    }
-
     /**
      * The listener of context's state changing
      */
@@ -227,9 +210,9 @@ public interface Context<T> {
         /**
          * State changed event processing method
          *
-         * @param context the context where state was changed
+         * @param context  the context where state was changed
          * @param previous previous context state value
-         * @param current new context state value
+         * @param current  new context state value
          */
         void stateChanged(Context<?> context, State previous, State current);
     }

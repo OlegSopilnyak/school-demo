@@ -1,5 +1,10 @@
 package oleg.sopilnyak.test.persistence.sql;
 
+import static java.util.Objects.isNull;
+
+import java.security.NoSuchAlgorithmException;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,22 +27,14 @@ import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyReposi
 import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.security.NoSuchAlgorithmException;
-
-import static java.util.Objects.isNull;
 
 /**
  * Service-Facade-Implementation: Service for manage persistence layer of the application
  */
 @Slf4j
 @Getter
-@Component
 public class PersistenceFacadeImpl implements PersistenceFacade,
         EducationPersistence, OrganizationPersistence, ProfilePersistence {
     @Resource

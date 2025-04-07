@@ -55,8 +55,8 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     ) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
-        addToNest(deletePersonCommand);
-        addToNest(deleteProfileCommand);
+        putToNest(deletePersonCommand);
+        putToNest(deleteProfileCommand);
     }
 
     /**

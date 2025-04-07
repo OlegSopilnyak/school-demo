@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
+import com.fasterxml.jackson.databind.Module;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -11,12 +12,14 @@ import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileComma
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -127,5 +130,18 @@ public class SchoolCommandsConfiguration {
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
     public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
+    }
+
+    /**
+     * Module for ObjectMapper
+     *
+     * @param context Spring Application Context
+     * @return the module
+     * @see com.fasterxml.jackson.databind.ObjectMapper
+     * @see Module
+     */
+    @Bean(name = "jsonContextModule")
+    public <T extends RootCommand<?>> Module createConetxtModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
+        return new JsonContextModule(context, farm);
     }
 }

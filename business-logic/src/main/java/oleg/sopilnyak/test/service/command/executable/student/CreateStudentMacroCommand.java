@@ -50,8 +50,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand personCommand,
                                      final CreateOrUpdateStudentProfileCommand profileCommand,
                                      final BusinessMessagePayloadMapper payloadMapper) {
-        addToNest(profileCommand);
-        addToNest(personCommand);
+        this.putToNest(profileCommand);
+        this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
     }
 
@@ -247,7 +247,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      *
      * @param command nested command to wrap
      * @return wrapped nested command
-     * @see SequentialMacroCommand#addToNest(NestedCommand)
+     * @see SequentialMacroCommand#putToNest(NestedCommand)
      */
     @Override
     public NestedCommand<?> wrap(final NestedCommand<?> command) {

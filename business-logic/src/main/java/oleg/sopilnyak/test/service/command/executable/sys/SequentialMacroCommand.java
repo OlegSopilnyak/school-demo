@@ -31,8 +31,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see RootCommand
      */
     @Override
-    public void addToNest(final NestedCommand<?> command) {
-        super.addToNest(wrap(command));
+    public void putToNest(final NestedCommand<?> command) {
+        super.putToNest(wrap(command));
     }
 
     /**
@@ -40,7 +40,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      *
      * @param command nested command to wrap
      * @return wrapped nested command
-     * @see SequentialMacroCommand#addToNest(NestedCommand)
+     * @see SequentialMacroCommand#putToNest(NestedCommand)
      */
     public abstract NestedCommand<?> wrap(final NestedCommand<?> command);
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
+import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.command.io.parameter.*;
@@ -36,7 +37,7 @@ class CommandMessageJsonSerializationTest {
         String facadeName = "contextNodeTree.get(\"facadeName\")";
         String actionName = "contextNodeTree.get(\"actionName\"))";
         ActionContext context = ActionContext.builder().facadeName(facadeName).actionName(actionName).build();
-        CommandMessage.ActionContextDeserializer actionContextDeserializer = new CommandMessage.ActionContextDeserializer();
+        IOBase.ActionContextDeserializer actionContextDeserializer = new IOBase.ActionContextDeserializer();
         String json = objectMapper.writeValueAsString(context);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
@@ -49,7 +50,7 @@ class CommandMessageJsonSerializationTest {
 
     @Test
     void shouldSerializeExceptionUsingExceptionSerializer_SimpleException() throws IOException {
-        CommandMessage.ExceptionSerializer<Exception> exceptionSerializer = new CommandMessage.ExceptionSerializer<>();
+        IOBase.ExceptionSerializer<Exception> exceptionSerializer = new IOBase.ExceptionSerializer<>();
         String message = "Simple exception message";
         Exception ex = new Exception(message);
         ex.fillInStackTrace();
@@ -74,7 +75,7 @@ class CommandMessageJsonSerializationTest {
 
     @Test
     void shouldSerializeExceptionUsingExceptionSerializer_CannotProcessActionException() throws IOException {
-        CommandMessage.ExceptionSerializer<Exception> exceptionSerializer = new CommandMessage.ExceptionSerializer<>();
+        IOBase.ExceptionSerializer<Exception> exceptionSerializer = new IOBase.ExceptionSerializer<>();
         String message = "Embedded IO exception message";
         IOException ex = new IOException(message);
         ex.fillInStackTrace();
@@ -108,7 +109,7 @@ class CommandMessageJsonSerializationTest {
 
     @Test
     void shouldDeserializeExceptionUsingExceptionDeserializer_SimpleException() throws IOException {
-        CommandMessage.ExceptionSerializer<Exception> exceptionSerializer = new CommandMessage.ExceptionSerializer<>();
+        IOBase.ExceptionSerializer<Exception> exceptionSerializer = new IOBase.ExceptionSerializer<>();
         String message = "Simple IO exception message";
         IOException ex = new IOException(message);
         ex.fillInStackTrace();
@@ -118,7 +119,7 @@ class CommandMessageJsonSerializationTest {
         exceptionSerializer.serialize(ex, generator, null);
         generator.close();
         String json = writer.toString();
-        CommandMessage.ExceptionDeserializer deserializer = new CommandMessage.ExceptionDeserializer();
+        IOBase.ExceptionDeserializer deserializer = new IOBase.ExceptionDeserializer();
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
         Throwable restored = deserializer.deserialize(parser, null);
@@ -131,7 +132,7 @@ class CommandMessageJsonSerializationTest {
 
     @Test
     void shouldDeserializeExceptionUsingExceptionDeserializer_CannotProcessActionException() throws IOException {
-        CommandMessage.ExceptionSerializer<Exception> exceptionSerializer = new CommandMessage.ExceptionSerializer<>();
+        IOBase.ExceptionSerializer<Exception> exceptionSerializer = new IOBase.ExceptionSerializer<>();
         String message = "Embedded IO exception message";
         IOException ex = new IOException(message);
         ex.fillInStackTrace();
@@ -144,7 +145,7 @@ class CommandMessageJsonSerializationTest {
         exceptionSerializer.serialize(exception, generator, null);
         generator.close();
         String json = writer.toString();
-        CommandMessage.ExceptionDeserializer deserializer = new CommandMessage.ExceptionDeserializer();
+        IOBase.ExceptionDeserializer deserializer = new IOBase.ExceptionDeserializer();
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
         Throwable restored = deserializer.deserialize(parser, null);
@@ -159,7 +160,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_LongIdParameter() throws IOException {
         long id = 102;
-        CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
+        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
         NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -173,7 +174,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_StringIdParameter() throws IOException {
         String id = UUID.randomUUID().toString();
-        CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
+        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
         StringIdParameter input = new StringIdParameter(id);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -187,7 +188,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_LongIdPairParameter() throws IOException {
         long id = 103L;
-        CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
+        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
         LongIdPairParameter input = new LongIdPairParameter(id, id + 1);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -202,7 +203,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_PayloadParameter() throws IOException {
         long id = 105L;
-        CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
+        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
         StudentPayload entity = createStudent(id);
         PayloadParameter<StudentPayload> input = new PayloadParameter<>(entity);
         String json = objectMapper.writeValueAsString(input);
@@ -217,7 +218,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_PayloadPairParameter() throws IOException {
         long id = 106L;
-        CommandMessage.InputParameterDeserializer inputParameterDeserializer = new CommandMessage.InputParameterDeserializer();
+        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
         StudentPayload firstEntity = createStudent(id);
         StudentPayload secondEntity = createStudent(id + 1);
         PayloadPairParameter<StudentPayload> input = new PayloadPairParameter<>(firstEntity, secondEntity);
@@ -234,7 +235,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeOutputUsingOutputResultDeserializer_BooleanResult() throws IOException {
         boolean resultValue = true;
-        CommandMessage.OutputResultDeserializer outputResultDeserializer = new CommandMessage.OutputResultDeserializer();
+        Output.ResultDeserializer outputResultDeserializer = new Output.ResultDeserializer();
         BooleanResult result = new BooleanResult(resultValue);
         String json = objectMapper.writeValueAsString(result);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -248,7 +249,7 @@ class CommandMessageJsonSerializationTest {
 
     @Test
     void shouldDeserializeOutputUsingOutputResultDeserializer_EmptyResult() throws IOException {
-        CommandMessage.OutputResultDeserializer outputResultDeserializer = new CommandMessage.OutputResultDeserializer();
+        Output.ResultDeserializer outputResultDeserializer = new Output.ResultDeserializer();
         EmptyResult result = new EmptyResult();
         String json = objectMapper.writeValueAsString(result);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -263,7 +264,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeOutputUsingOutputResultDeserializer_StudentPayloadResult() throws IOException {
         long id = 201L;
-        CommandMessage.OutputResultDeserializer outputResultDeserializer = new CommandMessage.OutputResultDeserializer();
+        Output.ResultDeserializer outputResultDeserializer = new Output.ResultDeserializer();
         StudentPayload entity = createStudent(id);
         PayloadResult<StudentPayload> result = new PayloadResult<>(entity);
         String json = objectMapper.writeValueAsString(result);
@@ -279,7 +280,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeOutputUsingOutputResultDeserializer_StudentPayloadSetResult() throws IOException {
         long id = 202L;
-        CommandMessage.OutputResultDeserializer outputResultDeserializer = new CommandMessage.OutputResultDeserializer();
+        Output.ResultDeserializer outputResultDeserializer = new Output.ResultDeserializer();
         StudentPayload entity1 = createStudent(id);
         StudentPayload entity2 = createStudent(id + 1);
         StudentPayload entity3 = createStudent(id + 2);
