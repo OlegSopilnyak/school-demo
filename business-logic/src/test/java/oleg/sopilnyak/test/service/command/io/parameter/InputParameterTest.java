@@ -56,7 +56,7 @@ class InputParameterTest {
         assertThat(json).contains(NumberIdParameter.class.getName());
         NumberIdParameter<?> restored = objectMapper.readValue(json, NumberIdParameter.class);
 
-        assertThat(restored.value()).isSameAs(id);
+        assertThat(restored.value()).isEqualTo(id);
         assertThat(restored).isInstanceOf(Input.class);
     }
 

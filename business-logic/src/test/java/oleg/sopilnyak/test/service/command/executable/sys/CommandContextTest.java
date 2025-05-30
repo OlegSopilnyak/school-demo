@@ -176,8 +176,6 @@ class CommandContextTest<T> {
         assertThat(commandContext.getStartedAt()).isNotNull().isBefore(Instant.now());
         assertThat(commandContext.getDuration()).isNotNull().isGreaterThanOrEqualTo(Duration.ofMillis(sleepTime));
         int invokeTimes = 2;
-        assertThat(((CommandContext<T>) commandContext).getStartedAtHistory()).hasSize(invokeTimes);
-        assertThat(((CommandContext<T>) commandContext).getWorkedHistory()).hasSize(invokeTimes);
         verify((CommandContext<T>) commandContext, times(invokeTimes)).setStartedAt(any(Instant.class));
         verify((CommandContext<T>) commandContext, times(invokeTimes)).setDuration(any(Duration.class));
     }

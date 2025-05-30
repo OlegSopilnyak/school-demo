@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.context.History;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -44,7 +45,7 @@ public class JsonContextModule extends SimpleModule {
     private static final String ERROR_FIELD_NAME = "error";
     private static final String HISTORY_FIELD_NAME = "history";
 
-    private final CommandsFactoriesFarm<?> farm;
+    private final transient CommandsFactoriesFarm<?> farm;
 
     public JsonContextModule(ApplicationContext context, CommandsFactoriesFarm<?> farm) {
         Assert.notNull(context, "Context must not be null");
@@ -57,8 +58,8 @@ public class JsonContextModule extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer());
-        deserializers.addDeserializer(Context.class, new CommandContextDeserializer(farm));
+        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
+        deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
         context.addSerializers(serializers);
         context.addDeserializers(deserializers);
@@ -74,8 +75,7 @@ public class JsonContextModule extends SimpleModule {
      * @see RootCommand#executeUndo(Context)
      */
     static class CommandContextSerializer<T> extends StdSerializer<Context<T>> {
-        private final IOBase.ExceptionSerializer exceptionSerializer = new IOBase.ExceptionSerializer();
-        private final CommandContext.History.Serializer historySerializer = new CommandContext.History.Serializer();
+        private final IOBase.ExceptionSerializer<? extends Throwable> exceptionSerializer = new IOBase.ExceptionSerializer<>();
 
         public CommandContextSerializer() {
             this(null);
@@ -138,7 +138,7 @@ public class JsonContextModule extends SimpleModule {
 
         private void serializeHistory(final Context.LifeCycleHistory history, final JsonGenerator generator) throws IOException {
             generator.writeFieldName(HISTORY_FIELD_NAME);
-            historySerializer.serialize(history, generator, null);
+            generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(history));
         }
     }
 
@@ -151,19 +151,18 @@ public class JsonContextModule extends SimpleModule {
      * @see RootCommand#executeUndo(Context)
      */
     static class CommandContextDeserializer<T> extends StdDeserializer<Context<T>> {
-        private final CommandsFactoriesFarm farm;
+        private final transient CommandsFactoriesFarm<? extends RootCommand<T>> factoriesFarm;
         private final IOBase.ExceptionDeserializer errorDeserializer = new IOBase.ExceptionDeserializer();
-        private final Input.ParameterDeserializer parameterDeserializer = new Input.ParameterDeserializer<>();
+        private final Input.ParameterDeserializer<?> parameterDeserializer = new Input.ParameterDeserializer<>();
         private final Output.ResultDeserializer<T> resultDeserializer = new Output.ResultDeserializer<>();
-        private final CommandContext.History.Serializer historySerializer = new CommandContext.History.Serializer();
 
-        public CommandContextDeserializer(final CommandsFactoriesFarm farm) {
-            this(Context.class, farm);
+        public CommandContextDeserializer(final CommandsFactoriesFarm<? extends RootCommand<T>> factoriesFarm) {
+            this(Context.class, factoriesFarm);
         }
 
-        protected CommandContextDeserializer(Class<?> vc, CommandsFactoriesFarm farm) {
+        protected CommandContextDeserializer(Class<?> vc, CommandsFactoriesFarm<? extends RootCommand<T>> factoriesFarm) {
             super(vc);
-            this.farm = farm;
+            this.factoriesFarm = factoriesFarm;
         }
 
         @Override
@@ -190,7 +189,7 @@ public class JsonContextModule extends SimpleModule {
             // deserialize command by command-id
             if (nonNull(commandIdNode) && commandIdNode instanceof TextNode textIdNode) {
                 final String commandId = textIdNode.textValue();
-                command = farm.command(commandId);
+                command = factoriesFarm.command(commandId);
             } else {
                 throw new IOException("Command ID Node is missing :" + commandIdNode);
             }
@@ -199,7 +198,7 @@ public class JsonContextModule extends SimpleModule {
             if (nonNull(commandTypeNode) && commandTypeNode instanceof TextNode textTypeNode) {
                 final String commandType = textTypeNode.textValue();
                 try {
-                    final Class commandClass = Class.forName(commandType);
+                    final Class<?> commandClass = Class.forName(commandType).asSubclass(RootCommand.class);
                     if (commandClass.equals(command.getClass())) {
                         // add valid command to context builder
                         contextBuilder.command(command);
@@ -279,7 +278,7 @@ public class JsonContextModule extends SimpleModule {
         }
 
         private void deserializeState(final TreeNode treeNode,
-                                      final CommandContext.CommandContextBuilder<T> contextBuilder) throws IOException {
+                                      final CommandContext.CommandContextBuilder<T> contextBuilder) {
             if (nonNull(treeNode) && treeNode instanceof TextNode textNode) {
                 // restore execution state
                 final Context.State state = Context.State.valueOf(textNode.textValue());
@@ -292,10 +291,9 @@ public class JsonContextModule extends SimpleModule {
                                       final ObjectMapper mapper) throws IOException {
             if (nonNull(treeNode)) {
                 // restore execution history
-                // TODO create history deserializer
                 final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
-//                final Throwable error = errorDeserializer.deserialize(parser, null);
-//                contextBuilder.exception(Exception.class.cast(error));
+                final History history = mapper.readValue(parser, History.class);
+                contextBuilder.history(history);
             }
         }
     }

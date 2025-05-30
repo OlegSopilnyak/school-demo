@@ -1,11 +1,16 @@
 package oleg.sopilnyak.test.service.exception;
 
+import static java.util.Objects.nonNull;
+
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 /**
  * Exception throws when command-executor cannot execute the command
  */
 public class UnableExecuteCommandException extends RuntimeException {
+    private static final String PREFIX = "Cannot execute command '";
+    private static final String SUFFIX = "'";
+
     /**
      * Constructs a new instance of th exception with the specified detail command-id and
      * cause.  <p>Note that the detail message associated with
@@ -20,7 +25,7 @@ public class UnableExecuteCommandException extends RuntimeException {
      * @see RootCommand#getId()
      */
     public UnableExecuteCommandException(String commandId, Throwable cause) {
-        super("Cannot execute command '" + commandId + "'", cause);
+        super(properMessage(commandId), cause);
     }
 
     /**
@@ -30,6 +35,11 @@ public class UnableExecuteCommandException extends RuntimeException {
      * @see RootCommand#getId()
      */
     public UnableExecuteCommandException(String commandId) {
-        super("Cannot execute command '" + commandId + "'");
+        super(properMessage(commandId));
+    }
+
+    // private methods
+    private static String properMessage(String message) {
+        return nonNull(message) && message.startsWith(PREFIX) ? message : PREFIX + message + SUFFIX;
     }
 }

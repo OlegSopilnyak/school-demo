@@ -13,25 +13,6 @@ import oleg.sopilnyak.test.service.command.io.Input;
  * @see RootCommand
  */
 public interface Context<T> {
-    /**
-     * The enumeration of context's state
-     */
-    enum State {
-        // context is built
-        INIT,
-        // context is ready to command redo(...)
-        READY,
-        // command execution is in progress
-        WORK,
-        // command redo(...) is finished successfully
-        DONE,
-        // command do execution is finished unsuccessfully
-        FAIL,
-        // further command execution is canceled
-        CANCEL,
-        // command undo execution is finished successfully
-        UNDONE
-    }
 
     /**
      * To get the command associated with the context
@@ -66,12 +47,116 @@ public interface Context<T> {
     State getState();
 
     /**
+     * To check is context in particular state
+     *
+     * @param state context's state to check
+     * @return true if context in the state
+     * @see this#getState()
+     */
+    default boolean stateIs(final State state) {
+        return state == getState();
+    }
+
+    /**
+     * To check is context is done
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#DONE
+     */
+    default boolean isDone() {
+        return stateIs(State.DONE);
+    }
+
+    /**
+     * To check is context is undone
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#UNDONE
+     */
+    default boolean isUndone() {
+        return stateIs(State.UNDONE);
+    }
+
+    /**
+     * To check is context is ready to do
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#READY
+     */
+    default boolean isReady() {
+        return stateIs(State.READY);
+    }
+
+    /**
+     * To check is context is failed after do or undo
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#FAIL
+     */
+    default boolean isFailed() {
+        return stateIs(State.FAIL);
+    }
+
+    /**
+     * To check is context is before command-do state
+     *
+     * @return true if done
+     * @see this#getState()
+     * @see Context.State#WORK
+     */
+    default boolean isWorking() {
+        return stateIs(State.WORK);
+    }
+
+    /**
      * To set up current state of the context
      *
      * @param state new current context's state
      * @see State
      */
     void setState(State state);
+
+    /**
+     * To save to context-history the current state of context (just changed)
+     *
+     * @param state current state for history
+     * @see Context#getState()
+     * @see LifeCycleHistory
+     */
+    void stateChangedTo(State state);
+
+    /**
+     * To save to context-history time when command started execution with context
+     *
+     * @param startedAt when command start execution
+     * @param startedAfter which state was before
+     * @see Context#getState()
+     * @see Context#getStartedAt()
+     * @see LifeCycleHistory
+     * @see State#WORK
+     * @see RootCommand#executeDo(Context)
+     * @see RootCommand#executeUndo(Context)
+     */
+    void commandExecutionStarted(Instant startedAt, State startedAfter);
+
+    /**
+     * To save to context-history duration of command execution with context
+     *
+     * @param finishedBy which state finishes the command execution
+     * @see Context#getState()
+     * @see Context#getDuration()
+     * @see LifeCycleHistory
+     * @see State#DONE
+     * @see State#UNDONE
+     * @see State#FAIL
+     * @see RootCommand#executeDo(Context)
+     * @see RootCommand#executeUndo(Context)
+     */
+    void commandExecutionFinishedBy(State finishedBy);
 
     /**
      * To get input parameter value for do command execution
@@ -132,62 +217,6 @@ public interface Context<T> {
     LifeCycleHistory getHistory();
 
     /**
-     * To check is context is done
-     *
-     * @return true if done
-     * @see this#getState()
-     * @see Context.State#DONE
-     */
-    default boolean isDone() {
-        return getState() == State.DONE;
-    }
-
-    /**
-     * To check is context is undone
-     *
-     * @return true if done
-     * @see this#getState()
-     * @see Context.State#UNDONE
-     */
-    default boolean isUndone() {
-        return getState() == State.UNDONE;
-    }
-
-    /**
-     * To check is context is ready to do
-     *
-     * @return true if done
-     * @see this#getState()
-     * @see Context.State#READY
-     */
-    default boolean isReady() {
-        return getState() == State.READY;
-    }
-
-    /**
-     * To check is context is failed after do or undo
-     *
-     * @return true if done
-     * @see this#getState()
-     * @see Context.State#FAIL
-     */
-    default boolean isFailed() {
-        return getState() == State.FAIL;
-    }
-
-    /**
-     * To check is context is before command-do state
-     *
-     * @return true if done
-     * @see this#getState()
-     * @see Context.State#WORK
-     */
-    default boolean isWorking() {
-        return getState() == State.WORK;
-    }
-
-
-    /**
      * To add change-context-state listener
      *
      * @param listener the listener of context-state changes
@@ -202,6 +231,26 @@ public interface Context<T> {
      * @see StateChangedListener
      */
     void removeStateListener(StateChangedListener listener);
+
+    /**
+     * The enumeration of context's state
+     */
+    enum State {
+        // context is built
+        INIT,
+        // context is ready to command redo(...)
+        READY,
+        // command execution is in progress
+        WORK,
+        // command redo(...) is finished successfully
+        DONE,
+        // command do execution is finished unsuccessfully
+        FAIL,
+        // further command execution is canceled
+        CANCEL,
+        // command undo execution is finished successfully
+        UNDONE
+    }
 
     /**
      * The listener of context's state changing

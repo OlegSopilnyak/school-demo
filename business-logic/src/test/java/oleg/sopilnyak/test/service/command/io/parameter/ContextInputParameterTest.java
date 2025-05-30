@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.io.parameter;
 
+import static java.util.Objects.isNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,14 +24,13 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -42,7 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
-public class ContextInputParameterTest {
+class ContextInputParameterTest {
     @MockBean
     private PersistenceFacade persistenceFacade;
     @MockBean
@@ -50,10 +49,11 @@ public class ContextInputParameterTest {
 
     @SpyBean
     @Autowired
-    private CommandsFactoriesFarm farm;
+    private CommandsFactoriesFarm<? extends RootCommand<?>> farm;
     @Autowired
     @Qualifier("jsonContextModule")
     private Module jsonContextModule;
+    // json mapper
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -61,7 +61,8 @@ public class ContextInputParameterTest {
         objectMapper = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .registerModule(jsonContextModule)
-                .enable(SerializationFeature.INDENT_OUTPUT);
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Test
@@ -86,37 +87,26 @@ public class ContextInputParameterTest {
 
     @Test
     void shouldRestoreUndoDequeContextsParameter() throws JsonProcessingException {
-        String commandId = "test-student-command";
-        StudentCommand command = new StudentCommand() {
-            @Override
-            public Logger getLog() {
-                return LoggerFactory.getLogger(getClass());
-            }
-
-            @Override
-            public String getId() {
-                return commandId;
-            }
-        };
-        doReturn(command).when(farm).command(commandId);
-        Exception error = new UnableExecuteCommandException(command.getId());
+        String commandId = StudentCommand.FIND_BY_ID;
+        RootCommand<?> command = farm.command(commandId);
+        Exception error = new UnableExecuteCommandException(commandId);
         error.fillInStackTrace();
-        Context<Boolean> context1 = command.createContext(Input.of(1));
+        Context<Boolean> context1 = (Context<Boolean>) command.createContext(Input.of(1));
         setUndoParameter(context1, Input.of(-1L));
         context1.setState(Context.State.WORK);
         context1.setResult(true);
         context1.setState(Context.State.DONE);
         context1.setState(Context.State.WORK);
-        context1.failed((Exception) new UnableExecuteCommandException(command.getId()).fillInStackTrace());
+        context1.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
 
         Student result = createStudent(1L);
-        Context<Student> context2 = command.createContext(Input.of(2));
+        Context<Student> context2 = (Context<Student>) command.createContext(Input.of(createStudent(10L)));
         setUndoParameter(context2, Input.of(-2L));
         context2.setState(Context.State.WORK);
         context2.setResult(result);
         context2.setState(Context.State.UNDONE);
         context2.setState(Context.State.WORK);
-        context2.failed((Exception) new UnableExecuteCommandException(command.getId()).fillInStackTrace());
+        context2.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
 
         Deque<Context<?>> contexts = new LinkedList<>(List.of(context1, context2));
         Input<Deque<Context<?>>> parameter = Input.of(contexts);
@@ -132,9 +122,73 @@ public class ContextInputParameterTest {
 
         assertThat(restored).isInstanceOf(DequeContextsParameter.class);
         assertThat(restored.value()).hasSameSizeAs(contexts);
+        Deque<Context<?>> restoredContexts = new LinkedList<>(restored.value());
+        assertEquals(context1, restoredContexts.pop());
+        assertEquals(context2, restoredContexts.pop());
     }
 
     // private methods
+    private static void assertEquals(Context<?> expected, Context<?> actual) {
+        // command
+        assertThat(expected.getCommand()).isSameAs(actual.getCommand());
+        // started at
+        if (isNull(expected.getStartedAt())) {
+            assertThat(actual.getStartedAt()).isNull();
+        } else {
+            assertThat(expected.getStartedAt()).isEqualTo(actual.getStartedAt());
+        }
+        // execution duration
+        if (isNull(expected.getDuration())) {
+            assertThat(actual.getDuration()).isNull();
+        } else {
+            assertThat(expected.getDuration()).isEqualTo(actual.getDuration());
+        }
+        // execution state
+        assertThat(expected.getState()).isSameAs(actual.getState());
+        // redo input parameter
+        if (isNull(expected.getRedoParameter())) {
+            assertThat(actual.getRedoParameter()).isNull();
+        } else if (expected.getRedoParameter().isEmpty()) {
+            assertThat(actual.getRedoParameter().isEmpty()).isTrue();
+        } else {
+            assertThat(expected.getRedoParameter().value()).isEqualTo(actual.getRedoParameter().value());
+        }
+        // undo input parameter
+        if (isNull(expected.getUndoParameter())) {
+            assertThat(actual.getUndoParameter()).isNull();
+        } else if (expected.getUndoParameter().isEmpty()) {
+            assertThat(actual.getUndoParameter().isEmpty()).isTrue();
+        } else {
+            assertThat(expected.getUndoParameter().value()).isEqualTo(actual.getUndoParameter().value());
+        }
+        // result
+        if (isNull(expected.getResult())) {
+            assertThat(actual.getResult()).isNull();
+        } else if (expected.getResult().isEmpty()) {
+            assertThat(actual.getResult()).isEmpty();
+        } else {
+            assertThat(expected.getResult().get()).isEqualTo(actual.getResult().get());
+        }
+        // error
+        if (isNull(expected.getException())) {
+            assertThat(actual.getException()).isNull();
+        } else {
+            assertEquals(expected.getException(), actual.getException());
+        }
+        // history
+        if (isNull(expected.getHistory())) {
+            assertThat(actual.getHistory()).isNull();
+        } else {
+            assertThat(expected.getHistory()).isEqualTo(actual.getHistory());
+        }
+    }
+
+    private static void assertEquals(Exception expected, Exception actual) {
+        assertThat(expected.getMessage()).isEqualTo(actual.getMessage());
+        assertThat(expected.getCause()).isEqualTo(actual.getCause());
+        assertThat(expected.getStackTrace()).hasSameSizeAs(actual.getStackTrace());
+    }
+
     private static StudentPayload createStudent(long id) {
         return StudentPayload.builder()
                 .id(id)
