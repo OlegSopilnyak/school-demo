@@ -159,7 +159,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param target  next command context to execute command's redo
      * @see StudentProfileCommand#doCommand(Context)
      * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
-     * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
+     * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
      * @see CannotTransferCommandResultException
      */

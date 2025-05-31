@@ -1,14 +1,28 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
@@ -27,13 +41,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteStudentMacroCommandTest extends TestModelFactory {
@@ -139,7 +146,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         verify(command).prepareContext(profileCommand, inputStudentId);
         verify(command).createStudentProfileContext(profileCommand, studentId);
         verify(profileCommand, never()).createContext(any());
-        verify(profileCommand).createContextInit();
+        verify(profileCommand).createFailedContext(any(StudentNotFoundException.class));
     }
 
     @Test
@@ -162,7 +169,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         verify(profileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(profileCommand, wrongInput);
         verify(command, never()).createStudentProfileContext(eq(profileCommand), any());
-        verify(profileCommand).createContextInit();
+        verify(profileCommand).createFailedContext(any(CannotCreateCommandContextException.class));
         verify(profileCommand, never()).createContext(any());
     }
 
@@ -249,7 +256,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         assertThat(studentContext.getRedoParameter().value()).isEqualTo(studentId);
         assertThat(profileContext.getRedoParameter().value()).isEqualTo(profileId);
 
@@ -303,7 +310,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyStudentDoCommand(studentContext);
         verifyStudentUndoCommand(studentContext);
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
@@ -345,7 +352,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyStudentDoCommand(studentContext);
         verifyProfileDoCommand(profileContext);
         verifyProfileUndoCommand(profileContext);
@@ -387,7 +394,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyStudentDoCommand(studentContext);
         verifyProfileDoCommand(profileContext);
@@ -419,7 +426,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyStudentUndoCommand(studentContext);
         verifyProfileUndoCommand(profileContext);
     }
@@ -453,7 +460,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyStudentUndoCommand(studentContext);
         verifyProfileUndoCommand(profileContext);
         verifyStudentDoCommand(studentContext, 2);
@@ -487,7 +494,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyStudentUndoCommand(studentContext);
         verifyProfileUndoCommand(profileContext);
         verifyProfileDoCommand(profileContext, 2);

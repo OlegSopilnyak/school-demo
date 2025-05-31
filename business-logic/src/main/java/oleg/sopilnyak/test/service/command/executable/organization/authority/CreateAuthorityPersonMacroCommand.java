@@ -187,7 +187,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param target  next command context to execute command's redo
      * @see PrincipalProfileCommand#doCommand(Context)
      * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
-     * @see SequentialMacroCommand#doNestedCommands(Deque, Context.StateChangedListener)
+     * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see CreateAuthorityPersonMacroCommand#transferProfileIdToAuthorityPersonInput(Long, Context)
      * @see AuthorityPersonPayload#setProfileId(Long)
      * @see CannotTransferCommandResultException

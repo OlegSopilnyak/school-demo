@@ -44,7 +44,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
      * @see Context.State#FAIL
      */
     @Override
-    public void doNestedCommands(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
+    public void executeNested(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
         if (ObjectUtils.isEmpty(doContexts)) {
             getLog().warn("Nothing to do");
             return;
@@ -77,7 +77,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
      * @see Context.State#DONE
      */
     @Override
-    public Deque<Context<?>> undoNestedCommands(final Input<Deque<Context<?>>> inputDoneContexts) {
+    public Deque<Context<?>> rollbackNestedDone(final Input<Deque<Context<?>>> inputDoneContexts) {
         final Deque<Context<?>> doneContexts = inputDoneContexts.value();
         if (ObjectUtils.isEmpty(doneContexts)) {
             getLog().warn("Nothing to undo");
@@ -225,7 +225,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
         }
     }
 
-    private static class DoInRootTransaction {
+    private static final class DoInRootTransaction {
         final Object actionFinished = new Object();
         volatile boolean actionInProgress = true;
         final Consumer<?> toDo;

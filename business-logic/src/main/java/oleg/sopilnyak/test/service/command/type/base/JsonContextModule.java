@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  *
  * @see Context
  */
-public class JsonContextModule extends SimpleModule {
+public class JsonContextModule<T> extends SimpleModule {
     private static final String COMMAND_FIELD_NAME = "command";
     private static final String COMMAND_ID_FIELD_NAME = "id";
     private static final String STARTED_AT_FIELD_NAME = "started-at";
@@ -45,24 +45,24 @@ public class JsonContextModule extends SimpleModule {
     private static final String ERROR_FIELD_NAME = "error";
     private static final String HISTORY_FIELD_NAME = "history";
 
-    private final transient CommandsFactoriesFarm<?> farm;
+    private final transient CommandsFactoriesFarm<? extends RootCommand<T>> farm;
 
-    public JsonContextModule(ApplicationContext context, CommandsFactoriesFarm<?> farm) {
+    public JsonContextModule(ApplicationContext context, CommandsFactoriesFarm<? extends RootCommand<T>> farm) {
         Assert.notNull(context, "Context must not be null");
         // get the commands farm
         this.farm = farm;
     }
 
     @Override
-    public void setupModule(SetupContext context) {
+    public void setupModule(final SetupContext setupContext) {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
+        serializers.addSerializer(Context.class, new CommandContextSerializer());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
-        context.addSerializers(serializers);
-        context.addDeserializers(deserializers);
+        setupContext.addSerializers(serializers);
+        setupContext.addDeserializers(deserializers);
 
     }
 
@@ -75,7 +75,7 @@ public class JsonContextModule extends SimpleModule {
      * @see RootCommand#executeUndo(Context)
      */
     static class CommandContextSerializer<T> extends StdSerializer<Context<T>> {
-        private final IOBase.ExceptionSerializer<? extends Throwable> exceptionSerializer = new IOBase.ExceptionSerializer<>();
+        private final IOBase.ExceptionSerializer<Throwable> exceptionSerializer = new IOBase.ExceptionSerializer<>();
 
         public CommandContextSerializer() {
             this(null);
@@ -213,26 +213,28 @@ public class JsonContextModule extends SimpleModule {
             }
         }
 
-        private <R> void deserializeRedoParameter(final TreeNode treeNode,
-                                                  final CommandContext.CommandContextBuilder<T> contextBuilder,
-                                                  final ObjectMapper mapper) throws IOException {
-            if (nonNull(treeNode)) {
-                // restore redo parameter
-                final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
-                final Input<R> redoParameter = parameterDeserializer.deserialize(parser, null);
-                contextBuilder.redoParameter(redoParameter);
+        private void deserializeRedoParameter(final TreeNode treeNode,
+                                              final CommandContext.CommandContextBuilder<T> contextBuilder,
+                                              final ObjectMapper mapper) throws IOException {
+            if (treeNode == null) {
+                return;
             }
+            // restore redo parameter
+            final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
+            final Input<?> redoParameter = parameterDeserializer.deserialize(parser, null);
+            contextBuilder.redoParameter(redoParameter);
         }
 
-        private <U> void deserializeUndoParameter(final TreeNode treeNode,
-                                                  final CommandContext.CommandContextBuilder<T> contextBuilder,
-                                                  final ObjectMapper mapper) throws IOException {
-            if (nonNull(treeNode)) {
-                // restore undo parameter
-                final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
-                final Input<U> undoParameter = parameterDeserializer.deserialize(parser, null);
-                contextBuilder.undoParameter(undoParameter);
+        private void deserializeUndoParameter(final TreeNode treeNode,
+                                              final CommandContext.CommandContextBuilder<T> contextBuilder,
+                                              final ObjectMapper mapper) throws IOException {
+            if (treeNode == null) {
+                return;
             }
+            // restore undo parameter
+            final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
+            final Input<?> undoParameter = parameterDeserializer.deserialize(parser, null);
+            contextBuilder.undoParameter(undoParameter);
         }
 
         private void deserializeExecutionResult(final TreeNode treeNode,
@@ -253,7 +255,7 @@ public class JsonContextModule extends SimpleModule {
                 // restore execution error
                 final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
                 final Throwable error = errorDeserializer.deserialize(parser, null);
-                contextBuilder.exception(Exception.class.cast(error));
+                contextBuilder.exception((Exception) error);
             }
         }
 
@@ -287,8 +289,8 @@ public class JsonContextModule extends SimpleModule {
         }
 
         private void deserializeHistory(final TreeNode treeNode,
-                                      final CommandContext.CommandContextBuilder<T> contextBuilder,
-                                      final ObjectMapper mapper) throws IOException {
+                                        final CommandContext.CommandContextBuilder<T> contextBuilder,
+                                        final ObjectMapper mapper) throws IOException {
             if (nonNull(treeNode)) {
                 // restore execution history
                 final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());

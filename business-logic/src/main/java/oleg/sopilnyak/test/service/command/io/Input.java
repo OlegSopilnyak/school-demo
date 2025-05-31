@@ -253,8 +253,9 @@ public interface Input<P> extends IOBase<P> {
         public Input<I> deserialize(final JsonParser jsonParser,
                                     final DeserializationContext deserializationContext) throws IOException {
             final TreeNode parameterNode = jsonParser.readValueAsTree();
+            final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final Class<? extends Input> inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
-            return ((ObjectMapper) jsonParser.getCodec()).readValue(parameterNode.toString(), inputParameterClass);
+            return mapper.readValue(parameterNode.toString(), inputParameterClass);
         }
 
     }

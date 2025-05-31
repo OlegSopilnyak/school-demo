@@ -138,7 +138,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(command).prepareContext(profileCommand, inputPersonId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(profileCommand, never()).createContext(any());
-        verify(profileCommand).createContextInit();
+        verify(profileCommand).createFailedContext(any(AuthorityPersonNotFoundException.class));
     }
 
     @Test
@@ -161,7 +161,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(profileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(profileCommand, wrongInput);
         verify(command, never()).createPrincipalProfileContext(eq(profileCommand), any());
-        verify(profileCommand).createContextInit();
+        verify(profileCommand).createFailedContext(any(CannotCreateCommandContextException.class));
         verify(profileCommand, never()).createContext(any());
     }
 
@@ -249,7 +249,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 
@@ -304,7 +304,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyPersonDoCommand(personContext);
         verifyPersonUndoCommand(personContext);
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
@@ -346,7 +346,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyPersonDoCommand(personContext);
         verifyProfileDoCommand(profileContext);
         verifyProfileUndoCommand(profileContext);
@@ -388,7 +388,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyPersonDoCommand(personContext);
         verifyProfileDoCommand(profileContext);
@@ -420,7 +420,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
     }
@@ -454,7 +454,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyPersonDoCommand(personContext, 2);
@@ -488,7 +488,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyProfileDoCommand(profileContext, 2);

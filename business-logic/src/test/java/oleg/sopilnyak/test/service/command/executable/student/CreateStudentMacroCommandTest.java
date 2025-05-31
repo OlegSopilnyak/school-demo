@@ -252,7 +252,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(savedStudent.orElseThrow()).isSameAs(student);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -267,7 +267,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         Student newStudent = makeClearStudent(5);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot process nested commands");
-        doThrow(exception).when(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        doThrow(exception).when(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         command.doCommand(context);
 
@@ -285,7 +285,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         Student newStudent = makeClearStudent(15);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot get command result");
-        doThrow(exception).when(command).getDoCommandResult(any(Deque.class));
+        doThrow(exception).when(command).finalCommandResult(any(Deque.class));
 
         command.doCommand(context);
 
@@ -310,7 +310,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(studentContext.getUndoParameter().value()).isEqualTo(studentId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -381,7 +381,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(student.getProfileId()).isEqualTo(profileId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -430,7 +430,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         adjustStudentSaving(studentId);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot process student undo command");
-        doThrow(exception).when(command).undoNestedCommands(any(Input.class));
+        doThrow(exception).when(command).rollbackNestedDone(any(Input.class));
 
         command.doCommand(context);
         command.undoCommand(context);
@@ -439,7 +439,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.getException()).isEqualTo(exception);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }

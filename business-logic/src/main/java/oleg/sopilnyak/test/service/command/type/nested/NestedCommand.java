@@ -14,8 +14,8 @@ public interface NestedCommand<T> {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param macroInputParameter   Macro-Command call's input
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareContextVisitor#prepareContext(NestedCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
@@ -45,11 +45,12 @@ public interface NestedCommand<T> {
     Context<?> undoAsNestedCommand(NestedCommandExecutionVisitor visitor, Context<?> context);
 
     /**
-     * To create initial context fo the nested-command
+     * To create failed context for the nested-command
      *
-     * @return instance of initial command-context
+     * @param cause cause of fail
+     * @return instance of failed command-context
      */
-    Context<?> createContextInit();
+    Context<?> createFailedContext(Exception cause);
 
     /**
      * For nested command in the sequential macro-command

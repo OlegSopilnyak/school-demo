@@ -259,7 +259,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(savedStudent.orElseThrow()).isSameAs(student);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -277,7 +277,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     void shouldNotExecuteDoCommand_DoNestedCommandsThrows() {
         Context<Optional<Student>> context = command.createContext(Input.of(makeClearStudent(5)));
         RuntimeException exception = new RuntimeException("Cannot process nested commands");
-        doThrow(exception).when(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        doThrow(exception).when(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         command.doCommand(context);
 
@@ -292,7 +292,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         Student newStudent = makeClearStudent(15);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot get command result");
-        doThrow(exception).when(command).getDoCommandResult(any(Deque.class));
+        doThrow(exception).when(command).finalCommandResult(any(Deque.class));
 
         command.doCommand(context);
 
@@ -317,7 +317,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(studentContext.<Long>getUndoParameter().value()).isEqualTo(studentId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -390,7 +390,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(student.getProfileId()).isEqualTo(profileId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -451,7 +451,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         Context<Optional<Student>> studentContext = (Context<Optional<Student>>) nestedContexts.pop();
 
         RuntimeException exception = new RuntimeException("Cannot process student undo command");
-        doThrow(exception).when(command).undoNestedCommands(any(Input.class));
+        doThrow(exception).when(command).rollbackNestedDone(any(Input.class));
 
         command.doCommand(context);
         Optional<StudentProfile> profileResult = profileContext.getResult().orElseThrow();
@@ -467,7 +467,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(exception);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 

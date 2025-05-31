@@ -160,8 +160,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(command).prepareContext(profileCommand, inputId);
         verify(command).createPrincipalProfileContext(profileCommand, personId);
         verify(persistence).findAuthorityPersonById(personId);
+        verify(profileCommand).createFailedContext(any(AuthorityPersonNotFoundException.class));
         verify(profileCommand, never()).createContext(any());
-        verify(profileCommand).createContextInit();
     }
 
     @Test
@@ -185,7 +185,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(profileCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(profileCommand, inputId);
         verify(command, never()).createPrincipalProfileContext(eq(profileCommand), any());
-        verify(profileCommand).createContextInit();
+        verify(profileCommand).createFailedContext(any(CannotCreateCommandContextException.class));
         verify(profileCommand, never()).createContext(any());
     }
 
@@ -280,7 +280,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 
@@ -341,7 +341,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyPersonDoCommand(personContext);
         verify(persistence).findAuthorityPersonById(personId);
@@ -393,7 +393,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyPersonDoCommand(personContext);
         verify(persistence, times(2)).findAuthorityPersonById(personId);
@@ -445,7 +445,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyPersonDoCommand(personContext);
         verify(persistence, times(2)).findAuthorityPersonById(personId);
@@ -493,7 +493,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
 
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(personContext.<AuthorityPerson>getUndoParameter().value());
@@ -539,7 +539,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
 
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(any(AuthorityPersonPayload.class));
@@ -592,7 +592,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
 
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(any(AuthorityPersonPayload.class));

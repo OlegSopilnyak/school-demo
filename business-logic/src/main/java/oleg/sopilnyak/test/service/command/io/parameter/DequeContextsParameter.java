@@ -30,7 +30,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
  * @see Input
  * @see Deque
  * @see Context
- * @see MacroCommand#undoNestedCommands(Input)
+ * @see MacroCommand#rollbackNestedDone(Input)
  */
 @JsonSerialize(using = DequeContextsParameter.Serializer.class)
 @JsonDeserialize(using = DequeContextsParameter.Deserializer.class)

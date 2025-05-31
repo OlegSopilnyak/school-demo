@@ -1,5 +1,36 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import static oleg.sopilnyak.test.service.command.executable.sys.MacroCommandTest.FakeMacroCommand.overridedStudentContext;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
@@ -20,17 +51,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
-
-import static oleg.sopilnyak.test.service.command.executable.sys.MacroCommandTest.FakeMacroCommand.overridedStudentContext;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MacroCommandTest {
@@ -249,7 +269,7 @@ class MacroCommandTest {
         allowRealPrepareContext(intCommand, inputParameter);
         allowRealPrepareContext(booleanCommand, inputParameter);
         allowRealAcceptPrepareContext(doubleCommand, inputParameter);
-        doCallRealMethod().when(doubleCommand).createContextInit();
+        doCallRealMethod().when(doubleCommand).createFailedContext(any(CannotCreateCommandContextException.class));
         doCallRealMethod().when(doubleCommand).createContext();
         doThrow(new CannotCreateCommandContextException("double")).when(doubleCommand).createContext(inputParameter);
 
@@ -275,7 +295,7 @@ class MacroCommandTest {
         allowRealPrepareContext(doubleCommand, inputParameter);
         allowRealPrepareContext(booleanCommand, inputParameter);
         allowRealAcceptPrepareContext(intCommand, inputParameter);
-        doCallRealMethod().when(intCommand).createContextInit();
+        doCallRealMethod().when(intCommand).createFailedContext(any(CannotCreateCommandContextException.class));
         doCallRealMethod().when(intCommand).createContext();
         doThrow(new CannotCreateCommandContextException("int")).when(intCommand).createContext(inputParameter);
 
@@ -318,7 +338,7 @@ class MacroCommandTest {
 
         assertThat(macroContext.isDone()).isTrue();
         verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         wrapper.getNestedContexts().forEach(context -> {
             assertThat(context.isDone()).isTrue();
             Context<N> nestedContext = (Context<N>) context;
@@ -361,7 +381,7 @@ class MacroCommandTest {
 
         assertThat(macroContext.isDone()).isTrue();
         verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         wrapper.getNestedContexts().stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -454,7 +474,7 @@ class MacroCommandTest {
         // check main macro-command execution results
         assertThat(macroContext.isDone()).isTrue();
         verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         wrapper.getNestedContexts().stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -489,7 +509,7 @@ class MacroCommandTest {
             }
         });
         // check interaction between nested macro command and nested commands during Do of nested-macro-command
-        verify(macroCommand).doNestedCommands(eq(nestedWrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(macroCommand).executeNested(eq(nestedWrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         verify(macroCommand).doNestedCommand(eq(command1), any(Context.class), any(Context.StateChangedListener.class));
         verify(macroCommand).doNestedCommand(eq(command2), any(Context.class), any(Context.StateChangedListener.class));
         verify(macroCommand).doNestedCommand(eq(command3), any(Context.class), any(Context.StateChangedListener.class));
@@ -514,7 +534,7 @@ class MacroCommandTest {
         assertThat(macroContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isInstanceOf(NoSuchElementException.class);
         verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -532,7 +552,7 @@ class MacroCommandTest {
         assertThat(macroContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isInstanceOf(NullPointerException.class);
         verify(command).executeDo(macroContext);
-        verify(command).doNestedCommands(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
+        verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -577,7 +597,7 @@ class MacroCommandTest {
         assertThat(macroContext.getException()).isEqualTo(intContext.getException());
         verifyNestedCommandDoExecution((RootCommand<N>) doubleCommand, doubleContext);
         verifyNestedCommandDoExecution((RootCommand<N>) intCommand, intContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verify(doubleCommand).undoCommand(wrapper.getNestedContexts().pop());
         verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
     }
@@ -609,10 +629,10 @@ class MacroCommandTest {
         Context<N> intContext = (Context<N>) wrapper.getNestedContexts().getLast();
         assertThat(intContext.isDone()).isTrue();
         assertThat(intContext.getResult().orElseThrow()).isEqualTo(parameter * 10);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyNestedCommandDoExecution((RootCommand<N>) doubleCommand, doubleContext);
         verifyNestedCommandDoExecution((RootCommand<N>) intCommand, intContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         wrapper.getNestedContexts().pop();
         verify(booleanCommand).undoCommand(wrapper.getNestedContexts().pop());
         verify(intCommand).undoCommand(wrapper.getNestedContexts().pop());
@@ -647,7 +667,7 @@ class MacroCommandTest {
         nestedDoneContexts.forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
 
         verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         nestedDoneContexts.forEach(ctx -> verify(ctx.getCommand()).undoCommand(ctx));
     }
 
@@ -691,7 +711,7 @@ class MacroCommandTest {
                 .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
 
         verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -790,7 +810,7 @@ class MacroCommandTest {
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> assertThat(context.getState()).isEqualTo(UNDONE));
         verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != studentCommand)
                 .forEach(context -> {
@@ -851,7 +871,7 @@ class MacroCommandTest {
 
         assertThat(exception).isInstanceOf(UnableExecuteCommandException.class);
         verify(command).executeUndo(macroContext);
-        verify(command, never()).undoNestedCommands(any(Input.class));
+        verify(command, never()).rollbackNestedDone(any(Input.class));
     }
 
     @Test
@@ -880,7 +900,7 @@ class MacroCommandTest {
         command.undoCommand(macroContext);
 
         verify(command).executeUndo(macroContext);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         Context<N> current = (Context<N>) nestedDoneContexts.pop();
         assertThat(current.getState()).isEqualTo(DONE);
         verify(current.getCommand(), times(2)).doCommand(current);
@@ -939,7 +959,7 @@ class MacroCommandTest {
             if (newOne == DONE) counter.incrementAndGet();
         };
 
-        command.doNestedCommands(wrapper.getNestedContexts(), listener);
+        command.executeNested(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(3);
         wrapper.getNestedContexts().forEach(context -> verifyDoneNestedContext(context, listener));
@@ -962,7 +982,7 @@ class MacroCommandTest {
             if (newOne == DONE) counter.incrementAndGet();
         };
 
-        command.doNestedCommands(wrapper.getNestedContexts(), listener);
+        command.executeNested(wrapper.getNestedContexts(), listener);
 
         assertThat(counter.get()).isEqualTo(2);
         verifyDoneNestedContext(wrapper.getNestedContexts().pop(), listener);

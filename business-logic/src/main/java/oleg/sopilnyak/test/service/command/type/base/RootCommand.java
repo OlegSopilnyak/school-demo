@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import static java.util.Objects.isNull;
 
 /**
- * Type: Command to execute the business-logic action
+ * Type: School Command to execute the business-logic action
  *
  * @param <T> the type of command execution (do) result
  */
@@ -75,13 +75,14 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     }
 
     /**
-     * To create initial context fo the nested-command
+     * To create failed context for the nested-command
      *
-     * @return instance of initial command-context
+     * @param cause cause of fail
+     * @return instance of failed command-context
      */
     @Override
-    default Context<T> createContextInit() {
-        return createContext();
+    default Context<T> createFailedContext(Exception cause) {
+        return createContext().failed(cause);
     }
 
     /**

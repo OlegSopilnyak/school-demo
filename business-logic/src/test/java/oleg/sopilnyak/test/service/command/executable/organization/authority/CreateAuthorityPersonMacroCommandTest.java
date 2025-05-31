@@ -253,7 +253,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(savedPerson.orElseThrow()).isSameAs(person);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -268,7 +268,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(5);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
         RuntimeException exception = new RuntimeException("Cannot process nested commands");
-        doThrow(exception).when(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        doThrow(exception).when(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         command.doCommand(context);
 
@@ -286,7 +286,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(15);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
         RuntimeException exception = new RuntimeException("Cannot get command result");
-        doThrow(exception).when(command).getDoCommandResult(any(Deque.class));
+        doThrow(exception).when(command).finalCommandResult(any(Deque.class));
 
         command.doCommand(context);
 
@@ -311,7 +311,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(personContext.<Long>getUndoParameter().value()).isEqualTo(personId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -381,7 +381,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(person.getProfileId()).isEqualTo(profileId);
 
         verify(command).executeDo(context);
-        verify(command).doNestedCommands(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
 
@@ -430,7 +430,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         adjustPersonSaving(personId);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
         RuntimeException exception = new RuntimeException("Cannot process student undo command");
-        doThrow(exception).when(command).undoNestedCommands(any(Input.class));
+        doThrow(exception).when(command).rollbackNestedDone(any(Input.class));
 
         command.doCommand(context);
         command.undoCommand(context);
@@ -439,7 +439,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context.getException()).isEqualTo(exception);
 
         verify(command).executeUndo(context);
-        verify(command).undoNestedCommands(any(Input.class));
+        verify(command).rollbackNestedDone(any(Input.class));
         verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
         verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }

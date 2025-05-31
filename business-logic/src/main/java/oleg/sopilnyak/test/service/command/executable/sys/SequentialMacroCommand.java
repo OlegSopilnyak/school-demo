@@ -31,8 +31,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see RootCommand
      */
     @Override
-    public void putToNest(final NestedCommand<?> command) {
-        super.putToNest(wrap(command));
+    public boolean putToNest(final NestedCommand<?> command) {
+        return super.putToNest(wrap(command));
     }
 
     /**
@@ -57,8 +57,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see Deque#forEach(Consumer)
      */
     @Override
-    public void doNestedCommands(final Deque<Context<?>> nestedContextsToDo,
-                                 final Context.StateChangedListener stateListener) {
+    public void executeNested(final Deque<Context<?>> nestedContextsToDo,
+                              final Context.StateChangedListener stateListener) {
         // flag if something went wrong
         final AtomicBoolean isDoFailed = new AtomicBoolean(false);
         // the value of previous nested command context
@@ -87,7 +87,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see Context.State#UNDONE
      */
     @Override
-    public Deque<Context<?>> undoNestedCommands(Input<Deque<Context<?>>> doneContexts) {
+    public Deque<Context<?>> rollbackNestedDone(Input<Deque<Context<?>>> doneContexts) {
         final List<Context<?>> reverted = new ArrayList<>(doneContexts.value());
         // revert the order of undo contexts
         Collections.reverse(reverted);
