@@ -1,5 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.Deque;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -28,10 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Deque;
-import java.util.Optional;
-
 /**
  * Command-Implementation: command to create the authority person instance with related profile
  *
@@ -55,6 +54,21 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         this.putToNest(profileCommand);
         this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
+    }
+
+    /**
+     * To get final main do-command result from nested command-contexts
+     *
+     * @param contexts nested command-contexts
+     * @return the command result's value
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
+     */
+    @Override
+    public Optional<AuthorityPerson> finalCommandResult(Deque<Context<?>> contexts) {
+        return contexts.stream()
+                .filter(c -> c.getCommand() instanceof PersonInSequenceCommand)
+                .map(c -> (Context<Optional<AuthorityPerson>>) c).findFirst()
+                .flatMap(c -> c.getResult().orElseGet(Optional::empty));
     }
 
     /**
@@ -82,7 +96,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      *
      * @param command             nested command instance
      * @param macroInputParameter macro-command input parameter
-     * @param <N>     type of create-or-update person nested command result
+     * @param <N>                 type of create-or-update person nested command result
      * @return built context of the command for input parameter
      * @see Input
      * @see AuthorityPerson
@@ -118,9 +132,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     /**
      * To prepare context for particular type of the nested command
      *
-     * @param command   nested command instance
+     * @param command             nested command instance
      * @param macroInputParameter macro-command input parameter
-     * @param <N>     type of create-or-update principal-profile nested command result
+     * @param <N>                 type of create-or-update principal-profile nested command result
      * @return built context of the command for input parameter
      * @see Input
      * @see AuthorityPerson
@@ -197,7 +211,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
         if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
-                && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+            && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
             // send create-profile result (profile-id) to create-person input (AuthorityPersonPayload#setProfileId)
             transferProfileIdToAuthorityPersonInput(profile.getId(), target);
         } else {

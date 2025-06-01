@@ -34,23 +34,17 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
  */
 @JsonSerialize(using = DequeContextsParameter.Serializer.class)
 @JsonDeserialize(using = DequeContextsParameter.Deserializer.class)
-public class DequeContextsParameter implements Input<Deque<Context<?>>> {
-    private final Deque<Context<?>> deque;
+public record DequeContextsParameter(Deque<Context<?>> deque) implements Input<Deque<Context<?>>> {
 
-    public DequeContextsParameter(Deque<Context<?>> contextDeque) {
-        this.deque = new LinkedList<>(contextDeque);
+    public DequeContextsParameter(Deque<Context<?>> deque) {
+        this.deque = new LinkedList<>(deque);
     }
 
-    @Override
-    public final boolean equals(Object o) {
-        return o instanceof DequeContextsParameter that && deque.equals(that.deque);
-    }
-
-    @Override
-    public int hashCode() {
-        return deque.hashCode();
-    }
-
+    /**
+     * To get the value of command input-output entity
+     *
+     * @return value of the parameter
+     */
     @Override
     public Deque<Context<?>> value() {
         return deque;
@@ -93,17 +87,17 @@ public class DequeContextsParameter implements Input<Deque<Context<?>>> {
     }
 
     /**
-     * JSON: Deserializer for PayloadParameter
+     * JSON: Deserializer for DequeContextsParameter
      *
      * @see StdDeserializer
-     * @see PayloadParameter
+     * @see DequeContextsParameter
      */
     static class Deserializer extends StdDeserializer<DequeContextsParameter> {
         public Deserializer() {
-            this(PayloadParameter.class);
+            this(DequeContextsParameter.class);
         }
 
-        protected Deserializer(Class<PayloadParameter> vc) {
+        protected Deserializer(Class<DequeContextsParameter> vc) {
             super(vc);
         }
 
@@ -124,7 +118,7 @@ public class DequeContextsParameter implements Input<Deque<Context<?>>> {
         }
 
         // private methods
-        private Deque<Context<?>> restoreContextsDeque(final TreeNode dequeNode, JsonParser parser) throws IOException {
+        private Deque<Context<?>> restoreContextsDeque(final TreeNode dequeNode, final JsonParser parser) throws IOException {
             if (dequeNode instanceof ArrayNode arrayNode) {
                 final Deque<Context<?>> contexts = new LinkedList<>();
                 final ObjectMapper mapper = (ObjectMapper) parser.getCodec();

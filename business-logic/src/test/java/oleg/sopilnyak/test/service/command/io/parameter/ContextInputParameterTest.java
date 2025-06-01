@@ -21,6 +21,7 @@ import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfigur
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
@@ -80,17 +81,16 @@ class ContextInputParameterTest {
 
         Input<Deque<Context<?>>> parameter = Input.of(contexts);
 
+        assertThat(parameter).isInstanceOf(Input.class).isInstanceOf(DequeContextsParameter.class);
         assertThat(parameter.value()).hasSameSizeAs(contexts);
         assertThat(parameter.value()).contains(context1).contains(context2);
-        assertThat(parameter).isInstanceOf(DequeContextsParameter.class);
     }
 
     @Test
     void shouldRestoreUndoDequeContextsParameter() throws JsonProcessingException {
         String commandId = StudentCommand.FIND_BY_ID;
         RootCommand<?> command = farm.command(commandId);
-        Exception error = new UnableExecuteCommandException(commandId);
-        error.fillInStackTrace();
+        // context 1
         Context<Boolean> context1 = (Context<Boolean>) command.createContext(Input.of(1));
         setUndoParameter(context1, Input.of(-1L));
         context1.setState(Context.State.WORK);
@@ -99,11 +99,13 @@ class ContextInputParameterTest {
         context1.setState(Context.State.WORK);
         context1.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
 
-        Student result = createStudent(1L);
+        commandId = StudentCommand.FIND_ENROLLED;
+        command = farm.command(commandId);
+        // context 2
         Context<Student> context2 = (Context<Student>) command.createContext(Input.of(createStudent(10L)));
         setUndoParameter(context2, Input.of(-2L));
         context2.setState(Context.State.WORK);
-        context2.setResult(result);
+        context2.setResult(createStudent(1L));
         context2.setState(Context.State.UNDONE);
         context2.setState(Context.State.WORK);
         context2.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
@@ -123,6 +125,66 @@ class ContextInputParameterTest {
         assertThat(restored).isInstanceOf(DequeContextsParameter.class);
         assertThat(restored.value()).hasSameSizeAs(contexts);
         Deque<Context<?>> restoredContexts = new LinkedList<>(restored.value());
+        assertEquals(context1, restoredContexts.pop());
+        assertEquals(context2, restoredContexts.pop());
+    }
+
+    @Test
+    void shouldCreateMacroCommandInputParameter() {
+        Input<Long> rootInput = Input.of(1L);
+        Context<?> context1 = mock(Context.class);
+        Context<?> context2 = mock(Context.class);
+        Deque<Context<?>> contexts = Stream.of(context1, context2).collect(Collectors.toCollection(LinkedList::new));
+
+        Input<MacroCommandParameter> parameter = Input.of(rootInput, contexts);
+
+        assertThat(parameter).isNotNull().isInstanceOf(Input.class).isInstanceOf(MacroCommandParameter.class);
+        assertThat(parameter.value().getNestedContexts()).hasSameSizeAs(contexts);
+        assertThat(parameter.value().getNestedContexts()).contains(context1).contains(context2);
+    }
+
+    @Test
+    void shouldRestoreMacroCommandInputParameter() throws JsonProcessingException {
+        Input<StudentPayload> rootInput = Input.of(createStudent(111L));
+        String commandId = CourseCommand.FIND_BY_ID;
+        RootCommand<?> command = farm.command(commandId);
+        // context 1
+        Context<Boolean> context1 = (Context<Boolean>) command.createContext(Input.of(1));
+        setUndoParameter(context1, Input.of(-1L));
+        context1.setState(Context.State.WORK);
+        context1.setResult(true);
+        context1.setState(Context.State.DONE);
+        context1.setState(Context.State.WORK);
+        context1.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
+
+        commandId = CourseCommand.FIND_REGISTERED;
+        command = farm.command(commandId);
+        // context 2
+        Context<Student> context2 = (Context<Student>) command.createContext(Input.of(createStudent(11L)));
+        setUndoParameter(context2, Input.of(-2L));
+        context2.setState(Context.State.WORK);
+        context2.setResult(createStudent(2L));
+        context2.setState(Context.State.UNDONE);
+        context2.setState(Context.State.WORK);
+        context2.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
+
+        Deque<Context<?>> contexts = new LinkedList<>(List.of(context1, context2));
+
+        Input<MacroCommandParameter> parameter = Input.of(rootInput, contexts);
+
+        String json = objectMapper.writeValueAsString(parameter);
+
+        assertThat(json)
+                .contains(MacroCommandParameter.class.getName())
+                .contains(UnableExecuteCommandException.class.getName())
+                .contains(commandId);
+
+        MacroCommandParameter restored = objectMapper.readValue(json, MacroCommandParameter.class);
+
+        assertThat(restored).isInstanceOf(Input.class).isInstanceOf(MacroCommandParameter.class);
+        assertThat(restored.getRootInput()).isEqualTo(rootInput);
+        assertThat(restored.getNestedContexts()).hasSameSizeAs(contexts);
+        Deque<Context<?>> restoredContexts = new LinkedList<>(restored.getNestedContexts());
         assertEquals(context1, restoredContexts.pop());
         assertEquals(context2, restoredContexts.pop());
     }

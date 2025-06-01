@@ -158,14 +158,14 @@ public interface Input<P> extends IOBase<P> {
     /**
      * To create new input for MacroCommand
      *
-     * @param rootInput      root command's input parameter instance
-     * @param nestedContexts contexts built for root input parameter from nested commands
+     * @param rootInput root command's input parameter instance
+     * @param contexts  contexts built for root input parameter from nested commands
      * @return new instance of the input
      * @see Input
      * @see MacroCommandParameter
      */
-    static Input<MacroCommandParameter> of(final Input<?> rootInput, final Deque<Context<?>> nestedContexts) {
-        return new MacroCommandParameter(rootInput, nestedContexts);
+    static Input<MacroCommandParameter> of(final Input<?> rootInput, final Deque<Context<?>> contexts) {
+        return new MacroCommandParameter(rootInput, contexts);
     }
 
     /**
@@ -219,7 +219,7 @@ public interface Input<P> extends IOBase<P> {
      * Input for mocked object
      *
      * @param value mocked value instance
-     * @param <T> type of the input
+     * @param <T>   type of the input
      */
     record MockedInput<T>(T value) implements Input<T> {
 

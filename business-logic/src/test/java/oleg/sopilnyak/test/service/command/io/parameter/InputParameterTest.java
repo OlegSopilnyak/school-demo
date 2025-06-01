@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.service.command.io.parameter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,14 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
@@ -675,19 +669,6 @@ class InputParameterTest {
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
         assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
-    }
-
-
-    @Test
-    void shouldCreateMacroCommandInputParameter() {
-        Input<Long> rootInput = Input.of(1L);
-        Context<?> context1 = mock(Context.class);
-        Context<?> context2 = mock(Context.class);
-        Deque<Context<?>> contexts = Stream.of(context1, context2).collect(Collectors.toCollection(LinkedList::new));
-
-        Input<MacroCommandParameter> parameter = Input.of(rootInput, contexts);
-
-        assertThat(parameter).isNotNull().isInstanceOf(Input.class).isInstanceOf(MacroCommandParameter.class);
     }
 
     // private methods

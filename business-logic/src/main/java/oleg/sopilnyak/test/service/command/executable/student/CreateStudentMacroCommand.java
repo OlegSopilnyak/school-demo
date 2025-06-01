@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
+import java.util.Deque;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -28,9 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.util.Deque;
-import java.util.Optional;
-
 /**
  * Command-Implementation: command to create the student-person instance with related profile
  *
@@ -56,6 +55,21 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     /**
+     * To get final main do-command result from nested command-contexts
+     *
+     * @param contexts nested command-contexts
+     * @return the command result's value
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
+     */
+    @Override
+    public Optional<Student> finalCommandResult(Deque<Context<?>> contexts) {
+        return contexts.stream()
+                .filter(c -> c.getCommand() instanceof PersonInSequenceCommand)
+                .map(c -> (Context<Optional<Student>>) c).findFirst()
+                .flatMap(c -> c.getResult().orElseGet(Optional::empty));
+    }
+
+    /**
      * To get reference to command's logger
      *
      * @return reference to the logger
@@ -78,9 +92,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     /**
      * To prepare context for particular type of the nested command
      *
-     * @param command   nested command instance
+     * @param command             nested command instance
      * @param macroInputParameter macro-command input parameter
-     * @param <N>     type of create-or-update student nested command result
+     * @param <N>                 type of create-or-update student nested command result
      * @return built context of the command for input parameter
      * @see Student
      * @see StudentCommand
@@ -96,9 +110,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     /**
      * To create context for create-or-update person command
      *
-     * @param command   create-or-update person command instance
-     * @param person input parameter of person to create
-     * @param <N>       type of create-or-update person command result
+     * @param command create-or-update person command instance
+     * @param person  input parameter of person to create
+     * @param <N>     type of create-or-update person command result
      * @return built context of the command for input person
      * @see BusinessMessagePayloadMapper#toPayload(Student)
      * @see StudentPayload
@@ -133,8 +147,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     /**
      * To create context for create-or-update person profile command
      *
-     * @param command   create-or-update person profile command instance
-     * @param person input parameter of person to create
+     * @param command create-or-update person profile command instance
+     * @param person  input parameter of person to create
      * @param <N>     type of create-or-update student-profile nested command result
      * @return built context of the command for input parameter
      * @see StudentProfilePayload
@@ -168,8 +182,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
                                                        @NonNull final S result,
                                                        @NonNull final Context<T> target) {
         if (result instanceof Optional<?> opt &&
-                opt.orElseThrow() instanceof StudentProfile profile &&
-                StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+            opt.orElseThrow() instanceof StudentProfile profile &&
+            StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
             // send create-profile result (profile-id) to create-person input (StudentPayload#setProfileId)
             transferProfileIdToStudentInput(profile.getId(), target);
         } else {
@@ -225,7 +239,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+                                  final Context<?> context, final Context.StateChangedListener stateListener) {
         super.doAsNestedCommand(visitor, context, stateListener);
     }
 

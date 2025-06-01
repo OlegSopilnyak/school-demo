@@ -182,8 +182,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
         return (T) nested.getLast().getResult().orElseThrow();
     }
 
-    // private methods
-    private void postExecutionProcessing(final Context<T> mainContext,
+    protected void postExecutionProcessing(final Context<T> mainContext,
                                          final Deque<Context<?>> done,
                                          final Deque<Context<?>> failed,
                                          final Deque<Context<?>> nested) {
@@ -208,7 +207,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
         }
     }
 
-    private <N> void postRollbackProcessing(Context<?> context) {
+    protected <N> void postRollbackProcessing(Context<?> context) {
         final var undoneContexts = context.<Deque<Context<N>>>getUndoParameter().value();
         final var failedContext = undoneContexts.stream().filter(Context::isFailed).findFirst();
 
@@ -226,6 +225,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
         }
     }
 
+    // private methods
     private <N> void rollBackNestedUndone(final Deque<Context<N>> undoneContexts) {
         getLog().debug("Rolling back from undone {} command(s)", undoneContexts.size());
         // to do rollback undone nested contexts

@@ -1,5 +1,18 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import static java.util.Objects.isNull;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -8,14 +21,6 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 import org.springframework.util.ObjectUtils;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.isNull;
 
 /**
  * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
@@ -48,8 +53,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * To run macro-command's nested contexts<BR/>
      * Executing sequence of nested command contexts
      *
-     * @param nestedContextsToDo nested command contexts collection to do
-     * @param stateListener      listener of the nested command context state-change
+     * @param contexts nested command contexts deque to do
+     * @param listener listener of the nested command context state-change
      * @see SequentialMacroCommand#cancelSequentialNestedCommandContext(Context.StateChangedListener, Context)
      * @see SequentialMacroCommand#doSequentialNestedCommandContext(Context.StateChangedListener, Context, AtomicReference, AtomicBoolean)
      * @see AtomicReference
@@ -57,20 +62,19 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see Deque#forEach(Consumer)
      */
     @Override
-    public void executeNested(final Deque<Context<?>> nestedContextsToDo,
-                              final Context.StateChangedListener stateListener) {
+    public void executeNested(final Deque<Context<?>> contexts, final Context.StateChangedListener listener) {
         // flag if something went wrong
-        final AtomicBoolean isDoFailed = new AtomicBoolean(false);
+        final AtomicBoolean isExecutionFailed = new AtomicBoolean(false);
         // the value of previous nested command context
         final AtomicReference<Context<?>> previousContextReference = new AtomicReference<>(null);
 
         // sequential walking through contexts set
-        nestedContextsToDo.forEach(nestedContext -> {
-            if (isDoFailed.get()) {
+        contexts.forEach(nestedContext -> {
+            if (isExecutionFailed.get()) {
                 // previous command's redo context.state had Context.State.FAIL
-                cancelSequentialNestedCommandContext(stateListener, nestedContext);
+                cancelSequentialNestedCommandContext(listener, nestedContext);
             } else {
-                doSequentialNestedCommandContext(stateListener, nestedContext, previousContextReference, isDoFailed);
+                doSequentialNestedCommandContext(listener, nestedContext, previousContextReference, isExecutionFailed);
             }
         });
     }
