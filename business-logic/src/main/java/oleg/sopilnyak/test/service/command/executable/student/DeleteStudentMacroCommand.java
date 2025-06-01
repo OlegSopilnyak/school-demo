@@ -1,5 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
+import java.util.Deque;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -23,9 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 /**
  * Command-Implementation: command to delete the student and it's profile
@@ -55,8 +55,22 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     ) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
-        putToNest(deleteStudentCommand);
-        putToNest(deleteStudentProfileCommand);
+        super.putToNest(deleteStudentCommand);
+        super.putToNest(deleteStudentProfileCommand);
+    }
+
+    /**
+     * To get final main do-command result from nested command-contexts
+     *
+     * @param contexts nested command-contexts
+     * @return the command result's value
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
+     */
+    @Override
+    public Boolean finalCommandResult(Deque<Context<?>> contexts) {
+        return contexts.stream()
+                .map(nested -> ((Context<Boolean>) nested).getResult().orElse(false))
+                .reduce(Boolean.TRUE, Boolean::logicalAnd);
     }
 
     /**
@@ -179,7 +193,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
      */
     @Override
     public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+                                  final Context<?> context, final Context.StateChangedListener stateListener) {
         super.doAsNestedCommand(visitor, context, stateListener);
     }
 
