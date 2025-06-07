@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
@@ -14,15 +14,20 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.REGISTER)
 @ResponseStatus(HttpStatus.OK)
 public class RegisterCourseController {
-    public static final String FACADE_NAME = "CoursesFacade";
     // delegate for requests processing
     private final CoursesFacade coursesFacade;
     private final StudentsFacade studentsFacade;
@@ -30,8 +35,6 @@ public class RegisterCourseController {
     @PutMapping("/{studentId}/to/{courseId}")
     public void registerToCourse(@PathVariable("studentId") String strStudentId,
                                  @PathVariable("courseId") String strCourseId) {
-        ActionContext.setup(FACADE_NAME, "register");
-
         final Student student = restoreEntity(strStudentId, studentsFacade);
         final Course course = restoreEntity(strCourseId, coursesFacade);
         final long studentId = student.getId();
@@ -56,7 +59,6 @@ public class RegisterCourseController {
     @DeleteMapping("/{studentId}/to/{courseId}")
     public void unRegisterCourse(@PathVariable("studentId") String strStudentId,
                                  @PathVariable("courseId") String strCourseId) {
-        ActionContext.setup(FACADE_NAME, "unRegister");
         final Student student = restoreEntity(strStudentId, studentsFacade);
         final Course course = restoreEntity(strCourseId, coursesFacade);
         final long studentId = student.getId();

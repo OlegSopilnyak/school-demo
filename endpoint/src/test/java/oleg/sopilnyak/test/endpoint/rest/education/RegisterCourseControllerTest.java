@@ -1,50 +1,69 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
-import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
+@ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class RegisterCourseControllerTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    @Mock
-    CoursesFacade coursesFacade;
-    @Mock
-    StudentsFacade studentsFacade;
-    @Spy
-    @InjectMocks
-    RegisterCourseController controller;
     @Mock
     Student student;
     @Mock
     Course course;
+    @Captor
+    ArgumentCaptor<Student> studentCapture;
+    @Captor
+    ArgumentCaptor<Course> courseCapture;
+
+    @MockBean
+    PersistenceFacade persistenceFacade;
+    @SpyBean
+    @Autowired
+    CoursesFacade coursesFacade;
+    @SpyBean
+    @Autowired
+    RegisterCourseController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
@@ -59,8 +78,10 @@ class RegisterCourseControllerTest {
     void shouldRegisterCourse() throws Exception {
         Long studentId = 100L;
         Long courseId = 200L;
-        when(studentsFacade.findById(studentId)).thenReturn(Optional.of(student));
-        when(coursesFacade.findById(courseId)).thenReturn(Optional.of(course));
+        when(student.getId()).thenReturn(studentId);
+        when(course.getId()).thenReturn(courseId);
+        doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
+        doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
         String requestPath = "/register/" + studentId + "/to/" + courseId;
         mockMvc.perform(
                         MockMvcRequestBuilders.put(requestPath)
@@ -69,7 +90,11 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).register(student, course);
+        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
+        assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
+        verify(coursesFacade).register(studentId, courseId);
+        checkControllerAspect();
     }
 
     @Test
@@ -78,10 +103,11 @@ class RegisterCourseControllerTest {
         Long courseId = 202L;
         when(student.getId()).thenReturn(studentId);
         when(course.getId()).thenReturn(courseId);
-        when(studentsFacade.findById(studentId)).thenReturn(Optional.of(student));
-        when(coursesFacade.findById(courseId)).thenReturn(Optional.of(course));
-        String errorMessage = "No room for student";
-        doThrow(new CourseHasNoRoomException(errorMessage)).when(coursesFacade).register(student, course);
+        doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
+        doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
+        String errorMessage = "No free rooms for the student";
+        var exception = new CourseHasNoRoomException(errorMessage);
+        doThrow(exception).when(coursesFacade).register(studentId, courseId);
         String requestPath = "/register/" + studentId + "/to/" + courseId;
 
         MvcResult result =
@@ -93,11 +119,15 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
+        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
+        assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
+
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo(errorMessage);
+        checkControllerAspect();
     }
 
     @Test
@@ -106,11 +136,13 @@ class RegisterCourseControllerTest {
         Long courseId = 203L;
         when(student.getId()).thenReturn(studentId);
         when(course.getId()).thenReturn(courseId);
-        when(studentsFacade.findById(studentId)).thenReturn(Optional.of(student));
-        when(coursesFacade.findById(courseId)).thenReturn(Optional.of(course));
+        doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
+        doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
+        String errorMessage = "Too many courses for the student";
+        var exception = new StudentCoursesExceedException(errorMessage);
+        doThrow(exception).when(coursesFacade).register(studentId, courseId);
+
         String requestPath = "/register/" + studentId + "/to/" + courseId;
-        String errorMessage = "Too many courses for student";
-        doThrow(new StudentCoursesExceedException(errorMessage)).when(coursesFacade).register(student, course);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(requestPath)
@@ -120,11 +152,15 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
+        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
+        assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
+
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo(errorMessage);
+        checkControllerAspect();
     }
 
     @Test
@@ -133,9 +169,10 @@ class RegisterCourseControllerTest {
         Long courseId = 201L;
         when(student.getId()).thenReturn(studentId);
         when(course.getId()).thenReturn(courseId);
-        when(studentsFacade.findById(studentId)).thenReturn(Optional.of(student));
-        when(coursesFacade.findById(courseId)).thenReturn(Optional.of(course));
+        doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
+        doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
         String requestPath = "/register/" + studentId + "/to/" + courseId;
+
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
                 )
@@ -143,6 +180,19 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).unRegisterCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).unRegister(student, course);
+        verify(coursesFacade).unRegister(studentCapture.capture(), courseCapture.capture());
+        assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
+        assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
+        verify(coursesFacade).unRegister(studentId, courseId);
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(RegisterCourseController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(RegisterCourseController.class);
     }
 }

@@ -58,7 +58,7 @@ public class ActionContextAspectDelegate implements AspectDelegate {
             log.debug("before call for {}", joinPoint.getSignature());
             final var facade = retrieveFacadeFrom(controller);
             if (isNull(facade)) {
-                log.warn("No facade found in {}", controller);
+                log.error("No facade found in {}", controller);
                 return;
             }
             final String actionName = joinPoint.getSignature().getName();
@@ -78,6 +78,9 @@ public class ActionContextAspectDelegate implements AspectDelegate {
     @Override
     public void afterCall(JoinPoint joinPoint) {
         final ActionContext context = ActionContext.current();
+        if (context == null) {
+            throw new AssertionError("ActionContext is null");
+        }
         context.finish();
         log.info("after call for {}", context);
         ActionContext.release();

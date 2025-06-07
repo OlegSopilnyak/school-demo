@@ -31,9 +31,11 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -120,6 +122,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
         assertCourseEquals(course, courseDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -151,6 +154,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(courseList).hasSize(coursesAmount);
         assertCourseLists(courses, courseList);
+        checkControllerAspect();
     }
 
     @Test
@@ -178,6 +182,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         List<Course> courses = database.findCoursesWithoutStudents().stream()
                 .sorted(Comparator.comparing(Course::getName)).toList();
         assertCourseLists(courses, courseList);
+        checkControllerAspect();
     }
 
     @Test
@@ -201,6 +206,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
         assertCourseEquals(course, courseDto, false);
+        checkControllerAspect();
     }
 
     @Test
@@ -224,6 +230,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
         assertCourseEquals(course, courseDto, true);
+        checkControllerAspect();
     }
 
     @Test
@@ -249,6 +256,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong course-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -275,6 +283,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong course-id: '-101'");
+        checkControllerAspect();
     }
 
     @Test
@@ -290,6 +299,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).deleteCourse(id.toString());
         assertThat(database.findCourseById(id)).isEmpty();
+        checkControllerAspect();
     }
 
     @Test
@@ -312,6 +322,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong course-id: '103'");
+        checkControllerAspect();
     }
 
     @Test
@@ -339,6 +350,16 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo("Course with ID:" + id + " has enrolled students.");
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(CoursesRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(CoursesRestController.class);
     }
 
     private Course getPersistent(Course newInstance) {
