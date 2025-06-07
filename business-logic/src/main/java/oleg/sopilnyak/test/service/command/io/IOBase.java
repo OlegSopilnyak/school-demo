@@ -2,9 +2,6 @@ package oleg.sopilnyak.test.service.command.io;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.EXCEPTION_CAUSE;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.EXCEPTION_MESSAGE;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.EXCEPTION_STACK_TRACE;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
@@ -21,6 +18,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.Instant;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
@@ -30,6 +29,9 @@ import oleg.sopilnyak.test.service.message.CommandMessage;
  * @param <P> the type of command input-output entity
  */
 public interface IOBase<P> extends Serializable {
+    String EXCEPTION_MESSAGE_FIELD_NAME = "message";
+    String EXCEPTION_CAUSE_FIELD_NAME = "cause";
+    String EXCEPTION_STACK_TRACE_FIELD_NAME = "stackTrace";
 
     /**
      * To get the value of command input-output entity
@@ -54,7 +56,7 @@ public interface IOBase<P> extends Serializable {
      * @param shouldBeType variant of parameter or result type
      * @param <T>          value type of parameter or result
      * @return class of the parameter or result
-     * @throws IOException if cannot restore the class
+     * @throws IOException throws if it cannot restore the class
      */
     static <T extends IOBase<?>> Class<T> restoreIoBaseClass(final TreeNode ioTreeNode,
                                                              final Class<T> shouldBeType) throws IOException {
@@ -106,14 +108,14 @@ public interface IOBase<P> extends Serializable {
                                              final SerializerProvider serializerProvider) throws IOException {
             // store exception body
             generator.writeStartObject();
-            generator.writeStringField(EXCEPTION_MESSAGE, exception.getMessage());
+            generator.writeStringField(EXCEPTION_MESSAGE_FIELD_NAME, exception.getMessage());
             final Throwable cause = exception.getCause();
             if (nonNull(cause) && cause != exception) {// store exception's cause
-                generator.writeFieldName(EXCEPTION_CAUSE);
+                generator.writeFieldName(EXCEPTION_CAUSE_FIELD_NAME);
                 // recursive call for exception's cause
                 serialize((T) cause, generator, serializerProvider);
             }
-            generator.writeFieldName(EXCEPTION_STACK_TRACE);
+            generator.writeFieldName(EXCEPTION_STACK_TRACE_FIELD_NAME);
             generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(exception.getStackTrace()));
             generator.writeEndObject();
         }
@@ -152,12 +154,12 @@ public interface IOBase<P> extends Serializable {
                                                    final TreeNode valueNode,
                                                    final Class<? extends Throwable> exceptionClass) throws IOException {
             final String exceptionMessage = getExceptionMessage(valueNode);
-            final TreeNode causeNode = valueNode.get(EXCEPTION_CAUSE);
+            final TreeNode causeNode = valueNode.get(EXCEPTION_CAUSE_FIELD_NAME);
             return causeNode == null ?
                     // no cause in value-node
                     addRestoredStackTraceFor(
                             createExceptionInstance(exceptionClass, exceptionMessage),
-                            (ObjectMapper) jsonParser.getCodec(), valueNode.get(EXCEPTION_STACK_TRACE)
+                            (ObjectMapper) jsonParser.getCodec(), valueNode.get(EXCEPTION_STACK_TRACE_FIELD_NAME)
                     ) :
                     // restore cause and make exception instance
                     addRestoredStackTraceFor(
@@ -165,12 +167,12 @@ public interface IOBase<P> extends Serializable {
                                     // recursion
                                     restoreExceptionBy(causeNode, jsonParser)
                             ),
-                            (ObjectMapper) jsonParser.getCodec(), valueNode.get(EXCEPTION_STACK_TRACE)
+                            (ObjectMapper) jsonParser.getCodec(), valueNode.get(EXCEPTION_STACK_TRACE_FIELD_NAME)
                     );
         }
 
         private static String getExceptionMessage(final TreeNode valueNode) throws IOException {
-            final TreeNode messageNode = valueNode.get(EXCEPTION_MESSAGE);
+            final TreeNode messageNode = valueNode.get(EXCEPTION_MESSAGE_FIELD_NAME);
             if (messageNode instanceof TextNode textNode) {
                 return textNode.asText();
             } else {
@@ -248,13 +250,17 @@ public interface IOBase<P> extends Serializable {
         @Override
         public ActionContext deserialize(final JsonParser jsonParser,
                                          final DeserializationContext deserializationContext) throws IOException {
+            final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final TreeNode contextNodeTree = jsonParser.readValueAsTree();
             final String facadeName = restoreString(contextNodeTree.get("facadeName"));
             final String actionName = restoreString(contextNodeTree.get("actionName"));
-            return ActionContext.builder().facadeName(facadeName).actionName(actionName).build();
+            final Instant startedAt = restoreValue(contextNodeTree.get("startedAt"), mapper, Instant.class);
+            final Duration lasts = restoreValue(contextNodeTree.get("lasts"), mapper, Duration.class);
+            return ActionContext.builder().facadeName(facadeName).actionName(actionName)
+                    .startedAt(startedAt).lasts(lasts).build();
         }
 
-        private static String restoreString(TreeNode propertyValueNode) throws IOException {
+        private static String restoreString(final TreeNode propertyValueNode) throws IOException {
             if (propertyValueNode instanceof TextNode valueNode) {
                 return valueNode.asText();
             } else {
@@ -262,5 +268,9 @@ public interface IOBase<P> extends Serializable {
             }
         }
 
+        private static <T> T restoreValue(final TreeNode propertyValueNode, final ObjectMapper mapper, final Class<T> valueClass) throws IOException {
+            final String propertyStringValue = propertyValueNode.toString();
+            return mapper.readValue(mapper.getFactory().createParser(propertyStringValue), valueClass);
+        }
     }
 }

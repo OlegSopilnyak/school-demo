@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -17,7 +18,17 @@ import static java.util.Objects.isNull;
  * @see Student
  * @see Course
  */
-public interface CoursesFacade {
+public interface CoursesFacade extends BusinessFacade {
+    /**
+     * To get the name of the facade
+     *
+     * @return facade's name
+     */
+    @Override
+    default String getName() {
+        return "CoursesFacade";
+    }
+
     /**
      * To get the course by ID
      *

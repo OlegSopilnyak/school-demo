@@ -1,11 +1,18 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
+import static java.util.Objects.isNull;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
@@ -13,14 +20,19 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Student;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-
-import static java.util.Objects.isNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.STUDENTS)
 @ResponseStatus(HttpStatus.OK)
@@ -29,14 +41,11 @@ public class StudentsRestController {
     public static final String COURSE_ID_VAR_NAME = "courseId";
     public static final String STUDENT_ID_VAR_NAME = "studentId";
     public static final String WRONG_STUDENT_ID_EXCEPTION = "Wrong student-id: '";
-
-    public static final String FACADE_NAME = "StudentsFacade";
     // delegate for requests processing
     private final StudentsFacade facade;
 
     @GetMapping("/{" + STUDENT_ID_VAR_NAME + "}")
     public StudentDto findStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
-        ActionContext.setup(FACADE_NAME, "findById");
         log.debug("Trying to get student by Id: '{}'", studentId);
         try {
             final long id = Long.parseLong(studentId);
@@ -53,7 +62,6 @@ public class StudentsRestController {
 
     @GetMapping("/enrolled/{" + COURSE_ID_VAR_NAME + "}")
     public List<StudentDto> findEnrolledTo(@PathVariable(COURSE_ID_VAR_NAME) String courseId) {
-        ActionContext.setup(FACADE_NAME, "findEnrolledTo");
         log.debug("Trying to get students for course Id: '{}'", courseId);
         try {
             final long id = Long.parseLong(courseId);
@@ -69,7 +77,6 @@ public class StudentsRestController {
 
     @GetMapping("/empty")
     public List<StudentDto> findNotEnrolledStudents() {
-        ActionContext.setup(FACADE_NAME, "findNotEnrolled");
         log.debug("Trying to get not enrolled students");
         try {
             return resultToDto(facade.findNotEnrolled());
@@ -81,7 +88,6 @@ public class StudentsRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public StudentDto createStudent(@RequestBody StudentDto studentDto) {
-        ActionContext.setup(FACADE_NAME, "createNew");
         log.debug("Trying to create the student {}", studentDto);
         try {
             return resultToDto(facade.create(studentDto));
@@ -92,7 +98,6 @@ public class StudentsRestController {
 
     @PutMapping
     public StudentDto updateStudent(@RequestBody StudentDto studentDto) {
-        ActionContext.setup(FACADE_NAME, "createOrUpdate");
         log.debug("Trying to update the student {}", studentDto);
         try {
             final Long id = studentDto.getId();
@@ -107,7 +112,6 @@ public class StudentsRestController {
 
     @DeleteMapping("/{" + STUDENT_ID_VAR_NAME + "}")
     public void deleteStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
         log.debug("Trying to delete student by Id: '{}'", studentId);
         try {
             final long id = Long.parseLong(studentId);

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.profile;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
@@ -11,7 +12,17 @@ import java.util.Optional;
  * @see PrincipalProfile
  * @see PersonProfileFacade
  */
-public interface PrincipalProfileFacade extends PersonProfileFacade {
+public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFacade {
+    /**
+     * To get the name of the facade
+     *
+     * @return facade's name
+     */
+    @Override
+    default String getName() {
+        return "PrincipalProfileFacade";
+    }
+
     /**
      * To get the principal's profile by ID
      *

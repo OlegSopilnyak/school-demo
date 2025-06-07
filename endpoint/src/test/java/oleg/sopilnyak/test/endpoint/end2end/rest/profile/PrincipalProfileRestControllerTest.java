@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.configuration.ActionContextReleaseInterceptor;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -73,7 +72,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
         controller = spy(new PrincipalProfileRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
-                .addInterceptors(new ActionContextReleaseInterceptor())
                 .build();
     }
 
@@ -96,7 +94,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     @Transactional
     void shouldFindPrincipalProfile() throws Exception {
         var profile = getPersistent(makePrincipalProfile(null));
-        long id = profile.getId();
+        Long id = profile.getId();
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(

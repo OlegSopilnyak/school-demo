@@ -24,8 +24,10 @@ import static org.mockito.Mockito.spy;
 @ExtendWith(MockitoExtension.class)
 class DoCommandMessageTest {
     private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .enable(SerializationFeature.INDENT_OUTPUT)
-            .registerModule(new JavaTimeModule());
+            ;
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
 

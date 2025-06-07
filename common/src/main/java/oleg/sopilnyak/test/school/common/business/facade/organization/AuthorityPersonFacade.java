@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.organization;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
@@ -14,7 +15,17 @@ import java.util.Optional;
  * @see OrganizationFacade
  * @see AuthorityPerson
  */
-public interface AuthorityPersonFacade extends OrganizationFacade {
+public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacade {
+    /**
+     * To get the name of the facade
+     *
+     * @return facade's name
+     */
+    @Override
+    default String getName() {
+        return "AuthorityPersonFacade";
+    }
+
     /**
      * To log in AuthorityPerson by it valid login and password
      *

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.organization;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
@@ -14,7 +15,17 @@ import java.util.Optional;
  * @see OrganizationFacade
  * @see StudentsGroup
  */
-public interface StudentsGroupFacade extends OrganizationFacade {
+public interface StudentsGroupFacade extends OrganizationFacade, BusinessFacade {
+    /**
+     * To get the name of the facade
+     *
+     * @return facade's name
+     */
+    @Override
+    default String getName() {
+        return "StudentsGroupFacade";
+    }
+
     /**
      * To get all faculties
      *

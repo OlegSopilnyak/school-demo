@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.service.command.io.IOBase;
@@ -30,18 +31,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class CommandMessageJsonSerializationTest {
-    private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
     void shouldDeserializeActionContextUsingActionContextDeserializer() throws IOException {
         String facadeName = "contextNodeTree.get(\"facadeName\")";
         String actionName = "contextNodeTree.get(\"actionName\"))";
         ActionContext context = ActionContext.builder().facadeName(facadeName).actionName(actionName).build();
-        IOBase.ActionContextDeserializer actionContextDeserializer = new IOBase.ActionContextDeserializer();
+        context.finish();
         String json = objectMapper.writeValueAsString(context);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
-        ActionContext restored = actionContextDeserializer.deserialize(parser, null);
+        ActionContext restored = new IOBase.ActionContextDeserializer().deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(ActionContext.class).isEqualTo(context);
         assertThat(restored.getFacadeName()).isEqualTo(facadeName);

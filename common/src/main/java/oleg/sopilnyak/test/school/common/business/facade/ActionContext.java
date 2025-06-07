@@ -1,9 +1,10 @@
 package oleg.sopilnyak.test.school.common.business.facade;
 
+import java.io.Serializable;
+import java.time.Duration;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * Type : context of facade action
@@ -12,6 +13,18 @@ import java.io.Serializable;
 @Builder
 public class ActionContext implements Serializable {
     private static final ThreadLocal<ActionContext> CONTEXT = new ThreadLocal<>();
+    private String facadeName;
+    private String actionName;
+    @Builder.Default
+    private Instant startedAt = Instant.now();
+    private Duration lasts;
+
+    /**
+     * To finish context's work
+     */
+    public void finish() {
+        lasts = Duration.between(startedAt, Instant.now());
+    }
 
     /**
      * To get current (for current thread) action context
@@ -32,15 +45,12 @@ public class ActionContext implements Serializable {
     /**
      * To set up new instance of current context
      *
-     * @param facadeName the name of context's facade
-     * @param actionName the name of context's action
+     * @param facade the name of context's facade
+     * @param action the name of context's action
      */
-    public static void setup(final String facadeName, final String actionName) {
-        assert facadeName != null && !facadeName.isBlank() : "facade name is empty";
-        assert actionName != null && !actionName.isBlank() : "action name is empty";
-        CONTEXT.set(new ActionContext(facadeName.trim(), actionName.trim()));
+    public static void setup(final String facade, final String action) {
+        if (facade == null || facade.isBlank()) throw new AssertionError("facade name is empty");
+        if (action == null || action.isBlank()) throw new AssertionError("action name is empty");
+        CONTEXT.set(ActionContext.builder().facadeName(facade.trim()).actionName(action.trim()).build());
     }
-
-    private String facadeName;
-    private String actionName;
 }

@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.configuration.ActionContextReleaseInterceptor;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
@@ -53,7 +52,6 @@ class RegisterCourseControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
-                .addInterceptors(new ActionContextReleaseInterceptor())
                 .build();
     }
 

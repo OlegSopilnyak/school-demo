@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.configuration.ActionContextReleaseInterceptor;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -72,7 +71,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         controller = spy(new StudentProfileRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
-                .addInterceptors(new ActionContextReleaseInterceptor())
                 .build();
     }
 
@@ -95,7 +93,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Transactional
     void shouldFindStudentProfile() throws Exception {
         var profile = getPersistent(makeStudentProfile(null));
-        long id = profile.getId();
+        Long id = profile.getId();
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -205,7 +203,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Transactional
     void shouldNotUpdateStudentProfile_NegativeId() throws Exception {
         StudentProfilePayload profile = mapper.toPayload(getPersistent(makeStudentProfile(null)));
-        long id = profile.getId();
+        Long id = profile.getId();
         profile.setId(-id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =

@@ -17,27 +17,30 @@ public interface CommandMessage<I, O> extends Serializable {
     String getCorrelationId();
 
     /**
+     * the action context of command's execution
+     *
+     * @return the value
+     * @see ActionContext#getFacadeName()
+     * @see ActionContext#getActionName()
+     */
+    ActionContext getActionContext();
+
+    /**
+     * the direction of command's execution
+     *
+     * @return type of the command's message
+     * @see Direction#DO
+     * @see Direction#UNDO
+     */
+    Direction getDirection();
+
+    /**
      * the ID of command to execute
      *
      * @return the value
      * @see oleg.sopilnyak.test.service.command.factory.base.CommandsFactory
      */
     String getCommandId();
-
-    /**
-     * the direction of command's execution
-     *
-     * @return type of the command's message
-     * @see Direction
-     */
-    Direction getDirection();
-
-    /**
-     * the context of command's execution
-     *
-     * @return the value
-     */
-    ActionContext getActionContext();
 
     /**
      * the command's input/undo parameters

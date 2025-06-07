@@ -1,8 +1,20 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.education;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.endpoint.configuration.ActionContextReleaseInterceptor;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.rest.education.CoursesRestController;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -37,22 +49,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CoursesRestControllerTest extends MysqlTestModelFactory {
@@ -68,17 +67,19 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper mapper;
     @Autowired
     CoursesFacade facade;
-
+    @SpyBean
+    @Autowired
     CoursesRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new CoursesRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
-                .addInterceptors(new ActionContextReleaseInterceptor())
                 .build();
     }
 
@@ -94,6 +95,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
+        assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
@@ -145,7 +147,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         List<Course> courses = database.findStudentById(studentId).orElseThrow().getCourses();
         String responseString = result.getResponse().getContentAsString();
         var courseList = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
-        }).stream().map(course -> (Course) course).toList();
+        }).stream().map(Course.class::cast).toList();
 
         assertThat(courseList).hasSize(coursesAmount);
         assertCourseLists(courses, courseList);
@@ -170,7 +172,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         verify(controller).findEmptyCourses();
         String responseString = result.getResponse().getContentAsString();
         var courseList = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
-        }).stream().map(course -> (Course) course).toList();
+        }).stream().map(Course.class::cast).toList();
 
         assertThat(courseList).hasSize(coursesAmount);
         List<Course> courses = database.findCoursesWithoutStudents().stream()

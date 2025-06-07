@@ -1,7 +1,22 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.education;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.rest.education.StudentsRestController;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -19,9 +34,11 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -37,24 +54,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsRestControllerTest extends MysqlTestModelFactory {
@@ -70,13 +72,17 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper mapper;
     @Autowired
     StudentsFacade facade;
+    @SpyBean
+    @Autowired
     StudentsRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new StudentsRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
@@ -94,6 +100,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
+        assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
@@ -118,6 +125,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
         assertStudentEquals(student, studentDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -146,10 +154,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         verify(controller).findEnrolledTo(courseId.toString());
         String responseString = result.getResponse().getContentAsString();
         List<Student> studentList = MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
-        }).stream().map(student -> (Student) student).toList();
+        }).stream().map(Student.class::cast).toList();
 
         assertThat(studentList).hasSize(studentsAmount);
         assertStudentLists(database.findCourseById(courseId).orElseThrow().getStudents(), studentList);
+        checkControllerAspect();
     }
 
     @Test
@@ -172,10 +181,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         verify(controller).findNotEnrolledStudents();
         String responseString = result.getResponse().getContentAsString();
         var studentList = MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
-        }).stream().map(student -> (Student) student).toList();
+        }).stream().map(Student.class::cast).toList();
 
         assertThat(studentList).hasSize(studentsAmount);
         assertStudentLists(students.stream().sorted(Comparator.comparing(Student::getFullName)).toList(), studentList);
+        checkControllerAspect();
     }
 
     @Test
@@ -199,6 +209,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
         assertStudentEquals(student, studentDto, false);
+        checkControllerAspect();
     }
 
     @Test
@@ -224,6 +235,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
         assertStudentEquals(database.findStudentById(studentId).orElseThrow(), studentDto, true);
+        checkControllerAspect();
     }
 
     @Test
@@ -248,6 +260,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -273,6 +286,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: '-1001'");
+        checkControllerAspect();
     }
 
     @Test
@@ -291,6 +305,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).deleteStudent(id.toString());
         assertThat(database.findStudentById(id)).isEmpty();
+        checkControllerAspect();
     }
 
     @Test
@@ -313,6 +328,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student-id: '103'");
+        checkControllerAspect();
     }
 
     @Test
@@ -340,6 +356,16 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo("Student with ID:" + id + " has registered courses.");
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsRestController.class);
     }
 
     private Course getPersistent(Course newInstance) {

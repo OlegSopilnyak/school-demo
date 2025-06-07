@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -15,7 +16,17 @@ import static java.util.Objects.isNull;
 /**
  * Service-Facade: Service for manage students in the school
  */
-public interface StudentsFacade {
+public interface StudentsFacade extends BusinessFacade {
+    /**
+     * To get the name of the facade
+     *
+     * @return facade's name
+     */
+    @Override
+    default String getName() {
+        return "StudentsFacade";
+    }
+
     /**
      * To get the student by ID
      *
