@@ -60,7 +60,7 @@ public class RestControllerAspect {
         log.debug("Calling before {} for '{}'", delegate, jp.getSignature());
         try {
             delegate.beforeCall(jp);
-            log.info("before for {} called...", delegate);
+            log.info("before for delegate '{}' called...", delegate);
         } catch (Throwable e) {
             log.error("Cannot execute before for '{}'", jp.getSignature(), e);
         }
@@ -70,7 +70,7 @@ public class RestControllerAspect {
         log.debug("Calling after {} for '{}'", delegate, jp.getSignature());
         try {
             delegate.afterCall(jp);
-            log.info("after for {} called...", delegate);
+            log.info("after for delegate '{}' called...", delegate);
         } catch (Throwable e) {
             log.error("Cannot execute after for '{}'", jp.getSignature(), e);
         }

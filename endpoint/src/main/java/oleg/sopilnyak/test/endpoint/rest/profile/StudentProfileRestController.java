@@ -1,38 +1,42 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
+import static java.util.Objects.isNull;
+
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
-
-import static java.util.Objects.isNull;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.STUDENT_PROFILES)
 @ResponseStatus(HttpStatus.OK)
 public class StudentProfileRestController {
     private static final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
-    public static final String FACADE_NAME = "StudentProfileFacade";
     public static final String PROFILE_ID_VAR_NAME = "personProfileId";
     public static final String WRONG_STUDENT_PROFILE_ID = "Wrong student profile-id: '";
     private StudentProfileFacade facade;
 
     @GetMapping("/{" + PROFILE_ID_VAR_NAME + "}")
     public StudentProfileDto findById(@PathVariable(PROFILE_ID_VAR_NAME) String personId) {
-        ActionContext.setup(FACADE_NAME, "findById");
         log.debug("Trying to get student-profile by Id: '{}'", personId);
         try {
             final Long id = Long.parseLong(personId);
@@ -48,7 +52,6 @@ public class StudentProfileRestController {
 
     @PutMapping
     public StudentProfileDto update(@RequestBody StudentProfileDto profileDto) {
-        ActionContext.setup(FACADE_NAME, "updateExists");
         log.debug("Trying to update student-profile {}", profileDto);
         try {
             final Long id = profileDto.getId();

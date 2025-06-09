@@ -1,6 +1,19 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -16,10 +29,12 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -34,17 +49,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentProfileRestControllerTest extends MysqlTestModelFactory {
@@ -61,14 +68,17 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentProfileFacade facade;
-
+    @SpyBean
+    @Autowired
     StudentProfileRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new StudentProfileRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
@@ -86,6 +96,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
+        assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
@@ -108,6 +119,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         verify(facade).findStudentProfileById(id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(profile, dto);
+        checkControllerAspect();
     }
 
     @Test
@@ -129,6 +141,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -401 is not found");
+        checkControllerAspect();
     }
 
     @Test
@@ -150,6 +163,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '401!'");
+        checkControllerAspect();
     }
 
     @Test
@@ -174,6 +188,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(dto, profile);
         assertThat(originalEmail).isNotEqualTo(dto.getEmail());
+        checkControllerAspect();
     }
 
     @Test
@@ -197,6 +212,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -221,6 +237,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '-" + id + "'");
+        checkControllerAspect();
     }
 
     @Test
@@ -247,9 +264,18 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
         assertThat(error.getErrorMessage()).isEqualTo(message);
+        checkControllerAspect();
     }
 
     // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentProfileRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentProfileRestController.class);
+    }
+
     private StudentProfile getPersistent(StudentProfile newInstance) {
         Optional<StudentProfile> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();

@@ -1,47 +1,65 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
+@ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class PrincipalProfileRestControllerTest extends TestModelFactory {
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
-    @Mock
+    @MockBean
+    PersistenceFacade persistenceFacade;
+    @SpyBean
+    @Autowired
     PrincipalProfileFacade facade;
-    @Spy
-    @InjectMocks
+    @SpyBean
+    @Autowired
     PrincipalProfileRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
@@ -56,7 +74,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     void shouldFindPrincipalProfile() throws Exception {
         Long id = 402L;
         PrincipalProfile profile = makePrincipalProfile(id);
-        when(facade.findPrincipalProfileById(id)).thenReturn(Optional.of(profile));
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileById(id);
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -68,9 +86,11 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
+        verify(facade).findPrincipalProfileById(id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertThat(dto.getId()).isEqualTo(id);
         assertProfilesEquals(profile, dto);
+        checkControllerAspect();
     }
 
     @Test
@@ -90,6 +110,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
+        checkControllerAspect();
     }
 
     @Test
@@ -109,6 +130,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
+        checkControllerAspect();
     }
 
     @Test
@@ -137,6 +159,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
 
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
+        checkControllerAspect();
     }
 
     @Test
@@ -159,6 +182,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -182,6 +206,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-406'");
+        checkControllerAspect();
     }
 
     @Test
@@ -209,5 +234,15 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
         assertThat(error.getErrorMessage()).isEqualTo(message);
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(PrincipalProfileRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(PrincipalProfileRestController.class);
     }
 }

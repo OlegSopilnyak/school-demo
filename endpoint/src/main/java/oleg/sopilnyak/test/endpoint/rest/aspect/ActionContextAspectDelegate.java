@@ -82,7 +82,7 @@ public class ActionContextAspectDelegate implements AspectDelegate {
             throw new AssertionError("ActionContext is null");
         }
         context.finish();
-        log.info("after call for {}", context);
+        log.debug("after call for {}", context);
         ActionContext.release();
     }
 
