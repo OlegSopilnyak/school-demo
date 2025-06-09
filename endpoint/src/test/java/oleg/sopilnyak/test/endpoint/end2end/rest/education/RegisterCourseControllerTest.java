@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Rollback
 class RegisterCourseControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String ROOT = "/register";
+    private static final String ROOT = "/register/";
 
     @Autowired
     PersistenceFacade database;
@@ -114,7 +114,7 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
         Course course = getPersistent(makeClearCourse(0));
         Long studentId = student.getId();
         Long courseId = course.getId();
-        String requestPath = ROOT + "/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.put(requestPath)
@@ -141,7 +141,7 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
                 ce.add(getPersistent(makeClearStudent(i + 1)));
             }
         });
-        String requestPath = ROOT + "/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         MvcResult result =
                 mockMvc.perform(
@@ -172,7 +172,7 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
                 se.add(getPersistent(makeClearCourse(i + 1)));
             }
         });
-        String requestPath = ROOT + "/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         MvcResult result =
                 mockMvc.perform(
@@ -201,7 +201,7 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
         }
         Long studentId = student.getId();
         Long courseId = course.getId();
-        String requestPath = ROOT + "/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)

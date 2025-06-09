@@ -1,11 +1,18 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
+import static java.util.Objects.isNull;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
@@ -14,19 +21,25 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-
-import static java.util.Objects.isNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.AUTHORITIES)
 @ResponseStatus(HttpStatus.OK)
 public class AuthorityPersonsRestController {
-    public static final String FACADE_NAME = "AuthorityPersonFacade";
     public static final String USER_NAME = "username";
     public static final String PASS_NAME = "password";
     public static final String VAR_NAME = "personId";
@@ -39,7 +52,6 @@ public class AuthorityPersonsRestController {
     @PostMapping("/login")
     public AuthorityPersonDto login(@RequestParam(USER_NAME) String username,
                                     @RequestParam(PASS_NAME) String password) {
-        ActionContext.setup(FACADE_NAME, "login");
         log.debug("Trying to login authority person with login: '{}'", username);
         try {
             return resultToDto(username, facade.login(username, password));
@@ -50,7 +62,6 @@ public class AuthorityPersonsRestController {
 
     @DeleteMapping("/logout")
     public void logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-        ActionContext.setup(FACADE_NAME, "logout");
         log.debug("Trying to logout authority person using: '{}'", authorization);
         if (!ObjectUtils.isEmpty(authorization) && authorization.startsWith(BEARER_PREFIX)) {
             final String token = authorization.substring(7);
@@ -64,7 +75,6 @@ public class AuthorityPersonsRestController {
 
     @GetMapping
     public List<AuthorityPersonDto> findAll() {
-        ActionContext.setup(FACADE_NAME, "findAll");
         log.debug("Trying to get all school's authorities");
         try {
             return resultToDto(facade.findAllAuthorityPersons());
@@ -75,7 +85,6 @@ public class AuthorityPersonsRestController {
 
     @GetMapping("/{" + VAR_NAME + "}")
     public AuthorityPersonDto findById(@PathVariable(VAR_NAME) String personId) {
-        ActionContext.setup(FACADE_NAME, "findById");
         log.debug("Trying to get authority person by Id: '{}'", personId);
         try {
             final long id = Long.parseLong(personId);
@@ -92,7 +101,6 @@ public class AuthorityPersonsRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AuthorityPersonDto createPerson(@RequestBody AuthorityPersonDto person) {
-        ActionContext.setup(FACADE_NAME, "createNew");
         log.debug("Trying to create the authority person {}", person);
         try {
             return resultToDto(facade.create(person));
@@ -103,7 +111,6 @@ public class AuthorityPersonsRestController {
 
     @PutMapping
     public AuthorityPersonDto updatePerson(@RequestBody AuthorityPersonDto person) {
-        ActionContext.setup(FACADE_NAME, "createOrUpdate");
         log.debug("Trying to update authority person {}", person);
         try {
             final Long id = person.getId();
@@ -118,7 +125,6 @@ public class AuthorityPersonsRestController {
 
     @DeleteMapping("/{" + VAR_NAME + "}")
     public void deletePerson(@PathVariable(VAR_NAME) String personId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
         log.debug("Trying to delete authority person for Id: '{}'", personId);
         try {
             final long id = Long.parseLong(personId);

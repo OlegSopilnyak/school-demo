@@ -44,6 +44,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class RegisterCourseControllerTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = "/register/";
     @Mock
     Student student;
     @Mock
@@ -82,7 +83,7 @@ class RegisterCourseControllerTest {
         when(course.getId()).thenReturn(courseId);
         doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
         doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
-        String requestPath = "/register/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
         mockMvc.perform(
                         MockMvcRequestBuilders.put(requestPath)
                 )
@@ -108,7 +109,7 @@ class RegisterCourseControllerTest {
         String errorMessage = "No free rooms for the student";
         var exception = new CourseHasNoRoomException(errorMessage);
         doThrow(exception).when(coursesFacade).register(studentId, courseId);
-        String requestPath = "/register/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         MvcResult result =
                 mockMvc.perform(
@@ -142,7 +143,7 @@ class RegisterCourseControllerTest {
         var exception = new StudentCoursesExceedException(errorMessage);
         doThrow(exception).when(coursesFacade).register(studentId, courseId);
 
-        String requestPath = "/register/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(requestPath)
@@ -171,7 +172,7 @@ class RegisterCourseControllerTest {
         when(course.getId()).thenReturn(courseId);
         doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
         doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
-        String requestPath = "/register/" + studentId + "/to/" + courseId;
+        String requestPath = ROOT + studentId + "/to/" + courseId;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)

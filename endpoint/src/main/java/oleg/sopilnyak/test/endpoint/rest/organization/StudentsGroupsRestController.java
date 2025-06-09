@@ -1,31 +1,42 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
+import static java.util.Objects.isNull;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-
-import static java.util.Objects.isNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.STUDENT_GROUPS)
 @ResponseStatus(HttpStatus.OK)
 public class StudentsGroupsRestController {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
-    public static final String FACADE_NAME = "StudentsGroupFacade";
     public static final String VAR_NAME = "groupId";
     public static final String WRONG_STUDENTS_GROUP_ID = "Wrong students-group-id: '";
     // delegate for requests processing
@@ -33,7 +44,6 @@ public class StudentsGroupsRestController {
 
     @GetMapping
     public List<StudentsGroupDto> findAll() {
-        ActionContext.setup(FACADE_NAME, "findAll");
         log.debug("Trying to get all school's students groups");
         try {
             return resultToDto(facade.findAllStudentsGroups());
@@ -45,7 +55,6 @@ public class StudentsGroupsRestController {
 
     @GetMapping("/{" + VAR_NAME + "}")
     public StudentsGroupDto findById(@PathVariable(VAR_NAME) String groupId) {
-        ActionContext.setup(FACADE_NAME, "findById");
         log.debug("Trying to get students group by Id: '{}'", groupId);
         try {
             final Long id = Long.parseLong(groupId);
@@ -63,7 +72,6 @@ public class StudentsGroupsRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public StudentsGroupDto create(@RequestBody StudentsGroupDto studentsGroupDto) {
-        ActionContext.setup(FACADE_NAME, "createNew");
         log.debug("Trying to create the students group {}", studentsGroupDto);
         try {
             studentsGroupDto.setId(null);
@@ -75,7 +83,6 @@ public class StudentsGroupsRestController {
 
     @PutMapping
     public StudentsGroupDto update(@RequestBody StudentsGroupDto studentsGroupDto) {
-        ActionContext.setup(FACADE_NAME, "updateExists");
         log.debug("Trying to update students group {}", studentsGroupDto);
         try {
             final Long id = studentsGroupDto.getId();
@@ -90,7 +97,6 @@ public class StudentsGroupsRestController {
 
     @DeleteMapping("/{" + VAR_NAME + "}")
     public void delete(@PathVariable(VAR_NAME) String groupId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
         log.debug("Trying to delete students group for Id: '{}'", groupId);
         try {
             final Long id = Long.parseLong(groupId);

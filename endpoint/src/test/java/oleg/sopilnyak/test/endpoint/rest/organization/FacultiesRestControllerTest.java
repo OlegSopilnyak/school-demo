@@ -1,48 +1,69 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
+@ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class FacultiesRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/faculties";
 
-    @Mock
+    @MockBean
+    PersistenceFacade persistenceFacade;
+    @SpyBean
+    @Autowired
     FacultyFacade facade;
-    @Spy
-    @InjectMocks
+    @SpyBean
+    @Autowired
     FacultiesRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
 
     MockMvc mockMvc;
 
@@ -58,7 +79,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldFindAllFaculties() throws Exception {
         int personsAmount = 10;
         Collection<Faculty> faculties = makeFaculties(personsAmount);
-        when(facade.findAllFaculties()).thenReturn(faculties);
+        doReturn(Set.copyOf(faculties)).when(persistenceFacade).findAllFaculties();
 
         MvcResult result =
                 mockMvc.perform(
@@ -75,17 +96,18 @@ class FacultiesRestControllerTest extends TestModelFactory {
         List<Faculty> facultyList =
                 MAPPER.readValue(result.getResponse().getContentAsString(),
                         new TypeReference<List<FacultyDto>>() {
-                        }).stream().map(course -> (Faculty) course).toList();
+                        }).stream().map(Faculty.class::cast).toList();
 
         assertThat(facultyList).hasSize(personsAmount);
         assertFacultyLists(faculties.stream().toList(), facultyList, false);
+        checkControllerAspect();
     }
 
     @Test
     void shouldFindFacultyById() throws Exception {
         Long id = 400L;
         Faculty faculty = makeTestFaculty(id);
-        when(facade.findFacultyById(id)).thenReturn(Optional.of(faculty));
+        doReturn(Optional.of(faculty)).when(persistenceFacade).findFacultyById(id);
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -101,12 +123,13 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
+        checkControllerAspect();
     }
 
     @Test
     void shouldNotFindFacultyById() throws Exception {
         Long id = 400L;
-        when(facade.findFacultyById(id)).thenReturn(Optional.empty());
+        doReturn(Optional.empty()).when(persistenceFacade).findFacultyById(id);
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -124,6 +147,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Faculty with id: 400 is not found");
+        checkControllerAspect();
     }
 
     @Test
@@ -152,6 +176,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -181,6 +206,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -206,6 +232,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -232,11 +259,13 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-403'");
+        checkControllerAspect();
     }
 
     @Test
     void shouldDeleteFaculty() throws Exception {
         Long id = 410L;
+        doReturn(Optional.of(mock(Faculty.class))).when(persistenceFacade).findFacultyById(id);
         String requestPath = ROOT + "/" + id;
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -246,6 +275,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).delete(id.toString());
         verify(facade).deleteFacultyById(id);
+        checkControllerAspect();
     }
 
     @Test
@@ -265,6 +295,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -286,12 +317,19 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-411'");
+        checkControllerAspect();
     }
 
     @Test
     void shouldDeleteFacultyInstance() throws Exception {
         Long id = 410L;
         Faculty faculty = makeTestFaculty(id);
+        if (faculty instanceof FakeFaculty fake) {
+            fake.setCourses(List.of());
+        } else {
+            fail("Wrong type of the %s", faculty.toString());
+        }
+        doReturn(Optional.of(faculty)).when(persistenceFacade).findFacultyById(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         mockMvc.perform(
@@ -304,6 +342,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         verify(controller).delete(any(FacultyDto.class));
         verify(facade).deleteFaculty(any(FacultyDto.class));
+        checkControllerAspect();
     }
 
     @Test
@@ -331,5 +370,15 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo(errorMessage);
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(FacultiesRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(FacultiesRestController.class);
     }
 }

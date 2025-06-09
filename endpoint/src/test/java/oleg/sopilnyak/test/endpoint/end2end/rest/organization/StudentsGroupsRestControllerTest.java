@@ -1,7 +1,19 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
@@ -16,9 +28,11 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -34,21 +48,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
@@ -64,13 +66,17 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper mapper;
     @Autowired
     StudentsGroupFacade facade;
-
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
+    @SpyBean
+    @Autowired
     StudentsGroupsRestController controller;
+
     MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        controller = spy(new StudentsGroupsRestController(facade));
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
@@ -88,6 +94,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
         assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
+        assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
@@ -114,6 +121,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(groupList).hasSize(groupsAmount);
         assertStudentsGroupLists(studentsGroups, groupList);
+        checkControllerAspect();
     }
 
     @Test
@@ -137,6 +145,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
         var dto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, dto);
+        checkControllerAspect();
     }
 
     @Test
@@ -160,6 +169,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
         var dto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, dto, false);
+        checkControllerAspect();
     }
 
     @Test
@@ -183,6 +193,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
         var dto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, dto);
+        checkControllerAspect();
     }
 
     @Test
@@ -207,6 +218,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -232,6 +244,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-502'");
+        checkControllerAspect();
     }
 
     @Test
@@ -253,6 +266,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         verify(controller).delete(id.toString());
         assertThat(database.findStudentsGroupById(id)).isEmpty();
+        checkControllerAspect();
     }
 
     @Test
@@ -274,6 +288,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -295,6 +310,7 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-511'");
+        checkControllerAspect();
     }
 
     @Test
@@ -317,9 +333,18 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo("Students Group with ID:" + id + " has students.");
+        checkControllerAspect();
     }
 
     // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
+    }
+
     private StudentsGroup getPersistent(StudentsGroup newInstance) {
         Optional<StudentsGroup> saved = database.save(newInstance);
         assertThat(saved).isNotEmpty();

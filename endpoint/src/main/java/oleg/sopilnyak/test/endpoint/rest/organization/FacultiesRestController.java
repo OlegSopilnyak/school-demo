@@ -1,11 +1,18 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
+import static java.util.Objects.isNull;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
@@ -13,19 +20,23 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.*;
-
-import static java.util.Objects.isNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @AllArgsConstructor
+@Getter
 @RestController
 @RequestMapping(RequestMappingRoot.FACULTIES)
 @ResponseStatus(HttpStatus.OK)
 public class FacultiesRestController {
-    public static final String FACADE_NAME = "FacultyFacade";
     public static final String VAR_NAME = "facultyId";
     public static final String WRONG_FACULTY_ID = "Wrong faculty-id: '";
     // delegate for requests processing
@@ -34,7 +45,6 @@ public class FacultiesRestController {
 
     @GetMapping
     public List<FacultyDto> findAll() {
-        ActionContext.setup(FACADE_NAME, "findAll");
         log.debug("Trying to get all school's faculties");
         try {
             return resultToDto(facade.findAllFaculties());
@@ -46,7 +56,6 @@ public class FacultiesRestController {
 
     @GetMapping("/{" + VAR_NAME + "}")
     public FacultyDto findById(@PathVariable(VAR_NAME) String facultyId) {
-        ActionContext.setup(FACADE_NAME, "findById");
         log.debug("Trying to get faculty by Id: '{}'", facultyId);
         try {
             final Long id = Long.parseLong(facultyId);
@@ -64,7 +73,6 @@ public class FacultiesRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public FacultyDto create(@RequestBody FacultyDto facultyDto) {
-        ActionContext.setup(FACADE_NAME, "createNew");
         log.debug("Trying to create the faculty {}", facultyDto);
         try {
             facultyDto.setId(null);
@@ -77,7 +85,6 @@ public class FacultiesRestController {
 
     @PutMapping
     public FacultyDto update(@RequestBody FacultyDto facultyDto) {
-        ActionContext.setup(FACADE_NAME, "updateExists");
         log.debug("Trying to update faculty {}", facultyDto);
         try {
             final Long id = facultyDto.getId();
@@ -93,7 +100,6 @@ public class FacultiesRestController {
 
     @DeleteMapping
     public void delete(@RequestBody FacultyDto facultyDto) {
-        ActionContext.setup(FACADE_NAME, "deleteInstance");
         log.debug("Trying to delete faculty {}", facultyDto);
         try {
             log.debug("Deleting faculty {}", facultyDto);
@@ -107,7 +113,6 @@ public class FacultiesRestController {
 
     @DeleteMapping("/{" + VAR_NAME + "}")
     public void delete(@PathVariable(VAR_NAME) String facultyId) {
-        ActionContext.setup(FACADE_NAME, "deleteById");
         log.debug("Trying to delete faculty for Id: '{}'", facultyId);
         try {
             final Long id = Long.parseLong(facultyId);

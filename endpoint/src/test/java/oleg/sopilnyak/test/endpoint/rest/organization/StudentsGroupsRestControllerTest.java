@@ -1,47 +1,65 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
+@ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class StudentsGroupsRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/student-groups";
-
-    @Mock
+    @MockBean
+    PersistenceFacade persistenceFacade;
+    @SpyBean
+    @Autowired
     StudentsGroupFacade facade;
-    @Spy
-    @InjectMocks
+    @SpyBean
+    @Autowired
     StudentsGroupsRestController controller;
+    @SpyBean
+    @Autowired
+    AspectDelegate delegate;
+
     MockMvc mockMvc;
 
     @BeforeEach
@@ -56,7 +74,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     void shouldFindAllStudentsGroups() throws Exception {
         int groupsAmount = 5;
         Collection<StudentsGroup> studentsGroups = makeStudentsGroups(groupsAmount);
-        when(facade.findAllStudentsGroups()).thenReturn(studentsGroups);
+        doReturn(Set.copyOf(studentsGroups)).when(persistenceFacade).findAllStudentsGroups();
 
         MvcResult result =
                 mockMvc.perform(
@@ -72,17 +90,18 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
 
         List<StudentsGroup> studentsGroupList = MAPPER.readValue(responseString, new TypeReference<List<StudentsGroupDto>>() {
-        }).stream().map(course -> (StudentsGroup) course).toList();
+        }).stream().map(StudentsGroup.class::cast).toList();
 
-        assertThat(studentsGroupList).hasSize(groupsAmount);
+        assertThat(studentsGroupList).hasSameSizeAs(studentsGroups).hasSize(groupsAmount);
         assertStudentsGroupLists(studentsGroups.stream().toList(), studentsGroupList);
+        checkControllerAspect();
     }
 
     @Test
     void shouldFindStudentsGroupById() throws Exception {
         Long id = 500L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
-        when(facade.findStudentsGroupById(id)).thenReturn(Optional.of(studentsGroup));
+        doReturn(Optional.of(studentsGroup)).when(persistenceFacade).findStudentsGroupById(id);
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -99,6 +118,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, studentsGroupDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -128,6 +148,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, studentsGroupDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -158,6 +179,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
         assertStudentsGroupEquals(studentsGroup, studentsGroupDto);
+        checkControllerAspect();
     }
 
     @Test
@@ -181,6 +203,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -205,11 +228,13 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-502'");
+        checkControllerAspect();
     }
 
     @Test
     void shouldDeleteStudentsGroup() throws Exception {
         Long id = 510L;
+        doReturn(Optional.of(mock(StudentsGroup.class))).when(persistenceFacade).findStudentsGroupById(id);
         String requestPath = ROOT + "/" + id;
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -219,6 +244,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
         verify(controller).delete(id.toString());
         verify(facade).deleteStudentsGroupById(id);
+        checkControllerAspect();
     }
 
     @Test
@@ -238,6 +264,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
+        checkControllerAspect();
     }
 
     @Test
@@ -258,5 +285,15 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
 
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-511'");
+        checkControllerAspect();
+    }
+
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
     }
 }
