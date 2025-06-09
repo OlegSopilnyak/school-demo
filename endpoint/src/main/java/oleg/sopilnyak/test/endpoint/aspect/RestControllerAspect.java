@@ -10,7 +10,7 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 
 /**
- * Aspect: the aspect to intercept rest calls for do something before and after rest call
+ * Aspect: the aspect to intercept rest calls for do something before and after http rest call
  */
 @Slf4j
 @Aspect
