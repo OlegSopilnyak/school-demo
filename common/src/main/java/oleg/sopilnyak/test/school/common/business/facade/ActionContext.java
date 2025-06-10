@@ -20,10 +20,33 @@ public class ActionContext implements Serializable {
     private Duration lasts;
 
     /**
+     * To install new value of action context for current thread (replace not allowed)
+     *
+     * @param context instance to install
+     */
+    public static void install(ActionContext context) {
+        install(context, false);
+    }
+
+    /**
+     * To install new value of action context for current thread
+     *
+     * @param context instance to install
+     * @param replace is context replace allowed
+     */
+    public static void install(ActionContext context, boolean replace) {
+        if (CONTEXT.get() == null || replace) {
+            CONTEXT.set(context);
+        } else {
+            throw new AssertionError("context is already installed");
+        }
+    }
+
+    /**
      * To finish context's work
      */
     public void finish() {
-        lasts = Duration.between(startedAt, Instant.now());
+        setLasts(Duration.between(startedAt, Instant.now()));
     }
 
     /**
@@ -48,9 +71,10 @@ public class ActionContext implements Serializable {
      * @param facade the name of context's facade
      * @param action the name of context's action
      */
-    public static void setup(final String facade, final String action) {
+    public static ActionContext setup(final String facade, final String action) {
         if (facade == null || facade.isBlank()) throw new AssertionError("facade name is empty");
         if (action == null || action.isBlank()) throw new AssertionError("action name is empty");
         CONTEXT.set(ActionContext.builder().facadeName(facade.trim()).actionName(action.trim()).build());
+        return CONTEXT.get();
     }
 }

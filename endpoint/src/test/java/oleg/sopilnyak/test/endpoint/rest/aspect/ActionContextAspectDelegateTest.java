@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.endpoint.rest.education.StudentsRestController;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
@@ -35,6 +36,7 @@ class ActionContextAspectDelegateTest {
         doCallRealMethod().when(facade).getName();
         StudentsRestController controller = spy(new StudentsRestController(facade));
         doReturn(controller).when(jp).getTarget();
+        assertThat(ActionContext.current()).isNull();
 
         delegate.beforeCall(jp);
 
@@ -42,6 +44,8 @@ class ActionContextAspectDelegateTest {
         assertThat(context).isNotNull();
         assertThat(context.getActionName()).isEqualTo(controllerMethodName);
         assertThat(context.getFacadeName()).isEqualTo(facade.getName());
+        assertThat(context.getStartedAt()).isNotNull();
+        assertThat(context.getLasts()).isNull();
     }
 
     @Test
@@ -49,14 +53,15 @@ class ActionContextAspectDelegateTest {
         assertThat(ActionContext.current()).isNull();
         String facadeName = "facade-name";
         String controllerMethodName = "controller-method-name";
-        ActionContext.setup(facadeName, controllerMethodName);
-        ActionContext context = ActionContext.current();
-        assertThat(context).isNotNull();
+        ActionContext context = spy(ActionContext.setup(facadeName, controllerMethodName));
+        assertThat(ActionContext.current()).isNotNull();
         assertThat(context.getActionName()).isEqualTo(controllerMethodName);
         assertThat(context.getFacadeName()).isEqualTo(facadeName);
+        ActionContext.install(context , true);
 
         delegate.afterCall(jp);
 
+        verify(context).finish();
         assertThat(ActionContext.current()).isNull();
     }
 }
