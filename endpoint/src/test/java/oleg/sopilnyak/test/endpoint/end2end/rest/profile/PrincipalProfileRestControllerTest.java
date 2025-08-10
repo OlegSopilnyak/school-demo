@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
@@ -71,7 +71,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     PrincipalProfileFacade facade;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
     @SpyBean
     @Autowired
     PrincipalProfileRestController controller;

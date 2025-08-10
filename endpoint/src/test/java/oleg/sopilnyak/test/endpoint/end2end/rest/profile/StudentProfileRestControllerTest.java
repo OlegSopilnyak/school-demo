@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
@@ -62,7 +62,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     PersistenceFacade database;
     @SpyBean
     @Autowired
-    BusinessMessagePayloadMapper mapper;
+    BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     CommandsFactory<StudentProfileCommand<?>> factory;
     @SpyBean
@@ -73,7 +73,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     StudentProfileRestController controller;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
 
     MockMvc mockMvc;
 
@@ -88,12 +88,12 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
-        assertThat(mapper).isNotNull();
+        assertThat(payloadMapper).isNotNull();
         assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();
@@ -169,7 +169,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional
     void shouldUpdateStudentProfile() throws Exception {
-        StudentProfilePayload profile = mapper.toPayload(getPersistent(makeStudentProfile(null)));
+        StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String originalEmail = profile.getEmail();
         profile.setEmail(profile.getEmail() + "::" + profile.getEmail());
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -194,7 +194,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional
     void shouldNotUpdateStudentProfile_NullId() throws Exception {
-        StudentProfilePayload profile = mapper.toPayload(getPersistent(makeStudentProfile(null)));
+        StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         profile.setId(null);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
@@ -218,7 +218,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional
     void shouldNotUpdateStudentProfile_NegativeId() throws Exception {
-        StudentProfilePayload profile = mapper.toPayload(getPersistent(makeStudentProfile(null)));
+        StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         Long id = profile.getId();
         profile.setId(-id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -243,7 +243,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     @Test
     @Transactional
     void shouldNotUpdateStudentProfile_ExceptionThrown() throws Exception {
-        StudentProfilePayload profile = mapper.toPayload(getPersistent(makeStudentProfile(null)));
+        StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update student profile: '404!'";
         doThrow(new RuntimeException(message)).when(facade).createOrUpdateProfile(any(StudentProfile.class));

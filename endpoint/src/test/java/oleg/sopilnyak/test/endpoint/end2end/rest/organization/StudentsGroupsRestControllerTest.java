@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -63,12 +63,12 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     CommandsFactory<StudentsGroupCommand<?>> factory;
     @SpyBean
     @Autowired
-    BusinessMessagePayloadMapper mapper;
+    BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     StudentsGroupFacade facade;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
     @SpyBean
     @Autowired
     StudentsGroupsRestController controller;
@@ -86,12 +86,12 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
-        assertThat(mapper).isNotNull();
+        assertThat(payloadMapper).isNotNull();
         assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
+        assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();

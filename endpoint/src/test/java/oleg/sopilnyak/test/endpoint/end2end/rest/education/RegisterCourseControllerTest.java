@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import java.util.stream.IntStream;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.rest.education.RegisterCourseController;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -74,7 +74,7 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
     RegisterCourseController controller;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
 
     MockMvc mockMvc;
 

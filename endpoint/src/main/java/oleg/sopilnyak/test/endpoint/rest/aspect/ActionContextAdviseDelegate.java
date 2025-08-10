@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import org.aspectj.lang.JoinPoint;
@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class ActionContextAspectDelegate implements AspectDelegate {
+public class ActionContextAdviseDelegate implements AdviseDelegate {
     @Override
     public String toString() {
-        return "RestControllerAspect::AspectDelegate for ActionContext";
+        return "RestControllerAspect::AdviseDelegate for ActionContext";
     }
 
     /**

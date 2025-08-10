@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RestControllerAspectTest {
     @Mock
-    AspectDelegate aspectDelegate;
+    AdviseDelegate adviseDelegate;
     @Mock
     JoinPoint jp;
 
@@ -22,20 +22,20 @@ class RestControllerAspectTest {
 
     @BeforeEach
     void setUp() {
-        aspect = spy(new RestControllerAspect(Set.of(aspectDelegate)));
+        aspect = spy(new RestControllerAspect(Set.of(adviseDelegate)));
     }
 
     @Test
     void shouldCallControllerBeforeAdvise() {
         aspect.controllerBeforeAdvise(jp);
 
-        verify(aspectDelegate).beforeCall(jp);
+        verify(adviseDelegate).beforeCall(jp);
     }
 
     @Test
     void shouldCallControllerAfterAdvise() {
         aspect.controllerAfterAdvise(jp);
 
-        verify(aspectDelegate).afterCall(jp);
+        verify(adviseDelegate).afterCall(jp);
     }
 }

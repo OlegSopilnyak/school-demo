@@ -18,6 +18,7 @@ dependencies {
     annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation("org.mockito:mockito-inline:5.2.0")
     testImplementation project(":persistence")
     testImplementation project(":business-logic")
     testImplementation testFixtures(project(":common"))

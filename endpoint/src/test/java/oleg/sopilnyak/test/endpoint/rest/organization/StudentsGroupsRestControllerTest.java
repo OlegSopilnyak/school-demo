@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -58,7 +58,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     StudentsGroupsRestController controller;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
 
     MockMvc mockMvc;
 

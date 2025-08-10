@@ -7,7 +7,7 @@ import org.aspectj.lang.JoinPoint;
  *
  * @see RestControllerAspect
  */
-public interface AspectDelegate {
+public interface AdviseDelegate {
     /**
      * To do action before Pointcut call
      *

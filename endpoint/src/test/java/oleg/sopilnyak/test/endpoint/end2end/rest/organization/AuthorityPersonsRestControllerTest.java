@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import oleg.sopilnyak.test.endpoint.aspect.AspectDelegate;
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -76,7 +76,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     AuthorityPersonsRestController controller;
     @SpyBean
     @Autowired
-    AspectDelegate delegate;
+    AdviseDelegate delegate;
 
     MockMvc mockMvc;
 

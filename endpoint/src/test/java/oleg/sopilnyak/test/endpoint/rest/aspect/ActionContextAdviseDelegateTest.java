@@ -19,12 +19,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ActionContextAspectDelegateTest {
+class ActionContextAdviseDelegateTest {
     @Mock
     JoinPoint jp;
 
     @InjectMocks
-    ActionContextAspectDelegate delegate;
+    ActionContextAdviseDelegate delegate;
 
     @Test
     void shouldDoActionBeforeCall() {

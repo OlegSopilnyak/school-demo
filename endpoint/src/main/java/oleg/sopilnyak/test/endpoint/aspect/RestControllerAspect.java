@@ -14,10 +14,8 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Slf4j
 @Aspect
-public class RestControllerAspect {
-    final Collection<AspectDelegate> delegates;
-
-    public RestControllerAspect(Collection<AspectDelegate> delegates) {
+public record RestControllerAspect(Collection<AdviseDelegate> delegates) {
+    public RestControllerAspect(Collection<AdviseDelegate> delegates) {
         this.delegates = List.copyOf(delegates);
     }
 
@@ -35,7 +33,7 @@ public class RestControllerAspect {
      * @param jp joint point before call
      * @see JoinPoint#getSignature()
      * @see JoinPoint#getArgs()
-     * @see AspectDelegate#beforeCall(JoinPoint)
+     * @see AdviseDelegate#beforeCall(JoinPoint)
      */
     @Before("controllerMethodCalls() && moduleRestCalls()")
     public void controllerBeforeAdvise(final JoinPoint jp) {
@@ -48,7 +46,7 @@ public class RestControllerAspect {
      * @param jp joint point before call
      * @see JoinPoint#getSignature()
      * @see JoinPoint#getArgs()
-     * @see AspectDelegate#afterCall(JoinPoint) (JoinPoint)
+     * @see AdviseDelegate#afterCall(JoinPoint) (JoinPoint)
      */
     @After("controllerMethodCalls() && moduleRestCalls()")
     public void controllerAfterAdvise(final JoinPoint jp) {
@@ -56,7 +54,7 @@ public class RestControllerAspect {
     }
 
     // private methods
-    private static void before(final AspectDelegate delegate, final JoinPoint jp) {
+    private static void before(final AdviseDelegate delegate, final JoinPoint jp) {
         log.debug("Calling before {} for '{}'", delegate, jp.getSignature());
         try {
             delegate.beforeCall(jp);
@@ -66,7 +64,7 @@ public class RestControllerAspect {
         }
     }
 
-    private static void after(final AspectDelegate delegate, final JoinPoint jp) {
+    private static void after(final AdviseDelegate delegate, final JoinPoint jp) {
         log.debug("Calling after {} for '{}'", delegate, jp.getSignature());
         try {
             delegate.afterCall(jp);
