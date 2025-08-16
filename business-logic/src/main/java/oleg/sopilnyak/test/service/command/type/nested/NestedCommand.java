@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
+import java.io.Serializable;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -10,7 +11,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
  * @param <T> the type of command execution (do) result
  * @see oleg.sopilnyak.test.service.command.type.CompositeCommand
  */
-public interface NestedCommand<T> {
+public interface NestedCommand<T> extends Serializable {
     /**
      * To prepare context for nested command using the visitor
      *

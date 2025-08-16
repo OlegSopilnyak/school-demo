@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
@@ -12,7 +14,7 @@ import oleg.sopilnyak.test.service.command.io.Input;
  * @param <T> type of result
  * @see RootCommand
  */
-public interface Context<T> {
+public interface Context<T> extends Serializable {
 
     /**
      * To get the command associated with the context
@@ -64,6 +66,7 @@ public interface Context<T> {
      * @see this#getState()
      * @see Context.State#DONE
      */
+    @JsonIgnore
     default boolean isDone() {
         return stateIs(State.DONE);
     }
@@ -75,6 +78,7 @@ public interface Context<T> {
      * @see this#getState()
      * @see Context.State#UNDONE
      */
+    @JsonIgnore
     default boolean isUndone() {
         return stateIs(State.UNDONE);
     }
@@ -86,6 +90,7 @@ public interface Context<T> {
      * @see this#getState()
      * @see Context.State#READY
      */
+    @JsonIgnore
     default boolean isReady() {
         return stateIs(State.READY);
     }
@@ -97,6 +102,7 @@ public interface Context<T> {
      * @see this#getState()
      * @see Context.State#FAIL
      */
+    @JsonIgnore
     default boolean isFailed() {
         return stateIs(State.FAIL);
     }
@@ -108,6 +114,7 @@ public interface Context<T> {
      * @see this#getState()
      * @see Context.State#WORK
      */
+    @JsonIgnore
     default boolean isWorking() {
         return stateIs(State.WORK);
     }
@@ -119,44 +126,6 @@ public interface Context<T> {
      * @see State
      */
     void setState(State state);
-
-    /**
-     * To save to context-history the current state of context (just changed)
-     *
-     * @param state current state for history
-     * @see Context#getState()
-     * @see LifeCycleHistory
-     */
-    void stateChangedTo(State state);
-
-    /**
-     * To save to context-history time when command started execution with context
-     *
-     * @param startedAt when command start execution
-     * @param startedAfter which state was before
-     * @see Context#getState()
-     * @see Context#getStartedAt()
-     * @see LifeCycleHistory
-     * @see State#WORK
-     * @see RootCommand#executeDo(Context)
-     * @see RootCommand#executeUndo(Context)
-     */
-    void commandExecutionStarted(Instant startedAt, State startedAfter);
-
-    /**
-     * To save to context-history duration of command execution with context
-     *
-     * @param finishedBy which state finishes the command execution
-     * @see Context#getState()
-     * @see Context#getDuration()
-     * @see LifeCycleHistory
-     * @see State#DONE
-     * @see State#UNDONE
-     * @see State#FAIL
-     * @see RootCommand#executeDo(Context)
-     * @see RootCommand#executeUndo(Context)
-     */
-    void commandExecutionFinishedBy(State finishedBy);
 
     /**
      * To get input parameter value for do command execution
@@ -182,6 +151,7 @@ public interface Context<T> {
      * @see Optional
      * @see State#DONE
      */
+    @JsonIgnore
     Optional<T> getResult();
 
     /**
@@ -269,7 +239,7 @@ public interface Context<T> {
     /**
      * The history of context's life cycle
      */
-    interface LifeCycleHistory {
+    interface LifeCycleHistory extends Serializable {
         /**
          * To get context's states history
          *

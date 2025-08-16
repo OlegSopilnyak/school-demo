@@ -1,31 +1,44 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.FAIL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CommandContextTest<T> {
     @Mock
     RootCommand<T> rootCommand;
-    @Spy
-    CommandContext<T> context = CommandContext.<T>builder().build();
+    CommandContext<T> context;
+
+    @BeforeEach
+    void setUp() {
+        context = spy(CommandContext.<T>builder().command(rootCommand).build());
+    }
 
     @Test
     void shouldAddStatesInCorrectOrder() {

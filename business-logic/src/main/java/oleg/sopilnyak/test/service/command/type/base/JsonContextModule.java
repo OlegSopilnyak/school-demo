@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 
@@ -18,7 +19,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.context.History;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
@@ -53,6 +53,7 @@ public class JsonContextModule<T> extends SimpleModule {
         this.farm = farm;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void setupModule(final SetupContext setupContext) {
         final SimpleSerializers serializers = new SimpleSerializers();
@@ -92,7 +93,7 @@ public class JsonContextModule<T> extends SimpleModule {
             serializeCommand(context.getCommand(), generator);
             serializeRedoParameter(context.getRedoParameter(), generator);
             serializeUndoParameter(context.getUndoParameter(), generator);
-            serializeExecutionResult(context.getResult(), generator);
+            serializeExecutionResult(context.getResult().orElse(null), generator);
             serializeExecutionError(context.getException(), generator);
             generator.writeStringField(STARTED_AT_FIELD_NAME, mapper.writeValueAsString(context.getStartedAt()));
             generator.writeStringField(DURATION_FIELD_NAME, mapper.writeValueAsString(context.getDuration()));
@@ -109,24 +110,30 @@ public class JsonContextModule<T> extends SimpleModule {
             generator.writeEndObject();
         }
 
-        private void serializeExecutionResult(final Optional<T> executionResult, final JsonGenerator generator) throws IOException {
+        private void serializeExecutionResult(final T executionResult, final JsonGenerator generator) throws IOException {
             generator.writeFieldName(RESULT_FIELD_NAME);
-            final Output<?> result = executionResult.isPresent() ? Output.of(executionResult.get()) : Output.empty();
+            final Output<?> result = isNull(executionResult) ?  Output.empty() : Output.of(executionResult);
             generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(result));
         }
 
-        private static <R> void serializeRedoParameter(final Input<R> redoInput, final JsonGenerator generator) throws IOException {
-            if (!redoInput.isEmpty()) {
-                generator.writeFieldName(REDO_INPUT_FIELD_NAME);
-                generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(redoInput));
+        // serialize input parameter
+        private static <I> void serializeParameter(final Input<I> input,
+                                                   final JsonGenerator generator,
+                                                   final String fieldName) throws IOException {
+            if (nonNull(input) && !input.isEmpty()) {
+                generator.writeFieldName(fieldName);
+                generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(input));
             }
         }
 
+        // serialize redo parameter
+        private static <R> void serializeRedoParameter(final Input<R> input, final JsonGenerator generator) throws IOException {
+            serializeParameter(input, generator, REDO_INPUT_FIELD_NAME);
+        }
+
+        // serialize undo parameter
         private static <U> void serializeUndoParameter(final Input<U> undoInput, final JsonGenerator generator) throws IOException {
-            if (!undoInput.isEmpty()) {
-                generator.writeFieldName(UNDO_INPUT_FIELD_NAME);
-                generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(undoInput));
-            }
+            serializeParameter(undoInput, generator, UNDO_INPUT_FIELD_NAME);
         }
 
         private void serializeExecutionError(final Throwable error, final JsonGenerator generator) throws IOException {

@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.Instant;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 /**
@@ -58,6 +59,7 @@ public interface IOBase<P> extends Serializable {
      * @return class of the parameter or result
      * @throws IOException throws if it cannot restore the class
      */
+    @SuppressWarnings("unchecked")
     static <T extends IOBase<?>> Class<T> restoreIoBaseClass(final TreeNode ioTreeNode,
                                                              final Class<T> shouldBeType) throws IOException {
         final TreeNode ioClassNameNode = ioTreeNode.get(TYPE_FIELD_NAME);
@@ -80,7 +82,8 @@ public interface IOBase<P> extends Serializable {
      * JSON: Serializer for Throwable
      *
      * @see StdSerializer
-     * @see CommandMessage#getError()
+     * @see CommandMessage#getContext()
+     * @see Context#getException()
      * @see Throwable
      */
     class ExceptionSerializer<T extends Throwable> extends StdSerializer<T> {
@@ -103,6 +106,7 @@ public interface IOBase<P> extends Serializable {
             generator.writeEndObject();
         }
 
+        @SuppressWarnings("unchecked")
         private void serializeExceptionStuff(final T exception,
                                              final JsonGenerator generator,
                                              final SerializerProvider serializerProvider) throws IOException {
@@ -125,7 +129,8 @@ public interface IOBase<P> extends Serializable {
      * JSON: Deserializer for Throwable
      *
      * @see StdDeserializer
-     * @see CommandMessage#getError()
+     * @see CommandMessage#getContext()
+     * @see Context#getException()
      * @see Throwable
      */
     class ExceptionDeserializer extends StdDeserializer<Throwable> {

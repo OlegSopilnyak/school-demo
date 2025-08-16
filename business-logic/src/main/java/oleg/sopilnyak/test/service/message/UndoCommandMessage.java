@@ -1,13 +1,15 @@
 package oleg.sopilnyak.test.service.message;
 
+import lombok.experimental.SuperBuilder;
+
 /**
  * Message: message to commands subsystem (to do undoCommand)
  *
- * @param <I> type of input parameter
- * @param <O> type of output result
+ * @param <T> type of command execution result
  * @see BaseCommandMessage
  */
-public class UndoCommandMessage<I, O> extends BaseCommandMessage<I, O> {
+@SuperBuilder
+public class UndoCommandMessage<T> extends BaseCommandMessage<T> {
     /**
      * the direction of command's execution
      *

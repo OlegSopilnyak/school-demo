@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class ActionContextAdviseDelegate implements AdviseDelegate {
     @Override
     public String toString() {
-        return "RestControllerAspect::AdviseDelegate for ActionContext";
+        return "RestControllerAspect::AdviseDelegate for ActionContext Entity";
     }
 
     /**
@@ -42,28 +42,20 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
     @Override
     public void beforeCall(JoinPoint joinPoint) {
         final Object controller;
-        if (MockUtil.isSpy(joinPoint.getTarget())) {
-            log.debug("Target controller is spy.");
-            final var mockCreationSettings = Mockito.mockingDetails(joinPoint.getTarget()).getMockCreationSettings();
-            controller = mockCreationSettings.getSpiedInstance();
-        } else if (MockUtil.isMock(joinPoint.getTarget())) {
-            log.debug("Target controller is mock.");
-            return;
-        } else {
-            controller = joinPoint.getTarget();
-        }
+        // getting controller instance from the joint point
+        if ((controller = getRestControllerInstance(joinPoint)) == null) return;
 
-        // getting facade from the controller
+        log.debug("before call for {}", joinPoint.getSignature());
         try {
-            log.debug("before call for {}", joinPoint.getSignature());
-            final var facade = retrieveFacadeFrom(controller);
+            // getting facade from the controller
+            final BusinessFacade facade = retrieveFacadeFrom(controller);
             if (isNull(facade)) {
-                log.error("No facade found in {}", controller);
-                return;
+                log.error("No business facade found in controller {}", controller);
+            } else {
+                log.debug("BusinessFacade found: {}", facade);
+                // setting up current ActionContext with facade name and action name
+                ActionContext.setup(facade.getName(), joinPoint.getSignature().getName());
             }
-            final String actionName = joinPoint.getSignature().getName();
-            // setup action context for the rest call
-            ActionContext.setup(facade.getName(), actionName);
         } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
             log.error("Error while trying to get facade from {}", controller, e);
         }
@@ -77,18 +69,40 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
      */
     @Override
     public void afterCall(JoinPoint joinPoint) {
-        final ActionContext context = ActionContext.current();
-        if (context == null) {
-            throw new AssertionError("ActionContext is null");
+        final ActionContext context;
+        if ((context = ActionContext.current()) == null) {
+            throw new AssertionError("current ActionContext entity is null");
+        } else {
+            // finishing context's work
+            context.finish();
         }
-        context.finish();
         log.debug("after call for {}", context);
         ActionContext.release();
     }
 
     // private methods
+    private static Object getRestControllerInstance(final JoinPoint joinPoint) {
+        if (MockUtil.isSpy(joinPoint.getTarget())) {
+            log.warn("Target controller is spy.");
+            // if target is spy, we can retrieve genuine instance from it
+            // this is useful for Mockito spy, which is not a mock, but a real object
+            return Mockito.mockingDetails(joinPoint.getTarget()).getMockCreationSettings().getSpiedInstance();
+        } else if (MockUtil.isMock(joinPoint.getTarget())) {
+            log.warn("Target controller is mock.");
+            // if target is mock, we cannot retrieve genuine instance from it
+            return null;
+        } else {
+            final var realRestControllerInstance = joinPoint.getTarget();
+            log.debug("Returning genuine target controller instance: {}", realRestControllerInstance);
+            // this is real controller instance, not mock or spy
+            return realRestControllerInstance;
+        }
+    }
+
     private static BusinessFacade retrieveFacadeFrom(final Object controller) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         final Class<?> controllerClass = controller.getClass();
+        // searching for field with BusinessFacade type
+        log.debug("Searching for BusinessFacade field in the {}", controllerClass);
         final String facadeFiledName = Arrays.stream(controllerClass.getDeclaredFields())
                 .filter(field -> BusinessFacade.class.isAssignableFrom(field.getType()))
                 .map(Field::getName).findFirst().orElse(null);
@@ -96,6 +110,8 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
             log.warn("No facade field found in the {}", controller);
             return null;
         }
+        // searching for getter method for the facade field
+        log.debug("Searching for getter method for the facade field '{}' in the {}", facadeFiledName, controllerClass);
         final Method facadeGetter = Arrays.stream(Introspector.getBeanInfo(controllerClass).getPropertyDescriptors())
                 .filter(property -> facadeFiledName.equals(property.getName()))
                 .map(PropertyDescriptor::getReadMethod).findFirst().orElse(null);
@@ -103,10 +119,11 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
             log.warn("No facade field getter found in the {}", controller);
             return null;
         }
+        // invoking getter method to retrieve facade instance
         return toFacade(facadeGetter.invoke(controller));
     }
 
-    private static BusinessFacade toFacade(Object facadeValue) {
+    private static BusinessFacade toFacade(final Object facadeValue) {
         return facadeValue instanceof BusinessFacade facade ? facade : null;
     }
 }
