@@ -128,7 +128,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, inputPersonId);
         verify(command).prepareContext(personCommand, inputPersonId);
@@ -152,7 +152,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.DELETE_BY_ID);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(personCommand, wrongInput);
@@ -181,7 +181,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(personCommand, input);
@@ -210,7 +210,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(personCommand, input);
@@ -269,7 +269,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("AuthorityPerson with ID:" + personId + " is not exists.");
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command, never()).executeDo(any(Context.class));
     }
 
@@ -300,7 +300,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(profileContext.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter()).isNull();
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
@@ -337,7 +337,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(personContext.isFailed()).isTrue();
         assertThat(personContext.getException()).isInstanceOf(RuntimeException.class);
         assertThat(personContext.getException().getMessage()).isEqualTo(errorMessage);
-        assertThat(personContext.<PrincipalProfile>getUndoParameter()).isNull();
+        assertThat(personContext.<PrincipalProfile>getUndoParameter().isEmpty()).isTrue();
         assertThat(personContext.getResult()).isEmpty();
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
@@ -384,7 +384,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.getException().getMessage()).isEqualTo(errorMessage);
-        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter()).isNull();
+        assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);

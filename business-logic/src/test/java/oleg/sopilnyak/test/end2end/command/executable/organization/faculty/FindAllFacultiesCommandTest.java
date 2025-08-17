@@ -61,7 +61,7 @@ class FindAllFacultiesCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
                 .contains(persistence.findFacultyById(id).orElseThrow());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllFaculties();
     }
@@ -75,7 +75,7 @@ class FindAllFacultiesCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllFaculties();
     }

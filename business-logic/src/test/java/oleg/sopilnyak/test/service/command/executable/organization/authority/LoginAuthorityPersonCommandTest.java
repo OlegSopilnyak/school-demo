@@ -59,7 +59,7 @@ class LoginAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entityPayload));
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
@@ -80,7 +80,7 @@ class LoginAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEmpty();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
@@ -99,7 +99,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -120,7 +120,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -141,7 +141,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isInstanceOf(SchoolAccessDeniedException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(id);
@@ -167,7 +167,7 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getException().getMessage()).isEqualTo(error);
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);

@@ -120,7 +120,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);
         verify(persistence).unLink(student, course);
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
     }
 
     @Test

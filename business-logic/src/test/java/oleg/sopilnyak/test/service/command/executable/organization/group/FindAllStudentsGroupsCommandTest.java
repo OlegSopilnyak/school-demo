@@ -37,7 +37,7 @@ class FindAllStudentsGroupsCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }
@@ -50,7 +50,7 @@ class FindAllStudentsGroupsCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }

@@ -70,7 +70,7 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
                 .contains(persistence.findStudentsGroupById(id).orElseThrow());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }
@@ -84,7 +84,7 @@ class FindAllStudentsGroupsCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of());
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllStudentsGroups();
     }

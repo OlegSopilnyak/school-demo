@@ -152,10 +152,15 @@ public abstract class SchoolCommandCache<T extends BaseType> {
      */
     protected <E> void restoreInitialCommandState(final Context<E> context,
                                                   final Function<T, Optional<T>> facadeSave) {
-        if (nonNull(context.getUndoParameter())) {
-            getLog().debug("Restoring state of command '{}' after fail using: {}", context.getCommand().getId(), context.getUndoParameter());
-            rollbackCachedEntity(context, facadeSave);
+        // check undo parameter in the context
+        final Input<T> undoParameter = context.getUndoParameter();
+        // check if there is undo parameter in the context
+        if (isNull(undoParameter) || undoParameter.isEmpty()) {
+            // there is no undo parameter in the context
+            return;
         }
+        getLog().debug("Restoring state of command '{}' after fail using: {}", context.getCommand().getId(), undoParameter);
+        rollbackCachedEntity(context, facadeSave);
     }
 
     /**

@@ -197,7 +197,7 @@ class ParallelMacroCommandTest {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         assertThat(macroContext.isFailed()).isTrue();
         assertThat(macroContext.getException()).isInstanceOf(UnableExecuteCommandException.class);
-        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter()).isNull();
+        assertThat(macroContext.<Deque<Context<T>>>getUndoParameter().isEmpty()).isTrue();
 
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         wrapper.getNestedContexts().stream()

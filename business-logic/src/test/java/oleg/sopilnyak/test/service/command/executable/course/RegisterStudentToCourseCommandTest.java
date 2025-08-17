@@ -90,7 +90,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();

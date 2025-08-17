@@ -89,7 +89,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" is not exists.");
         verify(command).executeDo(context);
@@ -112,7 +112,7 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getException()).isInstanceOf(CourseWithStudentsException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" has enrolled students.");
         verify(command).executeDo(context);

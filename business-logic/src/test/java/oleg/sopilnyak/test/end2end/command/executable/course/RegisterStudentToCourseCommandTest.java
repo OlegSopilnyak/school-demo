@@ -111,7 +111,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getResult().orElseThrow()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);

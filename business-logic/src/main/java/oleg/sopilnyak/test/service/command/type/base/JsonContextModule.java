@@ -59,7 +59,7 @@ public class JsonContextModule<T> extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer());
+        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
         setupContext.addSerializers(serializers);
@@ -120,10 +120,12 @@ public class JsonContextModule<T> extends SimpleModule {
         private static <I> void serializeParameter(final Input<I> input,
                                                    final JsonGenerator generator,
                                                    final String fieldName) throws IOException {
-            if (nonNull(input) && !input.isEmpty()) {
-                generator.writeFieldName(fieldName);
-                generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(input));
+            if (isNull(input) || input.isEmpty()) {
+                // if input is null or empty, do not serialize
+                return;
             }
+            generator.writeFieldName(fieldName);
+            generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(input));
         }
 
         // serialize redo parameter
@@ -224,6 +226,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                               final CommandContext.CommandContextBuilder<T> contextBuilder,
                                               final ObjectMapper mapper) throws IOException {
             if (treeNode == null) {
+                contextBuilder.redoParameter(Input.empty());
                 return;
             }
             // restore redo parameter
@@ -236,6 +239,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                               final CommandContext.CommandContextBuilder<T> contextBuilder,
                                               final ObjectMapper mapper) throws IOException {
             if (treeNode == null) {
+                contextBuilder.undoParameter(Input.empty());
                 return;
             }
             // restore undo parameter
@@ -247,23 +251,25 @@ public class JsonContextModule<T> extends SimpleModule {
         private void deserializeExecutionResult(final TreeNode treeNode,
                                                 final CommandContext.CommandContextBuilder<T> contextBuilder,
                                                 final ObjectMapper mapper) throws IOException {
-            if (nonNull(treeNode)) {
-                // restore execution result
-                final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
-                final Output<T> executionResult = resultDeserializer.deserialize(parser, null);
-                contextBuilder.resultData(executionResult.value());
+            if (treeNode == null) {
+                return;
             }
+            // restore execution result
+            final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
+            final Output<T> executionResult = resultDeserializer.deserialize(parser, null);
+            contextBuilder.resultData(executionResult.value());
         }
 
         private void deserializeExecutionError(final TreeNode treeNode,
                                                final CommandContext.CommandContextBuilder<T> contextBuilder,
                                                final ObjectMapper mapper) throws IOException {
-            if (nonNull(treeNode)) {
-                // restore execution error
-                final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
-                final Throwable error = errorDeserializer.deserialize(parser, null);
-                contextBuilder.exception((Exception) error);
+            if (treeNode == null) {
+                return;
             }
+            // restore execution error
+            final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());
+            final Throwable error = errorDeserializer.deserialize(parser, null);
+            contextBuilder.exception((Exception) error);
         }
 
         private void deserializeStartedAt(final TreeNode treeNode,

@@ -136,7 +136,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -160,7 +160,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.DELETE_BY_ID);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(studentCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(studentCommand, wrongInput);
@@ -189,7 +189,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -218,7 +218,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(studentCommand).acceptPreparedContext(command, inputStudentId);
         verify(command).prepareContext(studentCommand, inputStudentId);
@@ -275,7 +275,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(StudentNotFoundException.class);
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
         verify(command, never()).executeDo(any(Context.class));
     }
 
@@ -306,7 +306,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isInstanceOf(ProfileNotFoundException.class);
         assertThat(profileContext.getException().getMessage()).isEqualTo("Profile with ID:" + profileId + " is not exists.");
-        assertThat(profileContext.<StudentProfilePayload>getUndoParameter()).isNull();
+        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);
@@ -343,7 +343,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(studentContext.isFailed()).isTrue();
         assertThat(studentContext.getException()).isInstanceOf(RuntimeException.class);
         assertThat(studentContext.getException().getMessage()).isEqualTo(errorMessage);
-        assertThat(studentContext.<StudentPayload>getUndoParameter()).isNull();
+        assertThat(studentContext.<StudentPayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(studentContext.getResult()).isEmpty();
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
@@ -390,7 +390,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.getException().getMessage()).isEqualTo(errorMessage);
-        assertThat(profileContext.<StudentProfilePayload>getUndoParameter()).isNull();
+        assertThat(profileContext.<StudentProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeDo(context);

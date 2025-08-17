@@ -34,8 +34,8 @@ public interface Output<O> extends IOBase<O> {
      * @return new instance of the output
      * @see EmptyResult
      */
-    static Output<Void> empty() {
-        return new EmptyResult();
+    static <T> Output<T> empty() {
+        return new EmptyResult<>();
     }
 
     /**
@@ -97,7 +97,8 @@ public interface Output<O> extends IOBase<O> {
      * JSON: Deserializer for Output Result field of the command-message
      *
      * @see StdDeserializer
-     * @see CommandMessage#getResult()
+     * @see CommandMessage#getContext()
+     * @see Context#getResult()
      * @see Output
      */
     class ResultDeserializer<R> extends StdDeserializer<Output<?>> {
@@ -111,6 +112,7 @@ public interface Output<O> extends IOBase<O> {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Output<R> deserialize(final JsonParser jsonParser,
                                      final DeserializationContext deserializationContext) throws IOException {
             final TreeNode resultNode = jsonParser.readValueAsTree();

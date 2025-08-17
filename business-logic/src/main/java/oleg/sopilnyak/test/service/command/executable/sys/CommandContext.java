@@ -43,10 +43,12 @@ import org.mockito.internal.util.MockUtil;
 public class CommandContext<T> implements Context<T> {
     private RootCommand<T> command;
     @JsonDeserialize(using = Input.ParameterDeserializer.class)
-    private Input<?> redoParameter;
+    @Builder.Default
+    private Input<?> redoParameter = Input.empty();
     @JsonDeserialize(using = Input.ParameterDeserializer.class)
-    private Input<?> undoParameter;
-    private T resultData;
+    @Builder.Default
+    private Input<?> undoParameter = Input.empty();
+    private transient T resultData;
     private Exception exception;
     // the time when execution starts
     private Instant startedAt;

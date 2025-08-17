@@ -147,7 +147,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CREATE_OR_UPDATE);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(nestedProfileCommand, wrongInput);
@@ -174,7 +174,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(nestedProfileCommand, input);
@@ -204,7 +204,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, input);
         verify(command).prepareContext(nestedProfileCommand, input);

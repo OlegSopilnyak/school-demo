@@ -8,10 +8,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
 import oleg.sopilnyak.test.service.command.io.IOFieldNames;
 import oleg.sopilnyak.test.service.command.io.Input;
-
-import java.io.IOException;
 
 /**
  * Type: I/O school-command empty command input parameter (no results)
@@ -21,7 +20,18 @@ import java.io.IOException;
  */
 @JsonSerialize(using = EmptyParameter.Serializer.class)
 @JsonDeserialize(using = EmptyParameter.Deserializer.class)
-public class EmptyParameter implements Input<Void> {
+public final class EmptyParameter implements Input<Void> {
+    @Override
+    public boolean equals(Object obj) {
+        // EmptyParameter is a singleton, so we can check by class type
+        return obj instanceof EmptyParameter;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     /**
      * To get the value of command input-output entity
      *

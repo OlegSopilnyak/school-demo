@@ -236,7 +236,9 @@ public interface Input<P> extends IOBase<P> {
      * JSON: Deserializer for Input Parameter field of the command-message
      *
      * @see StdDeserializer
-     * @see CommandMessage#getParameter()
+     * @see CommandMessage#getContext()
+     * @see Context#getRedoParameter()
+     * @see Context#getUndoParameter()
      * @see Input
      */
     class ParameterDeserializer<I> extends StdDeserializer<Input<?>> {

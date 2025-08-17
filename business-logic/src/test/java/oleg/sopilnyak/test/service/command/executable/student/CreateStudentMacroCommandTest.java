@@ -147,7 +147,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
         assertThat(context.getException().getMessage()).contains(StudentProfileCommand.CREATE_OR_UPDATE);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);
         verify(command).prepareContext(nestedProfileCommand, wrongInput);
@@ -174,7 +174,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, inputParameter);
         verify(command).prepareContext(nestedProfileCommand, inputParameter);
@@ -203,7 +203,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
-        assertThat(context.getRedoParameter()).isNull();
+        assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, inputParameter);
         verify(command).prepareContext(nestedProfileCommand, inputParameter);

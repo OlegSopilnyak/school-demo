@@ -77,7 +77,7 @@ class DeleteCourseCommandTest {
 
         assertThat(context.isDone()).isFalse();
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getUndoParameter()).isNull();
+        assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getException()).isInstanceOf(CourseNotFoundException.class);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);

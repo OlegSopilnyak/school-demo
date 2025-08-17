@@ -21,14 +21,14 @@ import java.io.IOException;
  */
 @JsonSerialize(using = EmptyResult.Serializer.class)
 @JsonDeserialize(using = EmptyResult.Deserializer.class)
-public class EmptyResult implements Output<Void> {
+public class EmptyResult<T> implements Output<T> {
     /**
      * To get the value of command execution result
      *
      * @return value of the result
      */
     @Override
-    public Void value() {
+    public T value() {
         return null;
     }
 
@@ -48,12 +48,12 @@ public class EmptyResult implements Output<Void> {
      * @see StdSerializer
      * @see EmptyResult
      */
-    static class Serializer extends StdSerializer<EmptyResult> {
+    static class Serializer extends StdSerializer<EmptyResult<?>> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<EmptyResult> t) {
+        protected Serializer(Class<EmptyResult<?>> t) {
             super(t);
         }
 
@@ -74,7 +74,7 @@ public class EmptyResult implements Output<Void> {
      * @see StdDeserializer
      * @see EmptyResult
      */
-    static class Deserializer extends StdDeserializer<EmptyResult> {
+    static class Deserializer extends StdDeserializer<EmptyResult<?>> {
 
         public Deserializer() {
             this(EmptyResult.class);
@@ -85,9 +85,9 @@ public class EmptyResult implements Output<Void> {
         }
 
         @Override
-        public EmptyResult deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
+        public EmptyResult<?> deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
                 throws IOException {
-            return new EmptyResult();
+            return new EmptyResult<>();
         }
     }
 }
