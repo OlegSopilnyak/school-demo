@@ -59,7 +59,7 @@ public class JsonContextModule<T> extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
+        serializers.addSerializer(Context.class, new CommandContextSerializer());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
         setupContext.addSerializers(serializers);
