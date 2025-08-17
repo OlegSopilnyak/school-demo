@@ -10,16 +10,15 @@ import java.util.Collection;
  * @param <T> type of factory's commands
  */
 public interface CommandsFactory<T extends RootCommand<?>> {
-
     /**
-     * To get the commandIds of registered commands
+     * To get sorted ASC command ids of registered commands
      *
-     * @return commandIds of registered commands
+     * @return sorted ids of registered commands
      */
     Collection<String> commandIds();
 
     /**
-     * To get command instance by commandId
+     * To get command instance by command-id
      *
      * @param commandId command-id
      * @return command instance or null if not registered
@@ -37,6 +36,9 @@ public interface CommandsFactory<T extends RootCommand<?>> {
      * To get the quantity of commands in the factory
      *
      * @return quantity of commands in the factory
+     * @see CommandsFactory#commandIds()
      */
-    int getSize();
+    default int getSize() {
+        return commandIds().size();
+    }
 }

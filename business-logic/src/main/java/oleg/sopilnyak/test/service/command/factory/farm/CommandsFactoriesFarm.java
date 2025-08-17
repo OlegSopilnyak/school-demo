@@ -1,11 +1,14 @@
 package oleg.sopilnyak.test.service.command.factory.farm;
 
+import static java.util.Objects.isNull;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-
-import java.util.*;
-
-import static java.util.Objects.isNull;
 
 /**
  * Container: all commands factories farm
@@ -32,22 +35,22 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      * @see Optional
      */
     public Optional<CommandsFactory<T>> findCommandFactory(final String factoryName) {
-        return isNull(factoryName) ? Optional.empty() :
+        return isNull(factoryName) || factoryName.isBlank() ?
+                Optional.empty()
+                :
                 commandsFactories.stream().filter(factory -> factoryName.equals(factory.getName())).findFirst();
     }
 
     /**
-     * To get the commandIds of registered commands
+     * To get sorted ASC command ids of registered commands
      *
-     * @return commandIds of registered commands
+     * @return sorted ids of registered commands
      */
     @Override
     public Collection<String> commandIds() {
-        return List.of(
-                commandsFactories.stream()
-                        .flatMap(factory -> factory.commandIds().stream())
-                        .distinct()
-                        .toArray(String[]::new));
+        return commandsFactories.stream()
+                .flatMap(factory -> factory.commandIds().stream())
+                .distinct().sorted().toList();
     }
 
     /**
@@ -60,8 +63,9 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      */
     public T command(String commandId) {
         return commandsFactories.stream()
-                .map(factory -> factory.command(commandId)).filter(Objects::nonNull)
-                .findFirst().orElse(null);
+                .map(factory -> factory.command(commandId))
+                .filter(Objects::nonNull).findFirst()
+                .orElse(null);
     }
 
     /**

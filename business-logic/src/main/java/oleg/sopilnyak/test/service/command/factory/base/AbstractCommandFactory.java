@@ -21,17 +21,19 @@ public abstract class AbstractCommandFactory<T extends RootCommand<?>> implement
      */
     protected void applyFactoryCommands(Collection<T> commands) {
         this.commandMap.clear();
-        this.commandMap.putAll(commands.stream().collect(Collectors.toMap(RootCommand::getId, Function.identity())));
+        this.commandMap.putAll(
+                commands.stream().collect(Collectors.toMap(RootCommand::getId, Function.identity()))
+        );
     }
 
     /**
-     * To get the commandIds of registered commands
+     * To get sorted ASC command ids of registered commands
      *
-     * @return commandIds of registered commands
+     * @return sorted ids of registered commands
      */
     @Override
     public Collection<String> commandIds() {
-        return List.of(commandMap.keySet().stream().sorted().toArray(String[]::new));
+        return commandMap.keySet().stream().sorted().toList();
     }
 
     /**
@@ -45,15 +47,5 @@ public abstract class AbstractCommandFactory<T extends RootCommand<?>> implement
     @Override
     public T command(String commandId) {
         return commandMap.get(commandId);
-    }
-
-    /**
-     * To get the quantity of commands in the factory
-     *
-     * @return quantity of commands in the factory
-     */
-    @Override
-    public int getSize() {
-        return commandMap.size();
     }
 }
