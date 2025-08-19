@@ -95,7 +95,6 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
 
         assertThat(coursesFacade).isNotNull();
         assertThat(courseFactory).isEqualTo(ReflectionTestUtils.getField(coursesFacade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(coursesFacade, "mapper"));
 
         assertThat(studentsFacade).isNotNull();
         assertThat(studentFactory).isEqualTo(ReflectionTestUtils.getField(studentsFacade, "factory"));
