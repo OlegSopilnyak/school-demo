@@ -13,10 +13,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
-import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
@@ -66,7 +64,7 @@ class UndoCommandMessageTest {
         long id = 1L;
         String commandId = "student.findById";
         String correlationId = "test-correlation-id";
-        UndoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(id));
+        UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         message.getContext().setState(Context.State.WORK);
         String errorMessage = "Simple exception message";
         Exception ex = new Exception(errorMessage);
@@ -75,7 +73,7 @@ class UndoCommandMessageTest {
         String json = objectMapper.writeValueAsString(message);
         assertThat(json).isNotBlank();
 
-        UndoCommandMessage<Boolean> restored = objectMapper.readValue(json, UndoCommandMessage.class);
+        UndoCommandMessage restored = objectMapper.readValue(json, UndoCommandMessage.class);
 
         assertThat(restored).isInstanceOf(UndoCommandMessage.class);
         assertThat(restored.getCorrelationId()).isEqualTo(correlationId);
@@ -95,7 +93,7 @@ class UndoCommandMessageTest {
         long id = 2L;
         String commandId = "student.findNotEnrolled";
         String correlationId = "test-correlation-id";
-        UndoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(id));
+        UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         String errorMessage = "IO exception message";
         IOException ex = new IOException(errorMessage);
         ActionContext.install(message.getActionContext(), true);
@@ -106,7 +104,7 @@ class UndoCommandMessageTest {
 
         String json = objectMapper.disable(SerializationFeature.INDENT_OUTPUT).writeValueAsString(message);
         assertThat(json).contains(masterExceptionMessage.split("\\R|\\t"));
-        UndoCommandMessage<Optional<Student>> restored = objectMapper.readValue(json, UndoCommandMessage.class);
+        UndoCommandMessage restored = objectMapper.readValue(json, UndoCommandMessage.class);
 
         assertThat(restored).isInstanceOf(UndoCommandMessage.class);
         assertThat(restored.getContext().getUndoParameter().isEmpty()).isFalse();
@@ -124,7 +122,7 @@ class UndoCommandMessageTest {
         long id = 3L;
         String commandId = "student.findById";
         String correlationId = "test-correlation-id";
-        UndoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(id));
+        UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         message.getContext().setState(Context.State.WORK);
         String errorMessage = "Simple exception message";
         Exception ex = new Exception(errorMessage);
@@ -134,7 +132,7 @@ class UndoCommandMessageTest {
         String json = objectMapper.writeValueAsString(message);
         assertThat(json).isNotNull().isNotBlank().contains(errorMessage);
 
-        UndoCommandMessage<Optional<Student>> restored = objectMapper.readValue(json, UndoCommandMessage.class);
+        UndoCommandMessage restored = objectMapper.readValue(json, UndoCommandMessage.class);
 
         assertThat(restored).isNotNull().isInstanceOf(UndoCommandMessage.class);
         assertThat(restored.getContext().getUndoParameter().isEmpty()).isFalse();
@@ -148,21 +146,19 @@ class UndoCommandMessageTest {
     void shouldCreateMessageLongBoolean() {
         long id = 4;
         Context.State state = Context.State.DONE;
-        RootCommand<Boolean> command = mock(BooleanCommand.class);
+        RootCommand<Void> command = mock(VoidCommand.class);
         doReturn(COMMAND_ID).when(command).getId();
-        CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().build();
+        CommandContext<Void> commandContext = CommandContext.<Void>builder().build();
         commandContext.setCommand(command);
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(1, ChronoUnit.SECONDS)));
+        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
 
         // Create a UndoCommandMessage instance
-        UndoCommandMessage<Boolean> message = UndoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(CORRELATION_ID);
-
         // Set the command ID, action context and command context
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        UndoCommandMessage message = UndoCommandMessage.<Boolean>builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the undo parameter
         commandContext.setState(Context.State.WORK);
@@ -185,20 +181,18 @@ class UndoCommandMessageTest {
     void shouldStoreCommandMessageLongBoolean() throws JsonProcessingException {
         long id = 5;
         Context.State state = Context.State.DONE;
-        RootCommand<Boolean> command = mock(BooleanCommand.class);
+        RootCommand<Void> command = mock(VoidCommand.class);
         doReturn(COMMAND_ID).when(command).getId();
-        CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().build();
+        CommandContext<Void> commandContext = CommandContext.<Void>builder().build();
         commandContext.setCommand(command);
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a UndoCommandMessage instance
-        UndoCommandMessage<Boolean> message = UndoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(CORRELATION_ID);
-
         // Set the command ID, action context and command context
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        UndoCommandMessage message = UndoCommandMessage.<Boolean>builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the undo parameter
         commandContext.setState(Context.State.WORK);
@@ -220,18 +214,16 @@ class UndoCommandMessageTest {
         String commandId = "student.findById";
         long id = 6;
         Context.State state = Context.State.DONE;
-        CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().command(farm.command(commandId)).build();
+        CommandContext<Void> commandContext = CommandContext.<Void>builder().command(farm.command(commandId)).build();
         ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
         // Create a UndoCommandMessage instance
-        UndoCommandMessage<Boolean> message = UndoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(CORRELATION_ID);
-
         // Set the command ID, action context and command context
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        UndoCommandMessage message = UndoCommandMessage.builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the undo parameter
         commandContext.setState(Context.State.WORK);
@@ -243,25 +235,25 @@ class UndoCommandMessageTest {
         // Serialize the message to JSON
         String json = objectMapper.writeValueAsString(message);
 
-        UndoCommandMessage<Boolean> restoredMessage = objectMapper.readValue(json, UndoCommandMessage.class);
+        UndoCommandMessage restoredMessage = objectMapper.readValue(json, UndoCommandMessage.class);
 
         assertThat(restoredMessage).isNotNull().isEqualTo(message);
     }
 
 
     // inner types
-    interface BooleanCommand extends RootCommand<Boolean> {
+    interface VoidCommand extends RootCommand<Void> {
         // This interface is just a marker for commands that return Boolean
     }
     // private methods
-    private <T> UndoCommandMessage<T> createMessage(String correlationId, String commandId, Input<?> input) {
-        CommandContext<T> context = CommandContext.<T>builder()
+    private UndoCommandMessage createMessage(String correlationId, String commandId, Input<?> input) {
+        CommandContext<Void> context = CommandContext.<Void>builder()
                 .command(farm.command(commandId)).undoParameter(input)
                 .startedAt(Instant.now()).duration(Duration.of(10, ChronoUnit.SECONDS))
                 .build();
         context.setState(Context.State.INIT);
         context.setState(Context.State.READY);
-        return UndoCommandMessage.<T>builder()
+        return UndoCommandMessage.builder()
                 .correlationId(correlationId)
                 .context(context)
                 .actionContext(ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build())

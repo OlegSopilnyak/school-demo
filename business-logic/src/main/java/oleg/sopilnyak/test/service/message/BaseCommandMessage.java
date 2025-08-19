@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.util.Arrays;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -27,7 +27,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
  * @see DoCommandMessage
  */
 @Data
-@SuperBuilder
+@AllArgsConstructor
 @JsonSerialize(using = BaseCommandMessage.Serializer.class)
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
@@ -43,6 +43,22 @@ public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
     private ActionContext actionContext;
     // the context of command's execution
     private Context<T> context;
+
+    /**
+     * To validate message content after build or restore.
+     * Throws IllegalArgumentException if validation fails.
+     */
+    public final void validate() {
+        if (correlationId == null || correlationId.isBlank()) {
+            throw new IllegalArgumentException("Correlation ID must not be null or empty");
+        }
+        if (actionContext == null) {
+            throw new IllegalArgumentException("Action context must not be null");
+        }
+        if (context == null) {
+            throw new IllegalArgumentException("Command context must not be null");
+        }
+    }
 
     /**
      * JSON: Serializer for types extends BaseCommandMessage
@@ -124,8 +140,8 @@ public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
                 case DO -> DoCommandMessage.<R>builder()
                         .correlationId(correlationId).actionContext(actionContext).context(commandContext)
                         .build();
-                case UNDO -> UndoCommandMessage.<R>builder()
-                        .correlationId(correlationId).actionContext(actionContext).context(commandContext)
+                case UNDO -> UndoCommandMessage.builder()
+                        .correlationId(correlationId).actionContext(actionContext).context((Context<Void>) commandContext)
                         .build();
             };
         }

@@ -152,15 +152,13 @@ class DoCommandMessageTest {
         commandContext.setCommand(command);
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(1, ChronoUnit.SECONDS)));
+        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
 
         // Create a DoCommandMessage instance
-        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(correlationCommandId);
-
         // Set the command ID, action context and command context
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the parameter and result
         commandContext.setRedoParameter(new NumberIdParameter<>(id));
@@ -193,12 +191,10 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a DoCommandMessage instance
-        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(DoCommandMessageTest.CORRELATION_ID);
-
         // Set the command ID, action context and command context
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the parameter and result
         commandContext.setRedoParameter(new NumberIdParameter<>(id));
@@ -227,12 +223,10 @@ class DoCommandMessageTest {
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
         // Create a DoCommandMessage instance
-        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder().build();
-        message.setCorrelationId(DoCommandMessageTest.CORRELATION_ID);
-
         // Set the command ID, action context and command context
-        message.setContext(commandContext);
-        message.setActionContext(actionContext);
+        DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
+                .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
+                .build();
 
         // Set the parameter and result
         commandContext.setRedoParameter(new NumberIdParameter<>(id));

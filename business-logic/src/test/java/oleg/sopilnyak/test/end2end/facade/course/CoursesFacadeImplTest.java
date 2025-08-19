@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.course;
 
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -77,6 +78,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindById() {
         Long courseId = 100L;
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -92,7 +94,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldFindById() {
         Course newCourse = makeClearTestCourse();
         Long courseId = getPersistent(newCourse).getId();
-
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 

@@ -1,43 +1,56 @@
 package oleg.sopilnyak.test.service.facade.impl;
 
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.CREATE_OR_UPDATE;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.DELETE;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_BY_ID;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_NOT_REGISTERED;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_REGISTERED;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.REGISTER;
+import static oleg.sopilnyak.test.service.command.type.CourseCommand.UN_REGISTER;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
-import oleg.sopilnyak.test.school.common.exception.education.*;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.facade.ActionExecutorFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.*;
+import org.slf4j.Logger;
 
 /**
  * Service: To process command for school's courses facade
  */
 @Slf4j
-public class CoursesFacadeImpl implements CoursesFacade {
+public class CoursesFacadeImpl implements CoursesFacade, ActionExecutorFacade {
     public static final String SOMETHING_WENT_WRONG = "Something went wrong";
     public static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
     public static final String EXCEPTION_WAS_NOT_STORED = "Command fail Exception was not stored!!!";
-    private final CommandsFactory<CourseCommand<?>> factory;
-    private final BusinessMessagePayloadMapper mapper;
+    @Getter
+    private final CommandsFactory<? extends RootCommand<?>> factory;
     // semantic data to payload converter
     private final UnaryOperator<Course> convert;
 
     public CoursesFacadeImpl(CommandsFactory<CourseCommand<?>> factory, BusinessMessagePayloadMapper mapper) {
         this.factory = factory;
-        this.mapper = mapper;
-        this.convert = course -> course instanceof CoursePayload ? course : this.mapper.toPayload(course);
+        this.convert = course -> course instanceof CoursePayload payload? payload : mapper.toPayload(course);
     }
 
     /**
@@ -51,8 +64,8 @@ public class CoursesFacadeImpl implements CoursesFacade {
      */
     @Override
     public Optional<Course> findById(Long id) {
-        log.debug("Find course by ID:{}", id);
-        final Optional<Course> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
+        log.debug("Finding course by ID: {}", id);
+        final Optional<Course> result = doActionCommand(FIND_BY_ID, Input.of(id));
         log.debug("Found the course {}", result);
         return result.map(convert);
     }
@@ -66,7 +79,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findRegisteredFor(Long id) {
         log.debug("Find courses registered to student with ID:{}", id);
-        final Set<Course> result = doSimpleCommand(FIND_REGISTERED, Input.of(id), factory);
+        final Set<Course> result = (Set<Course>) doSimpleCommand(FIND_REGISTERED, Input.of(id), factory);
         log.debug("Found courses registered to student {}", result);
         return result.stream().map(convert).collect(Collectors.toSet());
     }
@@ -79,7 +92,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Set<Course> findWithoutStudents() {
         log.debug("Find no-students courses");
-        final Set<Course> result = doSimpleCommand(FIND_NOT_REGISTERED, null, factory);
+        final Set<Course> result = (Set<Course>) doSimpleCommand(FIND_NOT_REGISTERED, null, factory);
         log.debug("Found no-students courses {}", result);
         return result.stream().map(convert).collect(Collectors.toSet());
     }
@@ -95,7 +108,7 @@ public class CoursesFacadeImpl implements CoursesFacade {
     @Override
     public Optional<Course> createOrUpdate(Course instance) {
         log.debug("Create or Update course {}", instance);
-        final Optional<Course> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
+        final Optional<Course> result = (Optional<Course>) doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed course {}", result);
         return result.map(convert);
     }
@@ -216,6 +229,11 @@ public class CoursesFacadeImpl implements CoursesFacade {
         } else {
             wrongCommandExecution(commandId);
         }
+    }
+
+    @Override
+    public Logger getLogger() {
+        return log;
     }
 
     // private methods

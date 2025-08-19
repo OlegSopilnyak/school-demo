@@ -16,6 +16,7 @@ import static java.util.Objects.nonNull;
 /**
  * The main engine for execute school commands
  */
+@Deprecated(forRemoval = true, since = "ActionExecutor is used instead")
 public interface CommandExecutor {
     /**
      * To do simple school-command using Context
@@ -96,7 +97,6 @@ public interface CommandExecutor {
     static Supplier<RuntimeException> createThrowFor(final String commandId) {
         return () -> new UnableExecuteCommandException(commandId);
     }
-
 
     /**
      * To throw UnableExecuteCommandException for the command which thrown exception

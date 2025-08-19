@@ -1,16 +1,18 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
-import oleg.sopilnyak.test.school.common.exception.education.*;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.model.BaseType;
+import static java.util.Objects.isNull;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.Objects.isNull;
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
+import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Student;
 
 /**
  * Service-Facade: Service for manage courses in the school
@@ -54,8 +56,8 @@ public interface CoursesFacade extends BusinessFacade {
      * @param student student instance
      * @return set of courses
      */
-    default Set<Course> findRegisteredFor(Student student) {
-        return isInvalid(student) ? Collections.emptySet() : findRegisteredFor(student.getId());
+    default Set<Course> findRegisteredFor(final Student student) {
+        return isInvalid(student) ? Set.of() : findRegisteredFor(student.getId());
     }
 
     /**
@@ -99,7 +101,7 @@ public interface CoursesFacade extends BusinessFacade {
     }
 
     /**
-     * To register the student to the school course
+     * To register the student to the school course by their system-ids
      *
      * @param studentId system-id of the student
      * @param courseId  system-id of the course
@@ -113,7 +115,7 @@ public interface CoursesFacade extends BusinessFacade {
             CourseHasNoRoomException, StudentCoursesExceedException;
 
     /**
-     * To register the student to the school course
+     * To register the student to the school course by their instances
      *
      * @param student student instance
      * @param course  course instance

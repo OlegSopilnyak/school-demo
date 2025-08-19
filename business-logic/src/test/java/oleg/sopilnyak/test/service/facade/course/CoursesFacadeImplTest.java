@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.facade.course;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.education.*;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -56,6 +57,7 @@ class CoursesFacadeImplTest {
     @Test
     void shouldNotFindById() {
         Long courseId = 200L;
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -72,6 +74,7 @@ class CoursesFacadeImplTest {
         Long courseId = 201L;
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
