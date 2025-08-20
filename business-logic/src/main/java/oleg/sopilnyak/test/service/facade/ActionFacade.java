@@ -3,19 +3,16 @@ package oleg.sopilnyak.test.service.facade;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.CommandNotRegisteredInFactoryException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
-import oleg.sopilnyak.test.service.message.DoCommandMessage;
-import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.slf4j.Logger;
 
 /**
@@ -31,6 +28,14 @@ public interface ActionFacade {
      * @return logger instance
      */
     Logger getLogger();
+
+    /**
+     * To get the actions executor instance
+     *
+     * @return action executor instance
+     * @see ActionExecutor
+     */
+    ActionExecutor getActionExecutor();
 
     /**
      * To act action command with given command ID, command factory, and input parameter.
@@ -74,7 +79,7 @@ public interface ActionFacade {
             return throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
         }
 
-        final Context<T> responseContext = doAction(ActionContext.current(), requestContext);
+        final Context<T> responseContext = getActionExecutor().commitAction(ActionContext.current(), requestContext);
         if (responseContext.isDone()) {
             // success processing
             getLogger().debug("Success execution of command:{} with parameter:{}", commandId, input.value());
@@ -86,67 +91,6 @@ public interface ActionFacade {
             // returns null if command execution failed
             return null;
         }
-    }
-
-    /**
-     * To do (commit) action with the action context and command context
-     *
-     * @param actionContext  the action context
-     * @param commandContext the command context
-     * @param <T>            type of do command execution result
-     * @return command-context after undo command execution
-     * @see ActionContext
-     * @see Context
-     */
-    default <T> Context<T> doAction(final ActionContext actionContext, final Context<T> commandContext) {
-        final DoCommandMessage<T> message = DoCommandMessage.<T>builder()
-                .actionContext(actionContext).context(commandContext)
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        return processActionCommand(message).getContext();
-    }
-
-    /**
-     * To undo (rollback) action with the action context and command context
-     *
-     * @param actionContext  the action context
-     * @param commandContext the command context
-     * @return command-context after undo command execution
-     * @see ActionContext
-     * @see Context
-     */
-    default Context<Void> undoAction(final ActionContext actionContext, final Context<Void> commandContext) {
-        final UndoCommandMessage message = UndoCommandMessage.builder()
-                .actionContext(actionContext).context(commandContext)
-                .correlationId(UUID.randomUUID().toString())
-                .build();
-        return processActionCommand(message).getContext();
-    }
-
-    /**
-     * To process action command message
-     *
-     * @param message the action command message
-     * @param <T>     type of command result
-     * @return processed command message
-     * @see BaseCommandMessage
-     */
-    default <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> message) {
-        // This method can be overridden to process command messages
-        switch (message.getDirection()) {
-            case DO:
-                // Execute the command with the given context
-                message.getContext().getCommand().doCommand(message.getContext());
-                break;
-            case UNDO:
-                // Rollback the command with the given context
-                message.getContext().getCommand().undoCommand(message.getContext());
-                break;
-            default:
-                getLogger().warn("Unknown command direction: '{}'.", message.getDirection());
-                throw new IllegalArgumentException("Unknown command direction: " + message.getDirection());
-        }
-        return message;
     }
 
     /**

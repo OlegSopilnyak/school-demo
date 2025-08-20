@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.facade.impl;
+package oleg.sopilnyak.test.service.facade.education.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;

@@ -1,45 +1,60 @@
 package oleg.sopilnyak.test.end2end.facade.course;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
-import oleg.sopilnyak.test.school.common.exception.education.*;
+import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.course.*;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.course.DeleteCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.course.FindCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.course.FindCoursesWithoutStudentsCommand;
+import oleg.sopilnyak.test.service.command.executable.course.FindRegisteredCoursesCommand;
+import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.course.UnRegisterStudentFromCourseCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
+import oleg.sopilnyak.test.service.facade.education.impl.CoursesFacadeImpl;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {ActionExecutorImpl.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
@@ -51,6 +66,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     public static final String COURSE_REGISTER = "course.register";
     public static final String COURSE_UN_REGISTER = "course.unRegister";
 
+    @Autowired
+    @SpyBean
+    ActionExecutor actionExecutor;
     @Autowired
     @SpyBean
     PersistenceFacade database;
@@ -65,7 +83,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
-        facade = spy(new CoursesFacadeImpl(factory, payloadMapper));
+        facade = spy(new CoursesFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 
