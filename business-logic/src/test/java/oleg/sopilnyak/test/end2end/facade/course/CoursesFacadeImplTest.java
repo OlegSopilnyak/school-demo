@@ -66,7 +66,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         persistenceFacade = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new CoursesFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
     }
+
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -147,7 +149,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(courses).isEmpty();
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
@@ -164,7 +166,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertCourseEquals(newCourse, courses.iterator().next(), false);
         assertThat(courses).hasSize(1);
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
     }

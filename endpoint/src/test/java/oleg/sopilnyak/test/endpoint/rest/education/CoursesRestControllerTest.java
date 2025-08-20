@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -79,7 +78,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldFindCourse() throws Exception {
         Long id = 100L;
         Course course = makeTestCourse(id);
-        when(facade.findById(id)).thenReturn(Optional.of(course));
+        doReturn(Optional.of(course)).when(facade).findById(id);
         String requestPath = "/courses/" + id;
 
         MvcResult result =
@@ -107,7 +106,7 @@ class CoursesRestControllerTest extends TestModelFactory {
         Long studentId = 200L;
         long coursesAmount = 10L;
         Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
-        when(facade.findRegisteredFor(studentId)).thenReturn(courses);
+        doReturn(courses).when(facade).findRegisteredFor(studentId);
         List<Course> selectedCoursesList = courses.stream().sorted(Comparator.comparing(Course::getId)).toList();
         String requestPath = "/courses/registered/" + studentId;
 
@@ -135,7 +134,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldFindEmptyCourses() throws Exception {
         long coursesAmount = 5L;
         Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
-        when(facade.findWithoutStudents()).thenReturn(courses);
+        doReturn(courses).when(facade).findWithoutStudents();
         List<Course> selectedCoursesList = courses.stream().sorted(Comparator.comparing(Course::getId)).toList();
         String requestPath = "/courses/empty";
 

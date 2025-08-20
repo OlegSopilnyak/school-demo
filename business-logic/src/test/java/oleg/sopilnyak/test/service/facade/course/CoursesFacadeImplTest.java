@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.impl.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -54,10 +55,14 @@ class CoursesFacadeImplTest {
     @Mock
     Student mockedStudent;
 
+    @BeforeEach
+    void setUp() {
+        ActionContext.setup("test-facade", "test-action");
+    }
+
     @Test
     void shouldNotFindById() {
         Long courseId = 200L;
-        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -74,7 +79,6 @@ class CoursesFacadeImplTest {
         Long courseId = 201L;
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -123,7 +127,7 @@ class CoursesFacadeImplTest {
 
         assertThat(course).hasSize(1);
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
         verify(payloadMapper).toPayload(mockedCourse);
@@ -136,7 +140,7 @@ class CoursesFacadeImplTest {
 
         assertThat(course).isEmpty();
         verify(factory).command(COURSE_FIND_WITHOUT_STUDENTS);
-        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(null);
+        verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
         verify(payloadMapper, never()).toPayload(any(Course.class));

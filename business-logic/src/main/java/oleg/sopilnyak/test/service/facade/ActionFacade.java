@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  * @see ActionContext
  * @see Context
  */
-public interface ActionExecutorFacade {
+public interface ActionFacade {
     /**
      * To get the logger of the facade
      *
@@ -33,55 +33,45 @@ public interface ActionExecutorFacade {
     Logger getLogger();
 
     /**
-     * To get the commands factory of the facade to deal with commands
-     *
-     * @return factory of commands instance
-     */
-    CommandsFactory<? extends RootCommand<?>> getFactory();
-
-
-    /** To do action command with the given command-id and input parameter.
+     * To act action command with given command ID, command factory, and input parameter.
      *
      * @param commandId the command id
+     * @param factory   the commands factory to find command by id
      * @param input     the input parameter for the command execution
      * @param <T>       type of command result
      * @return result of command execution or throws exception if command is not registered
      * @throws UnableExecuteCommandException if command cannot be executed
+     * @see CommandsFactory
      * @see Input
-     * @see ActionExecutorFacade#throwFor(String, Exception)
+     * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> T doActionCommand(final String commandId, final Input<?> input) throws UnableExecuteCommandException {
-        final Consumer<Exception> defaultOnCommandErrorConsumer = exception -> {
-            if (nonNull(exception)) {
-                getLogger().warn("Something went wrong in command with ID:'{}'.", commandId, exception);
-                throwFor(commandId, exception);
-            } else {
-                getLogger().error("For command with ID:'{}' there is no exception after wrong command execution.", commandId);
-                throwFor(commandId, new NullPointerException("Command fail Exception was not stored!!!"));
-            }
-        };
+    default <T> T actCommand(final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
+                             final Input<?> input) throws UnableExecuteCommandException {
         // To do action command with the given command-id, input parameter and default error processor
-        return doActionCommand(commandId, input, defaultOnCommandErrorConsumer);
+        return actCommand(commandId, factory, input, defaultOnErrorFor(commandId));
     }
 
-    /** To do action command with the given command-id, input parameter and command error processor.
+    /**
+     * To act action command with given command-id, commands factory, input parameter and command error processor.
      *
      * @param commandId the command id
+     * @param factory   the commands factory to find command by id
      * @param input     the input parameter for the command execution
-     * @param onCommandError consumer to handle command error
+     * @param onError   consumer to handle command execution errors
      * @param <T>       type of command result
      * @return result of command execution or throws exception if command is not registered
      * @throws UnableExecuteCommandException if command cannot be executed
+     * @see CommandsFactory
      * @see Input
+     * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> T doActionCommand(
-            final String commandId, final Input<?> input, final Consumer<Exception> onCommandError
-    ) throws UnableExecuteCommandException {
-        final Context<T> requestContext = getFactory().makeCommandContext(commandId, input);
+    default <T> T actCommand(final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
+                             final Input<?> input, final Consumer<Exception> onError) throws UnableExecuteCommandException {
+        final Context<T> requestContext = factory.makeCommandContext(commandId, input);
         if (isNull(requestContext)) {
             // command is not registered in the factory
-            getLogger().warn("Command with ID:{} is not registered in the factory:{}", commandId, getFactory().getName());
-            return throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, getFactory()));
+            getLogger().warn("Command with ID:{} is not registered in the factory:{}", commandId, factory.getName());
+            return throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
         }
 
         final Context<T> responseContext = doAction(ActionContext.current(), requestContext);
@@ -92,17 +82,18 @@ public interface ActionExecutorFacade {
             return responseContext.getResult().orElseThrow(createThrowFor(commandId));
         } else {
             // fail processing
-            onCommandError.accept(responseContext.getException());
+            onError.accept(responseContext.getException());
             // returns null if command execution failed
             return null;
         }
     }
+
     /**
      * To do (commit) action with the action context and command context
      *
-     * @param actionContext the action context
+     * @param actionContext  the action context
      * @param commandContext the command context
-     * @param <T> type of do command execution result
+     * @param <T>            type of do command execution result
      * @return command-context after undo command execution
      * @see ActionContext
      * @see Context
@@ -118,13 +109,13 @@ public interface ActionExecutorFacade {
     /**
      * To undo (rollback) action with the action context and command context
      *
-     * @param actionContext the action context
+     * @param actionContext  the action context
      * @param commandContext the command context
      * @return command-context after undo command execution
      * @see ActionContext
      * @see Context
      */
-    default  Context<Void> undoAction(final ActionContext actionContext, final Context<Void> commandContext) {
+    default Context<Void> undoAction(final ActionContext actionContext, final Context<Void> commandContext) {
         final UndoCommandMessage message = UndoCommandMessage.builder()
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
@@ -136,7 +127,7 @@ public interface ActionExecutorFacade {
      * To process action command message
      *
      * @param message the action command message
-     * @param <T> type of command result
+     * @param <T>     type of command result
      * @return processed command message
      * @see BaseCommandMessage
      */
@@ -178,5 +169,45 @@ public interface ActionExecutorFacade {
      */
     static Supplier<RuntimeException> createThrowFor(final String commandId) {
         return () -> new UnableExecuteCommandException(commandId);
+    }
+
+    /**
+     * To log warning message when something went wrong in command execution
+     *
+     * @param exception the exception occurred during command execution
+     * @param commandId the command-id where something went wrong
+     */
+    default void logSomethingWentWrong(Exception exception, String commandId) {
+        getLogger().warn("Something went wrong in command with ID:'{}'.", commandId, exception);
+    }
+
+    /**
+     * To log error message when command execution failed but no exception was stored
+     *
+     * @param commandId the command-id where something went wrong
+     * @see ActionFacade#throwFor(String, Exception)
+     */
+    default void failedButNoExceptionStored(String commandId) {
+        getLogger().error("For command with ID:'{}' there is no exception after wrong command execution.", commandId);
+        throwFor(commandId, new NullPointerException("Command failed, but Exception wasn't stored!!!"));
+    }
+
+    /**
+     * To get default error consumer for command execution
+     *
+     * @param commandId the command-id where something went wrong
+     * @return default error consumer for command execution
+     * @see ActionFacade#logSomethingWentWrong(Exception, String)
+     * @see ActionFacade#throwFor(String, Exception)
+     */
+    private Consumer<Exception> defaultOnErrorFor(final String commandId) {
+        return exception -> {
+            if (nonNull(exception)) {
+                logSomethingWentWrong(exception, commandId);
+                throwFor(commandId, exception);
+            } else {
+                failedButNoExceptionStored(commandId);
+            }
+        };
     }
 }
