@@ -66,7 +66,11 @@ public interface ActionFacade {
      * @param <T>       type of command result
      * @return result of command execution or throws exception if command is not registered
      * @throws UnableExecuteCommandException if command cannot be executed
-     * @see CommandsFactory
+     * @see CommandsFactory#makeCommandContext(String, Input)
+     * @see ActionExecutor#commitAction(ActionContext, Context)
+     * @see Context#isDone()
+     * @see Context#getResult()
+     * @see Context#getException()
      * @see Input
      * @see ActionFacade#throwFor(String, Exception)
      */
@@ -136,6 +140,7 @@ public interface ActionFacade {
         throwFor(commandId, new NullPointerException("Command failed, but Exception wasn't stored!!!"));
     }
 
+    // private methods
     /**
      * To get default error consumer for command execution
      *
