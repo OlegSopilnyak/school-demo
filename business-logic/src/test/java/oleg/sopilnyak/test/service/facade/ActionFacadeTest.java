@@ -116,9 +116,8 @@ class ActionFacadeTest {
         doReturn(Optional.of(Boolean.TRUE)).when(context).getResult();
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
-        Consumer<Exception> customErrorHandler = this::justLogException;
 
-        Boolean result = actionFacade.actCommand(commandId, commandsFactory, input, customErrorHandler);
+        Boolean result = actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException);
 
         assertThat(result).isNotNull().isTrue();
         verify(actionExecutor).commitAction(currentActionContext, context);
@@ -128,9 +127,8 @@ class ActionFacadeTest {
     @Test
     void shouldNotActCommandWithCustomErrorHandler_CannotMakeContext() {
         String commandId = "5";
-        Consumer<Exception> customErrorHandler = this::justLogException;
 
-        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input, customErrorHandler));
+        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException));
 
         assertThat(result).isNotNull().isInstanceOf(UnableExecuteCommandException.class);
         assertThat(result.getMessage()).startsWith("Cannot execute command '" + commandId);
