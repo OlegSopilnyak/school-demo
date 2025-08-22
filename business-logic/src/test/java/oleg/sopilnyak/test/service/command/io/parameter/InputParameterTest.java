@@ -31,6 +31,30 @@ class InputParameterTest {
             .enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
+    void shouldCreateEmptyParameter() {
+
+        Input<Void> parameter = Input.empty();
+
+        assertThat(parameter.isEmpty()).isTrue();
+        assertThat(parameter.value()).isNull();
+        assertThat(parameter).isInstanceOf(EmptyParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldRestoreEmptyParameter() throws JsonProcessingException {
+
+        Input<Void> parameter = Input.empty();
+
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(EmptyParameter.class.getName());
+        EmptyParameter restored = objectMapper.readValue(json, EmptyParameter.class);
+
+        assertThat(restored.isEmpty()).isTrue();
+        assertThat(restored.value()).isNull();
+        assertThat(restored).isInstanceOf(Input.class);
+    }
+
+    @Test
     void shouldCreateLongIdParameter() {
         long id = 1L;
 
@@ -337,6 +361,34 @@ class InputParameterTest {
 
         assertThat(restored.value().first()).isSameAs(firstId);
         assertThat(restored.value().second()).isSameAs(secondId);
+        assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldCreateStringsPairParameter() {
+        String first = "first";
+        String second = "second";
+
+        PairParameter<String> parameter = Input.of(first, second);
+
+        assertThat(parameter.value().first()).isSameAs(first);
+        assertThat(parameter.value().second()).isSameAs(second);
+        assertThat(parameter).isInstanceOf(StringPairParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldRestoreStringsPairParameter() throws JsonProcessingException {
+        String first = "first";
+        String second = "second";
+
+        PairParameter<String> parameter = Input.of(first, second);
+
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(StringPairParameter.class.getName());
+        StringPairParameter restored = objectMapper.readValue(json, StringPairParameter.class);
+
+        assertThat(restored.value().first()).isEqualTo(first);
+        assertThat(restored.value().second()).isEqualTo(second);
         assertThat(restored).isInstanceOf(PairParameter.class).isInstanceOf(Input.class);
     }
 
