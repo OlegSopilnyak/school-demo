@@ -1,0 +1,85 @@
+package oleg.sopilnyak.test.service.facade.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+
+import java.util.UUID;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.DoCommandMessage;
+import oleg.sopilnyak.test.service.message.UndoCommandMessage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class ActionExecutorImplTest<T> {
+
+    @Spy
+    @InjectMocks
+    ActionExecutorImpl actionExecutor;
+
+    ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
+    @Mock
+    Context<T> commandContext;
+    @Mock
+    RootCommand<T> command;
+
+    @BeforeEach
+    void setUp() {
+        doReturn(command).when(commandContext).getCommand();
+    }
+
+    @Test
+    void shouldCommitAction() {
+
+        Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
+
+        assertThat(context).isNotNull();
+        verify(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
+        verify(command).doCommand(commandContext);
+    }
+
+    @Test
+    void shouldRollbackAction() {
+        Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
+
+        assertThat(context).isNotNull();
+        verify(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
+        verify(command).undoCommand(commandContext);
+    }
+
+    @Test
+    void shouldProcessDoActionCommand() {
+        DoCommandMessage<T> message = DoCommandMessage.<T>builder()
+                .actionContext(actionContext).context(commandContext)
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+
+        BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
+
+        assertThat(processed).isNotNull().isEqualTo(message);
+        verify(command).doCommand(commandContext);
+    }
+
+    @Test
+    void shouldProcessUndoActionCommand() {
+        UndoCommandMessage message = UndoCommandMessage.builder()
+                .actionContext(actionContext).context((Context<Void>) commandContext)
+                .correlationId(UUID.randomUUID().toString())
+                .build();
+
+        BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
+
+        assertThat(processed).isNotNull().isEqualTo(message);
+        verify(command).undoCommand(commandContext);
+    }
+}
