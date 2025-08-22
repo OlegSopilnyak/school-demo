@@ -42,7 +42,7 @@ public interface CommandMessage<T> extends Serializable {
      * Enumeration of command execution direction whether it DO or UNDO of command's execution
      */
     enum Direction {
-        DO, UNDO
+        DO, UNDO, UNKNOWN
     }
 }
 

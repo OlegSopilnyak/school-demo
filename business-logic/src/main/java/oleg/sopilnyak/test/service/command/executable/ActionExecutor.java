@@ -1,8 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable;
 
+import static java.util.Objects.isNull;
+
 import java.util.UUID;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
@@ -65,17 +68,28 @@ public interface ActionExecutor {
      */
     default <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> message) {
         // This method can be overridden to process command messages
+
+        // Validate the message and its context
+        if (!isNull(message.getContext().getCommand()) && isNull(message.getDirection())) {
+            getLogger().warn("Command direction is not defined in message: '{}'.", message);
+            throw new IllegalArgumentException("Command direction is not defined.");
+        }
+
+        // Get the command from the message context
+        final RootCommand<T> command = message.getContext().getCommand();
+
+        // Execute or rollback command based on the direction
         switch (message.getDirection()) {
             case DO:
                 // Execute the command with the given context
-                message.getContext().getCommand().doCommand(message.getContext());
+                command.doCommand(message.getContext());
                 break;
             case UNDO:
                 // Rollback the command with the given context
-                message.getContext().getCommand().undoCommand(message.getContext());
+                command.undoCommand(message.getContext());
                 break;
             default:
-                getLogger().warn("Unknown command direction: '{}'.", message.getDirection());
+                getLogger().warn("Unknown command '{}' direction: '{}'.", command.getId(), message.getDirection());
                 throw new IllegalArgumentException("Unknown command direction: " + message.getDirection());
         }
         return message;

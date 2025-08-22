@@ -1,8 +1,10 @@
 package oleg.sopilnyak.test.service.facade.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.UUID;
@@ -81,5 +83,41 @@ class ActionExecutorImplTest<T> {
 
         assertThat(processed).isNotNull().isEqualTo(message);
         verify(command).undoCommand(commandContext);
+    }
+
+    @Test
+    void shouldNotProcessActionCommand_UnknownDirection() {
+        BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
+            @Override
+            public Direction getDirection() {
+                return Direction.UNKNOWN;
+            }
+        };
+
+        Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
+
+        assertThat(e).isInstanceOf(IllegalArgumentException.class);
+        assertThat(e.getMessage()).isEqualTo("Unknown command direction: UNKNOWN");
+        verify(command, never()).undoCommand(commandContext);
+        verify(command, never()).doCommand(commandContext);
+        verify(actionExecutor).getLogger();
+    }
+
+    @Test
+    void shouldNotProcessActionCommand_NullDirection() {
+        BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
+            @Override
+            public Direction getDirection() {
+                return null;
+            }
+        };
+
+        Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
+
+        assertThat(e).isInstanceOf(IllegalArgumentException.class);
+        assertThat(e.getMessage()).isEqualTo("Command direction is not defined.");
+        verify(command, never()).undoCommand(commandContext);
+        verify(command, never()).doCommand(commandContext);
+        verify(actionExecutor).getLogger();
     }
 }
