@@ -42,7 +42,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public ActionExecutor actionExecutor() {
-        return new ActionExecutorImpl();
+        return new ActionExecutorImpl(null);
     }
     // --------- Business' facades ---------------
     @Bean
