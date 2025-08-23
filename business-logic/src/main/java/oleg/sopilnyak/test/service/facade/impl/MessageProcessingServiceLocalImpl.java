@@ -134,10 +134,11 @@ public class MessageProcessingServiceLocalImpl implements MessageProcessingServi
     private static class MessageInProgress<T> {
         private BaseCommandMessage<T> result;
         private final ReentrantLock lock = new ReentrantLock();
+        private final Object lockMonitor = new Object();
         private volatile State state = State.IN_PROGRESS;
 
         void waitForMessageComplete() {
-            synchronized (lock) {
+            synchronized (lockMonitor) {
                 if (!lock.isLocked() && state == State.IN_PROGRESS) {
                     lock.lock();
                 }
@@ -145,7 +146,7 @@ public class MessageProcessingServiceLocalImpl implements MessageProcessingServi
         }
 
         void messageProcessingIsDone() {
-            synchronized (lock) {
+            synchronized (lockMonitor) {
                 if (lock.isLocked() && state == State.COMPLETED) {
                     lock.unlock();
                 }
