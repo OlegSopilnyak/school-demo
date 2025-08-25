@@ -20,6 +20,7 @@ dependencies {
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     testImplementation project(":persistence")
     testImplementation testFixtures(project(":common"))
+    testImplementation group: 'org.awaitility', name: 'awaitility', version: '4.2.2'
 
 }
 bootJar {

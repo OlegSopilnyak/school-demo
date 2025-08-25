@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.slf4j.Logger;
 
 @Slf4j
 @AllArgsConstructor
 public class ActionExecutorImpl implements ActionExecutor {
-    private final MessageProcessingService messageProcessingService;
+    private final CommandThroughMessageService messagesExchangeService;
     /**
      * To get the logger of the executor implementation
      *
@@ -24,16 +25,16 @@ public class ActionExecutorImpl implements ActionExecutor {
      * To process action command message,
      * using message-processing-service
      *
-     * @param message the action command message
+     * @param commandMessage the action command message
      * @return processed command message
      * @see BaseCommandMessage
      */
     @Override
-    public <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> message) {
-        final String correlationId = message.getCorrelationId();
+    public <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> commandMessage) {
+        final String correlationId = commandMessage.getCorrelationId();
         log.info("Sending command message for processing, correlationId='{}'", correlationId);
-        messageProcessingService.send(message);
+        messagesExchangeService.send(commandMessage);
         log.info("Waiting for processed command message, correlationId='{}'", correlationId);
-        return messageProcessingService.receive(correlationId);
+        return messagesExchangeService.receive(correlationId);
     }
 }

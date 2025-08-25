@@ -1,13 +1,13 @@
-package oleg.sopilnyak.test.service.facade.impl;
+package oleg.sopilnyak.test.service.message;
 
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 
 /**
  * Service: execute command using request/response model
  *
  * @see ActionExecutorImpl
  */
-public interface MessageProcessingService {
+public interface CommandThroughMessageService {
     /**
      * To send command message for processing
      *

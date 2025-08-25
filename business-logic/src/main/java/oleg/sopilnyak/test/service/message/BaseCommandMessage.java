@@ -31,6 +31,12 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 @JsonSerialize(using = BaseCommandMessage.Serializer.class)
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
+    public static final BaseCommandMessage<?> EMPTY = new BaseCommandMessage<>(null, null, null) {
+        @Override
+        public Direction getDirection() {
+            return null;
+        }
+    };
     private static final String CORRELATION_ID_FIELD_NAME = "correlation-id";
     private static final String ACTION_CONTEXT_FIELD_NAME = "action-context";
     private static final String COMMAND_CONTEXT_FIELD_NAME = "command-context";
