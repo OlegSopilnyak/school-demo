@@ -1,10 +1,14 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
+import static java.util.Objects.isNull;
+
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -29,8 +33,8 @@ public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile
      *
      * @param persistence persistence facade instance
      */
-    public FindStudentProfileCommand(ProfilePersistenceFacade persistence) {
-        super(persistence);
+    public FindStudentProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
+        super(persistence, payloadMapper);
     }
 
 
@@ -42,6 +46,18 @@ public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile
     @Override
     public String getId() {
         return FIND_BY_ID;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#detachResultData(Context)
+     */
+    @Override
+    public Optional<StudentProfile> detachedResult(Optional<StudentProfile> result) {
+        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
     }
 
     /**

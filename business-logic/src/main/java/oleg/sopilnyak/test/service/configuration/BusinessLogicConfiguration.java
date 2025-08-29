@@ -20,12 +20,14 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
+import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +44,12 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public ActionExecutor actionExecutor() {
-        return new ActionExecutorImpl(null);
+        return new ActionExecutorImpl(commandThroughMessageService());
+    }
+
+    @Bean
+    public CommandThroughMessageService commandThroughMessageService() {
+        return new CommandThroughMessageServiceLocalImpl();
     }
     // --------- Business' facades ---------------
     @Bean

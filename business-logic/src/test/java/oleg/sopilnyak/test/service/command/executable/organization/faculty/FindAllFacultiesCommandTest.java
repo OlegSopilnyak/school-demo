@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersist
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,15 +24,20 @@ import static org.mockito.Mockito.*;
 class FindAllFacultiesCommandTest {
     @Mock
     FacultyPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     FindAllFacultiesCommand command;
     @Mock
     Faculty entity;
+    @Mock
+    FacultyPayload payload;
 
     @Test
     void shouldDoCommand_EntityExists() {
         when(persistence.findAllFaculties()).thenReturn(Set.of(entity));
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Set<Faculty>> context = command.createContext(null);
 
         command.doCommand(context);

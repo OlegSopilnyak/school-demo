@@ -184,8 +184,8 @@ class FacultyFacadeImplTest {
                 Set.of(
                         spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),
                         spy(new DeleteFacultyCommand(persistence, payloadMapper)),
-                        spy(new FindAllFacultiesCommand(persistence)),
-                        spy(new FindFacultyCommand(persistence))
+                        spy(new FindAllFacultiesCommand(persistence, payloadMapper)),
+                        spy(new FindFacultyCommand(persistence, payloadMapper))
                 )
         );
     }

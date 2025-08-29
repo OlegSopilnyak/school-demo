@@ -491,9 +491,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     private CommandsFactory<CourseCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         return new CourseCommandsFactory(List.of(
-                spy(new FindCourseCommand(persistenceFacade)),
-                spy(new FindRegisteredCoursesCommand(persistenceFacade)),
-                spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
+                spy(new FindCourseCommand(persistenceFacade, payloadMapper)),
+                spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)),
+                spy(new FindCoursesWithoutStudentsCommand(persistenceFacade, payloadMapper)),
                 spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),
                 spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),
                 spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)),

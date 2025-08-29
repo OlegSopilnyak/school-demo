@@ -130,6 +130,29 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
     }
 
     /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Boolean detachedResult(final Boolean result) {
+        return result;
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
+    }
+
+    /**
      * To get reference to command's logger
      *
      * @return reference to the logger

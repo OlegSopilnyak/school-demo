@@ -172,8 +172,8 @@ class StudentsGroupFacadeImplTest {
                 Set.of(
                         spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade, payloadMapper)),
                         spy(new DeleteStudentsGroupCommand(persistenceFacade, payloadMapper)),
-                        spy(new FindAllStudentsGroupsCommand(persistenceFacade)),
-                        spy(new FindStudentsGroupCommand(persistenceFacade))
+                        spy(new FindAllStudentsGroupsCommand(persistenceFacade, payloadMapper)),
+                        spy(new FindStudentsGroupCommand(persistenceFacade, payloadMapper))
                 )
 
         );

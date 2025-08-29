@@ -253,7 +253,7 @@ class StudentProfileFacadeImplTest {
     private CommandsFactory<StudentProfileCommand<?>> buildFactory() {
         return new StudentProfileCommandsFactory(
                 Set.of(
-                        spy(new FindStudentProfileCommand(persistence)),
+                        spy(new FindStudentProfileCommand(persistence, payloadMapper)),
                         spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)),
                         spy(new DeleteStudentProfileCommand(persistence, payloadMapper))
                 )

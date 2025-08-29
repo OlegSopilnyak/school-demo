@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
+import static java.util.Objects.isNull;
+
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -124,6 +126,29 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#detachResultData(Context)
+     */
+    @Override
+    public Optional<Student> detachedResult(final Optional<Student> result) {
+        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

@@ -323,8 +323,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                         createAuthorityPersonMacroCommand,
                         deleteAuthorityPersonCommand,
                         deleteAuthorityPersonMacroCommand,
-                        spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
-                        spy(new FindAuthorityPersonCommand(persistenceFacade))
+                        spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)),
+                        spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper))
                 )
         );
     }

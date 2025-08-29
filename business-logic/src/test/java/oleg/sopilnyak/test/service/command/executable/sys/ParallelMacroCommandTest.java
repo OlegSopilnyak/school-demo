@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.service.command.type.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -433,6 +434,29 @@ class ParallelMacroCommandTest {
         @Override
         public String getId() {
             return "parallel-fake-command";
+        }
+
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Double detachedResult(Double result) {
+            return result;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
         }
 
         /**

@@ -47,6 +47,7 @@ class CreateOrUpdateCourseCommandTest {
     void shouldDoCommand_CreateCourse() {
         Long id = -100L;
         when(mockedCourse.getId()).thenReturn(id);
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 
         Context<Optional<Course>> context = command.createContext(Input.of(mockedCourse));
@@ -80,7 +81,7 @@ class CreateOrUpdateCourseCommandTest {
         assertThat(result).contains(mockedCourse);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
         verify(persistence).save(mockedCourse);
     }
 

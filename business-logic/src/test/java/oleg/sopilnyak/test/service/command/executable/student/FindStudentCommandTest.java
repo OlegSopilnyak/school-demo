@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersisten
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +25,11 @@ class FindStudentCommandTest {
     @Mock
     StudentsPersistenceFacade persistence;
     @Mock
+    BusinessMessagePayloadMapper payloadMapper;
+    @Mock
     Student instance;
+    @Mock
+    StudentPayload payload;
     @Spy
     @InjectMocks
     FindStudentCommand command;
@@ -47,6 +53,7 @@ class FindStudentCommandTest {
     void shouldDoCommand_StudentFound() {
         Long id = 107L;
         when(persistence.findStudentById(id)).thenReturn(Optional.of(instance));
+        when(payloadMapper.toPayload(instance)).thenReturn(payload);
         Context<Optional<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);

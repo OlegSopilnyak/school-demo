@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -524,6 +525,29 @@ class SequentialMacroCommandTest {
             return "sequential-fake-command";
         }
 
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Double detachedResult(Double result) {
+            return result;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
+        }
+
         @Override
         public <N> Context<N> prepareContext(StudentCommand<N> command, Input<?> mainInput) {
             return prepareStudentContext();
@@ -781,6 +805,29 @@ class SequentialMacroCommandTest {
             return command.getId();
         }
 
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Void detachedResult(Void result) {
+            return null;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
+        }
+
         @Override
         public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                       final Context<?> context, final Context.StateChangedListener stateListener) {
@@ -821,6 +868,29 @@ class SequentialMacroCommandTest {
             return command.getId();
         }
 
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Void detachedResult(Void result) {
+            return null;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
+        }
+
         @Override
         public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                       final Context<?> context, final Context.StateChangedListener stateListener) {
@@ -859,6 +929,29 @@ class SequentialMacroCommandTest {
         @Override
         public String getId() {
             return command.getId();
+        }
+
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Void detachedResult(Void result) {
+            return null;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
         }
 
         @Override

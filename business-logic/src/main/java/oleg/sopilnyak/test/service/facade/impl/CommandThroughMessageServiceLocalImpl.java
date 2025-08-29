@@ -300,7 +300,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          */
         @Override
         protected String getProcessorName() {
-            return "RequestProcessor";
+            return "RequestMessagesProcessor";
         }
 
         /**
@@ -357,7 +357,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          */
         @Override
         protected String getProcessorName() {
-            return "ResponseProcessor";
+            return "ResponseMessagesProcessor";
         }
 
         /**

@@ -285,7 +285,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper)),
-                        spy(new FindPrincipalProfileCommand(persistence)),
+                        spy(new FindPrincipalProfileCommand(persistence, payloadMapper)),
                         spy(new DeletePrincipalProfileCommand(persistence, payloadMapper))
                 )
 

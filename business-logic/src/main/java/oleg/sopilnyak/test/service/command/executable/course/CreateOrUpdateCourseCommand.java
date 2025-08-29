@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import static java.util.Objects.isNull;
+
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
@@ -127,6 +129,29 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Optional<Course> detachedResult(final Optional<Course> result) {
+        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

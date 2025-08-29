@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +58,29 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
     @Override
     public String getId() {
         return LOGOUT;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Boolean detachedResult(final Boolean result) {
+        return result;
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return null;
     }
 
     /**

@@ -42,12 +42,12 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     @Getter
     private final ActionExecutor actionExecutor;
     // semantic data to payload converter
-    private final UnaryOperator<Course> convert;
+    private final UnaryOperator<Course> toPayload;
 
     public CoursesFacadeImpl(CommandsFactory<CourseCommand<?>> factory, BusinessMessagePayloadMapper mapper, ActionExecutor actionExecutor) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;
-        this.convert = course -> course instanceof CoursePayload payload ? payload : mapper.toPayload(course);
+        this.toPayload = course -> course instanceof CoursePayload payload ? payload : mapper.toPayload(course);
     }
 
     /**
@@ -64,7 +64,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
         log.debug("Finding course by ID: {}", id);
         final Optional<Course> result = actCommand(FIND_BY_ID, factory, Input.of(id));
         log.debug("Found the course {}", result);
-        return result.map(convert);
+        return result.map(toPayload);
     }
 
     /**
@@ -78,7 +78,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
         log.debug("Find courses registered to student with ID:{}", id);
         final Set<Course> result = actCommand(FIND_REGISTERED, factory, Input.of(id));
         log.debug("Found courses registered to student {}", result);
-        return result.stream().map(convert).collect(Collectors.toSet());
+        return result.stream().map(toPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -91,7 +91,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
         log.debug("Find no-students courses");
         final Set<Course> result = actCommand(FIND_NOT_REGISTERED, factory, Input.empty());
         log.debug("Found no-students courses {}", result);
-        return result.stream().map(convert).collect(Collectors.toSet());
+        return result.stream().map(toPayload).collect(Collectors.toSet());
     }
 
     /**
@@ -105,9 +105,9 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     @Override
     public Optional<Course> createOrUpdate(final Course instance) {
         log.debug("Create or Update course {}", instance);
-        final Optional<Course> result = actCommand(CREATE_OR_UPDATE, factory, Input.of(convert.apply(instance)));
+        final Optional<Course> result = actCommand(CREATE_OR_UPDATE, factory, Input.of(toPayload.apply(instance)));
         log.debug("Changed course {}", result);
-        return result.map(convert);
+        return result.map(toPayload);
     }
 
     /**

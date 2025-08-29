@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
+import static java.util.Objects.isNull;
+
 import java.util.Deque;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +89,29 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     @Override
     public String getId() {
         return CREATE_NEW;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see RootCommand#detachResultData(Context)
+     */
+    @Override
+    public Optional<Student> detachedResult(final Optional<Student> result) {
+        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**
@@ -315,6 +340,29 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             return command.getId();
         }
 
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Void detachedResult(Void result) {
+            return null;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
+        }
+
         @Override
         public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                       final Context<?> context, final Context.StateChangedListener stateListener) {
@@ -354,6 +402,29 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         @Override
         public String getId() {
             return command.getId();
+        }
+
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Void detachedResult(Void result) {
+            return null;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
         }
 
         @Override

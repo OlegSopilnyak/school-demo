@@ -99,7 +99,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
-        verify(payloadMapper).toPayload(profile);
+        verify(payloadMapper, times(2)).toPayload(profile);
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);
     }
@@ -111,6 +111,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         when(profile.getId()).thenReturn(id);
         Context<Optional<StudentProfile>> context = command.createContext(Input.of(profile));
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
         command.doCommand(context);
 

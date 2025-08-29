@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import static java.util.Objects.isNull;
+
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -32,8 +34,8 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
-    private final AuthorityPersonPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient AuthorityPersonPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                                 final BusinessMessagePayloadMapper payloadMapper) {
@@ -132,6 +134,29 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Optional<AuthorityPerson> detachedResult(final Optional<AuthorityPerson> result) {
+        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

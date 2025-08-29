@@ -333,9 +333,9 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private CommandsFactory<StudentCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         return spy(new StudentCommandsFactory(
                         Set.of(
-                                spy(new FindStudentCommand(persistenceFacade)),
-                                spy(new FindEnrolledStudentsCommand(persistenceFacade)),
-                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade)),
+                                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
+                                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
+                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 createStudentCommand,
                                 spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper)),
                                 deleteStudentCommand,

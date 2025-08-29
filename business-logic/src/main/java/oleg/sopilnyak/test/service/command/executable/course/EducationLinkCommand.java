@@ -7,8 +7,6 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.CoursePayload;
-import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 /**
  * Common methods for Link/Unlink commands
@@ -19,15 +17,16 @@ public interface EducationLinkCommand {
     String IS_NOT_EXISTS_SUFFIX = " is not exists.";
 
     BusinessMessagePayloadMapper getPayloadMapper();
+
     EducationPersistenceFacade getPersistenceFacade();
 
-    default Student detached(Student student) {
-        return student instanceof StudentPayload payload ? payload : getPayloadMapper().toPayload(student);
-    }
-
-    default Course detached(Course course) {
-        return course instanceof CoursePayload payload ? payload : getPayloadMapper().toPayload(course);
-    }
+    /**
+     * To retrieve student by id from persistence
+     *
+     * @param input - input parameter with studentId in first position
+     * @return found student
+     * @throws StudentNotFoundException when student with provided id is not found
+     */
     default Student retrieveStudent(final PairParameter<Long> input) {
         final Long studentId = input.first();
         return getPersistenceFacade().findStudentById(studentId)
@@ -35,6 +34,14 @@ public interface EducationLinkCommand {
                         () -> new StudentNotFoundException(LINK_STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX)
                 );
     }
+
+    /**
+     * To retrieve course by id from persistence
+     *
+     * @param input - input parameter with courseId in second position
+     * @return found course
+     * @throws CourseNotFoundException when course with provided id is not found
+     */
     default Course retrieveCourse(final PairParameter<Long> input) {
         final Long courseId = input.second();
         return getPersistenceFacade().findCourseById(courseId)

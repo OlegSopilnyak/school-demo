@@ -309,8 +309,8 @@ class AuthorityPersonFacadeImplTest {
                         Set.of(
                                 spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                                 spy(new LogoutAuthorityPersonCommand()),
-                                spy(new FindAllAuthorityPersonsCommand(persistenceFacade)),
-                                spy(new FindAuthorityPersonCommand(persistenceFacade)),
+                                spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)),
+                                spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                                 createPersonCommand,
                                 spy(new CreateAuthorityPersonMacroCommand(createPersonCommand, createProfileCommand, payloadMapper)),
                                 deletePersonCommand,

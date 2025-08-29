@@ -42,6 +42,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -154,6 +155,29 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-void-command";
+            }
+
+            /**
+             * To detach command result data from persistence layer
+             *
+             * @param result result data to detach
+             * @return detached result data
+             * @see RootCommand#detachResultData(Context)
+             */
+            @Override
+            public Void detachedResult(Void result) {
+                return null;
+            }
+
+            /**
+             * To get mapper for business-message-payload
+             *
+             * @return mapper instance
+             * @see BusinessMessagePayloadMapper
+             */
+            @Override
+            public BusinessMessagePayloadMapper getPayloadMapper() {
+                return null;
             }
 
             @Override
@@ -412,6 +436,29 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-command";
+            }
+
+            /**
+             * To detach command result data from persistence layer
+             *
+             * @param result result data to detach
+             * @return detached result data
+             * @see RootCommand#detachResultData(Context)
+             */
+            @Override
+            public Double detachedResult(Double result) {
+                return result;
+            }
+
+            /**
+             * To get mapper for business-message-payload
+             *
+             * @return mapper instance
+             * @see BusinessMessagePayloadMapper
+             */
+            @Override
+            public BusinessMessagePayloadMapper getPayloadMapper() {
+                return null;
             }
 
             @Override
@@ -736,6 +783,29 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-command";
+            }
+
+            /**
+             * To detach command result data from persistence layer
+             *
+             * @param result result data to detach
+             * @return detached result data
+             * @see RootCommand#detachResultData(Context)
+             */
+            @Override
+            public Double detachedResult(Double result) {
+                return result;
+            }
+
+            /**
+             * To get mapper for business-message-payload
+             *
+             * @return mapper instance
+             * @see BusinessMessagePayloadMapper
+             */
+            @Override
+            public BusinessMessagePayloadMapper getPayloadMapper() {
+                return null;
             }
 
             @Override
@@ -1096,6 +1166,29 @@ class MacroCommandTest {
 
         public String getId() {
             return "fake-command";
+        }
+
+        /**
+         * To detach command result data from persistence layer
+         *
+         * @param result result data to detach
+         * @return detached result data
+         * @see RootCommand#detachResultData(Context)
+         */
+        @Override
+        public Double detachedResult(Double result) {
+            return result;
+        }
+
+        /**
+         * To get mapper for business-message-payload
+         *
+         * @return mapper instance
+         * @see BusinessMessagePayloadMapper
+         */
+        @Override
+        public BusinessMessagePayloadMapper getPayloadMapper() {
+            return null;
         }
     }
 

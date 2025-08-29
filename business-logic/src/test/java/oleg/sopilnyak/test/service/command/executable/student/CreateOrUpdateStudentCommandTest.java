@@ -48,6 +48,7 @@ class CreateOrUpdateStudentCommandTest {
         Long id = -1L;
         when(entity.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Optional<Student>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
@@ -78,7 +79,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.getResult().orElseThrow()).isPresent().contains(entity);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
-        verify(payloadMapper).toPayload(entity);
+        verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);
     }
 

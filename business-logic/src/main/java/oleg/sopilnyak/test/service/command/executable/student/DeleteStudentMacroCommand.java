@@ -21,6 +21,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.SchedulingTaskExecutor;
@@ -125,6 +126,29 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     @Override
     public String getId() {
         return DELETE_ALL;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see RootCommand#detachResultData(Context)
+     */
+    @Override
+    public Boolean detachedResult(final Boolean result) {
+        return result;
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return null;
     }
 
     /**

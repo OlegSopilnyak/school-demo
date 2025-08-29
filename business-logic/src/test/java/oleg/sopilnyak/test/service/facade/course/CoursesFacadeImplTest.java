@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,7 +110,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_BY_ID)).createContext(Input.of(courseId));
         verify(factory.command(COURSE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
     }
 
     @Test
@@ -124,7 +125,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(Input.of(studentId));
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
     }
 
     @Test
@@ -152,7 +153,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
     }
 
     @Test
@@ -171,6 +172,7 @@ class CoursesFacadeImplTest {
     @Test
     void shouldCreateOrUpdate() {
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+        when(payloadMapper.toPayload(mockedCoursePayload)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.save(mockedCoursePayload)).thenReturn(Optional.of(mockedCoursePayload));
 
         Optional<Course> course = facade.createOrUpdate(mockedCourse);
@@ -394,9 +396,9 @@ class CoursesFacadeImplTest {
     private CommandsFactory<CourseCommand<?>> buildFactory() {
         return new CourseCommandsFactory(
                 List.of(
-                        spy(new FindCourseCommand(persistenceFacade)),
-                        spy(new FindRegisteredCoursesCommand(persistenceFacade)),
-                        spy(new FindCoursesWithoutStudentsCommand(persistenceFacade)),
+                        spy(new FindCourseCommand(persistenceFacade, payloadMapper)),
+                        spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)),
+                        spy(new FindCoursesWithoutStudentsCommand(persistenceFacade, payloadMapper)),
                         spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),
                         spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),
                         spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)),

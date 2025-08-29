@@ -69,9 +69,8 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
             }
-            final StudentsGroup entity = retrieveEntity(
-                    id, persistence::findStudentsGroupById, payloadMapper::toPayload, () -> exceptionFor(id)
-            );
+            final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById,
+                    payloadMapper::toPayload, () -> exceptionFor(id));
             if (!entity.getStudents().isEmpty()) {
                 log.warn(GROUP_WITH_ID_PREFIX + "{} has students.", id);
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
@@ -129,6 +128,29 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
     @Override
     public String getId() {
         return DELETE;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Boolean detachedResult(final Boolean result) {
+        return result;
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

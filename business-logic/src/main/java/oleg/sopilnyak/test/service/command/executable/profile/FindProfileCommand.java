@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 /**
  * Command-Base-Implementation: command to get profile by id
@@ -20,9 +21,11 @@ import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 @Getter
 public abstract class FindProfileCommand<E extends PersonProfile> implements ProfileCommand<Optional<E>> {
     protected final ProfilePersistenceFacade persistence;
+    protected final transient BusinessMessagePayloadMapper payloadMapper;
 
-    protected FindProfileCommand(ProfilePersistenceFacade persistence) {
+    protected FindProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
         this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
     }
 
     /**

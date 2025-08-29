@@ -50,6 +50,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Long id = -300L;
         when(entity.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
         command.doCommand(context);
@@ -80,7 +81,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);
-        verify(payloadMapper).toPayload(entity);
+        verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);
     }
 

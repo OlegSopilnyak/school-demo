@@ -5,6 +5,8 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,11 +24,15 @@ import static org.mockito.Mockito.*;
 class FindPrincipalProfileCommandTest {
     @Mock
     ProfilePersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     FindPrincipalProfileCommand command;
     @Mock
     PrincipalProfile profile;
+    @Mock
+    PrincipalProfilePayload payload;
 
     @Test
     void shouldWorkFunctionFindById() {
@@ -44,6 +50,7 @@ class FindPrincipalProfileCommandTest {
         Long id = 404L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);

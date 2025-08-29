@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPerso
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.*;
 class FindAllAuthorityPersonsCommandTest {
     @Mock
     AuthorityPersonPersistenceFacade persistence;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     FindAllAuthorityPersonsCommand command;

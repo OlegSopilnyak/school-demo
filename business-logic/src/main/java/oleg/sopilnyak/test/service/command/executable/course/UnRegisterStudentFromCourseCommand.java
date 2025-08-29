@@ -33,8 +33,6 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
-     * @see EducationLinkCommand#detached(Course)
-     * @see EducationLinkCommand#detached(Student)
      * @see EducationPersistenceFacade#findStudentById(Long)
      * @see EducationPersistenceFacade#findCourseById(Long)
      * @see EducationPersistenceFacade#unLink(Student, Course)
@@ -111,6 +109,29 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
     @Override
     public String getId() {
         return UN_REGISTER;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Boolean detachedResult(final Boolean result) {
+        return result;
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

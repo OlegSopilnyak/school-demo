@@ -247,8 +247,8 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
                 Set.of(
                         spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),
                         spy(new DeleteStudentsGroupCommand(persistence, payloadMapper)),
-                        spy(new FindAllStudentsGroupsCommand(persistence)),
-                        spy(new FindStudentsGroupCommand(persistence))
+                        spy(new FindAllStudentsGroupsCommand(persistence, payloadMapper)),
+                        spy(new FindStudentsGroupCommand(persistence, payloadMapper))
                 )
 
         );

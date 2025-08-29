@@ -4,6 +4,8 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +25,11 @@ class FindCourseCommandTest {
     @Mock
     CoursesPersistenceFacade persistence;
     @Mock
+    BusinessMessagePayloadMapper payloadMapper;
+    @Mock
     Course course;
+    @Mock
+    CoursePayload mockedCoursePayload;
     @Spy
     @InjectMocks
     FindCourseCommand command;
@@ -32,6 +38,7 @@ class FindCourseCommandTest {
     void shouldDoCommand_CourseFound() {
         Long id = 103L;
         when(persistence.findCourseById(id)).thenReturn(Optional.of(course));
+        when(payloadMapper.toPayload(course)).thenReturn(mockedCoursePayload);
         Context<Optional<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);

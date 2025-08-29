@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ActionExecutorImplTest<T> {
-
+    @Spy
+    CommandThroughMessageService messagesExchangeService = new CommandThroughMessageServiceLocalImpl();
     @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;

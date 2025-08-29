@@ -233,7 +233,7 @@ class PrincipalProfileFacadeImplTest {
     private CommandsFactory<PrincipalProfileCommand<?>> buildFactory() {
         return new PrincipalProfileCommandsFactory(
                 Set.of(
-                        spy(new FindPrincipalProfileCommand(persistence)),
+                        spy(new FindPrincipalProfileCommand(persistence, payloadMapper)),
                         spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper)),
                         spy(new DeletePrincipalProfileCommand(persistence, payloadMapper))
                 )

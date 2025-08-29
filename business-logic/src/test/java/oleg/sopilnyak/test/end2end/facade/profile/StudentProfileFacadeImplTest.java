@@ -284,7 +284,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         return new StudentProfileCommandsFactory(
                 Set.of(
                         spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)),
-                        spy(new FindStudentProfileCommand(persistence)),
+                        spy(new FindStudentProfileCommand(persistence, payloadMapper)),
                         spy(new DeleteStudentProfileCommand(persistence, payloadMapper))
                 )
 

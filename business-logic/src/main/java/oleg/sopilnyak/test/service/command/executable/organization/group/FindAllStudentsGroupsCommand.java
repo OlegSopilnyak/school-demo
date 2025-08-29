@@ -1,11 +1,13 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,7 @@ import java.util.Set;
 @Component
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
     private final StudentsGroupPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
      * DO: To get all students groups of the school<BR/>
@@ -56,6 +59,29 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
     @Override
     public String getId() {
         return FIND_ALL;
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see #detachResultData(Context)
+     */
+    @Override
+    public Set<StudentsGroup> detachedResult(Set<StudentsGroup> result) {
+        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
+    }
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    @Override
+    public BusinessMessagePayloadMapper getPayloadMapper() {
+        return payloadMapper;
     }
 
     /**

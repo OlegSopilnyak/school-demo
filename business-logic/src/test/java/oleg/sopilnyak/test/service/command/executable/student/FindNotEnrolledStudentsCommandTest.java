@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +24,11 @@ class FindNotEnrolledStudentsCommandTest {
     @Mock
     RegisterPersistenceFacade persistence;
     @Mock
+    BusinessMessagePayloadMapper payloadMapper;
+    @Mock
     Student instance;
+    @Mock
+    StudentPayload payload;
     @Spy
     @InjectMocks
     FindNotEnrolledStudentsCommand command;
@@ -44,6 +50,7 @@ class FindNotEnrolledStudentsCommandTest {
     @Test
     void shouldDoCommand_StudentsFound() {
         when(persistence.findNotEnrolledStudents()).thenReturn(Set.of(instance));
+        when(payloadMapper.toPayload(instance)).thenReturn(payload);
         Context<Set<Student>> context = command.createContext(null);
 
         command.doCommand(context);

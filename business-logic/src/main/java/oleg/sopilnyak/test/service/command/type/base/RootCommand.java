@@ -1,13 +1,15 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import static java.util.Objects.isNull;
+
+import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
-
-import static java.util.Objects.isNull;
 
 /**
  * Type: School Command to execute the business-logic action
@@ -34,8 +36,8 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param parameter input value to check
      */
-    default void checkNullParameter(Input<?> parameter) {
-        if (isNull(parameter)  || parameter.isEmpty()) {
+    default <I> void checkNullParameter(Input<I> parameter) {
+        if (isNull(parameter) || parameter.isEmpty()) {
             throw new NullPointerException("Wrong input parameter value null");
         }
     }
@@ -98,11 +100,57 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
             // start redo with correct context state
             context.setState(Context.State.WORK);
             executeDo(context);
+            detachResultData(context);
         } else {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         }
     }
+
+    /**
+     * To detach command result data from persistence layer after command execution
+     *
+     * @param context context of command execution
+     * @see Context
+     * @see Context#isDone()
+     * @see Context#getResult()
+     * @see #detachedResult(Object)
+     */
+    default void detachResultData(Context<T> context) {
+        // check if command is done and has result
+        if (context.isDone()) {
+            // getting result from context
+            final Optional<T> result = context.getResult();
+            // check if result is present
+            if (result.isEmpty()) {
+                // command execution returned nothing, no result to detach
+                getLog().debug("Cannot detach result data of command: '{}' with context: no result", getId());
+            } else {
+                // detach result data
+                getLog().debug("Detaching result data of command: '{}'", getId());
+                context.setResult(detachedResult(result.get()));
+            }
+        } else {
+            getLog().warn("Cannot detach result data of command '{}' with context:state {}", getId(), context.getState());
+        }
+    }
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see RootCommand#detachResultData(Context)
+     */
+    T detachedResult(T result);
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    BusinessMessagePayloadMapper getPayloadMapper();
 
     /**
      * To rollback command's execution according to command context
@@ -114,13 +162,13 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      */
     @Override
     default void undoCommand(Context<?> context) {
-        if (!context.isDone()) {
-            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        } else {
+        if (context.isDone()) {
             // start undo with correct context state
             context.setState(Context.State.WORK);
             executeUndo(context);
+        } else {
+            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
         }
     }
 
