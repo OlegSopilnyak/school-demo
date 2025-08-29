@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -18,6 +17,7 @@ import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
@@ -101,14 +101,16 @@ class ActionExecutorTest<T> {
             }
         };
 
-        Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
+        actionExecutor.processActionCommand(message);
 
-        assertThat(e).isInstanceOf(IllegalArgumentException.class);
-        assertThat(e.getMessage()).isEqualTo("Unknown command direction: UNKNOWN");
         verify(command, never()).undoCommand(commandContext);
         verify(command, never()).doCommand(commandContext);
         verify(actionExecutor).getLogger();
-        verify(logger).warn("Unknown command '{}' direction: '{}'.", command.getId(), message.getDirection());
+        verify(logger).warn("Unknown message direction: '{}' for command '{}'.", message.getDirection(), command.getId());
+
+        ArgumentCaptor<IllegalArgumentException> captor = ArgumentCaptor.forClass(IllegalArgumentException.class);
+        verify(commandContext).failed(captor.capture());
+        assertThat(captor.getValue().getMessage()).isEqualTo("Unknown message direction: UNKNOWN");
     }
 
     @Test
@@ -120,13 +122,15 @@ class ActionExecutorTest<T> {
             }
         };
 
-        Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
+        actionExecutor.processActionCommand(message);
 
-        assertThat(e).isInstanceOf(IllegalArgumentException.class);
-        assertThat(e.getMessage()).isEqualTo("Command direction is not defined.");
         verify(command, never()).undoCommand(commandContext);
         verify(command, never()).doCommand(commandContext);
         verify(actionExecutor).getLogger();
-        verify(logger).warn("Command direction is not defined in message: '{}'.", message);
+        verify(logger).warn("Command message direction is not defined in: '{}'.", message);
+
+        ArgumentCaptor<IllegalArgumentException> captor = ArgumentCaptor.forClass(IllegalArgumentException.class);
+        verify(commandContext).failed(captor.capture());
+        assertThat(captor.getValue().getMessage()).isEqualTo("Command message direction is not defined.");
     }
 }

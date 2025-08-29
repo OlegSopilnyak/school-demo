@@ -118,20 +118,20 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      */
     default void detachResultData(Context<T> context) {
         // check if command is done and has result
-        if (context.isDone()) {
-            // getting result from context
-            final Optional<T> result = context.getResult();
-            // check if result is present
-            if (result.isEmpty()) {
-                // command execution returned nothing, no result to detach
-                getLog().debug("Cannot detach result data of command: '{}' with context: no result", getId());
-            } else {
-                // detach result data
-                getLog().debug("Detaching result data of command: '{}'", getId());
-                context.setResult(detachedResult(result.get()));
-            }
+        if (!context.isDone()) {
+            getLog().warn("Cannot detach result data of command with id:'{}' for context:state {}", getId(), context.getState());
+            return;
+        }
+        // getting result from context
+        final Optional<T> result = context.getResult();
+        // check if result is present
+        if (result.isEmpty()) {
+            // command execution returned nothing, no result to detach
+            getLog().debug("Cannot detach result data of command: '{}' with context: no result", getId());
         } else {
-            getLog().warn("Cannot detach result data of command '{}' with context:state {}", getId(), context.getState());
+            // detach result data
+            getLog().debug("Detaching result data of command: '{}'", getId());
+            context.setResult(detachedResult(result.get()));
         }
     }
 

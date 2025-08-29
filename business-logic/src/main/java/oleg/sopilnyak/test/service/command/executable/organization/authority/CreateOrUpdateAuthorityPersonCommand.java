@@ -1,7 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import static java.util.Objects.isNull;
-
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -16,12 +20,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-
 /**
  * Command-Implementation: command to update the authority person
  *
@@ -35,6 +33,7 @@ import java.util.function.UnaryOperator;
 public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient AuthorityPersonPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
@@ -134,29 +133,6 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Optional<AuthorityPerson> detachedResult(final Optional<AuthorityPerson> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

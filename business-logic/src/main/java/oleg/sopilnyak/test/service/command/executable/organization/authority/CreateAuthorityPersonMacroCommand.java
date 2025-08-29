@@ -1,10 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import static java.util.Objects.isNull;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.Deque;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -45,6 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Optional<AuthorityPerson>>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     @Value("${school.mail.basic.domain:gmail.com}")
@@ -65,6 +65,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @return the command result's value
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Optional<AuthorityPerson> finalCommandResult(Deque<Context<?>> contexts) {
         return contexts.stream()
@@ -91,29 +92,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     @Override
     public String getId() {
         return CREATE_NEW;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Optional<AuthorityPerson> detachedResult(final Optional<AuthorityPerson> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

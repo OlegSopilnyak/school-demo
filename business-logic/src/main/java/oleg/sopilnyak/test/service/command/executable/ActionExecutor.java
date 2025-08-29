@@ -71,8 +71,9 @@ public interface ActionExecutor {
 
         // Validate the message and its context
         if (!isNull(message.getContext().getCommand()) && isNull(message.getDirection())) {
-            getLogger().warn("Command direction is not defined in message: '{}'.", message);
-            throw new IllegalArgumentException("Command direction is not defined.");
+            getLogger().warn("Command message direction is not defined in: '{}'.", message);
+            message.getContext().failed(new IllegalArgumentException("Command message direction is not defined."));
+            return message;
         }
 
         // Get the command from the message context
@@ -89,8 +90,8 @@ public interface ActionExecutor {
                 command.undoCommand(message.getContext());
                 break;
             default:
-                getLogger().warn("Unknown command '{}' direction: '{}'.", command.getId(), message.getDirection());
-                throw new IllegalArgumentException("Unknown command direction: " + message.getDirection());
+                getLogger().warn("Unknown message direction: '{}' for command '{}'.", message.getDirection(), command.getId());
+                message.getContext().failed(new IllegalArgumentException("Unknown message direction: " + message.getDirection()));
         }
         return message;
     }

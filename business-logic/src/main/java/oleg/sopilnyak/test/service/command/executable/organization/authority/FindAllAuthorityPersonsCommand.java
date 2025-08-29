@@ -1,7 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -10,8 +11,6 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 /**
  * Command-Implementation: command to get all authority persons of the school
@@ -24,7 +23,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Component
 public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
-    private final AuthorityPersonPersistenceFacade persistence;
+    private final transient AuthorityPersonPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -60,29 +60,6 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
     @Override
     public String getId() {
         return FIND_ALL;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Set<AuthorityPerson> detachedResult(final Set<AuthorityPerson> result) {
-        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

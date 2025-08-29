@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
@@ -33,8 +34,9 @@ import java.util.function.UnaryOperator;
 @Component
 public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Boolean> {
-    private final AuthorityPersonPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient AuthorityPersonPersistenceFacade persistence;
+    @Getter
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
@@ -139,17 +141,6 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
     @Override
     public Boolean detachedResult(final Boolean result) {
         return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

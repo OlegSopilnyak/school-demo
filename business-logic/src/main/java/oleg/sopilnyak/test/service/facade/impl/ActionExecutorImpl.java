@@ -1,9 +1,12 @@
 package oleg.sopilnyak.test.service.facade.impl;
 
+import static java.util.Objects.isNull;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.slf4j.Logger;
 
@@ -11,6 +14,7 @@ import org.slf4j.Logger;
 @AllArgsConstructor
 public class ActionExecutorImpl implements ActionExecutor {
     private final CommandThroughMessageService messagesExchangeService;
+
     /**
      * To get the logger of the executor implementation
      *
@@ -31,10 +35,23 @@ public class ActionExecutorImpl implements ActionExecutor {
      */
     @Override
     public <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> commandMessage) {
+        log.debug("Validating message before processing...");
+        validate(commandMessage);
+        // send and receive message for processing
         final String correlationId = commandMessage.getCorrelationId();
         log.info("Sending command message for processing, correlationId='{}'", correlationId);
         messagesExchangeService.send(commandMessage);
         log.info("Waiting for processed command message, correlationId='{}'", correlationId);
         return messagesExchangeService.receive(correlationId);
+    }
+
+    private <T> void validate(BaseCommandMessage<T> message) {
+        if (isNull(message.getDirection())) {
+            throw new IllegalArgumentException("Message direction is not defined.");
+        }
+        if (message.getDirection() != CommandMessage.Direction.DO && message.getDirection() != CommandMessage.Direction.UNDO) {
+            log.error("Unknown message direction: '{}' for command '{}'.", message.getDirection(), message.getContext().getCommand().getId());
+            throw new IllegalArgumentException("Unknown message direction: " + message.getDirection());
+        }
     }
 }

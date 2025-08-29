@@ -193,9 +193,9 @@ class AuthorityPersonFacadeImplTest {
         when(mockPersonPayload.getFirstName()).thenReturn("John");
         when(mockPersonPayload.getLastName()).thenReturn("Doe");
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
-        when(payloadMapper.toPayload(mockPersonPayload)).thenReturn(mockPersonPayload);
-        when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPersonPayload));
-        when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfilePayload));
+        when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
+        when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPerson));
+        when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfile));
 
         Optional<AuthorityPerson> result = facade.create(mockPerson);
 
@@ -205,6 +205,7 @@ class AuthorityPersonFacadeImplTest {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper).toPayload(mockPerson);
+        verify(payloadMapper).toPayload(mockProfile);
         verify(payloadMapper, never()).toPayload(any(AuthorityPersonPayload.class));
     }
 

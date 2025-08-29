@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import static java.util.Objects.isNull;
-
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -15,7 +14,6 @@ import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -30,8 +28,9 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
-    private final PersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient PersistenceFacade persistence;
+    @Getter
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
 
     /**
@@ -45,13 +44,14 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
      * @see Context.State#WORK
      * @see PersistenceFacade#findPrincipalProfileByLogin(String)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to login authority person by credentials:{}", parameter);
-            PairParameter<String> credentials = PairParameter.class.cast(parameter);
+            PairParameter<String> credentials = (PairParameter<String>) parameter;
             final String username = credentials.first();
             final String password = credentials.second();
 
@@ -86,34 +86,6 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
     @Override
     public String getId() {
         return LOGIN;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Optional<AuthorityPerson> detachedResult(final Optional<AuthorityPerson> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(
-                result.get() instanceof AuthorityPersonPayload payload ?
-                        payload
-                        :
-                        payloadMapper.toPayload(result.get())
-        );
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

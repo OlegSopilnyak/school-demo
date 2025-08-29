@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import java.util.Deque;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -46,14 +47,15 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     private final int maxPoolSize;
     // persistence facade for get instance of authority person by person-id (creat-context phase)
-    private final AuthorityPersonPersistenceFacade persistence;
+    private final transient AuthorityPersonPersistenceFacade persistence;
+    @Getter
+    private final transient BusinessMessagePayloadMapper payloadMapper = null;
 
     public DeleteAuthorityPersonMacroCommand(
             final DeleteAuthorityPersonCommand deletePersonCommand,
             final DeletePrincipalProfileCommand deleteProfileCommand,
             final AuthorityPersonPersistenceFacade persistence,
-            @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
-    ) {
+            @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
         super.putToNest(deletePersonCommand);
@@ -67,6 +69,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @return the command result's value
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Boolean finalCommandResult(Deque<Context<?>> contexts) {
         return contexts.stream()
@@ -138,17 +141,6 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     @Override
     public Boolean detachedResult(final Boolean result) {
         return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return null;
     }
 
     /**

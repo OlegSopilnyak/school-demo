@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -19,10 +19,11 @@ import org.springframework.stereotype.Component;
  * @see PersistenceFacade
  */
 @Slf4j
-@AllArgsConstructor
+//@AllArgsConstructor
 @Component
 public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Boolean> {
-
+    @Getter
+    private final transient BusinessMessagePayloadMapper payloadMapper = null;
 
     /**
      * DO: To logout authority person by token<BR/>
@@ -70,17 +71,6 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
     @Override
     public Boolean detachedResult(final Boolean result) {
         return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return null;
     }
 
     /**

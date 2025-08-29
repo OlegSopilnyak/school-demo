@@ -12,9 +12,9 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ActionExecutorImplTest<T> {
     @Spy
-    CommandThroughMessageService messagesExchangeService = new CommandThroughMessageServiceLocalImpl();
+    CommandThroughMessageServiceLocalImpl messagesExchangeService = new CommandThroughMessageServiceLocalImpl();
     @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;
@@ -39,21 +39,30 @@ class ActionExecutorImplTest<T> {
 
     @BeforeEach
     void setUp() {
-        doReturn(command).when(commandContext).getCommand();
+        messagesExchangeService.startService();
+    }
+
+    @AfterEach
+    void tearDown() {
+        messagesExchangeService.stopService();
     }
 
     @Test
     void shouldCommitAction() {
+        doReturn(command).when(commandContext).getCommand();
 
         Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
 
         assertThat(context).isNotNull();
         verify(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
+        verify(messagesExchangeService).send(any(BaseCommandMessage.class));
         verify(command).doCommand(commandContext);
     }
 
     @Test
     void shouldRollbackAction() {
+        doReturn(command).when(commandContext).getCommand();
+
         Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
 
         assertThat(context).isNotNull();
@@ -67,6 +76,7 @@ class ActionExecutorImplTest<T> {
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
+        doReturn(command).when(commandContext).getCommand();
 
         BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
@@ -80,6 +90,7 @@ class ActionExecutorImplTest<T> {
                 .actionContext(actionContext).context((Context<Void>) commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
+        doReturn(command).when(commandContext).getCommand();
 
         BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 
@@ -95,14 +106,15 @@ class ActionExecutorImplTest<T> {
                 return Direction.UNKNOWN;
             }
         };
+        doReturn(command).when(commandContext).getCommand();
 
         Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
 
         assertThat(e).isInstanceOf(IllegalArgumentException.class);
-        assertThat(e.getMessage()).isEqualTo("Unknown command direction: UNKNOWN");
+        assertThat(e.getMessage()).isEqualTo("Unknown message direction: UNKNOWN");
         verify(command, never()).undoCommand(commandContext);
         verify(command, never()).doCommand(commandContext);
-        verify(actionExecutor).getLogger();
+        verify(actionExecutor, never()).getLogger();
     }
 
     @Test
@@ -117,9 +129,9 @@ class ActionExecutorImplTest<T> {
         Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
 
         assertThat(e).isInstanceOf(IllegalArgumentException.class);
-        assertThat(e.getMessage()).isEqualTo("Command direction is not defined.");
+        assertThat(e.getMessage()).isEqualTo("Message direction is not defined.");
         verify(command, never()).undoCommand(commandContext);
         verify(command, never()).doCommand(commandContext);
-        verify(actionExecutor).getLogger();
+        verify(actionExecutor, never()).getLogger();
     }
 }
