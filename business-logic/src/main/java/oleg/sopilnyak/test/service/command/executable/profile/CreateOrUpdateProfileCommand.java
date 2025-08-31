@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
+import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
@@ -26,10 +27,11 @@ import java.util.function.UnaryOperator;
  * @see ProfilePersistenceFacade
  * @see SchoolCommandCache
  */
+@Getter
 public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
         implements ProfileCommand<Optional<E>> {
-    protected final ProfilePersistenceFacade persistence;
-    protected final BusinessMessagePayloadMapper payloadMapper;
+    protected final transient ProfilePersistenceFacade persistence;
+    protected final transient BusinessMessagePayloadMapper payloadMapper;
 
     protected CreateOrUpdateProfileCommand(final Class<E> entityType,
                                            final ProfilePersistenceFacade persistence,

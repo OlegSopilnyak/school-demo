@@ -37,7 +37,6 @@ class FindAllFacultiesCommandTest {
     @Test
     void shouldDoCommand_EntityExists() {
         when(persistence.findAllFaculties()).thenReturn(Set.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Set<Faculty>> context = command.createContext(null);
 
         command.doCommand(context);

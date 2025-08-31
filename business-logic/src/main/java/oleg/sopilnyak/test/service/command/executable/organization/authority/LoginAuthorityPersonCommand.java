@@ -66,9 +66,9 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
                 throw new SchoolAccessDeniedException("Login authority person command failed for username:" + username);
             }
 
-            Long id = profile.getId();
-            log.debug("Trying to find principal person with profileId:{}", id);
-            final Optional<AuthorityPerson> person = persistence.findAuthorityPersonByProfileId(id);
+            final Long profileId = profile.getId();
+            log.debug("Trying to find principal person with profileId:{}", profileId);
+            final Optional<AuthorityPerson> person = persistence.findAuthorityPersonByProfileId(profileId);
 
             log.debug("Got authority person with login:'{}' {}", person, username);
             context.setResult(person.isEmpty() ? person : person.map(payloadMapper::toPayload));

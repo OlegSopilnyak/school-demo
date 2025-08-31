@@ -132,18 +132,6 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     }
 
     /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
-    }
-
-    /**
      * To prepare context for particular type of the nested command
      *
      * @param command   nested command instance

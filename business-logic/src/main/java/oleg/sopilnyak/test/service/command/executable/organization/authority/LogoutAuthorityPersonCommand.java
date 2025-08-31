@@ -62,18 +62,6 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
     }
 
     /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
-    }
-
-    /**
      * To get reference to command's logger
      *
      * @return reference to the logger

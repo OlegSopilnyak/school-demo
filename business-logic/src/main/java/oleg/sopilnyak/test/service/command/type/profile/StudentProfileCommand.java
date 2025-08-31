@@ -1,11 +1,16 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
+import static java.util.Objects.isNull;
+
+import java.util.Optional;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
 /**
  * Type for school-student-profile commands
@@ -27,6 +32,58 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * The name of commands-factory SpringBean
      */
     String FACTORY_BEAN_NAME = "studentProfileCommandsFactory";
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecuteDo(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default T detachedResult(T result) {
+        if (isNull(result)) {
+            getLog().debug("Result is null");
+            return null;
+        } else if (result instanceof StudentProfile entity) {
+            return (T) detach(entity);
+        } else if (result instanceof Optional<?> optionalEntity) {
+            return (T) detach((Optional<StudentProfile>) optionalEntity);
+        } else {
+            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
+            return result;
+        }
+    }
+
+    /**
+     * To detach StudentProfile entity from persistence layer
+     *
+     * @param entity entity to detach
+     * @return detached entity
+     * @see #detachedResult(Object)
+     */
+    private StudentProfile detach(StudentProfile entity) {
+        getLog().info("Entity to detach:'{}'", entity);
+        return entity instanceof StudentProfilePayload payload ? payload : getPayloadMapper().toPayload(entity);
+    }
+
+    /**
+     * To detach StudentProfile optional entity from persistence layer
+     *
+     * @param optionalEntity optional entity to detach
+     * @return detached optional entity
+     * @see #detachedResult(Object)
+     */
+    private Optional<StudentProfile> detach(Optional<StudentProfile> optionalEntity) {
+        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
+            getLog().info("Result is null or empty");
+            return Optional.empty();
+        } else {
+            getLog().info("Optional entity to detach:'{}'", optionalEntity);
+            return optionalEntity.map(this::detach);
+        }
+    }
 
 // For commands playing Nested Command Role
 

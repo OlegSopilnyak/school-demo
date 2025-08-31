@@ -1,9 +1,14 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
+import static java.util.Objects.isNull;
+
+import java.util.Optional;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 /**
  * Type for school-principal-profile commands
@@ -25,6 +30,58 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
      * The name of commands-factory SpringBean
      */
     String FACTORY_BEAN_NAME = "principalProfileCommandsFactory";
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecuteDo(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default T detachedResult(T result) {
+        if (isNull(result)) {
+            getLog().debug("Result is null");
+            return null;
+        } else if (result instanceof PrincipalProfile entity) {
+            return (T) detach(entity);
+        } else if (result instanceof Optional<?> optionalEntity) {
+            return (T) detach((Optional<PrincipalProfile>) optionalEntity);
+        } else {
+            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
+            return result;
+        }
+    }
+
+    /**
+     * To detach PrincipalProfile entity from persistence layer
+     *
+     * @param entity entity to detach
+     * @return detached entity
+     * @see #detachedResult(Object)
+     */
+    private PrincipalProfile detach(PrincipalProfile entity) {
+        getLog().info("Entity to detach:'{}'", entity);
+        return entity instanceof PrincipalProfilePayload payload ? payload : getPayloadMapper().toPayload(entity);
+    }
+
+    /**
+     * To detach PrincipalProfile optional entity from persistence layer
+     *
+     * @param optionalEntity optional entity to detach
+     * @return detached optional entity
+     * @see #detachedResult(Object)
+     */
+    private Optional<PrincipalProfile> detach(Optional<PrincipalProfile> optionalEntity) {
+        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
+            getLog().info("Result is null or empty");
+            return Optional.empty();
+        } else {
+            getLog().info("Optional entity to detach:'{}'", optionalEntity);
+            return optionalEntity.map(this::detach);
+        }
+    }
 
 // For commands playing Nested Command Role
 

@@ -26,7 +26,7 @@ import java.util.Optional;
 @AllArgsConstructor
 @Component
 public class FindStudentsGroupCommand implements StudentsGroupCommand<Optional<StudentsGroup>> {
-    private final StudentsGroupPersistenceFacade persistence;
+    private final transient StudentsGroupPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -73,7 +73,7 @@ public class FindStudentsGroupCommand implements StudentsGroupCommand<Optional<S
      *
      * @param result result data to detach
      * @return detached result data
-     * @see #detachResultData(Context)
+     * @see #afterExecuteDo(Context)
      */
     @Override
     public Optional<StudentsGroup> detachedResult(final Optional<StudentsGroup> result) {

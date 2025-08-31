@@ -20,10 +20,11 @@ public interface CommandThroughMessageService {
     /**
      * To receive processed command message (sent by send(message)) by correlationId
      *
+     * @param <T>           the type of command execution result in command message
+     * @param commandId     the command id of the command in the message
      * @param correlationId the correlation id to find processed command message
-     * @param <T> the type of command execution result in command message
      * @return the processed command message
      * @see BaseCommandMessage
      */
-    <T> BaseCommandMessage<T> receive(String correlationId);
+    <T> BaseCommandMessage<T> receive(String commandId, String correlationId);
 }

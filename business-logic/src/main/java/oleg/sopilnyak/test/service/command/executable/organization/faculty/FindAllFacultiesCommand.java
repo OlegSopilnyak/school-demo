@@ -1,7 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -10,8 +11,6 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 /**
  * Command-Implementation: command to get all faculties of the school
@@ -22,9 +21,10 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
+@Getter
 @Component
 public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
-    private final FacultyPersistenceFacade persistence;
+    private final transient FacultyPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -59,29 +59,6 @@ public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
     @Override
     public String getId() {
         return FIND_ALL;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Set<Faculty> detachedResult(final Set<Faculty> result) {
-        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

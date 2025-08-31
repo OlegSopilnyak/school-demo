@@ -38,7 +38,6 @@ class FindRegisteredCoursesCommandTest {
     void shouldDoCommand_CoursesFound() {
         Long id = 111L;
         when(persistence.findCoursesRegisteredForStudent(id)).thenReturn(Set.of(course));
-        when(payloadMapper.toPayload(course)).thenReturn(mockedCoursePayload);
         Context<Set<Course>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);

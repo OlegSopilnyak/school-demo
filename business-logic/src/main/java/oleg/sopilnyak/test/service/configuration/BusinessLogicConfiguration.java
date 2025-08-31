@@ -10,8 +10,8 @@ import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileF
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;

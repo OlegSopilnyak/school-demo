@@ -13,7 +13,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +32,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     private final ThreadPoolTaskExecutor operationalExecutorService = new ThreadPoolTaskExecutor();
     // Flag to control the current state of the service
     private final AtomicBoolean serviceActive = new AtomicBoolean(false);
+    // Flags to control the current state of the processors
+    private final AtomicBoolean requestsProcessorActive = new AtomicBoolean(false);
+    private final AtomicBoolean responsesProcessorActive = new AtomicBoolean(false);
     // The map of messages in progress, key is correlationId
     private final ConcurrentMap<String, MessageInProgress<?>> messageInProgress = new ConcurrentHashMap<>();
     // Create income message queue
@@ -64,9 +69,15 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             // launch messages processors
             controlExecutorService.execute(new RequestProcessor(serviceActive, operationalExecutorService));
             controlExecutorService.execute(new ResponseProcessor(serviceActive, operationalExecutorService));
+            // waiting for processors to be started
+            while (!requestsProcessorActive.get() || !responsesProcessorActive.get()) {
+                Thread.yield();
+            }
 
             // the service is started
             log.info("MessageProcessingService Local Version is started.");
+        } else {
+            log.warn("MessageProcessingService Local Version is already stopped.");
         }
     }
 
@@ -78,12 +89,14 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         if (serviceActive.get()) {
             serviceActive.getAndSet(false);
             shutdownQueuesProcessing();
-            while (controlExecutorService.getActiveCount() > 0) {
+            while (requestsProcessorActive.get() || responsesProcessorActive.get()) {
                 Thread.yield();
             }
             controlExecutorService.shutdown();
             operationalExecutorService.shutdown();
             log.info("MessageProcessingService Local Version is stopped.");
+        } else {
+            log.warn("MessageProcessingService Local Version is already stopped.");
         }
     }
 
@@ -96,13 +109,20 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
      */
     @Override
     public <T> void send(final BaseCommandMessage<T> message) {
-        if (messageInProgress.putIfAbsent(message.getCorrelationId(), new MessageInProgress<>()) != null) {
-            log.warn("Message with correlationId='{}' is already in progress", message.getCorrelationId());
+        final String messageCorrelationId = message.getCorrelationId();
+        if (!requestsProcessorActive.get()) {
+            final String commandId = message.getContext().getCommand().getId();
+            log.warn("RequestMessagesProcessor is NOT active. Message with correlationId='{}' is NOT sent for processing", messageCorrelationId);
+            ActionFacade.throwFor(commandId, new IllegalStateException("RequestMessagesProcessor is NOT active."));
+        }
+        // put message-watcher to in-progress map by correlation-id
+        if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageInProgress<>()) != null) {
+            log.warn("Message with correlationId='{}' is already in progress", messageCorrelationId);
         } else {
             if (sendToRequestsQueue(message)) {
-                log.info("Message with correlationId='{}' is sent for processing", message.getCorrelationId());
+                log.info("Message with correlationId='{}' is sent for processing", messageCorrelationId);
             } else {
-                log.error("Message with correlationId='{}' is NOT added to processing queue", message.getCorrelationId());
+                log.error("Message with correlationId='{}' is NOT added to processing queue", messageCorrelationId);
             }
         }
     }
@@ -110,7 +130,8 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     /**
      * To receive processed command message (sent by send(message)) by correlationId
      *
-     * @param correlationId the correlation id to find processed command message
+     * @param commandId            the command id of the command in the message
+     * @param messageCorrelationId the correlation id to find processed command message
      * @return the processed command message
      * @see RequestProcessor#processActionCommandAndSendResponse(BaseCommandMessage)
      * @see BaseCommandMessage
@@ -118,16 +139,21 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> BaseCommandMessage<T> receive(String correlationId) {
-        final MessageInProgress<T> messageWatcher = (MessageInProgress<T>) messageInProgress.get(correlationId);
+    public <T> BaseCommandMessage<T> receive(String commandId, String messageCorrelationId) {
+        if (!responsesProcessorActive.get()) {
+            log.warn("ResponseMessagesProcessor is NOT active. Message with correlationId='{}' is NOT received", messageCorrelationId);
+            return ActionFacade.throwFor(commandId, new IllegalStateException("ResponseMessagesProcessor is NOT active."));
+        }
+        // getting message-watcher from in-progress map by correlation-id
+        final MessageInProgress<T> messageWatcher = (MessageInProgress<T>) messageInProgress.get(messageCorrelationId);
         if (isNull(messageWatcher)) {
-            logMessageIsNotInProgress(correlationId);
+            logMessageIsNotInProgress(messageCorrelationId);
             return null;
         }
         // wait until processing is completed
         messageWatcher.waitForMessageComplete();
         // remove message-watcher from in-progress map by correlation-id
-        messageInProgress.remove(correlationId);
+        messageInProgress.remove(messageCorrelationId);
         // return the result
         return messageWatcher.result;
     }
@@ -246,11 +272,18 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
 
         @Override
         public void run() {
+            if (isProcessorActive()) {
+                log.warn("{} is already running.", getProcessorName());
+                return;
+            }
+            // mark as active
+            activateProcessor();
             log.info("{} is started. Main service active = '{}'", getProcessorName(), active);
             while (active.get()) {
                 try {
                     final BaseCommandMessage<?> message = takeFromQueue();
                     if (active.get() && !Objects.equals(message, BaseCommandMessage.EMPTY)) {
+                        // process the message asynchronously if not empty
                         CompletableFuture.runAsync(() -> processTakenMessage(message), executor);
                     }
                 } catch (InterruptedException e) {
@@ -259,7 +292,8 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
                     Thread.currentThread().interrupt();
                 }
             }
-
+            // mark as inactive
+            deActivateProcessor();
         }
 
         /**
@@ -284,6 +318,23 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          * @param message the command message to be processed
          */
         protected abstract void processTakenMessage(BaseCommandMessage<?> message);
+
+        /**
+         * To check if the processor is active
+         *
+         * @return true if the processor is active
+         */
+        protected abstract boolean isProcessorActive();
+
+        /**
+         * To activate the processor
+         */
+        protected abstract void activateProcessor();
+
+        /**
+         * To deactivate the processor
+         */
+        protected abstract void deActivateProcessor();
     }
 
     // Runnable for background processing of requests
@@ -325,16 +376,45 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             processActionCommandAndSendResponse(message);
         }
 
+        /**
+         * To check if the processor is active
+         *
+         * @return true if the processor is active
+         */
+        @Override
+        protected boolean isProcessorActive() {
+            return requestsProcessorActive.get();
+        }
+
+        /**
+         * To activate the processor
+         */
+        @Override
+        protected void activateProcessor() {
+            requestsProcessorActive.getAndSet(true);
+        }
+
+        /**
+         * To deactivate the processor
+         */
+        @Override
+        protected void deActivateProcessor() {
+            requestsProcessorActive.getAndSet(false);
+        }
+
         // process the request's action command and send the response to responses queue
         private void processActionCommandAndSendResponse(final BaseCommandMessage<?> request) {
+            // set up action context for current thread
+            ActionContext.install(request.getActionContext());
+            //
             final String correlationId = request.getCorrelationId();
             log.debug("Processing request message with correlationId='{}'", correlationId);
-            // check if the message in progress map by correlation-id
+            // check if the request in progress map by correlation-id
             if (!messageInProgress.containsKey(correlationId)) {
                 logMessageIsNotInProgress(correlationId);
                 return;
             }
-            // Create and send the response
+            // process the request's command and send the result responses queue
             if (sendToResponsesQueue(actionExecutor.processActionCommand(request))) {
                 log.debug("Message with correlationId='{}' is processed and sent to responses queue", correlationId);
             } else {
@@ -382,12 +462,38 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             completeMessageProcessing(message);
         }
 
+        /**
+         * To check if the processor is active
+         *
+         * @return true if the processor is active
+         */
+        @Override
+        protected boolean isProcessorActive() {
+            return responsesProcessorActive.get();
+        }
+
+        /**
+         * To activate the processor
+         */
+        @Override
+        protected void activateProcessor() {
+            responsesProcessorActive.getAndSet(true);
+        }
+
+        /**
+         * To deactivate the processor
+         */
+        @Override
+        protected void deActivateProcessor() {
+            responsesProcessorActive.getAndSet(false);
+        }
+
         // complete the message processing
         private void completeMessageProcessing(final BaseCommandMessage response) {
             final String correlationId = response.getCorrelationId();
             log.info("Processing response with correlationId='{}' is ready for complete", correlationId);
             // check if the message in progress map by correlation-id
-            final MessageInProgress messageWatcher = messageInProgress.get(correlationId);
+            final MessageInProgress<?> messageWatcher = messageInProgress.get(correlationId);
             if (isNull(messageWatcher)) {
                 logMessageIsNotInProgress(correlationId);
                 return;

@@ -10,6 +10,8 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Type: School Command to execute the business-logic action
@@ -30,6 +32,14 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @return value of command-id
      */
     String getId();
+
+    /**
+     * To get mapper for business-message-payload
+     *
+     * @return mapper instance
+     * @see BusinessMessagePayloadMapper
+     */
+    BusinessMessagePayloadMapper getPayloadMapper();
 
     /**
      * To check nullable of the input parameter
@@ -95,14 +105,36 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see CommandExecutable#executeDo(Context)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     default void doCommand(Context<T> context) {
         if (context.isReady()) {
             // start redo with correct context state
             context.setState(Context.State.WORK);
             executeDo(context);
-            detachResultData(context);
+            afterExecuteDo(context);
         } else {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
+        }
+    }
+
+    /**
+     * To rollback command's execution according to command context
+     *
+     * @param context context of redo execution
+     * @see Context
+     * @see Context#getUndoParameter()
+     * @see CommandExecutable#executeUndo(Context)
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    default void undoCommand(Context<?> context) {
+        if (context.isDone()) {
+            // start undo with correct context state
+            context.setState(Context.State.WORK);
+            executeUndo(context);
+        } else {
+            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         }
     }
@@ -116,7 +148,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context#getResult()
      * @see #detachedResult(Object)
      */
-    default void detachResultData(Context<T> context) {
+    default void afterExecuteDo(Context<T> context) {
         // check if command is done and has result
         if (!context.isDone()) {
             getLog().warn("Cannot detach result data of command with id:'{}' for context:state {}", getId(), context.getState());
@@ -140,37 +172,9 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param result result data to detach
      * @return detached result data
-     * @see RootCommand#detachResultData(Context)
+     * @see RootCommand#afterExecuteDo(Context)
      */
     T detachedResult(T result);
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    BusinessMessagePayloadMapper getPayloadMapper();
-
-    /**
-     * To rollback command's execution according to command context
-     *
-     * @param context context of redo execution
-     * @see Context
-     * @see Context#getUndoParameter()
-     * @see CommandExecutable#executeUndo(Context)
-     */
-    @Override
-    default void undoCommand(Context<?> context) {
-        if (context.isDone()) {
-            // start undo with correct context state
-            context.setState(Context.State.WORK);
-            executeUndo(context);
-        } else {
-            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        }
-    }
 
     // For commands playing as a Nested Command
 

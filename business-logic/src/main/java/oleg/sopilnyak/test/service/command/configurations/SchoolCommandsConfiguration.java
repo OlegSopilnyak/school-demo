@@ -10,8 +10,8 @@ import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsF
 import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;

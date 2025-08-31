@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -19,9 +19,10 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
+@Getter
 @Component
 public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> {
-    private final RegisterPersistenceFacade persistenceFacade;
+    private final transient RegisterPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -60,29 +61,6 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
     @Override
     public String getId() {
         return FIND_REGISTERED;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Set<Course> detachedResult(final Set<Course> result) {
-        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

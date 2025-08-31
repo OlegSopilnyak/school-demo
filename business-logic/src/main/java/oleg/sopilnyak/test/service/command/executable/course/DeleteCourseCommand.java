@@ -4,6 +4,7 @@ import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
@@ -14,7 +15,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -29,10 +30,11 @@ import org.springframework.util.ObjectUtils;
  * @see CoursesPersistenceFacade
  */
 @Slf4j
+@Getter
 @Component
 public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
-    private final CoursesPersistenceFacade persistenceFacade;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient CoursesPersistenceFacade persistenceFacade;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                final BusinessMessagePayloadMapper payloadMapper) {
@@ -122,29 +124,6 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
     @Override
     public String getId() {
         return DELETE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(Boolean result) {
-        return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

@@ -1,13 +1,13 @@
 package oleg.sopilnyak.test.service.facade.education.impl;
 
 import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.CREATE_OR_UPDATE;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.DELETE;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_BY_ID;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_NOT_REGISTERED;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.FIND_REGISTERED;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.REGISTER;
-import static oleg.sopilnyak.test.service.command.type.CourseCommand.UN_REGISTER;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.CREATE_OR_UPDATE;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.DELETE;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.FIND_BY_ID;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.FIND_NOT_REGISTERED;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.FIND_REGISTERED;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.REGISTER;
+import static oleg.sopilnyak.test.service.command.type.education.CourseCommand.UN_REGISTER;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +26,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;

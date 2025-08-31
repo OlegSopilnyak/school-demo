@@ -1,11 +1,18 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
+import static java.util.Objects.isNull;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 /**
  * Type for school-organization students groups management command
@@ -36,6 +43,78 @@ public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
      * Command-ID: for delete students group entity
      */
     String DELETE = "organization.students.group.delete";
+
+    /**
+     * To detach command result data from persistence layer
+     *
+     * @param result result data to detach
+     * @return detached result data
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecuteDo(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default T detachedResult(T result) {
+        if (isNull(result)) {
+            getLog().debug("Result is null");
+            return null;
+        } else if (result instanceof StudentsGroup entity) {
+            return (T) detach(entity);
+        } else if (result instanceof Optional<?> optionalEntity) {
+            return (T) detach((Optional<StudentsGroup>) optionalEntity);
+        } else if (result instanceof StudentsGroupSet entitiesSet) {
+            return (T) detach(entitiesSet);
+        } else {
+            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
+            return result;
+        }
+    }
+
+    /**
+     * Set of StudentsGroup entities
+     */
+    interface StudentsGroupSet extends Set<StudentsGroup> {
+    }
+
+    /**
+     * To detach StudentsGroup entity from persistence layer
+     *
+     * @param entity entity to detach
+     * @return detached entity
+     * @see #detachedResult(Object)
+     */
+    private StudentsGroup detach(StudentsGroup entity) {
+        getLog().info("Entity to detach:'{}'", entity);
+        return entity instanceof StudentsGroupPayload payload ? payload : getPayloadMapper().toPayload(entity);
+    }
+
+    /**
+     * To detach StudentsGroup optional entity from persistence layer
+     *
+     * @param optionalEntity optional entity to detach
+     * @return detached optional entity
+     * @see #detachedResult(Object)
+     */
+    private Optional<StudentsGroup> detach(Optional<StudentsGroup> optionalEntity) {
+        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
+            getLog().info("Result is null or empty");
+            return Optional.empty();
+        } else {
+            getLog().info("Optional entity to detach:'{}'", optionalEntity);
+            return optionalEntity.map(this::detach);
+        }
+    }
+
+    /**
+     * To detach StudentsGroup entities set from persistence layer
+     *
+     * @param entitiesSet entities set to detach
+     * @return detached entities set
+     * @see #detachedResult(Object)
+     */
+    private Set<StudentsGroup> detach(Set<StudentsGroup> entitiesSet) {
+        getLog().info("Entities set to detach:'{}'", entitiesSet);
+        return entitiesSet.stream().map(this::detach).collect(Collectors.toSet());
+    }
 
 // For commands playing Nested Command Role
 

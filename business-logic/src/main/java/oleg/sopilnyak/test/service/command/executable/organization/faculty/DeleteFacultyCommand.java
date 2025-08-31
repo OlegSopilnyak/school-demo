@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
@@ -30,11 +31,12 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
+@Getter
 @Component
 public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
         implements FacultyCommand<Boolean> {
-    private final FacultyPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient FacultyPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteFacultyCommand(final FacultyPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
@@ -129,29 +131,6 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
     @Override
     public String getId() {
         return DELETE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return null;
     }
 
     /**

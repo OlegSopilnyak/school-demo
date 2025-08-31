@@ -21,8 +21,8 @@ import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfigur
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -229,7 +229,7 @@ class ContextInputParameterTest {
         } else if (expected.getResult().isEmpty()) {
             assertThat(actual.getResult()).isEmpty();
         } else {
-            assertThat(expected.getResult().get()).isEqualTo(actual.getResult().get());
+            assertThat(actual.getResult().get()).isEqualTo(expected.getResult().get());
         }
         // error
         if (isNull(expected.getException())) {

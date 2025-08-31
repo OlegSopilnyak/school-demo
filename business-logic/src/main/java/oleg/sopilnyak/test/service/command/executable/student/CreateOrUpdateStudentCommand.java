@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import static java.util.Objects.isNull;
-
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -10,7 +9,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -28,11 +27,12 @@ import java.util.function.*;
  * @see StudentsPersistenceFacade
  */
 @Slf4j
+@Getter
 @Component
 public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
         implements StudentCommand<Optional<Student>> {
-    private final StudentsPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient StudentsPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateStudentCommand(final StudentsPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
@@ -126,29 +126,6 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Optional<Student> detachedResult(final Optional<Student> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

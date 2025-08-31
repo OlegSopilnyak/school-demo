@@ -339,18 +339,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         }
 
         /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#detachResultData(Context)
-         */
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
-        }
-
-        /**
          * To get mapper for business-message-payload
          *
          * @return mapper instance
@@ -415,7 +403,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          *
          * @param result result data to detach
          * @return detached result data
-         * @see RootCommand#detachResultData(Context)
+         * @see RootCommand#afterExecuteDo(Context)
          */
         @Override
         public Void detachedResult(Void result) {

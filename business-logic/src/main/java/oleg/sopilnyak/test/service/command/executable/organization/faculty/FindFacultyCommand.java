@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import static java.util.Objects.isNull;
-
+import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -13,8 +13,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /**
  * Command-Implementation: command to get faculty by id
  *
@@ -24,9 +22,10 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
+@Getter
 @Component
 public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
-    private final FacultyPersistenceFacade persistenceFacade;
+    private final transient FacultyPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -66,29 +65,6 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
     @Override
     public String getId() {
         return FIND_BY_ID;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Optional<Faculty> detachedResult(Optional<Faculty> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

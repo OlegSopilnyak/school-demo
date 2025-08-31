@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPe
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
-    private final EducationPersistenceFacade persistenceFacade;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient EducationPersistenceFacade persistenceFacade;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
      * DO: To unlink the student from the course<BR/>
@@ -109,29 +109,6 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
     @Override
     public String getId() {
         return UN_REGISTER;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

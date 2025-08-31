@@ -24,7 +24,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Component
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
-    private final StudentsGroupPersistenceFacade persistence;
+    private final transient StudentsGroupPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -66,7 +66,7 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
      *
      * @param result result data to detach
      * @return detached result data
-     * @see #detachResultData(Context)
+     * @see #afterExecuteDo(Context)
      */
     @Override
     public Set<StudentsGroup> detachedResult(Set<StudentsGroup> result) {

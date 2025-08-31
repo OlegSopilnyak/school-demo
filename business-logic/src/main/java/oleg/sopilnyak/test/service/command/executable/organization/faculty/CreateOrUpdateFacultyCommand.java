@@ -1,7 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import static java.util.Objects.isNull;
-
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -16,12 +20,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-
 /**
  * Command-Implementation: command to create or update the faculty of the school
  *
@@ -31,11 +29,12 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
+@Getter
 @Component
 public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
         implements FacultyCommand<Optional<Faculty>> {
-    private final FacultyPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient FacultyPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
@@ -132,29 +131,6 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
     @Override
     public String getId() {
         return CREATE_OR_UPDATE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Optional<Faculty> detachedResult(final Optional<Faculty> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

@@ -34,8 +34,8 @@ import java.util.function.UnaryOperator;
 @Component
 public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand<Optional<StudentsGroup>> {
-    private final StudentsGroupPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient StudentsGroupPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public CreateOrUpdateStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                               final BusinessMessagePayloadMapper payloadMapper) {
@@ -140,7 +140,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      *
      * @param result result data to detach
      * @return detached result data
-     * @see #detachResultData(Context)
+     * @see #afterExecuteDo(Context)
      */
     @Override
     public Optional<StudentsGroup> detachedResult(Optional<StudentsGroup> result) {

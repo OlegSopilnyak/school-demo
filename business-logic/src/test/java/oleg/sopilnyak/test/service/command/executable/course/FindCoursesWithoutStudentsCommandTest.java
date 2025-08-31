@@ -36,7 +36,6 @@ class FindCoursesWithoutStudentsCommandTest {
     @Test
     void shouldDoCommand_CoursesFound() {
         when(persistence.findCoursesWithoutStudents()).thenReturn(Set.of(course));
-        when(payloadMapper.toPayload(course)).thenReturn(mockedCoursePayload);
         Context<Set<Course>> context = command.createContext(null);
 
         command.doCommand(context);

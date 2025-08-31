@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 
 import java.util.Collection;
 

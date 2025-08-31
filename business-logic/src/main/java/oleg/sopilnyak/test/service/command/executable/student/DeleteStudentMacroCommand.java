@@ -14,7 +14,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
@@ -46,7 +46,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     private final int maxPoolSize;
     // persistence facade for get instance of student by student-id
-    private final StudentsPersistenceFacade persistence;
+    private final transient StudentsPersistenceFacade persistence;
 
     public DeleteStudentMacroCommand(
             final DeleteStudentCommand deleteStudentCommand,
@@ -126,18 +126,6 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     @Override
     public String getId() {
         return DELETE_ALL;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
     }
 
     /**

@@ -50,7 +50,6 @@ class FindNotEnrolledStudentsCommandTest {
     @Test
     void shouldDoCommand_StudentsFound() {
         when(persistence.findNotEnrolledStudents()).thenReturn(Set.of(instance));
-        when(payloadMapper.toPayload(instance)).thenReturn(payload);
         Context<Set<Student>> context = command.createContext(null);
 
         command.doCommand(context);

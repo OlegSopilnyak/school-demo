@@ -63,7 +63,7 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      *
      * @param result result data to detach
      * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#detachResultData(Context)
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecuteDo(Context)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -73,15 +73,16 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
             return null;
         } else if (result instanceof AuthorityPerson entity) {
             return (T) detach(entity);
-        } else if (result instanceof Optional optionalEntity) {
-            return (T) detach(optionalEntity);
+        } else if (result instanceof Optional<?> optionalEntity) {
+            return (T) detach((Optional<AuthorityPerson>) optionalEntity);
         } else if (result instanceof AuthorityPersonSet entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
-            getLog().warn("Result is not about AuthorityPerson type just:'{}'", result);
+            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
         }
     }
+
     /**
      * Set of AuthorityPerson entities
      */
@@ -113,7 +114,6 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
             return Optional.empty();
         } else {
             getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            // Optional.of(detach(optionalEntity.get()))
             return optionalEntity.map(this::detach);
         }
     }

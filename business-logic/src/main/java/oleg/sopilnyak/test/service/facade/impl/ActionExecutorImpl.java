@@ -40,9 +40,13 @@ public class ActionExecutorImpl implements ActionExecutor {
         // send and receive message for processing
         final String correlationId = commandMessage.getCorrelationId();
         log.info("Sending command message for processing, correlationId='{}'", correlationId);
+        // send message for processing
         messagesExchangeService.send(commandMessage);
-        log.info("Waiting for processed command message, correlationId='{}'", correlationId);
-        return messagesExchangeService.receive(correlationId);
+        // wait and get back
+        // receiving processed message
+        final String commandId = commandMessage.getContext().getCommand().getId();
+        log.info("Waiting for processed command message of command '{}' with correlationId='{}'", commandId, correlationId);
+        return messagesExchangeService.receive(commandId, correlationId);
     }
 
     private <T> void validate(BaseCommandMessage<T> message) {

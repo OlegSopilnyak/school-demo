@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.type.nested;
 
 import java.util.Deque;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;

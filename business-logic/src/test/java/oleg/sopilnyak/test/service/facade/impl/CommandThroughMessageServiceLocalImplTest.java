@@ -4,6 +4,7 @@ import static oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServi
 import static oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl.State.IN_PROGRESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
@@ -17,10 +18,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.awaitility.Durations;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +52,12 @@ class CommandThroughMessageServiceLocalImplTest {
     Context<?> commandContext;
     @Mock
     RootCommand<?> command;
+    final String mockedCommandId = "test-command-id";
+
+    @BeforeEach
+    void setUp() {
+        doReturn(mockedCommandId).when(command).getId();
+    }
 
     @Test
     void shouldCheckIntegrity() {
@@ -56,7 +65,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(ReflectionTestUtils.getField(service, "maximumPoolSize"))
                 .isEqualTo(9)
                 .isNotEqualTo(Runtime.getRuntime().availableProcessors());
-        assertThat(((AtomicBoolean)ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
+        assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
         ThreadPoolTaskExecutor controlExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "controlExecutorService");
         assertThat(controlExecutorService).isNotNull();
         assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
@@ -70,7 +79,7 @@ class CommandThroughMessageServiceLocalImplTest {
 
     @Test
     void shouldStopService() {
-        assertThat(((AtomicBoolean)ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
+        assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
         ThreadPoolTaskExecutor controlExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "controlExecutorService");
         ThreadPoolTaskExecutor operationalExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "operationalExecutorService");
         assertThat(controlExecutorService).isNotNull();
@@ -82,15 +91,15 @@ class CommandThroughMessageServiceLocalImplTest {
 
         service.stopService();
 
-        assertThat(((AtomicBoolean)ReflectionTestUtils.getField(service, "serviceActive")).get()).isFalse();
+        assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isFalse();
         assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isTrue();
         assertThat(operationalExecutorService.getThreadPoolExecutor().isShutdown()).isTrue();
     }
 
     @Test
     <T> void shouldSendDoCommandMessage() {
-        DoCommandMessage message = spy(DoCommandMessage.builder().correlationId("12345")
-                .actionContext(actionContext).context((Context<Object>) commandContext)
+        DoCommandMessage<T> message = spy(DoCommandMessage.<T>builder().correlationId("12345")
+                .actionContext(actionContext).context((Context<T>) commandContext)
                 .build());
         Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>> messageInProgress =
                 (Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
@@ -126,6 +135,50 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(messageWatchDog).isNotNull();
         assertThat(messageWatchDog.getState()).isEqualTo(COMPLETED);
         assertThat(messageWatchDog.getResult()).isEqualTo(message);
+    }
+
+    @Test
+    void shouldNotSendCommandMessage_MessageAlreadyInProgress() {
+        UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("54321")
+                .actionContext(actionContext).context((Context<Void>) commandContext)
+                .build());
+        Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>> messageInProgress =
+                (Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
+        assertThat(messageInProgress).isNotNull().isEmpty();
+        // simulate that message is already in progress
+        messageInProgress.put(message.getCorrelationId(), new CommandThroughMessageServiceLocalImpl.MessageInProgress<>());
+
+        service.send(message);
+
+        // check request message processing
+        verify(message, never()).getContext();
+
+        // check command execution
+        verify(((RootCommand<Void>) command), never()).undoCommand(any(Context.class));
+
+        // check response message processing
+        var messageWatchDog = messageInProgress.get(message.getCorrelationId());
+        assertThat(messageWatchDog).isNotNull();
+        assertThat(messageWatchDog.getState()).isEqualTo(IN_PROGRESS);
+        assertThat(messageWatchDog.getResult()).isNull();
+    }
+
+    @Test
+    <T> void shouldNotSendDoCommandMessage_ServiceStopped() {
+        DoCommandMessage<T> message = spy(DoCommandMessage.<T>builder().correlationId("12345")
+                .actionContext(actionContext).context((Context<T>) commandContext)
+                .build());
+        doReturn(command).when(commandContext).getCommand();
+        service.stopService();
+
+        Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.send(message));
+
+        assertThat(e).isInstanceOf(UnableExecuteCommandException.class);
+        assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
+        assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor is NOT active.");
+        // check request message processing
+        verify(message, atLeastOnce()).getContext();
     }
 
     @Test
@@ -170,35 +223,27 @@ class CommandThroughMessageServiceLocalImplTest {
     }
 
     @Test
-    void shouldNotSendCommandMessage_MessageAlreadyInProgress() {
-        UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("54321")
+    void shouldNotSendUndoCommandMessage_ServiceStopped() {
+        UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("12345")
                 .actionContext(actionContext).context((Context<Void>) commandContext)
                 .build());
-        Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>> messageInProgress =
-                (Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
-        assertThat(messageInProgress).isNotNull().isEmpty();
-        // simulate that message is already in progress
-        messageInProgress.put(message.getCorrelationId(), new CommandThroughMessageServiceLocalImpl.MessageInProgress<>());
+        doReturn(command).when(commandContext).getCommand();
+        service.stopService();
 
-        service.send(message);
+        Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.send(message));
 
+        assertThat(e).isInstanceOf(UnableExecuteCommandException.class);
+        assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
+        assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor is NOT active.");
         // check request message processing
-        verify(message, never()).getContext();
-
-        // check command execution
-        verify(((RootCommand<Void>)command), never()).undoCommand(any(Context.class));
-
-        // check response message processing
-        var messageWatchDog = messageInProgress.get(message.getCorrelationId());
-        assertThat(messageWatchDog).isNotNull();
-        assertThat(messageWatchDog.getState()).isEqualTo(IN_PROGRESS);
-        assertThat(messageWatchDog.getResult()).isNull();
+        verify(message, atLeastOnce()).getContext();
     }
 
     @Test
     <T> void shouldReceiveDoCommandMessage() {
-        DoCommandMessage message = spy(DoCommandMessage.builder().correlationId("12345-12345")
-                .actionContext(actionContext).context((Context<Object>) commandContext)
+        DoCommandMessage<T> message = spy(DoCommandMessage.<T>builder().correlationId("12345-12345")
+                .actionContext(actionContext).context((Context<T>) commandContext)
                 .build());
         Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>> messageInProgress =
                 (Map<String, CommandThroughMessageServiceLocalImpl.MessageInProgress<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
@@ -219,7 +264,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
 
-        BaseCommandMessage result = service.receive(message.getCorrelationId());
+        BaseCommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
         // check message processing is finished
@@ -250,7 +295,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
 
-        BaseCommandMessage result = service.receive(message.getCorrelationId());
+        BaseCommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
         // check message processing is finished
@@ -263,8 +308,25 @@ class CommandThroughMessageServiceLocalImplTest {
                 .actionContext(actionContext).context((Context<Void>) commandContext)
                 .build());
 
-        BaseCommandMessage result = service.receive(message.getCorrelationId());
+        BaseCommandMessage<?> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void shouldNotReceiveCommandMessage_ServiceStopped() {
+        UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("54321-54321-12345")
+                .actionContext(actionContext).context((Context<Void>) commandContext)
+                .build());
+        String commandId = command.getId();
+        String correlationId = message.getCorrelationId();
+        service.stopService();
+
+        Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.receive(commandId, correlationId));
+
+        assertThat(e).isInstanceOf(UnableExecuteCommandException.class);
+        assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
+        assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
+        assertThat(e.getCause().getMessage()).isEqualTo("ResponseMessagesProcessor is NOT active.");
     }
 }

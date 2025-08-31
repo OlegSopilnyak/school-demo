@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -162,7 +162,7 @@ class MacroCommandTest {
              *
              * @param result result data to detach
              * @return detached result data
-             * @see RootCommand#detachResultData(Context)
+             * @see RootCommand#afterExecuteDo(Context)
              */
             @Override
             public Void detachedResult(Void result) {
@@ -443,7 +443,7 @@ class MacroCommandTest {
              *
              * @param result result data to detach
              * @return detached result data
-             * @see RootCommand#detachResultData(Context)
+             * @see RootCommand#afterExecuteDo(Context)
              */
             @Override
             public Double detachedResult(Double result) {
@@ -790,7 +790,7 @@ class MacroCommandTest {
              *
              * @param result result data to detach
              * @return detached result data
-             * @see RootCommand#detachResultData(Context)
+             * @see RootCommand#afterExecuteDo(Context)
              */
             @Override
             public Double detachedResult(Double result) {
@@ -1173,7 +1173,7 @@ class MacroCommandTest {
          *
          * @param result result data to detach
          * @return detached result data
-         * @see RootCommand#detachResultData(Context)
+         * @see RootCommand#afterExecuteDo(Context)
          */
         @Override
         public Double detachedResult(Double result) {

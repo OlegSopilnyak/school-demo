@@ -1,12 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -21,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Component
 public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>> {
-    private final RegisterPersistenceFacade persistenceFacade;
+    private final transient RegisterPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
     /**
@@ -60,18 +59,6 @@ public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>>
     @Override
     public String getId() {
         return FIND_ENROLLED;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #detachResultData(Context)
-     */
-    @Override
-    public Set<Student> detachedResult(final Set<Student> result) {
-        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
     }
 
     /**

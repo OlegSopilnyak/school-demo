@@ -33,8 +33,8 @@ import java.util.function.UnaryOperator;
 @Component
 public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand<Boolean> {
-    private final StudentsGroupPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient StudentsGroupPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                       final BusinessMessagePayloadMapper payloadMapper) {
@@ -135,7 +135,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      *
      * @param result result data to detach
      * @return detached result data
-     * @see #detachResultData(Context)
+     * @see #afterExecuteDo(Context)
      */
     @Override
     public Boolean detachedResult(final Boolean result) {

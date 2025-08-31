@@ -53,7 +53,6 @@ class FindEnrolledStudentsCommandTest {
     void shouldDoCommand_StudentsFound() {
         Long id = 211L;
         when(persistence.findEnrolledStudentsByCourseId(id)).thenReturn(Set.of(instance));
-        when(payloadMapper.toPayload(instance)).thenReturn(payload);
         Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);

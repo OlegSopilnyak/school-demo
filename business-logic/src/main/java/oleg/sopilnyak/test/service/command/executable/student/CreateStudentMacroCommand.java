@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import static java.util.Objects.isNull;
-
 import java.util.Deque;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -13,7 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -41,10 +40,11 @@ import org.springframework.stereotype.Component;
  * @see StudentCommand
  */
 @Slf4j
+@Getter
 @Component
 public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<Student>>
         implements StudentCommand<Optional<Student>> {
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
 
@@ -89,29 +89,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     @Override
     public String getId() {
         return CREATE_NEW;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Optional<Student> detachedResult(final Optional<Student> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**
@@ -341,18 +318,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         }
 
         /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#detachResultData(Context)
-         */
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
-        }
-
-        /**
          * To get mapper for business-message-payload
          *
          * @return mapper instance
@@ -402,18 +367,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         @Override
         public String getId() {
             return command.getId();
-        }
-
-        /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#detachResultData(Context)
-         */
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
         }
 
         /**

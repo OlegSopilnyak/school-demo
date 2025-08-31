@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
-import oleg.sopilnyak.test.service.command.type.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -530,7 +530,7 @@ class SequentialMacroCommandTest {
          *
          * @param result result data to detach
          * @return detached result data
-         * @see RootCommand#detachResultData(Context)
+         * @see RootCommand#afterExecuteDo(Context)
          */
         @Override
         public Double detachedResult(Double result) {
@@ -810,7 +810,7 @@ class SequentialMacroCommandTest {
          *
          * @param result result data to detach
          * @return detached result data
-         * @see RootCommand#detachResultData(Context)
+         * @see RootCommand#afterExecuteDo(Context)
          */
         @Override
         public Void detachedResult(Void result) {
@@ -869,18 +869,6 @@ class SequentialMacroCommandTest {
         }
 
         /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#detachResultData(Context)
-         */
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
-        }
-
-        /**
          * To get mapper for business-message-payload
          *
          * @return mapper instance
@@ -929,18 +917,6 @@ class SequentialMacroCommandTest {
         @Override
         public String getId() {
             return command.getId();
-        }
-
-        /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#detachResultData(Context)
-         */
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
         }
 
         /**

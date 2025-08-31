@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -29,8 +29,8 @@ import java.util.function.*;
 @Slf4j
 @Component
 public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand<Boolean> {
-    private final StudentsPersistenceFacade persistence;
-    private final BusinessMessagePayloadMapper payloadMapper;
+    private final transient StudentsPersistenceFacade persistence;
+    private final transient BusinessMessagePayloadMapper payloadMapper;
 
     public DeleteStudentCommand(final StudentsPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
@@ -120,18 +120,6 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
     @Override
     public String getId() {
         return DELETE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#detachResultData(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
     }
 
     /**
