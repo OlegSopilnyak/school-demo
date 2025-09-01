@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Fin
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +42,7 @@ class FindAuthorityPersonCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    FindAuthorityPersonCommand command;
+    AuthorityPersonCommand command;
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)

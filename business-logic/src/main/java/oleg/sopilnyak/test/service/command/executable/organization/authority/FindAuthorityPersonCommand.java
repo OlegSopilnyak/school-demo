@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("authorityPersonFind")
 public class FindAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter

@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +44,7 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    DeleteStudentProfileCommand command;
+    StudentProfileCommand command;
 
     @AfterEach
     void tearDown() {

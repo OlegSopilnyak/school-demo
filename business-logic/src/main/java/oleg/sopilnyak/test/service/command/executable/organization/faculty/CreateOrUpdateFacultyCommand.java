@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Getter
-@Component
+@Component("facultyUpdate")
 public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
         implements FacultyCommand<Optional<Faculty>> {
     private final transient FacultyPersistenceFacade persistence;

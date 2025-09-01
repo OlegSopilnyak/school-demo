@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
  * @see PersistenceFacade
  */
 @Slf4j
-//@AllArgsConstructor
-@Component
+@Component("authorityPersonLogout")
 public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Boolean> {
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper = null;

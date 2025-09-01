@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Log
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    LoginAuthorityPersonCommand command;
+    AuthorityPersonCommand command;
 
 
     @Test

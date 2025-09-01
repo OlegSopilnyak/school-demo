@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.course;
+package oleg.sopilnyak.test.service.command.executable.education;
 
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;

@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component
+@Component("authorityPersonDelete")
 public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Boolean> {
     private final transient AuthorityPersonPersistenceFacade persistence;

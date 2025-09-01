@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdatePrincipalProfileCommand command;
+    PrincipalProfileCommand command;
 
     @AfterEach
     void tearDown() {
@@ -75,7 +76,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
-        verify(payloadMapper).toPayload(any(PrincipalProfileEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(PrincipalProfileEntity.class));
         verify(persistence).save(profile);
         verify(persistence).saveProfile(profile);
     }

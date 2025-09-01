@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.executable.education.student.FindEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;

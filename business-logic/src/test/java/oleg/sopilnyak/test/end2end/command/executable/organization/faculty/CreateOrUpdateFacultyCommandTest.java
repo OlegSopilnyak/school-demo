@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -47,7 +48,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdateFacultyCommand command;
+    FacultyCommand command;
 
     @AfterEach
     void tearDown() {
@@ -100,7 +101,7 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
         assertFacultyEquals(entityUpdated, result, true);
         verify(command).executeDo(context);
         verify(persistence).findFacultyById(id);
-        verify(payloadMapper).toPayload(any(FacultyEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(FacultyEntity.class));
         verify(persistence).save(entityUpdated);
     }
 

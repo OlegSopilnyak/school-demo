@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @see CreateOrUpdateProfileCommand
  */
 @Slf4j
-@Component
+@Component("profilePrincipalUpdate")
 public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfileCommand<PrincipalProfile>
         implements PrincipalProfileCommand<Optional<PrincipalProfile>> {
 

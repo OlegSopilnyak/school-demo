@@ -7,10 +7,11 @@ import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeExce
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.student.CreateOrUpdateStudentCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -44,7 +45,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdateStudentCommand command;
+    StudentCommand command;
 
     @AfterEach
     void tearDown() {
@@ -95,7 +96,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
         assertStudentEquals(studentUpdated, context.getResult().orElseThrow().orElseThrow(), false);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(student.getId());
-        verify(payloadMapper).toPayload(any(StudentEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(StudentEntity.class));
         verify(persistence).save(studentUpdated);
     }
 

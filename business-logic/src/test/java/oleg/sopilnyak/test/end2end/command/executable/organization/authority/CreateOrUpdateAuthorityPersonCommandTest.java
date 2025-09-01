@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Cre
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -46,7 +47,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdateAuthorityPersonCommand command;
+    AuthorityPersonCommand command;
 
     @AfterEach
     void tearDown() {
@@ -97,7 +98,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(entity);
-        verify(payloadMapper).toPayload(any(AuthorityPersonEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(AuthorityPersonEntity.class));
         verify(persistence).save(entityUpdated);
     }
 

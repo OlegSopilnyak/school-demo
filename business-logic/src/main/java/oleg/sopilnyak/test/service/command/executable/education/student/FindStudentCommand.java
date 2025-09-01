@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.student;
+package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("studentFind")
 public class FindStudentCommand implements StudentCommand<Optional<Student>> {
     private final transient StudentsPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;

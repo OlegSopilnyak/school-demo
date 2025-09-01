@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.student;
+package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("studentFindEnrolled")
 public class FindEnrolledStudentsCommand implements StudentCommand<Set<Student>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;

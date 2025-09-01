@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.student;
+package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import java.util.Deque;
 import java.util.Optional;
@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
@@ -27,6 +26,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -41,15 +41,15 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Getter
-@Component
+@Component("studentMacroCreate")
 public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<Student>>
         implements StudentCommand<Optional<Student>> {
     private final transient BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
 
-    public CreateStudentMacroCommand(final CreateOrUpdateStudentCommand personCommand,
-                                     final CreateOrUpdateStudentProfileCommand profileCommand,
+    public CreateStudentMacroCommand(@Qualifier("studentUpdate") StudentCommand<?> personCommand,
+                                     @Qualifier("profileStudentUpdate") StudentProfileCommand<?> profileCommand,
                                      final BusinessMessagePayloadMapper payloadMapper) {
         this.putToNest(profileCommand);
         this.putToNest(personCommand);

@@ -6,11 +6,12 @@ import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.course.CreateOrUpdateCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +44,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdateCourseCommand command;
+    CourseCommand command;
 
     @AfterEach
     void tearDown() {
@@ -92,7 +93,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findCourseById(course.getId());
         verify(persistence).save(courseUpdated);
-        verify(payloadMapper).toPayload(any(CourseEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(CourseEntity.class));
     }
 
     @Test

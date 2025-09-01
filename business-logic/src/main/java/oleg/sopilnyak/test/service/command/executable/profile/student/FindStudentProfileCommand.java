@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * @see ProfilePersistenceFacade
  */
 @Slf4j
-@Component
+@Component("profileStudentFind")
 public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile>
         implements StudentProfileCommand<Optional<StudentProfile>> {
 

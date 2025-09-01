@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.course;
+package oleg.sopilnyak.test.service.command.executable.education.course;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 @Getter
-@Component
+@Component("courseFind")
 public class FindCourseCommand implements CourseCommand<Optional<Course>> {
     private final transient CoursesPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;

@@ -32,7 +32,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Getter
-@Component
+@Component("facultyDelete")
 public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
         implements FacultyCommand<Boolean> {
     private final transient FacultyPersistenceFacade persistence;

@@ -22,7 +22,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("studentsGroupFindAll")
 public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
     private final transient StudentsGroupPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;

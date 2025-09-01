@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * @see ProfilePersistenceFacade
  */
 @Slf4j
-@Component
+@Component("profilePrincipalDelete")
 public class DeletePrincipalProfileCommand extends DeleteProfileCommand<PrincipalProfile>
         implements PrincipalProfileCommand<Boolean> {
     /**

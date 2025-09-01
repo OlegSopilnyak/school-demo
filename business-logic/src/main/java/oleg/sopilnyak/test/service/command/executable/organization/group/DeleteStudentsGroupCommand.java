@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component
+@Component("studentsGroupDelete")
 public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand<Boolean> {
     private final transient StudentsGroupPersistenceFacade persistence;

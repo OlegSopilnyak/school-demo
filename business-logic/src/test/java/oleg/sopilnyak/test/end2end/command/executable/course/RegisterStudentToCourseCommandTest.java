@@ -11,10 +11,11 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.course.RegisterStudentToCourseCommand;
+import oleg.sopilnyak.test.service.command.executable.education.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +53,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    RegisterStudentToCourseCommand command;
+    CourseCommand command;
 
     @AfterEach
     void tearDown() {
@@ -64,8 +66,8 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(payloadMapper).isNotNull();
-        assertThat(command.getCoursesExceed()).isEqualTo(2);
-        assertThat(command.getMaximumRooms()).isEqualTo(2);
+        assertThat(ReflectionTestUtils.getField(command, "coursesExceed")).isEqualTo(2);
+        assertThat(ReflectionTestUtils.getField(command, "maximumRooms")).isEqualTo(2);
     }
 
     @Test

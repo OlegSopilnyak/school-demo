@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @AllArgsConstructor
 @Getter
-@Component
+@Component("facultyFindAll")
 public class FindAllFacultiesCommand implements FacultyCommand<Set<Faculty>> {
     private final transient FacultyPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;

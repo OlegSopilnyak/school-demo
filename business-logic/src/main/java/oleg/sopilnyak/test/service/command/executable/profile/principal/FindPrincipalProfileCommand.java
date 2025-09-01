@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * @see ProfilePersistenceFacade
  */
 @Slf4j
-@Component
+@Component("profilePrincipalFind")
 public class FindPrincipalProfileCommand extends FindProfileCommand<PrincipalProfile>
         implements PrincipalProfileCommand<Optional<PrincipalProfile>> {
 

@@ -1,16 +1,15 @@
-package oleg.sopilnyak.test.service.command.executable.course;
+package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
-import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -19,31 +18,31 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.function.*;
 
+
 /**
- * Command-Implementation: command to create or update the course
+ * Command-Implementation: command to create or update the student instance
  *
- * @see Course
- * @see CourseCommand
- * @see CoursesPersistenceFacade
  * @see SchoolCommandCache
+ * @see Student
+ * @see StudentsPersistenceFacade
  */
 @Slf4j
-@Component
 @Getter
-public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
-        implements CourseCommand<Optional<Course>> {
-    private final transient CoursesPersistenceFacade persistence;
+@Component("studentUpdate")
+public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
+        implements StudentCommand<Optional<Student>> {
+    private final transient StudentsPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 
-    public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
-                                       final BusinessMessagePayloadMapper payloadMapper) {
-        super(Course.class);
-        this.persistence = persistenceFacade;
+    public CreateOrUpdateStudentCommand(final StudentsPersistenceFacade persistence,
+                                        final BusinessMessagePayloadMapper payloadMapper) {
+        super(Student.class);
+        this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }
 
     /**
-     * DO: To create or update the course<BR/>
+     * To update student entity<BR/>
      * To execute command redo with correct context state
      *
      * @param context context of redo execution
@@ -52,71 +51,69 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      * @see SchoolCommandCache#retrieveEntity(Long, LongFunction, UnaryOperator, Supplier)
      * @see SchoolCommandCache#persistRedoEntity(Context, Function)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
-     * @see CoursesPersistenceFacade#findCourseById(Long)
-     * @see CoursesPersistenceFacade#save(Course)
-     * @see CourseNotFoundException
+     * @see SchoolCommandCache#restoreInitialCommandState(Context, Function)
+     * @see StudentsPersistenceFacade#findStudentById(Long)
+     * @see StudentsPersistenceFacade#save(Student)
+     * @see StudentNotFoundException
      */
     @Override
-    public void executeDo(Context<Optional<Course>> context) {
-        final Input<Course> parameter = context.getRedoParameter();
+    public void executeDo(Context<Optional<Student>> context) {
+        final Input<Student> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            final Course doParameter = parameter.value();
-            final Long id = doParameter.getId();
+            log.debug("Trying to change student using: {}", parameter);
+            final Long id = parameter.value().getId();
             final boolean isCreateEntityMode = PersistenceFacadeUtilities.isInvalidId(id);
             if (!isCreateEntityMode) {
-                log.debug("Trying to update course using: {}", doParameter);
-                // previous version of course is storing to context for further rollback (undo)
-                final Course entity = retrieveEntity(
-                        id, persistence::findCourseById, payloadMapper::toPayload,
-                        () -> new CourseNotFoundException(COURSE_WITH_ID_PREFIX + id + " is not exists.")
+                // previous version of student is getting and storing to context for further rollback (undo)
+                final Student entity = retrieveEntity(
+                        id, persistence::findStudentById, payloadMapper::toPayload,
+                        () -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + id + " is not exists.")
                 );
-                log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
-                if (context instanceof CommandContext<Optional<Course>> commandContext) {
+                if (context instanceof CommandContext<?> commandContext) {
+                    log.debug("Previous value of the entity stored for possible command's undo: {}", entity);
                     commandContext.setUndoParameter(Input.of(entity));
                 }
             } else {
-                log.debug("Trying to create course using: {}", doParameter);
+                log.debug("Trying to create student using: {}", parameter);
             }
             // persisting entity trough persistence layer
-            final Optional<Course> persisted = persistRedoEntity(context, persistence::save);
+            final Optional<Student> persisted = persistRedoEntity(context, persistence::save);
             // checking command context state after entity persistence
             afterEntityPersistenceCheck(
                     context, () -> rollbackCachedEntity(context, persistence::save),
                     persisted.orElse(null), isCreateEntityMode
             );
         } catch (Exception e) {
-            log.error("Cannot create or update course by ID:{}", parameter, e);
+            log.error("Cannot save the student '{}'", parameter, e);
             context.failed(e);
             restoreInitialCommandState(context, persistence::save);
         }
     }
 
     /**
-     * UNDO: To create or update the course<BR/>
+     * To rollback update student entity<BR/>
      * To rollback command's execution with correct context state
      *
      * @param context context of redo execution
      * @see Context
-     * @see Input
      * @see Context#getUndoParameter()
-     * @see CoursesPersistenceFacade#save(Course)
-     * @see CoursesPersistenceFacade#deleteCourse(Long)
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
-     * @see InvalidParameterTypeException
+     * @see StudentsPersistenceFacade#save(Student)
+     * @see StudentsPersistenceFacade#deleteStudent(Long)
      */
     @Override
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to undo course changes using: {}", parameter);
+            log.debug("Trying to undo student changes using: {}", parameter);
 
-            rollbackCachedEntity(context, persistence::save, persistence::deleteCourse);
+            rollbackCachedEntity(context, persistence::save, persistence::deleteStudent);
 
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
-            log.error("Cannot undo course change {}", parameter, e);
+            log.error("Cannot undo student change {}", parameter, e);
             context.failed(e);
         }
     }

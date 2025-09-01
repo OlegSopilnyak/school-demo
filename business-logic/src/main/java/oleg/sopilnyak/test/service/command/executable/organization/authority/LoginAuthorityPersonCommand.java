@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("authorityPersonLogin")
 public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient PersistenceFacade persistence;
     @Getter

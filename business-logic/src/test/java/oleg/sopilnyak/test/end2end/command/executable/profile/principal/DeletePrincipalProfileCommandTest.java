@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePr
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +44,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    DeletePrincipalProfileCommand command;
+    PrincipalProfileCommand command;
 
     @AfterEach
     void tearDown() {

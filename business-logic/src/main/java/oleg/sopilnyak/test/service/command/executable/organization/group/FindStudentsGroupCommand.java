@@ -24,7 +24,7 @@ import java.util.Optional;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("studentsGroupFind")
 public class FindStudentsGroupCommand implements StudentsGroupCommand<Optional<StudentsGroup>> {
     private final transient StudentsGroupPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;

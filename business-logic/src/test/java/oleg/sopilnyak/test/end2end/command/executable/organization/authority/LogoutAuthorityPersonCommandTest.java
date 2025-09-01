@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.LogoutAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.verify;
 class LogoutAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
-    LogoutAuthorityPersonCommand command;
+    AuthorityPersonCommand command;
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)

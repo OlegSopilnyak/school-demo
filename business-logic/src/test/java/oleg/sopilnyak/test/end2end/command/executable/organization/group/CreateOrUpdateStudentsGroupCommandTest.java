@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -48,7 +49,7 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
-    CreateOrUpdateStudentsGroupCommand command;
+    StudentsGroupCommand command;
 
     @AfterEach
     void tearDown() {
@@ -101,7 +102,7 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
         assertStudentsGroupEquals(entityUpdated, result, true);
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
-        verify(payloadMapper).toPayload(any(StudentsGroupEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(entityUpdated);
     }
 

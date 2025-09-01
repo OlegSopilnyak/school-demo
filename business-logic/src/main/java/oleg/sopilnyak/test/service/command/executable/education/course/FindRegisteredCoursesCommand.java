@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.course;
+package oleg.sopilnyak.test.service.command.executable.education.course;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ import java.util.Set;
 @Slf4j
 @AllArgsConstructor
 @Getter
-@Component
+@Component("courseFindWithStudents")
 public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;

@@ -24,6 +24,7 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
-@Component
+@Component("authorityPersonMacroDelete")
 public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
         implements AuthorityPersonCommand<Boolean> {
     // executor of parallel nested commands
@@ -52,14 +53,14 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     private final transient BusinessMessagePayloadMapper payloadMapper = null;
 
     public DeleteAuthorityPersonMacroCommand(
-            final DeleteAuthorityPersonCommand deletePersonCommand,
-            final DeletePrincipalProfileCommand deleteProfileCommand,
+            @Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
+            @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
             final AuthorityPersonPersistenceFacade persistence,
             @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
-        super.putToNest(deletePersonCommand);
-        super.putToNest(deleteProfileCommand);
+        super.putToNest(personCommand);
+        super.putToNest(profileCommand);
     }
 
     /**

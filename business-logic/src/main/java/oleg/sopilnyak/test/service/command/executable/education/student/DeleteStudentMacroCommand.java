@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.student;
+package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import java.util.Deque;
 import javax.annotation.PostConstruct;
@@ -23,6 +23,7 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -39,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @see StudentsPersistenceFacade
  */
 @Slf4j
-@Component
+@Component("studentMacroDelete")
 public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
         implements StudentCommand<Boolean> {
     // executor of parallel nested commands
@@ -48,16 +49,14 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     // persistence facade for get instance of student by student-id
     private final transient StudentsPersistenceFacade persistence;
 
-    public DeleteStudentMacroCommand(
-            final DeleteStudentCommand deleteStudentCommand,
-            final DeleteStudentProfileCommand deleteStudentProfileCommand,
-            final StudentsPersistenceFacade persistence,
-            @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
-    ) {
+    public DeleteStudentMacroCommand(@Qualifier("studentDelete") StudentCommand<?> personCommand,
+                                     @Qualifier("profileStudentDelete") StudentProfileCommand<?> profileCommand,
+                                     final StudentsPersistenceFacade persistence,
+                                     @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
-        super.putToNest(deleteStudentCommand);
-        super.putToNest(deleteStudentProfileCommand);
+        super.putToNest(personCommand);
+        super.putToNest(profileCommand);
     }
 
     /**

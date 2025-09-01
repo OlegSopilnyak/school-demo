@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.course;
+package oleg.sopilnyak.test.service.command.executable.education.course;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExcee
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.education.EducationLinkCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
@@ -30,7 +31,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  */
 @Slf4j
 @Getter
-@Component
+@Component("courseRegisterStudent")
 public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
     private final transient EducationPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;

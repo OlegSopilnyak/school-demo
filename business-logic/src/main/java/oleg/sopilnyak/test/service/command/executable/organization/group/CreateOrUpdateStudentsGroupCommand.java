@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component
+@Component("studentsGroupUpdate")
 public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand<Optional<StudentsGroup>> {
     private final transient StudentsGroupPersistenceFacade persistence;

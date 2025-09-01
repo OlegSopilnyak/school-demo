@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @AllArgsConstructor
-@Component
+@Component("authorityPersonFindAll")
 public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter

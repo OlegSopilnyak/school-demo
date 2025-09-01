@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component
+@Component("authorityPersonUpdate")
 public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient AuthorityPersonPersistenceFacade persistence;
