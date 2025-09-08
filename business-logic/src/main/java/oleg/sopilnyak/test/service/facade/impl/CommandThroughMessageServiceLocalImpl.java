@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
@@ -19,10 +20,18 @@ import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class CommandThroughMessageServiceLocalImpl implements CommandThroughMessageService {
+    private final ApplicationContext applicationContext;
+
     @Value("${school.maximum.threads.pool.size:10}")
     private int maximumPoolSize;
     // Create executor for processing message commands
@@ -128,12 +137,39 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     /**
+     * To process the request message's action command in new transaction
+     * and send the response to responses queue
+     *
+     * @param requestMessage message to process
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processActionCommandAndProceed(final BaseCommandMessage<?> requestMessage) {
+        // set up action context for current thread
+        ActionContext.install(requestMessage.getActionContext());
+        //
+        final String correlationId = requestMessage.getCorrelationId();
+        log.debug("Processing request message with correlationId='{}'", correlationId);
+        // check if the request in progress map by correlation-id
+        if (!messageInProgress.containsKey(correlationId)) {
+            logMessageIsNotInProgress(correlationId);
+            return;
+        }
+        // process the request's command and send the result responses queue
+        if (sendToResponsesQueue(actionExecutor.processActionCommand(requestMessage))) {
+            log.debug("Message with correlationId='{}' is processed and sent to responses queue", correlationId);
+        } else {
+            log.error("Message with correlationId='{}' is processed but NOT added to responses queue", correlationId);
+        }
+    }
+
+    /**
      * To receive processed command message (sent by send(message)) by correlationId
      *
      * @param commandId            the command id of the command in the message
      * @param messageCorrelationId the correlation id to find processed command message
      * @return the processed command message
-     * @see RequestProcessor#processActionCommandAndSendResponse(BaseCommandMessage)
+     * @see RequestProcessor#processActionCommandAndProceed(BaseCommandMessage)
      * @see BaseCommandMessage
      * @see MessageInProgress
      */
@@ -362,8 +398,20 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          * @see BaseCommandMessage
          */
         @Override
+        @SuppressWarnings("unchecked")
         protected BaseCommandMessage<?> takeFromQueue() throws InterruptedException {
             return takeFromRequestsQueue();
+        }
+
+        /**
+         * Injecting a reference to the proxy of this bean
+         *
+         * @return service instance with transactional method
+         * @see ApplicationContext#getBean(Class)
+         * @see Transactional
+         */
+        private CommandThroughMessageService self() {
+            return applicationContext.getBean(CommandThroughMessageService.class);
         }
 
         /**
@@ -373,7 +421,12 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          */
         @Override
         protected void processTakenMessage(BaseCommandMessage<?> message) {
-            processActionCommandAndSendResponse(message);
+            try {
+                self().processActionCommandAndProceed(message);
+                log.debug("Successfully processed message direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
+            } catch (Throwable e) {
+                log.error("Cannot process message {}", message.getCorrelationId(), e);
+            }
         }
 
         /**
@@ -400,26 +453,6 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         @Override
         protected void deActivateProcessor() {
             requestsProcessorActive.getAndSet(false);
-        }
-
-        // process the request's action command and send the response to responses queue
-        private void processActionCommandAndSendResponse(final BaseCommandMessage<?> request) {
-            // set up action context for current thread
-            ActionContext.install(request.getActionContext());
-            //
-            final String correlationId = request.getCorrelationId();
-            log.debug("Processing request message with correlationId='{}'", correlationId);
-            // check if the request in progress map by correlation-id
-            if (!messageInProgress.containsKey(correlationId)) {
-                logMessageIsNotInProgress(correlationId);
-                return;
-            }
-            // process the request's command and send the result responses queue
-            if (sendToResponsesQueue(actionExecutor.processActionCommand(request))) {
-                log.debug("Message with correlationId='{}' is processed and sent to responses queue", correlationId);
-            } else {
-                log.error("Message with correlationId='{}' is processed but NOT added to responses queue", correlationId);
-            }
         }
     }
 
@@ -448,6 +481,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          * @see BaseCommandMessage
          */
         @Override
+        @SuppressWarnings("unchecked")
         protected BaseCommandMessage<?> takeFromQueue() throws InterruptedException {
             return takeFromResponsesQueue();
         }
@@ -489,6 +523,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         }
 
         // complete the message processing
+        @SuppressWarnings("unchecked")
         private void completeMessageProcessing(final BaseCommandMessage response) {
             final String correlationId = response.getCorrelationId();
             log.info("Processing response with correlationId='{}' is ready for complete", correlationId);

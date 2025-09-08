@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.util.UUID;
@@ -12,6 +13,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -22,14 +24,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class ActionExecutorImplTest<T> {
     @Spy
-    CommandThroughMessageServiceLocalImpl messagesExchangeService = new CommandThroughMessageServiceLocalImpl();
-    @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;
+    @Mock
+    ApplicationContext applicationContext;
+    CommandThroughMessageServiceLocalImpl messagesExchangeService;
 
     ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
     @Mock
@@ -39,7 +44,9 @@ class ActionExecutorImplTest<T> {
 
     @BeforeEach
     void setUp() {
+        messagesExchangeService = spy(new CommandThroughMessageServiceLocalImpl(applicationContext));
         messagesExchangeService.startService();
+        ReflectionTestUtils.setField(actionExecutor, "messagesExchangeService", messagesExchangeService);
     }
 
     @AfterEach
@@ -50,6 +57,7 @@ class ActionExecutorImplTest<T> {
     @Test
     void shouldCommitAction() {
         doReturn(command).when(commandContext).getCommand();
+        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
 
@@ -62,6 +70,7 @@ class ActionExecutorImplTest<T> {
     @Test
     void shouldRollbackAction() {
         doReturn(command).when(commandContext).getCommand();
+        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
 
@@ -77,6 +86,7 @@ class ActionExecutorImplTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
@@ -91,6 +101,7 @@ class ActionExecutorImplTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 

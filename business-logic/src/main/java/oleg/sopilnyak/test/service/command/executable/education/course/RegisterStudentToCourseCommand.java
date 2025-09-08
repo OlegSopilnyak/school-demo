@@ -1,5 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
+import java.util.Collection;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
@@ -11,19 +17,12 @@ import oleg.sopilnyak.test.service.command.executable.education.EducationLinkCom
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Objects;
-
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-import static org.springframework.util.ObjectUtils.isEmpty;
 
 
 /**
@@ -62,6 +61,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      * @see Context.State#WORK
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void executeDo(Context<Boolean> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {
@@ -109,6 +109,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      * @see Context#getUndoParameter()
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         if (isNull(parameter) || parameter.isEmpty()) {

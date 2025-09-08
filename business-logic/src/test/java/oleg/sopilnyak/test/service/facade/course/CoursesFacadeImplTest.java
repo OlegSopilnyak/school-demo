@@ -125,7 +125,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).createContext(Input.of(studentId));
         verify(factory.command(COURSE_FIND_REGISTERED_FOR)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
     }
 
     @Test
@@ -153,7 +153,7 @@ class CoursesFacadeImplTest {
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).createContext(Input.empty());
         verify(factory.command(COURSE_FIND_WITHOUT_STUDENTS)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
-        verify(payloadMapper).toPayload(mockedCourse);
+        verify(payloadMapper, times(2)).toPayload(mockedCourse);
     }
 
     @Test

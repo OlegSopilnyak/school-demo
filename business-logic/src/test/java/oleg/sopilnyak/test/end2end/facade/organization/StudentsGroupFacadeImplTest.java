@@ -185,7 +185,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(group));
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
-        verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
+        verify(payloadMapper, times(3)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(group);
     }
 

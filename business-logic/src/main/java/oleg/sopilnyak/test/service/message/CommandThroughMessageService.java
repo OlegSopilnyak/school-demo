@@ -18,6 +18,13 @@ public interface CommandThroughMessageService {
     <T> void send(BaseCommandMessage<T> message);
 
     /**
+     * To process the request message's action command in new transaction
+     * and send the response to responses queue
+     *
+     * @param requestMessage message to process
+     */
+    void processActionCommandAndProceed(final BaseCommandMessage<?> requestMessage);
+    /**
      * To receive processed command message (sent by send(message)) by correlationId
      *
      * @param <T>           the type of command execution result in command message

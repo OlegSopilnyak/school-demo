@@ -52,17 +52,12 @@ public interface CourseCommand<T> extends RootCommand<T> {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
             return (T) detach((Optional<Course>) optionalEntity);
-        } else if (result instanceof CourseSet entitiesSet) {
+        } else if (result instanceof Set entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
         }
-    }
-    /**
-     * Set of Course entities
-     */
-    interface CourseSet extends Set<Course> {
     }
 
     /**
@@ -135,6 +130,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     @Override
+    @SuppressWarnings("unchecked")
     default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
                                        final Context<?> context, final Context.StateChangedListener stateListener) {
         visitor.doNestedCommand(this, (Context<T>)context, stateListener);

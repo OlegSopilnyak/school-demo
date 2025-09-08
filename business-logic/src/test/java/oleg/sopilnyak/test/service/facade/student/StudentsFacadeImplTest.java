@@ -135,7 +135,7 @@ class StudentsFacadeImplTest {
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
-        verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper, times(2)).toPayload(mockedStudent);
     }
 
     @Test
@@ -161,7 +161,7 @@ class StudentsFacadeImplTest {
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
-        verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper, times(2)).toPayload(mockedStudent);
     }
 
     @Test

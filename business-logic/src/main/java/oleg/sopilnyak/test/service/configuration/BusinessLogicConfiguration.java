@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.configuration;
 
+import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
@@ -30,13 +31,16 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({SchoolCommandsConfiguration.class})
+@RequiredArgsConstructor
 public class BusinessLogicConfiguration {
+    private final ApplicationContext applicationContext;
     @Bean
     public BusinessMessagePayloadMapper messagePayloadMapper() {
         return Mappers.getMapper(BusinessMessagePayloadMapper.class);
@@ -49,7 +53,7 @@ public class BusinessLogicConfiguration {
 
     @Bean
     public CommandThroughMessageService commandThroughMessageService() {
-        return new CommandThroughMessageServiceLocalImpl();
+        return new CommandThroughMessageServiceLocalImpl(applicationContext);
     }
     // --------- Business' facades ---------------
     @Bean
