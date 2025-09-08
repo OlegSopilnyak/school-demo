@@ -105,7 +105,6 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see CommandExecutable#executeDo(Context)
      */
     @Override
-//    @Transactional(propagation = Propagation.REQUIRED)
     default void doCommand(Context<T> context) {
         if (context.isReady()) {
             // start redo with correct context state

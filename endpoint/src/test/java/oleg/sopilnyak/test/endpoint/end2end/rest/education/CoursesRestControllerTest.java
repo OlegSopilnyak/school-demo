@@ -13,6 +13,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
@@ -22,6 +25,7 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -32,6 +36,7 @@ import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +44,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -48,20 +52,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CoursesRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/courses";
 
     @Autowired
     PersistenceFacade database;
+    @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     CommandsFactory<CourseCommand<?>> factory;
     @SpyBean
@@ -85,8 +90,21 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+        Query query = em.createQuery("DELETE FROM StudentEntity");
+        int deleted = query.executeUpdate();
+        assertThat(deleted).isGreaterThanOrEqualTo(0);
+        query = em.createQuery("DELETE FROM CourseEntity");
+        deleted = query.executeUpdate();
+        assertThat(deleted).isGreaterThanOrEqualTo(0);
+        em.getTransaction().commit();
+        em.close();
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
@@ -101,7 +119,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindCourse() throws Exception {
         Course course = getPersistent(makeClearTestCourse());
         Long id = course.getId();
@@ -125,7 +142,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindEnrolledFor() throws Exception {
         Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
@@ -133,7 +149,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         IntStream.range(1, coursesAmount + 1).forEach(i -> {
             if (student instanceof StudentEntity se) se.add(makeClearCourse(i));
         });
-        assertThat(database.save(student)).isPresent();
+        persist(student);
         String requestPath = ROOT + "/registered/" + studentId;
 
         MvcResult result =
@@ -146,7 +162,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findRegisteredFor(studentId.toString());
-        List<Course> courses = database.findStudentById(studentId).orElseThrow().getCourses();
+        List<Course> courses = findStudentById(studentId).orElseThrow().getCourses();
         String responseString = result.getResponse().getContentAsString();
         var courseList = MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
         }).stream().map(Course.class::cast).toList();
@@ -157,7 +173,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindEmptyCourses() throws Exception {
         int coursesAmount = 5;
         IntStream.range(0, coursesAmount).forEach(i -> getPersistent(makeClearCourse(i + 1)));
@@ -185,7 +200,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateCourse() throws Exception {
         Course course = makeClearCourse(0);
         String jsonContent = MAPPER.writeValueAsString(course);
@@ -209,7 +223,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateValidCourse() throws Exception {
         Course course = getPersistent(makeClearCourse(1));
         String jsonContent = MAPPER.writeValueAsString(course);
@@ -233,7 +246,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateInvalidCourse_NullId() throws Exception {
         Course course = makeTestCourse(null);
         String jsonContent = MAPPER.writeValueAsString(course);
@@ -259,7 +271,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateInvalidCourse_NegativeId() throws Exception {
         Long id = -101L;
         Course course = makeTestCourse(id);
@@ -286,7 +297,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteCourseValidId() throws Exception {
         Long id = getPersistent(makeClearCourse(1)).getId();
         String requestPath = ROOT + "/" + id;
@@ -296,13 +306,13 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print());
 
+        Thread.sleep(25);
         verify(controller).deleteCourse(id.toString());
-        assertThat(database.findCourseById(id)).isEmpty();
+        assertThat(findCourseById(id)).isEmpty();
         checkControllerAspect();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteCourse_CourseNotExistsException() throws Exception {
         long id = 103L;
         String requestPath = ROOT + "/" + id;
@@ -325,14 +335,11 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteCourse_CourseWithStudentsException() throws Exception {
-        Course course = getPersistent(makeClearCourse(2));
+        Course course = getPersistent(makeClearTestCourse());
         Long id = course.getId();
-        if (course instanceof CourseEntity ce) {
-            ce.add(makeClearStudent(2));
-            database.save(ce);
-        }
+        assertThat(findCourseById(id)).isPresent();
+        assertThat(findCourseById(id).orElseThrow().getStudents()).isNotEmpty();
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
@@ -343,14 +350,15 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).deleteCourse(id.toString());
-        String responseString = result.getResponse().getContentAsString();
+        assertThat(findCourseById(id)).isPresent();
         ActionErrorMessage error =
-                MAPPER.readValue(responseString, ActionErrorMessage.class);
+                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
 
         assertThat(error.getErrorCode()).isEqualTo(409);
         assertThat(error.getErrorMessage()).isEqualTo("Course with ID:" + id + " has enrolled students.");
         checkControllerAspect();
     }
+
 
     // private methods
     private void checkControllerAspect() {
@@ -361,15 +369,68 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(CoursesRestController.class);
     }
 
-    private Course getPersistent(Course newInstance) {
-        Optional<Course> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+    private void persist(Student instance) {
+        StudentEntity entity = instance instanceof StudentEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 
     private Student getPersistent(Student newInstance) {
-        Optional<Student> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+        StudentEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Optional<Student> findStudentById(Long id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            StudentEntity entity = em.find(StudentEntity.class, id);
+            if (entity != null) {
+                entity.getCourseSet().forEach(course -> course.getStudents().size());
+            }
+            return Optional.ofNullable(entity);
+        } finally {
+            em.close();
+        }
+    }
+
+    private Course getPersistent(Course newInstance) {
+        CourseEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            entity.getStudents().forEach(em::persist);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Optional<Course> findCourseById(Long id) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            CourseEntity entity = em.find(CourseEntity.class, id);
+            if (entity != null) {
+                entity.getStudents().forEach(student -> student.getCourses().size());
+            }
+            return Optional.ofNullable(entity);
+        } finally {
+            em.close();
+        }
     }
 }

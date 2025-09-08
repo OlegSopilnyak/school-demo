@@ -296,7 +296,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldRegister_AlreadyLinked() throws CourseNotFoundException, CourseHasNoRoomException, StudentCoursesExceedException, StudentNotFoundException {
         Student student = getPersistent(makeClearStudent(0));
         Course course = getPersistent(makeClearCourse(0));
-        assertThat(((StudentEntity)student).add(course)).isTrue();
+        assertThat(((StudentEntity) student).add(course)).isTrue();
         persist(student);
         Long studentId = student.getId();
         Long courseId = course.getId();
@@ -417,7 +417,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldUnRegister_Linked() throws CourseNotFoundException, StudentNotFoundException, InterruptedException {
         Student student = getPersistent(makeClearStudent(0));
         Course course = getPersistent(makeClearCourse(0));
-        assertThat(((StudentEntity)student).add(course)).isTrue();
+        assertThat(((StudentEntity) student).add(course)).isTrue();
         persist(student);
         Long studentId = student.getId();
         Long courseId = course.getId();
@@ -492,6 +492,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
             em.close();
         }
     }
+
     private Student getPersistent(Student newInstance) {
         StudentEntity entity = entityMapper.toEntity(newInstance);
         EntityManager em = emf.createEntityManager();
