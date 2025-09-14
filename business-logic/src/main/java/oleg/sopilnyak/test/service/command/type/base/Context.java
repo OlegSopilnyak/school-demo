@@ -231,7 +231,7 @@ public interface Context<T> extends Serializable {
          *
          * @param context  the context where state was changed
          * @param previous previous context state value
-         * @param current  new context state value
+         * @param current  current context state value
          */
         void stateChanged(Context<?> context, State previous, State current);
     }

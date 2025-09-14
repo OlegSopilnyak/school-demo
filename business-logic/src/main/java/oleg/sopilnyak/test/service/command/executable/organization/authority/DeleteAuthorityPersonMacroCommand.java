@@ -9,12 +9,13 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
@@ -56,7 +57,9 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
             @Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
             @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
             final AuthorityPersonPersistenceFacade persistence,
+            final ActionExecutor actionExecutor,
             @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
+        super(actionExecutor);
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
         super.putToNest(personCommand);

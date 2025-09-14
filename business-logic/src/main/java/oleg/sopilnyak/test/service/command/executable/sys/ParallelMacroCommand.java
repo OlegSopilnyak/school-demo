@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -23,6 +24,10 @@ import java.util.stream.IntStream;
  * @see SchedulingTaskExecutor
  */
 public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
+    protected ParallelMacroCommand(ActionExecutor actionExecutor) {
+        super(actionExecutor);
+    }
+
     /**
      * To get access to command's command-context executor
      *
@@ -44,10 +49,10 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
      * @see Context.State#FAIL
      */
     @Override
-    public void executeNested(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
+    public Deque<Context<?>> executeNested(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
         if (ObjectUtils.isEmpty(doContexts)) {
             getLog().warn("Nothing to do");
-            return;
+            return doContexts;
         }
         final int actionsQuantity = doContexts.size();
         // Queue for nested command actions
@@ -64,6 +69,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
         } catch (InterruptedException e) {
             processInterruptedException(e, latch);
         }
+        return doContexts;
     }
 
 
@@ -225,7 +231,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
         }
     }
 
-    private static final class DoInRootTransaction {
+    static final class DoInRootTransaction {
         final Object actionFinished = new Object();
         volatile boolean actionInProgress = true;
         final Consumer<?> toDo;

@@ -6,11 +6,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -50,7 +51,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
 
     public CreateStudentMacroCommand(@Qualifier("studentUpdate") StudentCommand<?> personCommand,
                                      @Qualifier("profileStudentUpdate") StudentProfileCommand<?> profileCommand,
-                                     final BusinessMessagePayloadMapper payloadMapper) {
+                                     final BusinessMessagePayloadMapper payloadMapper,
+                                     final ActionExecutor actionExecutor) {
+        super(actionExecutor);
         this.putToNest(profileCommand);
         this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
@@ -302,9 +305,20 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             return command;
         }
 
+        /**
+         * To transfer nested command execution result to target nested command context input
+         *
+         * @param visitor visitor for do transferring result from source to target
+         * @param value   result of source command execution
+         * @param target  nested command context for the next execution in sequence
+         * @param <S>     type of source command execution result
+         * @param <N>     type of target command execution result
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see CreateStudentMacroCommand#transferPreviousExecuteDoResult(StudentCommand, Object, Context)
+         */
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S value, Context<N> target) {
+            visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
         @Override
@@ -353,10 +367,20 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             return command;
         }
 
-
+        /**
+         * To transfer nested command execution result to target nested command context input
+         *
+         * @param visitor visitor for do transferring result from source to target
+         * @param value   result of source command execution
+         * @param target  nested command context for the next execution in sequence
+         * @param <S>     type of source command execution result
+         * @param <N>     type of target command execution result
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see CreateStudentMacroCommand#transferPreviousExecuteDoResult(StudentProfileCommand, Object, Context)
+         */
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S value, Context<N> target) {
+            visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
         @Override

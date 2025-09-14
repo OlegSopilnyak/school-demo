@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -111,7 +112,8 @@ class MacroCommandTest {
     void shouldCreateMacroContext_StudentCommand() {
         int parameter = 115;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeMacroCommand(studentCommand));
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -151,7 +153,23 @@ class MacroCommandTest {
         CourseCommand<?> command2 = mock(CourseCommand.class);
         StudentCommand<Number> command3 = mock(StudentCommand.class);
         Context<?> studentContext = CommandContext.<Number>builder().command(command3).state(INIT).build();
-        var macroCommand = spy(new MacroCommand<Void>() {
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        var macroCommand = spy(new MacroCommand<Void>(actionExecutor) {
+            /**
+             * To run execution for each macro-command's nested context
+             * <BR/>sequential traversal of nested contexts
+             *
+             * @param contexts nested contexts to execute
+             * @param listener listener of nested context-state-change
+             * @see Context
+             * @see Deque
+             * @see Context.StateChangedListener
+             */
+            @Override
+            public Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
+                return contexts;
+            }
+
             @Override
             public String getId() {
                 return "second-macro-void-command";
@@ -206,7 +224,7 @@ class MacroCommandTest {
         allowRealPrepareContext(macroCommand, command2, inputParameter);
         allowRealAcceptPrepareContext(macroCommand, command3, inputParameter);
         // make root macro command
-        command = spy(new FakeMacroCommand(studentCommand));
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -380,7 +398,8 @@ class MacroCommandTest {
     <N> void shouldDoMacroCommandRedo_PlusStudentCommand() {
         int parameter = 125;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeMacroCommand(studentCommand));
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
         command.putToNest(studentCommand);
@@ -432,7 +451,24 @@ class MacroCommandTest {
         var command2 = mock(CourseCommand.class);
         var command3 = mock(StudentCommand.class);
         final Double courseResult = 100.0;
-        var macroCommand = spy(new MacroCommand<Double>() {
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        var macroCommand = spy(new MacroCommand<Double>(actionExecutor) {
+            /**
+             * To run execution for each macro-command's nested context
+             * <BR/>sequential traversal of nested contexts
+             *
+             * @param contexts nested contexts to execute
+             * @param listener listener of nested context-state-change
+             * @see Context
+             * @see Deque
+             * @see Context.StateChangedListener
+             */
+            @Override
+            public Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
+                contexts.forEach(context -> context.getCommand().doAsNestedCommand(this, context, listener));
+                return contexts;
+            }
+
             @Override
             public String getId() {
                 return "second-macro-command";
@@ -484,7 +520,7 @@ class MacroCommandTest {
         macroCommand.putToNest(command3);
         macroCommand.fromNest().forEach(mNested -> allowRealPrepareContext(macroCommand, mNested, inputParameter));
         // make root macro command
-        command = spy(new FakeMacroCommand(studentCommand));
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -723,7 +759,8 @@ class MacroCommandTest {
         int parameter = 120;
         Input<Integer> inputParameter = Input.of(parameter);
         Object[] parameters = new Object[]{parameter * 100.0, true, parameter * 10.0};
-        command = spy(new FakeMacroCommand(studentCommand));
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -779,7 +816,24 @@ class MacroCommandTest {
         var command1 = mock(RootCommand.class);
         var command2 = mock(CourseCommand.class);
         var command3 = mock(StudentCommand.class);
-        var macroCommand = spy(new MacroCommand<Double>() {
+        ActionExecutor actionExecutor = mock(ActionExecutor.class);
+        var macroCommand = spy(new MacroCommand<Double>(actionExecutor) {
+            /**
+             * To run execution for each macro-command's nested context
+             * <BR/>sequential traversal of nested contexts
+             *
+             * @param contexts nested contexts to execute
+             * @param listener listener of nested context-state-change
+             * @see Context
+             * @see Deque
+             * @see Context.StateChangedListener
+             */
+            @Override
+            public Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
+                contexts.forEach(context -> context.getCommand().doAsNestedCommand(this, context, listener));
+                return contexts;
+            }
+
             @Override
             public String getId() {
                 return "second-macro-command";
@@ -842,7 +896,7 @@ class MacroCommandTest {
         configureNestedUndoStatus(command3);
         // make root macro command
         Object[] parameters = new Object[]{parameter * 100.0, true, parameter * 10.0};
-        command = spy(new FakeMacroCommand(studentCommand));
+        command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -1131,7 +1185,8 @@ class MacroCommandTest {
         static CommandContext<?> overridedStudentContext;
         Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
-        public FakeMacroCommand(StudentCommand<Double> student) {
+        public FakeMacroCommand(StudentCommand<Double> student, ActionExecutor actionExecutor) {
+            super(actionExecutor);
             overridedStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }
 
@@ -1189,6 +1244,22 @@ class MacroCommandTest {
         @Override
         public BusinessMessagePayloadMapper getPayloadMapper() {
             return null;
+        }
+
+        /**
+         * To run execution for each macro-command's nested context
+         * <BR/>sequential traversal of nested contexts
+         *
+         * @param contexts nested contexts to execute
+         * @param listener listener of nested context-state-change
+         * @see Context
+         * @see Deque
+         * @see Context.StateChangedListener
+         */
+        @Override
+        public Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
+            contexts.forEach(context -> context.getCommand().doAsNestedCommand(this, context, listener));
+            return contexts;
         }
     }
 

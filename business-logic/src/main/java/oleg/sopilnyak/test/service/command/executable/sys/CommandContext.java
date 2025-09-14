@@ -235,10 +235,8 @@ public class CommandContext<T> implements Context<T> {
                 return (Context<?>) Mockito.mockingDetails(context).getMockCreationSettings().getSpiedInstance();
             } else {
                 log.debug("Context is not a spy... returning it as is (if not a mock)");
-                // if context is not a spy, then we can return it as is
-                // if context is not a spy, then it is either a real object or a mock
                 // if it is a mock, then we return null
-                // if it is a real object, then we return it
+                // if context is not a mock, then we can return it as is
                 return MockUtil.isMock(context) ? null : context;
             }
         }

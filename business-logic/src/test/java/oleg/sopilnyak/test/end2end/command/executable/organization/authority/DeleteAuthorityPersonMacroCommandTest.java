@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
@@ -73,6 +74,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     AuthorityPersonFacadeImpl facade;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    ActionExecutor actionExecutor;
     @SpyBean
     @Autowired
     @Qualifier("profilePrincipalDelete")
@@ -91,7 +94,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
-        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, maxPoolSize));
+        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
         command.runThreadPoolExecutor();
     }
 

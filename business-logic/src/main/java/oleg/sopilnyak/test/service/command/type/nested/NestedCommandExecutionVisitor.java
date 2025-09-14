@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;

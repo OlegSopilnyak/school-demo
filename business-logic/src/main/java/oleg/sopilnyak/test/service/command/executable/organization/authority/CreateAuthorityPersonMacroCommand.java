@@ -7,11 +7,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -52,7 +53,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
 
     public CreateAuthorityPersonMacroCommand(@Qualifier("authorityPersonUpdate") AuthorityPersonCommand<?> personCommand,
                                              @Qualifier("profilePrincipalUpdate") PrincipalProfileCommand<?> profileCommand,
-                                             final BusinessMessagePayloadMapper payloadMapper) {
+                                             final BusinessMessagePayloadMapper payloadMapper,
+                                             final ActionExecutor actionExecutor) {
+        super(actionExecutor);
         this.putToNest(profileCommand);
         this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
@@ -315,17 +318,19 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         }
 
         /**
-         * To transfer command execution result to next command context
+         * To transfer nested command execution result to target nested command context input<BR/>
+         * Not used in the main command, used default implementation
          *
-         * @param visitor     visitor for transfer result
-         * @param resultValue result of command execution
-         * @param target      command context for next execution
-         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see CommandContext#setRedoParameter(Input)
+         * @param visitor visitor for do transferring result from source to target
+         * @param value   result of source command execution
+         * @param target  nested command context for the next execution in sequence
+         * @param <S>     type of source command execution result
+         * @param <N>     type of target command execution result
+         * @see TransferResultVisitor#transferPreviousExecuteDoResult(AuthorityPersonCommand, Object, Context)
          */
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S value, Context<N> target) {
+            visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
         @Override
@@ -375,17 +380,20 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         }
 
         /**
-         * To transfer command execution result to next command context
+         * To transfer nested command execution result to target nested command context input<BR/>
+         * Used in the main command to pass profile-id to the input of create AuthorityPerson nested command
          *
-         * @param visitor     visitor for transfer result
-         * @param resultValue result of command execution
-         * @param target      command context for next execution
+         * @param visitor visitor for do transferring result from source to target
+         * @param value   result of source command execution
+         * @param target  nested command context for the next execution in sequence
+         * @param <S>     type of source command execution result
+         * @param <N>     type of target command execution result
          * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see CommandContext#setRedoParameter(Input)
+         * @see CreateAuthorityPersonMacroCommand#transferPreviousExecuteDoResult(PrincipalProfileCommand, Object, Context)
          */
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
-            visitor.transferPreviousExecuteDoResult(command, resultValue, target);
+        public <S, N> void transferResultTo(final TransferResultVisitor visitor, final S value, final Context<N> target) {
+            visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
         @Override

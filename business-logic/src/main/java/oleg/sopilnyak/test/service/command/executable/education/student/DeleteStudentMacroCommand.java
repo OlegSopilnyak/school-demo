@@ -8,12 +8,13 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -52,7 +53,9 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean>
     public DeleteStudentMacroCommand(@Qualifier("studentDelete") StudentCommand<?> personCommand,
                                      @Qualifier("profileStudentDelete") StudentProfileCommand<?> profileCommand,
                                      final StudentsPersistenceFacade persistence,
+                                     final ActionExecutor actionExecutor,
                                      @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
+        super(actionExecutor);
         this.maxPoolSize = maxPoolSize;
         this.persistence = persistence;
         super.putToNest(personCommand);
