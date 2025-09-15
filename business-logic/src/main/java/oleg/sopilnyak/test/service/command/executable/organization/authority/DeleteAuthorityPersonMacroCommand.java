@@ -71,7 +71,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
     @SuppressWarnings("unchecked")
     @Override

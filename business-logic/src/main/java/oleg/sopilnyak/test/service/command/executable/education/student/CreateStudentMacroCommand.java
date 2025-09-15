@@ -64,8 +64,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#postExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Optional<Student> finalCommandResult(Deque<Context<?>> contexts) {
         return contexts.stream()
