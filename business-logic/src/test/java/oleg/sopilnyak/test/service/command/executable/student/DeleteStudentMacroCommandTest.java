@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
@@ -56,6 +57,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     @Spy
     @InjectMocks
     DeleteStudentCommand studentCommand;
+    @Mock
+    ActionExecutor actionExecutor;
 
     final int maxPoolSize = 10;
 
@@ -68,7 +71,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteStudentMacroCommand(studentCommand, profileCommand, persistence, maxPoolSize));
+        command = spy(new DeleteStudentMacroCommand(studentCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
         command.runThreadPoolExecutor();
     }
 

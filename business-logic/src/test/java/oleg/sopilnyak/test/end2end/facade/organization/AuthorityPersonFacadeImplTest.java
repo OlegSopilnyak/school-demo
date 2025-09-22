@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonM
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
@@ -17,6 +18,7 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -43,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ContextConfiguration(classes = {ActionExecutorImpl.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
@@ -55,6 +58,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
 
+    @SpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
     @Autowired
     PersistenceFacade database;
 
@@ -307,13 +313,13 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         CreateOrUpdatePrincipalProfileCommand createOrUpdatePrincipalProfileCommand =
                 spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
         CreateAuthorityPersonMacroCommand createAuthorityPersonMacroCommand =
-                spy(new CreateAuthorityPersonMacroCommand(createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper));
+                spy(new CreateAuthorityPersonMacroCommand(createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper, actionExecutor));
         DeleteAuthorityPersonCommand deleteAuthorityPersonCommand =
                 spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         DeletePrincipalProfileCommand deletePrincipalProfileCommand =
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
-                spy(new DeleteAuthorityPersonMacroCommand(deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, 10));
+                spy(new DeleteAuthorityPersonMacroCommand(deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, actionExecutor, 10));
         deleteAuthorityPersonMacroCommand.runThreadPoolExecutor();
         return new AuthorityPersonCommandsFactory(
                 Set.of(

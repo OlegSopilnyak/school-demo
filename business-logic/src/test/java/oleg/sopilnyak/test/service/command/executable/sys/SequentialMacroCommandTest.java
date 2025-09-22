@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -53,6 +54,8 @@ class SequentialMacroCommandTest {
     volatile StudentCommand<?> studentCommand;
     @Mock
     volatile CourseCommand<?> courseCommand;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @BeforeEach
     void setUp() {
@@ -132,7 +135,7 @@ class SequentialMacroCommandTest {
     void shouldDoSequentialCommand_ExtraCommands() {
         int parameter = 121;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
+        command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(courseCommand);
         command.putToNest(doubleCommand);
@@ -210,7 +213,7 @@ class SequentialMacroCommandTest {
     void shouldUndoSequentialCommand_ExtraCommands() {
         int parameter = 132;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
+        command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor ));
         command.putToNest(studentCommand);
         command.putToNest(courseCommand);
         command.putToNest(doubleCommand);
@@ -267,7 +270,7 @@ class SequentialMacroCommandTest {
     <N>void shouldDoSequentialCommand_TransferNestedCommandResult() {
         int parameter = 112;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeSequentialCommand(studentCommand, courseCommand));
+        command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(courseCommand);
         command.putToNest(doubleCommand);
@@ -510,7 +513,8 @@ class SequentialMacroCommandTest {
         static CommandContext<Double> overrideCourseContext;
         private final Logger logger = LoggerFactory.getLogger(FakeSequentialCommand.class);
 
-        public FakeSequentialCommand(StudentCommand<?> student, CourseCommand<?> course) {
+        public FakeSequentialCommand(StudentCommand<?> student, CourseCommand<?> course, ActionExecutor actionExecutor) {
+            super(actionExecutor);
             overrideStudentContext = CommandContext.<Double>builder().command((RootCommand<Double>) wrap(student)).state(INIT).build();
             overrideCourseContext = CommandContext.<Double>builder().command((RootCommand<Double>) wrap(course)).state(INIT).build();
         }
@@ -790,7 +794,7 @@ class SequentialMacroCommandTest {
         }
 
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<N> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
         }
 
@@ -853,7 +857,7 @@ class SequentialMacroCommandTest {
         }
 
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<N> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
         }
 
@@ -904,7 +908,7 @@ class SequentialMacroCommandTest {
         }
 
         @Override
-        public <S> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<?> target) {
+        public <S, N> void transferResultTo(TransferResultVisitor visitor, S resultValue, Context<N> target) {
             visitor.transferPreviousExecuteDoResult(command, resultValue, target);
         }
 

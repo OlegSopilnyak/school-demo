@@ -39,9 +39,10 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      *
      * @param command the instance to add
      * @see RootCommand
+     * @param <N> the result type of the nested command
      */
     @Override
-    public boolean putToNest(final NestedCommand<?> command) {
+    public <N> boolean putToNest(final NestedCommand<N> command) {
         return super.putToNest(wrap(command));
     }
 

@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import oleg.sopilnyak.test.school.common.model.*;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
@@ -50,12 +51,14 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
     @Spy
     @InjectMocks
     CreateOrUpdateStudentCommand personCommand;
+    @Mock
+    ActionExecutor actionExecutor;
 
     CreateStudentMacroCommand command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateStudentMacroCommand(personCommand, profileCommand, payloadMapper) {
+        command = spy(new CreateStudentMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
             public NestedCommand<?> wrap(NestedCommand<?> command) {
                 return spy(super.wrap(command));

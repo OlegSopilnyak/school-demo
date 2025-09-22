@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
@@ -32,6 +33,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVis
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
         CreateOrUpdatePrincipalProfileCommand.class,
         CreateOrUpdateAuthorityPersonCommand.class,
         CreateAuthorityPersonMacroCommand.class,
+        ActionExecutorImpl.class,
         TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
@@ -72,12 +75,15 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @Autowired
     @Qualifier("authorityPersonUpdate")
     AuthorityPersonCommand personCommand;
+    @SpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
 
     CreateAuthorityPersonMacroCommand command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper) {
+        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
             public NestedCommand<?> wrap(NestedCommand<?> command) {
                 return spy(super.wrap(command));

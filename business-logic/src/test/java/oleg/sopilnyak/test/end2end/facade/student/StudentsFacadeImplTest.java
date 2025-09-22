@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
@@ -23,6 +24,7 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -47,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ContextConfiguration(classes = {ActionExecutorImpl.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsFacadeImplTest extends MysqlTestModelFactory {
@@ -58,6 +61,9 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_CREATE_NEW = "student.create.macro";
     private static final String STUDENT_DELETE = "student.delete.macro";
 
+    @SpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
     @Autowired
     PersistenceFacade database;
 
@@ -81,7 +87,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, 10));
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, 10));
         deleteStudentMacroCommand.runThreadPoolExecutor();
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
@@ -343,7 +349,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
                                 spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 createStudentCommand,
-                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper)),
+                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)),
                                 deleteStudentCommand,
                                 deleteStudentMacroCommand
                         )

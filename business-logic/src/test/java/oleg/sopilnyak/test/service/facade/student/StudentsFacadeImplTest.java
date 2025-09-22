@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
@@ -51,6 +52,8 @@ class StudentsFacadeImplTest {
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
 
     StudentsFacadeImpl facade;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @Mock
     Student mockedStudent;
@@ -75,7 +78,7 @@ class StudentsFacadeImplTest {
         createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, 10));
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, 10));
         deleteStudentMacroCommand.runThreadPoolExecutor();
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
@@ -286,7 +289,7 @@ class StudentsFacadeImplTest {
                                 spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 createStudentCommand,
-                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper)),
+                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)),
                                 deleteStudentCommand,
                                 deleteStudentMacroCommand
                         )

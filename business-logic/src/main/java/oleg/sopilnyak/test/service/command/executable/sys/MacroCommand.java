@@ -42,11 +42,10 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      *
      * @return collection of nested commands
      */
-    @SuppressWarnings("unchecked")
     @Override
-    public<N> Collection<NestedCommand<N>> fromNest() {
+    public Collection<NestedCommand<?>> fromNest() {
         synchronized (netsedCommandsList) {
-            return List.copyOf((Collection<? extends NestedCommand<N>>) netsedCommandsList);
+            return List.copyOf(netsedCommandsList);
         }
     }
 
@@ -55,9 +54,10 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      *
      * @param command the instance to add
      * @see NestedCommand
+     * @param <N> the result type of the nested command
      */
     @Override
-    public boolean putToNest(final NestedCommand<?> command) {
+    public <N> boolean putToNest(final NestedCommand<N> command) {
         synchronized (netsedCommandsList) {
             return netsedCommandsList.add(command);
         }

@@ -5,6 +5,7 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -46,6 +47,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Spy
     @InjectMocks
     DeletePrincipalProfileCommand profileCommand;
+    @Mock
+    ActionExecutor actionExecutor;
     @Spy
     @InjectMocks
     DeleteAuthorityPersonCommand personCommand;
@@ -58,7 +61,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, maxPoolSize));
+        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
         command.runThreadPoolExecutor();
     }
 

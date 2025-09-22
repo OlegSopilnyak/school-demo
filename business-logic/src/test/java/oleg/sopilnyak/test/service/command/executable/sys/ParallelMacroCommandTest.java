@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
@@ -44,6 +45,8 @@ class ParallelMacroCommandTest {
     RootCommand<?> intCommand;
     @Mock
     StudentCommand<Double> studentCommand;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @BeforeEach
     void setUp() {
@@ -129,7 +132,7 @@ class ParallelMacroCommandTest {
     <T> void shouldDoParallelCommand_ExtraCommands() {
         int parameter = 102;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeParallelCommand(executor, studentCommand));
+        command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -300,7 +303,7 @@ class ParallelMacroCommandTest {
     void shouldUndoParallelCommand_ExtraCommands() {
         int parameter = 105;
         Input<Integer> inputParameter = Input.of(parameter);
-        command = spy(new FakeParallelCommand(executor, studentCommand));
+        command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
         command.putToNest(studentCommand);
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
@@ -401,7 +404,8 @@ class ParallelMacroCommandTest {
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
         private final SchedulingTaskExecutor commandContextExecutor;
 
-        public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand<Double> student) {
+        public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand<Double> student, ActionExecutor actionExecutor) {
+            super(actionExecutor);
             this.commandContextExecutor = commandContextExecutor;
             overridedStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }

@@ -39,15 +39,16 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      *
      * @return collection of nested commands
      */
-    <N> Collection<NestedCommand<N>> fromNest();
+    Collection<NestedCommand<?>> fromNest();
 
     /**
      * To put the command to the composite's nest
      *
      * @param command the instance to put
      * @return true if added
+     * @param <N> the result type of the nested command
      */
-    boolean putToNest(NestedCommand<?> command);
+    <N> boolean putToNest(NestedCommand<N> command);
 
     /**
      * To build command's context of composite command for the input
@@ -137,7 +138,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
     }
 
     /**
-     * To execute nested do command with the nested context and context-state-change listener
+     * To execute do of nested command with the nested context and context-state-change listener
      *
      * @param <N>      the type of nested command execution result
      * @param context  the context used for use with the nested command
@@ -152,8 +153,14 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
         // store states before do execution
         final Deque<Context.State> statesBefore = context.getHistory().states();
         //
-        // execute context using action executor
-        final Context<N> result = getActionExecutor().commitAction(ActionContext.current(), context);
+        // execute nested context using action executor
+        Context<N> result;
+        try {
+            result = getActionExecutor().commitAction(ActionContext.current(), context);
+        } catch (Exception e) {
+            result = context.failed(e);
+            getLog().error("Cannot commit nested context using action executor...", e);
+        }
         //
         // notifying context state-change-listener by new states after do execution
         final Deque<Context.State> statesAfter = new LinkedList<>(context.getHistory().states());
@@ -164,10 +171,10 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
         return result;
     }
 
-    private <N> void notifyStateChangeListener(final Context.StateChangedListener listener,
-                                               final Context<N> result,
-                                               final Deque<Context.State> statesAfter,
-                                               final Context.State lastBeforeState) {
+    private static <N> void notifyStateChangeListener(final Context.StateChangedListener listener,
+                                                      final Context<N> result,
+                                                      final Deque<Context.State> statesAfter,
+                                                      final Context.State lastBeforeState) {
         // prepare previous state
         final AtomicReference<Context.State> previous = new AtomicReference<>(lastBeforeState);
         // iterating after execution context states
@@ -193,13 +200,19 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
     Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener);
 
     /**
-     * To execute nested undo command with the nested context
+     * To execute undo of nested command with the nested context
      *
      * @param context the context used for use with the nested command
      * @return context after nested command undo
      */
     default Context<Void> executeUndoNested(final Context<Void> context) {
-        return getActionExecutor().rollbackAction(ActionContext.current(), context);
+        try{
+            // execute rollback for nested context using action executor
+            return getActionExecutor().rollbackAction(ActionContext.current(), context);
+        } catch (Exception e) {
+            getLog().error("Cannot rollback nested context using action executor...", e);
+            return context.failed(e);
+        }
     }
 
     /**

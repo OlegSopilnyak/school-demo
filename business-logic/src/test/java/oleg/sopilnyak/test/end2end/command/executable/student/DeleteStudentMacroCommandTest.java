@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
@@ -30,6 +31,7 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
@@ -57,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
         DeleteStudentProfileCommand.class,
         DeleteStudentCommand.class,
         DeleteStudentMacroCommand.class,
+        ActionExecutorImpl.class,
         SchoolCommandsConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {
         "school.parallel.max.pool.size=10",
@@ -80,6 +83,9 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     @Qualifier("studentDelete")
     StudentCommand personCommand;
+    @SpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
 
     DeleteStudentMacroCommand command;
 
@@ -92,7 +98,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
-        command = spy(new DeleteStudentMacroCommand(personCommand, profileCommand, persistence, maxPoolSize));
+        command = spy(new DeleteStudentMacroCommand(personCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
         command.runThreadPoolExecutor();
     }
 

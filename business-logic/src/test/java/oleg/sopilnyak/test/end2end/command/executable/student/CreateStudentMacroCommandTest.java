@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
@@ -18,6 +19,7 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +55,7 @@ import static org.mockito.Mockito.*;
         CreateOrUpdateStudentProfileCommand.class,
         CreateOrUpdateStudentCommand.class,
         CreateStudentMacroCommand.class,
+        ActionExecutorImpl.class,
         TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
@@ -70,6 +73,9 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     @Qualifier("studentUpdate")
     StudentCommand studentCommand;
+    @SpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
 
     CreateStudentMacroCommand command;
     @Captor
@@ -79,7 +85,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper) {
+        command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
             public NestedCommand<?> wrap(NestedCommand<?> command) {
                 return spy(super.wrap(command));

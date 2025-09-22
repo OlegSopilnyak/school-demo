@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
@@ -50,12 +51,14 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     @Spy
     @InjectMocks
     CreateOrUpdateAuthorityPersonCommand personCommand;
+    @Mock
+    ActionExecutor actionExecutor;
 
     CreateAuthorityPersonMacroCommand command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper) {
+        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
             public NestedCommand<?> wrap(NestedCommand<?> command) {
                 return spy(super.wrap(command));

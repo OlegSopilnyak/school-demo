@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
@@ -56,6 +57,8 @@ class AuthorityPersonFacadeImplTest {
 
     CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @Mock
     AuthorityPerson mockPerson;
@@ -74,7 +77,7 @@ class AuthorityPersonFacadeImplTest {
         createProfileCommand = spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
         deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(deletePersonCommand, deleteProfileCommand, persistenceFacade, 10));
+        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(deletePersonCommand, deleteProfileCommand, persistenceFacade, actionExecutor, 10));
         deletePersonMacroCommand.runThreadPoolExecutor();
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
@@ -313,7 +316,7 @@ class AuthorityPersonFacadeImplTest {
                                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)),
                                 spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)),
                                 createPersonCommand,
-                                spy(new CreateAuthorityPersonMacroCommand(createPersonCommand, createProfileCommand, payloadMapper)),
+                                spy(new CreateAuthorityPersonMacroCommand(createPersonCommand, createProfileCommand, payloadMapper, actionExecutor)),
                                 deletePersonCommand,
                                 deletePersonMacroCommand
                         )
