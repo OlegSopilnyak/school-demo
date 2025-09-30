@@ -6,8 +6,8 @@ import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Propagation;
@@ -183,10 +183,10 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(RootCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(RootCommand, Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 
@@ -200,12 +200,12 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context.StateChangedListener
      * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
      */
-    @SuppressWarnings("unchecked")
-    @Override
-    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
-    }
+//    @SuppressWarnings("unchecked")
+//    @Override
+//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+//        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
@@ -215,8 +215,8 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see RootCommand#undoCommand(Context)
      */
-    @Override
-    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return visitor.undoNestedCommand(this, context);
-    }
+//    @Override
+//    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//        return visitor.undoNestedCommand(this, context);
+//    }
 }

@@ -6,7 +6,7 @@ import java.util.Optional;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
@@ -91,11 +91,11 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(PrincipalProfileCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(PrincipalProfileCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 }

@@ -50,7 +50,7 @@ public interface ActionExecutor {
      * @see ActionContext
      * @see Context
      */
-    default Context<Void> rollbackAction(final ActionContext actionContext, final Context<Void> commandContext) {
+    default Context<?> rollbackAction(final ActionContext actionContext, final Context<?> commandContext) {
         final UndoCommandMessage message = UndoCommandMessage.builder()
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())

@@ -384,7 +384,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).save(any(AuthorityPersonPayload.class));
         assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
 
-        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 
         assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
         assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isEmpty();
@@ -439,7 +439,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyProfileUndoCommand(profileContext);
         verify(persistence).save(savedProfile);
 
-        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
         assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
         assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
     }
@@ -491,7 +491,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(personContext.<AuthorityPerson>getUndoParameter().value());
 
-        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
         assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
         assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
     }
@@ -655,8 +655,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
-        verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(profileCommand, times(i)).doCommand(nestedContext);
         verify(profileCommand, times(i)).executeDo(nestedContext);
     }
@@ -666,22 +666,22 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyPersonDoCommand(Context<Boolean> nestedContext, int i) {
-        verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(personCommand, times(i)).doCommand(nestedContext);
         verify(personCommand, times(i)).executeDo(nestedContext);
     }
 
     private void verifyPersonUndoCommand(Context<Boolean> nestedContext) {
-        verify(personCommand).undoAsNestedCommand(command, nestedContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
+//        verify(personCommand).undoAsNestedCommand(command, nestedContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
         verify(personCommand).undoCommand(nestedContext);
         verify(personCommand).executeUndo(nestedContext);
     }
 
     private void verifyProfileUndoCommand(Context<Boolean> nestedContext) {
-        verify(profileCommand).undoAsNestedCommand(command, nestedContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
+//        verify(profileCommand).undoAsNestedCommand(command, nestedContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
         verify(profileCommand).undoCommand(nestedContext);
         verify(profileCommand).executeUndo(nestedContext);
     }

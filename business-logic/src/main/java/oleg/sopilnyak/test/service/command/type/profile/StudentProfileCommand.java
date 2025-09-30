@@ -7,8 +7,8 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
@@ -93,11 +93,11 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(StudentProfileCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(StudentProfileCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 
@@ -113,11 +113,11 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
-    }
+//    @Override
+//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+//        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
@@ -127,8 +127,8 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see StudentProfileCommand#undoCommand(Context)
      */
-    @Override
-    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return visitor.undoNestedCommand(this, context);
-    }
+//    @Override
+//    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//        return visitor.undoNestedCommand(this, context);
+//    }
 }

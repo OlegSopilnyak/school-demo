@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.nested;
+package oleg.sopilnyak.test.service.command.type.nested.legacy;
 
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -16,6 +16,7 @@ import org.slf4j.Logger;
  * Visitor: Executing nested command actions.
  * Any method can be overridden in the class-child
  */
+@Deprecated
 public interface NestedCommandExecutionVisitor {
     /**
      * To execute nested command (RootCommand)

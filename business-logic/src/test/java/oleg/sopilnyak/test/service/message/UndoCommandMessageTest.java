@@ -83,7 +83,8 @@ class UndoCommandMessageTest {
         assertThat(restored.getContext()).isNotNull();
         assertThat(restored.getContext().getUndoParameter().isEmpty()).isFalse();
         assertThat(restored.getContext().getUndoParameter().value()).isEqualTo(id);
-        assertThat(restored.getContext().getResult()).isNotNull().isEmpty();
+        assertThat(restored.getContext().getResult()).isNotNull();
+        assertThat(restored.getContext().getResult()).isEmpty();
         assertThat(restored.getContext().getException()).isNotNull().isInstanceOf(Exception.class);
         assertThat(restored.getContext().getException().getMessage()).isNotBlank().isEqualTo(errorMessage);
     }

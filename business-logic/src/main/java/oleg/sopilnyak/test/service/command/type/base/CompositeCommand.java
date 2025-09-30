@@ -14,17 +14,16 @@ import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 
 /**
  * Type: Command to execute the couple of nested school-commands
  *
  * @param <T> the type of command execution result
  * @see RootCommand
- * @see PrepareContextVisitor
+ * @see PrepareNestedContextVisitor
  */
-public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisitor {
+public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContextVisitor {
     /**
      * To get action-executor for nested commands processing
      *
@@ -89,40 +88,12 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      * @param visitor            visitor to make prepared contexts for nested command
      * @param mainInputParameter composite command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> mainInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> mainInputParameter) {
         return visitor.prepareContext(this, mainInputParameter);
-    }
-
-    /**
-     * To execute command Do as a nested command
-     *
-     * @param visitor       visitor to do nested command execution
-     * @param context       context for nested command execution
-     * @param stateListener listener of context-state-change
-     * @see NestedCommandExecutionVisitor#doNestedCommand(CompositeCommand, Context, Context.StateChangedListener)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
-    }
-
-    /**
-     * To execute command Undo as a nested command
-     *
-     * @param visitor visitor to do nested command execution
-     * @param context context for nested command execution
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
-     * @see CompositeCommand#undoCommand(Context)
-     */
-    @Override
-    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return visitor.undoNestedCommand(this, context);
     }
 
     /**
@@ -205,7 +176,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareContextVisit
      * @param context the context used for use with the nested command
      * @return context after nested command undo
      */
-    default Context<Void> executeUndoNested(final Context<Void> context) {
+    default Context<?> executeUndoNested(final Context<?> context) {
         try{
             // execute rollback for nested context using action executor
             return getActionExecutor().rollbackAction(ActionContext.current(), context);

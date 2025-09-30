@@ -1,20 +1,23 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import lombok.SneakyThrows;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.slf4j.Logger;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
-
-import java.util.Deque;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 /**
  * Parallel MacroCommand: macro-command the command with nested commands inside.
@@ -22,6 +25,7 @@ import java.util.stream.IntStream;
  * @param <T> the type of command execution (do) result
  * @see MacroCommand
  * @see SchedulingTaskExecutor
+ * @see CompletableFuture
  */
 public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     protected ParallelMacroCommand(ActionExecutor actionExecutor) {
@@ -29,87 +33,105 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     }
 
     /**
-     * To get access to command's command-context executor
+     * To get access to command's nested command-context executor
      *
      * @return instance of executor
      */
     public abstract SchedulingTaskExecutor getExecutor();
 
     /**
-     * To run do of macro-command's nested contexts<BR/>
-     * Executing collection of nested command contexts
+     * To run execution of macro-command's nested contexts<BR/>
+     * Executing deque of nested command contexts
      *
-     * @param doContexts    nested command contexts collection
+     * @param readyContexts deque of contexts with READY state
      * @param stateListener listener of context-state-change
-     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
-     * @see SchedulingTaskExecutor#submit(Callable)
+     * @see CompletableFuture
+     * @see ParallelMacroCommand#kickOffDoRunner(BlockingQueue, Context, Context.StateChangedListener)
+     * @see BlockingQueue
      * @see Deque
      * @see Context
      * @see Context.StateChangedListener
-     * @see Context.State#FAIL
+     * @see Context.State#READY
      */
     @Override
-    public Deque<Context<?>> executeNested(final Deque<Context<?>> doContexts, final Context.StateChangedListener stateListener) {
-        if (ObjectUtils.isEmpty(doContexts)) {
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
+    public Deque<Context<?>> executeNested(final Deque<Context<?>> readyContexts, final Context.StateChangedListener stateListener) {
+        if (ObjectUtils.isEmpty(readyContexts)) {
             getLog().warn("Nothing to do");
-            return doContexts;
+            return readyContexts;
         }
-        final int actionsQuantity = doContexts.size();
+        final int actionsQuantity = readyContexts.size();
         // Queue for nested command actions
-        final BlockingQueue<DoInRootTransaction> actionsQueue = new LinkedBlockingQueue<>(actionsQuantity);
-        final CountDownLatch latch = new CountDownLatch(actionsQuantity);
+        final BlockingQueue<ParallelCommandsInRootTransaction.ActionInRootTransaction<Context<?>>> actionsQueue =
+                new LinkedBlockingQueue<>(actionsQuantity);
         // parallel walking through contexts set
-        doContexts.forEach(context -> kickOffDoRunner(actionsQueue, context, stateListener, latch));
-        // process actions from other threads
-        processActionsQueue(actionsQueue, actionsQuantity);
-
-        // waiting for CountDownLatch latch exceed
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            processInterruptedException(e, latch);
-        }
-        return doContexts;
+        final CompletableFuture<Context<?>>[] runningContexts = readyContexts.stream()
+                .map(context -> kickOffDoRunner(actionsQueue, context, stateListener))
+                .toArray(CompletableFuture[]::new);
+        // process actions from other running threads
+        processingActivitiesQueue(actionsQueue, actionsQuantity);
+        // waiting for all nested command execution done
+        CompletableFuture.allOf(runningContexts).join();
+        // collect result contexts and return
+        return Arrays.stream(runningContexts).map(this::getFrom).filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
 
     /**
-     * To rollback changes for contexts with state DONE<BR/>
-     * sequential revers order of commands deque
+     * To run rolling back of macro-command's nested contexts<BR/>
+     * Executing deque of nested command contexts
      *
-     * @param inputDoneContexts wrapped collection of contexts with DONE state
-     * @see SchedulingTaskExecutor#submit(Callable)
+     * @param doneContexts deque of contexts with DONE state
+     * @see CompletableFuture
+     * @see ParallelMacroCommand#kickOffUndoRunner(BlockingQueue, Context)
+     * @see BlockingQueue
      * @see Deque
+     * @see Context
      * @see Context.State#DONE
      */
     @Override
-    public Deque<Context<?>> rollbackNestedDone(final Input<Deque<Context<?>>> inputDoneContexts) {
-        final Deque<Context<?>> doneContexts = inputDoneContexts.value();
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
+    public Deque<Context<?>> rollbackNested(final Deque<Context<?>> doneContexts) {
         if (ObjectUtils.isEmpty(doneContexts)) {
             getLog().warn("Nothing to undo");
             return doneContexts;
         }
         final int actionsQuantity = doneContexts.size();
         // Queue for nested command actions
-        final BlockingQueue<DoInRootTransaction> actionsQueue = new LinkedBlockingQueue<>(actionsQuantity);
-        final CountDownLatch latch = new CountDownLatch(actionsQuantity);
+        final BlockingQueue<ParallelCommandsInRootTransaction.ActionInRootTransaction<Context<?>>> actionsQueue =
+                new LinkedBlockingQueue<>(actionsQuantity);
         // parallel walking through contexts set
-        doneContexts.forEach(context -> kickOffUndoRunner(actionsQueue, context, latch));
+        final CompletableFuture<Context<?>>[] runningContexts = doneContexts.stream()
+                .map(context -> kickOffUndoRunner(actionsQueue, context))
+                .toArray(CompletableFuture[]::new);
         // process actions from other threads
-        processActionsQueue(actionsQueue, actionsQuantity);
-
-        // waiting for CountDownLatch latch exceed
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            processInterruptedException(e, latch);
-        }
-        return doneContexts;
+        processingActivitiesQueue(actionsQueue, actionsQuantity);
+        // waiting for all nested command execution done
+        CompletableFuture.allOf(runningContexts).join();
+        // collect result contexts and return
+        return Arrays.stream(runningContexts).map(this::getFrom).filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods
-    private void processActionsQueue(final BlockingQueue<DoInRootTransaction> actionsQueue, final int capacity) {
+    private Context<?> getFrom(CompletableFuture<Context<?>> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            getLog().error("Cannot get context from future.", e);
+            return null;
+        }
+    }
+
+    private void processingActivitiesQueue(
+            final BlockingQueue<ParallelCommandsInRootTransaction.ActionInRootTransaction<Context<?>>> actionsQueue,
+            final int capacity) {
+        getLog().debug("Doing in current transaction {} parallel commands.", capacity);
         IntStream.range(0, capacity).forEach(i -> {
+            getLog().debug("Processing in current transaction #{} parallel command.", (i + 1));
             try {
                 actionsQueue.take().actionInRootTransaction();
             } catch (InterruptedException e) {
@@ -121,142 +143,81 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
         });
     }
 
-    private void processInterruptedException(InterruptedException e, CountDownLatch latch) {
-        getLog().error("CountDownLatch is interrupted", e);
-        // Clean up whatever needs to be handled before interrupting
-        Thread.currentThread().interrupt();
-        throw new CountDownLatchInterruptedException(latch.getCount(), e);
-    }
-
-    private void kickOffDoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
-                                 final Context<?> context, final Context.StateChangedListener stateListener,
-                                 final CountDownLatch latch) {
+    private CompletableFuture<Context<?>> kickOffDoRunner(
+            final BlockingQueue<ParallelCommandsInRootTransaction.ActionInRootTransaction<Context<?>>> actionsQueue,
+            final Context<?> context, final Context.StateChangedListener stateListener) {
         getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
-        final var future = getExecutor().submit(new DoNestedCommandRunner(actionsQueue, context, stateListener, latch));
-
-        // To test is doRunner starting well in commandContextExecutor
-        if (future.isCancelled()) {
-            getLog().warn("Canceled executing of command: '{}' with context:{}", context.getCommand().getId(), context);
-            context.addStateListener(stateListener);
-            context.setState(Context.State.CANCEL);
-            context.removeStateListener(stateListener);
-            latch.countDown();
-        }
+        final var runner = new DoNestedCommandRunner(actionsQueue, context, stateListener, ActionContext.current());
+        return CompletableFuture.supplyAsync(() -> runner.action(), getExecutor());
     }
 
-    private void kickOffUndoRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
-                                   final Context<?> context,
-                                   final CountDownLatch latch) {
+    private CompletableFuture<Context<?>> kickOffUndoRunner(
+            final BlockingQueue<ParallelCommandsInRootTransaction.ActionInRootTransaction<Context<?>>> actionsQueue,
+            final Context<?> context) {
         getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
-        final Future<Context<?>> future =
-                getExecutor().submit(new UndoNestedCommandRunner(actionsQueue, context, latch));
-
-        // To test is undoRunner starting well in commandContextExecutor
-        if (future.isCancelled()) {
-            getLog().warn("Canceled rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
-            context.setState(Context.State.CANCEL);
-            latch.countDown();
-        }
+        final var runner = new UndoNestedCommandRunner(actionsQueue, context, ActionContext.current());
+        return CompletableFuture.supplyAsync(() -> runner.action(), getExecutor());
     }
 
     // private classes methods
-    private class DoNestedCommandRunner extends InRootTransaction implements Callable<Context<?>> {
+    private class DoNestedCommandRunner extends ParallelCommandsInRootTransaction<Context<?>> {
         final Context<?> context;
         final Context.StateChangedListener stateListener;
-        final CountDownLatch latch;
+        final ActionContext actionContext;
 
-        public DoNestedCommandRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
+        public DoNestedCommandRunner(final BlockingQueue<ActionInRootTransaction<Context<?>>> actionsQueue,
                                      final Context<?> context, final Context.StateChangedListener stateListener,
-                                     final CountDownLatch latch) {
+                                     final ActionContext actionContext) {
             super(actionsQueue);
             this.context = context;
             this.stateListener = stateListener;
-            this.latch = latch;
+            this.actionContext = actionContext;
+        }
+
+        public Context<?> action() {
+            try {
+                ActionContext.install(actionContext);
+                return runActionAndWait(() -> ParallelMacroCommand.this.executeDoNested(context, stateListener));
+            } catch (Throwable e) {
+                getLog().error("Cannot execute doNested command", e);
+                return null;
+            } finally {
+                ActionContext.release();
+            }
         }
 
         @Override
-        public Context<?> call() {
-            runActionAndWait(action ->
-                    context.getCommand().doAsNestedCommand(ParallelMacroCommand.this, context, stateListener)
-            );
-            latch.countDown();
-            return context;
+        Logger getLog() {
+            return ParallelMacroCommand.this.getLog();
         }
     }
 
-    private class UndoNestedCommandRunner extends InRootTransaction implements Callable<Context<?>> {
+    private class UndoNestedCommandRunner extends ParallelCommandsInRootTransaction<Context<?>> {
         final Context<?> context;
-        final CountDownLatch latch;
+        final ActionContext actionContext;
 
-        public UndoNestedCommandRunner(final BlockingQueue<DoInRootTransaction> actionsQueue,
-                                       final Context<?> context, final CountDownLatch latch) {
+        public UndoNestedCommandRunner(final BlockingQueue<ActionInRootTransaction<Context<?>>> actionsQueue,
+                                       final Context<?> context, final ActionContext actionContext) {
             super(actionsQueue);
             this.context = context;
-            this.latch = latch;
+            this.actionContext = actionContext;
+        }
+
+        public Context<?> action() {
+            try {
+                ActionContext.install(actionContext);
+                return runActionAndWait(() -> ParallelMacroCommand.this.executeUndoNested(context));
+            } catch (Throwable e) {
+                getLog().error("Cannot execute undoNested command", e);
+                return null;
+            } finally {
+                ActionContext.release();
+            }
         }
 
         @Override
-        public Context<?> call() {
-            runActionAndWait(action ->
-                    context.getCommand().undoAsNestedCommand(ParallelMacroCommand.this, context)
-            );
-            latch.countDown();
-            return context;
-        }
-    }
-
-    protected abstract class InRootTransaction {
-        final BlockingQueue<DoInRootTransaction> actionsQueue;
-
-        protected InRootTransaction(final BlockingQueue<DoInRootTransaction> actionsQueue) {
-            this.actionsQueue = actionsQueue;
-        }
-
-        protected void runActionAndWait(Consumer<?> action) {
-            final DoInRootTransaction inRootTransaction = new DoInRootTransaction(action, getLog());
-            if (actionsQueue.offer(inRootTransaction)) {
-                synchronized (inRootTransaction.actionFinished) {
-                    try {
-                        while (inRootTransaction.actionInProgress) {
-                            inRootTransaction.actionFinished.wait();
-                        }
-                    } catch (InterruptedException e) {
-                        getLog().error("Interrupted", e);
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            } else {
-                getLog().warn("Cannot add action to the queue");
-            }
-        }
-    }
-
-    static final class DoInRootTransaction {
-        final Object actionFinished = new Object();
-        volatile boolean actionInProgress = true;
-        final Consumer<?> toDo;
-        final Logger logger;
-
-        DoInRootTransaction(Consumer<?> toDo, Logger logger) {
-            this.toDo = toDo;
-            this.logger = logger;
-        }
-
-        void actionInRootTransaction() {
-            try {
-                toDo.accept(null);
-            } catch (Exception e) {
-                logger.error("Cannot execute action.", e);
-            } finally {
-                actionIsFinished();
-            }
-        }
-
-        void actionIsFinished() {
-            actionInProgress = false;
-            synchronized (actionFinished) {
-                actionFinished.notifyAll();
-            }
+        Logger getLog() {
+            return ParallelMacroCommand.this.getLog();
         }
     }
 }

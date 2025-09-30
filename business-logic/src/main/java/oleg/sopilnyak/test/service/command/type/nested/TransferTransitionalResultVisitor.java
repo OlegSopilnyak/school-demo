@@ -2,10 +2,10 @@ package oleg.sopilnyak.test.service.command.type.nested;
 
 import java.util.Deque;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -14,9 +14,11 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import org.slf4j.Logger;
 
 /**
- * Visitor: Transfer command result to next command context
+ * Visitor: Transfer command execution result to the next command context input
+ *
+ * @see CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
  */
-public interface TransferResultVisitor {
+public interface TransferTransitionalResultVisitor {
     /**
      * To transfer result from current command to next command context
      *

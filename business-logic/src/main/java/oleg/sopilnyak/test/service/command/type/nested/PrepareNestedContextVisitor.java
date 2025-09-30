@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 /**
  * Visitor: Prepare nested command context
  */
-public interface PrepareContextVisitor {
+public interface PrepareNestedContextVisitor {
     /**
      * To prepare context for particular type (NestedCommand) of the nested command
      *

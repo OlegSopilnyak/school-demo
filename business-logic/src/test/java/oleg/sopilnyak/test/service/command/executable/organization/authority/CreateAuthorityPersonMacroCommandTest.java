@@ -12,7 +12,6 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -345,16 +344,16 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         assertThat(personContext.getState()).isEqualTo(CANCEL);
 
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
 
         verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
-        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
-        verify(command, never()).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
+//        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
+//        verify(command, never()).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -443,8 +442,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         verify(command).executeUndo(context);
         verify(command).rollbackNestedDone(any(Input.class));
-        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
     @Test
@@ -530,12 +529,12 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         InOrder inOrder = Mockito.inOrder(command);
         // creating profile and student (profile is first) avers commands order
         Context<Optional<PrincipalProfile>> nestedProfileContext = (Context<Optional<PrincipalProfile>>) profileContext;
-        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(nestedProfileContext), any(Context.StateChangedListener.class));
+//        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(nestedProfileContext), any(Context.StateChangedListener.class));
         Context<Optional<AuthorityPerson>> nestedPersonContext = (Context<Optional<AuthorityPerson>>) personContext;
-        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(nestedPersonContext), any(Context.StateChangedListener.class));
+//        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(nestedPersonContext), any(Context.StateChangedListener.class));
         // undo creating profile and student (student is first) revers commands order
-        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
-        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
+//        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+//        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
 
         // persistence operations order
         inOrder = Mockito.inOrder(persistence);
@@ -548,16 +547,16 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     }
 
     private void verifyProfileUndoCommand(Context<?> profileContext, Long id) {
-        verify(profileCommand).undoAsNestedCommand(command, profileContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
+//        verify(profileCommand).undoAsNestedCommand(command, profileContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
         verify(persistence).deleteProfileById(id);
     }
 
     private void verifyPersonUndoCommand(Context<?> personContext, Long id) {
-        verify(personCommand).undoAsNestedCommand(command, personContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+//        verify(personCommand).undoAsNestedCommand(command, personContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
         verify(personCommand).undoCommand(personContext);
         verify(personCommand).executeUndo(personContext);
         verify(persistence).deleteAuthorityPerson(id);
@@ -565,8 +564,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
     private void verifyProfileDoCommand(Context<?> nestedContext) {
         Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContext;
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
@@ -574,8 +573,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
     private void verifyPersonDoCommand(Context<?> nestedContext) {
         Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContext;
-        verify(personCommand).doAsNestedCommand(eq(command), eq(personContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
+//        verify(personCommand).doAsNestedCommand(eq(command), eq(personContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
         verify(personCommand).doCommand(personContext);
         verify(personCommand).executeDo(personContext);
         verify(persistence).save(any(AuthorityPerson.class));

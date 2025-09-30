@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys.context;
+package oleg.sopilnyak.test.service.command.type.nested;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -18,8 +18,8 @@ public class NestedContextDeque<T> {
     private final Lock locker = new ReentrantLock();
 
     /**
-     * To put synchronously item to the queue
-     * thread-safe
+     * To put synchronously item to the queue<BR/>
+     * in the thread-safe manner
      *
      * @param item item to put
      * @see Deque#addLast(Object)

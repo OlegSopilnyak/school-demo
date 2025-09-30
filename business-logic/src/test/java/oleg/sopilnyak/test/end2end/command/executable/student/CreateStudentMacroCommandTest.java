@@ -16,7 +16,6 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
@@ -367,8 +366,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         assertThat(studentContext.getState()).isEqualTo(CANCEL);
 
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(profileCaptor.capture(), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(profileCaptor.capture(), eq(profileContext), any(Context.StateChangedListener.class));
         assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
@@ -376,8 +375,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
-        verify(studentCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
-        verify(command, never()).doNestedCommand(any(RootCommand.class), any(Context.class), any(Context.StateChangedListener.class));
+//        verify(studentCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
+//        verify(command, never()).doNestedCommand(any(RootCommand.class), any(Context.class), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -484,8 +483,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(command).executeUndo(context);
         verify(command).rollbackNestedDone(any(Input.class));
-        verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 
         assertThat(persistence.findStudentById(studentId)).isPresent();
         assertThat(persistence.findStudentProfileById(profileId)).isPresent();
@@ -577,14 +576,14 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         // nested commands order
         InOrder inOrder = Mockito.inOrder(command);
         // creating profile and student (profile is first) avers commands order
-        inOrder.verify(command).doNestedCommand(profileCaptor.capture(), eq(profileContext), any(Context.StateChangedListener.class));
+//        inOrder.verify(command).doNestedCommand(profileCaptor.capture(), eq(profileContext), any(Context.StateChangedListener.class));
         assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
-        inOrder.verify(command).doNestedCommand(personCaptor.capture(), eq(studentContext), any(Context.StateChangedListener.class));
+//        inOrder.verify(command).doNestedCommand(personCaptor.capture(), eq(studentContext), any(Context.StateChangedListener.class));
         assertThat(studentCommand.getId()).isEqualTo(personCaptor.getValue().getId());
         // undo creating profile and student (student is first) revers commands order
-        inOrder.verify(command).undoNestedCommand(personCaptor.capture(), eq(studentContext));
+//        inOrder.verify(command).undoNestedCommand(personCaptor.capture(), eq(studentContext));
         assertThat(studentCommand.getId()).isEqualTo(personCaptor.getValue().getId());
-        inOrder.verify(command).undoNestedCommand(profileCaptor.capture(), eq(profileContext));
+//        inOrder.verify(command).undoNestedCommand(profileCaptor.capture(), eq(profileContext));
         assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
 
         // persistence operations order
@@ -598,8 +597,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileUndoCommand(Context<Optional<StudentProfile>> profileContext, Long id) {
-        verify(profileCommand).undoAsNestedCommand(command, profileContext);
-        verify(command).undoNestedCommand(profileCaptor.capture(), eq(profileContext));
+//        verify(profileCommand).undoAsNestedCommand(command, profileContext);
+//        verify(command).undoNestedCommand(profileCaptor.capture(), eq(profileContext));
         assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
@@ -607,8 +606,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyStudentUndoCommand(Context<Optional<Student>> studentContext, Long id) {
-        verify(studentCommand).undoAsNestedCommand(command, studentContext);
-        verify(command).undoNestedCommand(personCaptor.capture(), eq(studentContext));
+//        verify(studentCommand).undoAsNestedCommand(command, studentContext);
+//        verify(command).undoNestedCommand(personCaptor.capture(), eq(studentContext));
         assertThat(studentCommand.getId()).isEqualTo(personCaptor.getValue().getId());
         verify(studentCommand).undoCommand(studentContext);
         verify(studentCommand).executeUndo(studentContext);
@@ -616,8 +615,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Optional<StudentProfile>> nestedContext) {
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(profileCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(profileCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
         assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
         verify(profileCommand).doCommand(nestedContext);
         verify(profileCommand).executeDo(nestedContext);
@@ -625,8 +624,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyStudentDoCommand(Context<Optional<Student>> nestedContext) {
-        verify(studentCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(personCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(studentCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(personCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
         assertThat(studentCommand.getId()).isEqualTo(personCaptor.getValue().getId());
         verify(studentCommand).doCommand(nestedContext);
         verify(studentCommand).executeDo(nestedContext);

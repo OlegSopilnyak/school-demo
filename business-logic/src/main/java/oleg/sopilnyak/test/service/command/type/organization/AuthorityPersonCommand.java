@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
@@ -138,11 +138,11 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(AuthorityPersonCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(AuthorityPersonCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 }

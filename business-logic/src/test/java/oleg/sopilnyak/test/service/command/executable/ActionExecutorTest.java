@@ -37,12 +37,7 @@ class ActionExecutorTest<T> {
 
     @BeforeEach
     void setUp() {
-        actionExecutor = spy(new ActionExecutor() {
-            @Override
-            public Logger getLogger() {
-                return logger;
-            }
-        });
+        actionExecutor = spy(() -> logger);
         doReturn(command).when(commandContext).getCommand();
     }
 
@@ -59,7 +54,7 @@ class ActionExecutorTest<T> {
 
     @Test
     void shouldRollbackAction() {
-        Context<Void> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
+        Context<?> context = actionExecutor.rollbackAction(actionContext, commandContext);
 
         assertThat(context).isNotNull();
         verify(actionExecutor).processActionCommand(any(BaseCommandMessage.class));

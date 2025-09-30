@@ -16,9 +16,9 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferResultVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
@@ -222,12 +222,12 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    public Context<Optional<Student>> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> input) {
+    public Context<Optional<Student>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> input) {
         return super.acceptPreparedContext(visitor, input);
     }
 
@@ -243,11 +243,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                  final Context<?> context, final Context.StateChangedListener stateListener) {
-        super.doAsNestedCommand(visitor, context, stateListener);
-    }
+//    @Override
+//    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                  final Context<?> context, final Context.StateChangedListener stateListener) {
+//        super.doAsNestedCommand(visitor, context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
@@ -257,10 +257,10 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
-    @Override
-    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return super.undoAsNestedCommand(visitor, context);
-    }
+//    @Override
+//    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//        return super.undoAsNestedCommand(visitor, context);
+//    }
 
     /**
      * To prepare command for sequential macro-command
@@ -314,11 +314,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
          * @param target  nested command context for the next execution in sequence
          * @param <S>     type of source command execution result
          * @param <N>     type of target command execution result
-         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
          * @see CreateStudentMacroCommand#transferPreviousExecuteDoResult(StudentCommand, Object, Context)
          */
         @Override
-        public <S, N> void transferResultTo(TransferResultVisitor visitor, S value, Context<N> target) {
+        public <S, N> void transferResultTo(TransferTransitionalResultVisitor visitor, S value, Context<N> target) {
             visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
@@ -343,16 +343,16 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             return null;
         }
 
-        @Override
-        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<?> context, final Context.StateChangedListener stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
+//        @Override
+//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+//            command.doAsNestedCommand(visitor, context, stateListener);
+//        }
 
-        @Override
-        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
+//        @Override
+//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//            return command.undoAsNestedCommand(visitor, context);
+//        }
     }
 
     private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<StudentProfileCommand<?>>
@@ -376,11 +376,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
          * @param target  nested command context for the next execution in sequence
          * @param <S>     type of source command execution result
          * @param <N>     type of target command execution result
-         * @see TransferResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
+         * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
          * @see CreateStudentMacroCommand#transferPreviousExecuteDoResult(StudentProfileCommand, Object, Context)
          */
         @Override
-        public <S, N> void transferResultTo(TransferResultVisitor visitor, S value, Context<N> target) {
+        public <S, N> void transferResultTo(TransferTransitionalResultVisitor visitor, S value, Context<N> target) {
             visitor.transferPreviousExecuteDoResult(command, value, target);
         }
 
@@ -405,16 +405,16 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             return null;
         }
 
-        @Override
-        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                      final Context<?> context, final Context.StateChangedListener stateListener) {
-            command.doAsNestedCommand(visitor, context, stateListener);
-        }
-
-        @Override
-        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-            return command.undoAsNestedCommand(visitor, context);
-        }
+//        @Override
+//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                      final Context<?> context, final Context.StateChangedListener stateListener) {
+//            command.doAsNestedCommand(visitor, context, stateListener);
+//        }
+//
+//        @Override
+//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//            return command.undoAsNestedCommand(visitor, context);
+//        }
     }
 
 }

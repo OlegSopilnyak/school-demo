@@ -9,8 +9,8 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 /**
@@ -130,11 +130,11 @@ public interface StudentCommand<T> extends RootCommand<T> {
      * @param visitor        visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(StudentCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(StudentCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
 
@@ -150,12 +150,12 @@ public interface StudentCommand<T> extends RootCommand<T> {
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    @SuppressWarnings("unchecked")
-    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-        visitor.doNestedCommand(this, (Context<T>)context, stateListener);
-    }
+//    @Override
+//    @SuppressWarnings("unchecked")
+//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                   final Context<?> context, final Context.StateChangedListener stateListener) {
+//        visitor.doNestedCommand(this, (Context<T>)context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
@@ -165,8 +165,8 @@ public interface StudentCommand<T> extends RootCommand<T> {
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see StudentCommand#undoCommand(Context)
      */
-    @Override
-    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return visitor.undoNestedCommand(this, context);
-    }
+//    @Override
+//    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//        return visitor.undoNestedCommand(this, context);
+//    }
 }

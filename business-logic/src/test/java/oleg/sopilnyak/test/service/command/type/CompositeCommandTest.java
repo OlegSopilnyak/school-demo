@@ -22,7 +22,7 @@ import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -201,9 +201,9 @@ class CompositeCommandTest {
         NestedCommandExecutionVisitor visitor = mock(NestedCommandExecutionVisitor.class);
         Context<?> nestedContext = mock(Context.class);
         Context.StateChangedListener listener = mock(Context.StateChangedListener.class);
-        doCallRealMethod().when(compositeCommand).doAsNestedCommand(visitor, nestedContext, listener);
-
-        compositeCommand.doAsNestedCommand(visitor, nestedContext, listener);
+//        doCallRealMethod().when(compositeCommand).doAsNestedCommand(visitor, nestedContext, listener);
+//
+//        compositeCommand.doAsNestedCommand(visitor, nestedContext, listener);
 
         verify(visitor).doNestedCommand(compositeCommand, nestedContext, listener);
     }
@@ -212,9 +212,9 @@ class CompositeCommandTest {
     void shouldUndoAsNestedCommand() {
         NestedCommandExecutionVisitor visitor = mock(NestedCommandExecutionVisitor.class);
         Context<?> nestedContext = mock(Context.class);
-        doCallRealMethod().when(compositeCommand).undoAsNestedCommand(visitor, nestedContext);
-
-        compositeCommand.undoAsNestedCommand(visitor, nestedContext);
+//        doCallRealMethod().when(compositeCommand).undoAsNestedCommand(visitor, nestedContext);
+//
+//        compositeCommand.undoAsNestedCommand(visitor, nestedContext);
 
         verify(visitor).undoNestedCommand(compositeCommand, nestedContext);
     }

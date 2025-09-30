@@ -9,15 +9,14 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.NestedContextDeque;
-import oleg.sopilnyak.test.service.command.executable.sys.context.NestedStateChangedListener;
+import oleg.sopilnyak.test.service.command.type.nested.NestedContextDeque;
+import oleg.sopilnyak.test.service.command.type.nested.NestedStateChangedListener;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.springframework.util.ObjectUtils;
 
@@ -25,14 +24,14 @@ import org.springframework.util.ObjectUtils;
  * Command-Base: macro-command the command with nest of commands inside
  *
  * @param <T> the type of command execution (do) result
+ * @see NestedCommand
  * @see RootCommand
  * @see CompositeCommand
- * @see NestedCommandExecutionVisitor
  */
 @AllArgsConstructor
-public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedCommandExecutionVisitor {
-    // Nested commands executor
+public abstract class MacroCommand<T> implements CompositeCommand<T> {
     @Getter
+    // commands executor for the commands from the nest
     private final transient ActionExecutor actionExecutor;
     // the list of nested commands
     private final List<NestedCommand<?>> netsedCommandsList = new LinkedList<>();
@@ -64,13 +63,14 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
     }
 
     /**
-     * To execute command redo with correct context state
+     * To execute command with correct context state
      *
-     * @param context context of redo execution
+     * @param context context of execution
      * @see Context
      * @see Context#getRedoParameter()
      * @see MacroCommandParameter#getNestedContexts()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.context.NestedStateChangedListener
+     * @see NestedContextDeque
+     * @see NestedStateChangedListener
      * @see MacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see CountDownLatch#await()
      * @see MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
@@ -145,9 +145,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      * To rollback changes for nested successful commands (contexts with state DONE)
      *
      * @param contexts collection of nested contexts with DONE state
-     * @see NestedCommand#undoAsNestedCommand(NestedCommandExecutionVisitor, Context)
-     * @see MacroCommand#undoNestedCommand(RootCommand, Context)
-     * @see Context#isDone()
+     * @see CompositeCommand#rollbackNested(Deque)
      * @deprecated
      */
     @Deprecated
@@ -166,7 +164,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      */
     @Override
     public Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
-        return contexts.stream().filter(Context::isDone).map(this::undoNestedCommand)
+        return contexts.stream().filter(Context::isDone).map(context -> executeUndoNested((Context<Void>) context))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -175,11 +173,13 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
      *
      * @param context nested context
      * @return context with nested command undo results
+     * @see CompositeCommand#executeUndoNested(Context)
+     * @deprecated
      */
-    @Deprecated
-    public Context<?> undoNestedCommand(final Context<?> context) {
-        return context.getCommand().undoAsNestedCommand(this, context);
-    }
+//    @Deprecated
+//    public Context<?> undoNestedCommand(final Context<?> context) {
+//        return context.getCommand().undoAsNestedCommand(this, context);
+//    }
 
     /**
      * To get final main do-command result from nested command-contexts
@@ -255,7 +255,9 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
                                                  final CommandContext<T> context) {
         final T result = finalCommandResult(after);
         getLog().debug("Command executed well and returned {}", result);
+        // setup undo parameter of the context
         context.setUndoParameter(Input.of(successful));
+        // store command successful execution result
         context.setResult(result);
     }
 
@@ -265,25 +267,5 @@ public abstract class MacroCommand<T> implements CompositeCommand<T>, NestedComm
         getLog().warn("Rolling back all successful commands {}", successful);
         // rollback all successful contexts
         rollbackNested(successful);
-    }
-
-    @Deprecated
-    private <N> void rollBackNestedUndone(final Deque<Context<N>> undoneContexts) {
-        getLog().debug("Rolling back from undone {} command(s)", undoneContexts.size());
-        // to do rollback undone nested contexts
-        undoneContexts.stream().filter(Context::isUndone).forEach(this::rollbackUndone);
-    }
-
-    @Deprecated
-    private void rollbackUndone(Context<?> context) {
-        final Context.StateChangedListener stateListener = (c, prev, curr) -> logStateChange(getId(), prev, curr);
-        context.setState(Context.State.READY);
-        context.getCommand().doAsNestedCommand(this, context, stateListener);
-    }
-
-    @Deprecated
-    private void logStateChange(String commandId, Context.State prev, Context.State curr) {
-        final String logTemplate = "Changed state of '{}' from State:{} to :{}";
-        getLog().debug(logTemplate, commandId, prev, curr);
     }
 }

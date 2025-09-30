@@ -18,8 +18,8 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareContextVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
+import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -178,12 +178,12 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
-     * @see PrepareContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see MacroCommand#createContext(Input)
      */
     @Override
-    public Context<Boolean> acceptPreparedContext(final PrepareContextVisitor visitor, final Input<?> macroInputParameter) {
+    public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return super.acceptPreparedContext(visitor, macroInputParameter);
     }
 
@@ -199,11 +199,11 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @see Context#removeStateListener(Context.StateChangedListener)
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
-    @Override
-    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-                                  final Context<?> context, final Context.StateChangedListener stateListener) {
-        super.doAsNestedCommand(visitor, context, stateListener);
-    }
+//    @Override
+//    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
+//                                  final Context<?> context, final Context.StateChangedListener stateListener) {
+//        super.doAsNestedCommand(visitor, context, stateListener);
+//    }
 
     /**
      * To execute command Undo as a nested command
@@ -213,10 +213,10 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
      * @see CompositeCommand#undoCommand(Context)
      */
-    @Override
-    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-        return super.undoAsNestedCommand(visitor, context);
-    }
+//    @Override
+//    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
+//        return super.undoAsNestedCommand(visitor, context);
+//    }
 
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());

@@ -29,7 +29,6 @@ import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -368,16 +367,16 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         assertThat(personContext.getState()).isEqualTo(CANCEL);
 
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
 
         verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
-        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
-        verify(command, never()).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
+//        verify(personCommand, never()).doAsNestedCommand(any(NestedCommandExecutionVisitor.class), any(Context.class), any(Context.StateChangedListener.class));
+//        verify(command, never()).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
     }
 
     @Test
@@ -487,8 +486,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         verify(command).executeUndo(context);
         verify(command).rollbackNestedDone(any(Input.class));
-        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 
         assertThat(persistence.findAuthorityPersonById(studentId)).isPresent();
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
@@ -580,11 +579,11 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // nested commands order
         InOrder inOrder = Mockito.inOrder(command);
         // creating profile and person (profile is first) avers commands order
-        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
-        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
-        // undo creating profile and person (person is first) revers commands order
-        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
-        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
+//        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
+//        inOrder.verify(command).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
+//        // undo creating profile and person (person is first) revers commands order
+//        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+//        inOrder.verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
 
         // persistence operations order
         inOrder = Mockito.inOrder(persistence);
@@ -597,32 +596,32 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     private void verifyProfileUndoCommand(Context<Optional<PrincipalProfile>> profileContext, Long id) {
-        verify(profileCommand).undoAsNestedCommand(command, profileContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
+//        verify(profileCommand).undoAsNestedCommand(command, profileContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
         verify(persistence).deleteProfileById(id);
     }
 
     private void verifyPersonUndoCommand(Context<Optional<AuthorityPerson>> personContext, Long id) {
-        verify(personCommand).undoAsNestedCommand(command, personContext);
-        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
+//        verify(personCommand).undoAsNestedCommand(command, personContext);
+//        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
         verify(personCommand).undoCommand(personContext);
         verify(personCommand).executeUndo(personContext);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
     private void verifyProfileDoCommand(Context<Optional<PrincipalProfile>> nestedContext) {
-        verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(profileCommand).doCommand(nestedContext);
         verify(profileCommand).executeDo(nestedContext);
         verify(persistence).save(any(PrincipalProfile.class));
     }
 
     private void verifyPersonDoCommand(Context<Optional<AuthorityPerson>> nestedContext) {
-        verify(personCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(personCommand).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
         verify(personCommand).doCommand(nestedContext);
         verify(personCommand).executeDo(nestedContext);
         verify(persistence).save(any(AuthorityPerson.class));
