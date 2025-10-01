@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.CommandInSequence;
@@ -85,6 +85,27 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
                 ).collect(Collectors.toCollection(LinkedList::new));
     }
 
+    /**
+     * To run undo execution for each macro-command's nested contexts in DONE state
+     *
+     * @param contexts nested contexts to execute
+     * @return nested contexts after execution
+     * @see Context.State#DONE
+     * @see Deque
+     * @see CompositeCommand#executeUndoNested(Context)
+     */
+    @Override
+    public Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
+        final List<Context<?>> reverted = new ArrayList<>(contexts);
+        // revert the order of undo contexts
+        Collections.reverse(reverted);
+        final AtomicBoolean isUndoNestedFailed = new AtomicBoolean(false);
+        // rollback commands' changes
+        return reverted.stream()
+                .map(nestedDoneContext -> undoNested(nestedDoneContext, isUndoNestedFailed))
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
     // To mark canceled sequential nested command execution
     private <N> Context<N> cancelSequentialNestedCommandContext(final Context<N> context, final Context.StateChangedListener listener) {
         // getting last state from the context history and use it for the listener's notification
@@ -124,21 +145,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         return result;
     }
 
-    /**
-     * To transfer result of previous nested context to current one
-     *
-     * @param previous the instance of previous nested command context
-     * @param current  the instance of nested context before RootCommand#doAsNestedCommand(...)
-     * @param <N>               the type of nested command execution result
-     * @param <S>      the type of previous nested command context result
-//     * @see RootCommand#doAsNestedCommand(NestedCommandExecutionVisitor, Context, Context.StateChangedListener)
-     * @see Context
-     * @see Context#getResult()
-     * @see Context#getCommand()
-     * @see RootCommand#getId()
-     * @see CannotTransferCommandResultException
-     * @see CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
-     */
+    // To transfer result of previous nested context to current one
     private <N,S> void transferringPreviousResult(final Context<S> previous, final Context<N> current) {
         final Optional<RootCommand<S>> source = getSourceCommand(previous);
         if (source.isEmpty()) {
@@ -164,6 +171,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         }
     }
 
+    // to find source command for the context
     private <S> Optional<RootCommand<S>> getSourceCommand(final Context<S> previous) {
         // check source context's result
         if (!previous.isDone()) {
@@ -182,30 +190,6 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
             return Optional.empty();
         }
         return Optional.of(source);
-    }
-
-
-    /**
-     * To rollback changes for nested contexts with state DONE
-     * <BR/>sequential revers order of commands deque
-     *
-     * @param doneContexts collection of contexts with DONE state
-     * @see Deque#stream()
-     * @see AtomicBoolean
-     * @see Collections#reverse(List)
-     * @see SequentialMacroCommand#undoNested(Context, AtomicBoolean)
-     * @see Context.State#UNDONE
-     */
-    @Override
-    public Deque<Context<?>> rollbackNestedDone(Input<Deque<Context<?>>> doneContexts) {
-        final List<Context<?>> reverted = new ArrayList<>(doneContexts.value());
-        // revert the order of undo contexts
-        Collections.reverse(reverted);
-        final AtomicBoolean isUndoNestedFailed = new AtomicBoolean(false);
-        // rollback commands' changes
-        return reverted.stream()
-                .map(nestedDoneContext -> undoNested(nestedDoneContext, isUndoNestedFailed))
-                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     // private methods

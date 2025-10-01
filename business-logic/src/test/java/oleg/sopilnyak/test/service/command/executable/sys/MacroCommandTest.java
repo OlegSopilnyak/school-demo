@@ -367,7 +367,6 @@ class MacroCommandTest {
         wrapper.getNestedContexts().forEach(context -> {
             assertThat(context.isDone()).isTrue();
             Context<N> nestedContext = (Context<N>) context;
-            RootCommand<N> nestedCommand = nestedContext.getCommand();
             verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
             verify(actionExecutor).commitAction(any(ActionContext.class), eq(nestedContext));
             verify(nestedContext.getCommand()).doCommand(nestedContext);

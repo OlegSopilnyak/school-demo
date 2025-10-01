@@ -475,34 +475,16 @@ class ParallelMacroCommandTest {
             return "parallel-fake-command";
         }
 
-        /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#afterExecuteDo(Context)
-         */
         @Override
         public Double detachedResult(Double result) {
             return result;
         }
 
-        /**
-         * To get mapper for business-message-payload
-         *
-         * @return mapper instance
-         * @see BusinessMessagePayloadMapper
-         */
         @Override
         public BusinessMessagePayloadMapper getPayloadMapper() {
             return null;
         }
 
-        /**
-         * To get access to command's command-context executor
-         *
-         * @return instance of executor
-         */
         @Override
         public SchedulingTaskExecutor getExecutor() {
             return commandContextExecutor;
