@@ -37,7 +37,12 @@ class ActionExecutorTest<T> {
 
     @BeforeEach
     void setUp() {
-        actionExecutor = spy(() -> logger);
+        actionExecutor = spy(new ActionExecutor() {
+            @Override
+            public Logger getLogger() {
+                return logger;
+            }
+        });
         doReturn(command).when(commandContext).getCommand();
     }
 
