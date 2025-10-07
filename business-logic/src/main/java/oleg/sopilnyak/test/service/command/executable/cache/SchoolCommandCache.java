@@ -216,11 +216,11 @@ public abstract class SchoolCommandCache<T extends BaseType> {
 
             context.setResult(Optional.ofNullable(persistedEntityCopy));
 
-            if (nonNull(persistedEntityCopy)
-                    && isCreateEntityMode
-                    && context instanceof CommandContext<Optional<T>> commandContext)
+            if (nonNull(persistedEntityCopy) && isCreateEntityMode
+                && context instanceof CommandContext<Optional<T>> commandContext
+            ) {
                 commandContext.setUndoParameter(Input.of(persistedEntityCopy.getId()));
-
+            }
         }
     }
 

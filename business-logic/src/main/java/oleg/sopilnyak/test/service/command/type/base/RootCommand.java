@@ -6,7 +6,6 @@ import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
@@ -120,7 +119,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     /**
      * To rollback command's execution according to command context
      *
-     * @param context context of redo execution
+     * @param context context of undo execution
      * @see Context
      * @see Context#getUndoParameter()
      * @see CommandExecutable#executeUndo(Context)
@@ -190,33 +189,4 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
         return visitor.prepareContext(this, macroInputParameter);
     }
 
-    /**
-     * To execute command's Do as a nested command
-     *
-     * @param visitor       visitor to do nested command execution
-     * @param context       context for nested command execution
-     * @param stateListener listener of context-state-change
-     * @see Context
-     * @see Context.StateChangedListener
-     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     */
-//    @SuppressWarnings("unchecked")
-//    @Override
-//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-//        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
-//    }
-
-    /**
-     * To execute command Undo as a nested command
-     *
-     * @param visitor visitor to do nested command execution
-     * @param context context for nested command execution
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
-     * @see RootCommand#undoCommand(Context)
-     */
-//    @Override
-//    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//        return visitor.undoNestedCommand(this, context);
-//    }
 }

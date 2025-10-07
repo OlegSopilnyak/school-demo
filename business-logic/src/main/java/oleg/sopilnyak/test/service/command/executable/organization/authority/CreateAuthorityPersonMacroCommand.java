@@ -12,11 +12,9 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -252,43 +250,12 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override
     public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> commandInputParameter) {
         return super.acceptPreparedContext(visitor, commandInputParameter);
     }
-
-    /**
-     * To execute command Do as a nested command
-     *
-     * @param visitor       visitor to do nested command execution
-     * @param context       context for nested command execution
-     * @param stateListener listener of context-state-change
-     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see CompositeCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     */
-//    @Override
-//    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                  final Context<?> context, final Context.StateChangedListener stateListener) {
-//        super.doAsNestedCommand(visitor, context, stateListener);
-//    }
-
-    /**
-     * To execute command Undo as a nested command
-     *
-     * @param visitor visitor to do nested command execution
-     * @param context context for nested command execution
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
-     * @see CompositeCommand#undoCommand(Context)
-     */
-//    @Override
-//    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//        return super.undoAsNestedCommand(visitor, context);
-//    }
 
     // private methods
     private NestedCommand<?> wrap(final AuthorityPersonCommand<?> command) {
@@ -353,17 +320,34 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         public BusinessMessagePayloadMapper getPayloadMapper() {
             return null;
         }
-//
-//        @Override
-//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                      final Context<?> context, final Context.StateChangedListener stateListener) {
-//            command.doAsNestedCommand(visitor, context, stateListener);
-//        }
-//
-//        @Override
-//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//            return unWrap().undoAsNestedCommand(visitor, context);
-//        }
+
+        /**
+         * To execute command with correct context state
+         *
+         * @param context context of redo execution
+         * @see Context
+         * @see Context.State#WORK
+         * @see Context.State#DONE
+         * @see RootCommand#doCommand(Context)
+         */
+        @Override
+        public void doCommand(Context context) {
+            command.doCommand(context);
+        }
+
+        /**
+         * To rollback command's execution according to command context
+         *
+         * @param context context of undo execution
+         * @see Context
+         * @see Context.State#WORK
+         * @see Context.State#UNDONE
+         * @see RootCommand#undoCommand(Context)
+         */
+        @Override
+        public void undoCommand(Context<?> context) {
+            command.undoCommand(context);
+        }
     }
 
     private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
@@ -428,17 +412,34 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         public BusinessMessagePayloadMapper getPayloadMapper() {
             return null;
         }
-//
-//        @Override
-//        public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                      final Context<?> context, final Context.StateChangedListener stateListener) {
-//            command.doAsNestedCommand(visitor, context, stateListener);
-//        }
-//
-//        @Override
-//        public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//            return unWrap().undoAsNestedCommand(visitor, context);
-//        }
+
+        /**
+         * To execute command with correct context state
+         *
+         * @param context context of redo execution
+         * @see Context
+         * @see Context.State#WORK
+         * @see Context.State#DONE
+         * @see RootCommand#doCommand(Context)
+         */
+        @Override
+        public void doCommand(Context context) {
+            command.doCommand(context);
+        }
+
+        /**
+         * To rollback command's execution according to command context
+         *
+         * @param context context of undo execution
+         * @see Context
+         * @see Context.State#WORK
+         * @see Context.State#UNDONE
+         * @see RootCommand#undoCommand(Context)
+         */
+        @Override
+        public void undoCommand(Context<?> context) {
+            command.undoCommand(context);
+        }
     }
 
 }
