@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -14,6 +16,7 @@ import static org.mockito.Mockito.when;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -28,9 +31,9 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +42,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class DeleteAuthorityPersonMacroCommandTest {
-    final int maxPoolSize = 10;
     @Mock
     PersistenceFacade persistence;
     @Spy
@@ -53,6 +58,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     DeletePrincipalProfileCommand profileCommand;
     @Mock
     ActionExecutor actionExecutor;
+    @Mock
+    SchedulingTaskExecutor schedulingTaskExecutor;
     @Spy
     @InjectMocks
     DeleteAuthorityPersonCommand personCommand;
@@ -65,23 +72,27 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
-        command.runThreadPoolExecutor();
-    }
-
-    @AfterEach
-    void tearDown() {
-        reset(payloadMapper);
-        command.stopThreadPoolExecutor();
+        command = spy(new DeleteAuthorityPersonMacroCommand(
+                personCommand, profileCommand, persistence, actionExecutor, schedulingTaskExecutor
+        ));
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
+        doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @Test
     void shouldBeValidCommand() {
+        reset(actionExecutor, schedulingTaskExecutor);
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
         assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
-        assertThat(ReflectionTestUtils.getField(command, "maxPoolSize")).isSameAs(maxPoolSize);
         assertThat(ReflectionTestUtils.getField(personCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
@@ -93,6 +104,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldCreateMacroCommandContexts() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Long personId = 1L;
         Long profileId = 2L;
         when(person.getProfileId()).thenReturn(profileId);
@@ -126,6 +138,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotCreateMacroCommandContext_PesronNotFound() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Long personId = 3L;
 
         Input<?> inputPersonId = Input.of(personId);
@@ -150,6 +163,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotCreateMacroCommandContext_WrongInputType() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Object wrongTypeInput = "something";
 
         Input<?> wrongInput = Input.of(wrongTypeInput);
@@ -174,6 +188,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotCreateMacroCommandContext_CreatePrincipalProfileContextThrows() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Long personId = 4L;
         Long profileId = 5L;
         when(person.getProfileId()).thenReturn(profileId);
@@ -203,6 +218,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotCreateMacroCommandContext_CreatePrincipalContextThrows() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Long personId = 6L;
         Long profileId = 7L;
         Input<?> input = Input.of(personId);
@@ -266,6 +282,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteDoCommand_PersonNotFound() {
+        reset(actionExecutor, schedulingTaskExecutor);
         Long personId = 10L;
         Input<?> inputPersonId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputPersonId);
@@ -282,6 +299,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteDoCommand_ProfileNotFound() {
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 12L;
         Long personId = 11L;
         when(person.getId()).thenReturn(personId);
@@ -314,11 +332,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyPersonDoCommand(personContext);
         verifyPersonUndoCommand(personContext);
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+        verify(profileCommand, never()).undoCommand(any(Context.class));
     }
 
     @Test
     void shouldNotExecuteDoCommand_DeletePersonThrows() {
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 14L;
         Long personId = 13L;
         when(person.getId()).thenReturn(personId);
@@ -357,11 +376,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         verifyPersonDoCommand(personContext);
         verifyProfileDoCommand(profileContext);
         verifyProfileUndoCommand(profileContext);
-//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+        verify(personCommand, never()).undoCommand(any(Context.class));
     }
 
     @Test
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 16L;
         Long personId = 15L;
         when(person.getId()).thenReturn(personId);
@@ -401,11 +421,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         verifyProfileDoCommand(profileContext);
 
         verifyPersonUndoCommand(personContext);
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
+        verify(profileCommand, never()).undoCommand(any(Context.class));
     }
 
     @Test
     void shouldExecuteUndoCommand() {
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 18L;
         Long personId = 17L;
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);
@@ -427,13 +448,14 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
     }
 
     @Test
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 20L;
         Long personId = 19L;
         when(person.getId()).thenReturn(personId);
@@ -461,7 +483,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyPersonDoCommand(personContext, 2);
@@ -471,6 +493,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     void shouldNotExecuteUndoCommand_SavePersonThrows() {
         Long profileId = 22L;
         Long personId = 21L;
+        doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         when(profile.getId()).thenReturn(profileId);
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);
         when(persistence.save(any(PrincipalProfile.class))).thenReturn(Optional.of(profile));
@@ -495,7 +518,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
         verifyPersonUndoCommand(personContext);
         verifyProfileUndoCommand(profileContext);
         verifyProfileDoCommand(profileContext, 2);
@@ -520,9 +543,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     }
 
     private void verifyProfileDoCommand(Context<?> nestedContext, int i) {
+        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         Context<Boolean> profileContext = (Context<Boolean>) nestedContext;
-//        verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand, times(i)).doCommand(profileContext);
         verify(profileCommand, times(i)).executeDo(profileContext);
         Long id = nestedContext.<Long>getRedoParameter().value();
@@ -535,9 +557,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     }
 
     private void verifyPersonDoCommand(Context<?> nestedContext, int i) {
+        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         Context<Boolean> personContext = (Context<Boolean>) nestedContext;
-//        verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(personContext), any(Context.StateChangedListener.class));
         verify(personCommand, times(i)).doCommand(personContext);
         verify(personCommand, times(i)).executeDo(personContext);
         Long id = nestedContext.<Long>getRedoParameter().value();
@@ -546,18 +567,16 @@ class DeleteAuthorityPersonMacroCommandTest {
     }
 
     private void verifyPersonUndoCommand(Context<?> nestedContext) {
+        verify(command).executeUndoNested(nestedContext);
         Context<Boolean> personContext = (Context<Boolean>) nestedContext;
-//        verify(personCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).undoNestedCommand(any(RootCommand.class), eq(personContext));
         verify(personCommand).undoCommand(personContext);
         verify(personCommand).executeUndo(personContext);
         verify(persistence).save(any(AuthorityPerson.class));
     }
 
     private void verifyProfileUndoCommand(Context<?> nestedContext) {
+        verify(command).executeUndoNested(nestedContext);
         Context<Boolean> profileContext = (Context<Boolean>) nestedContext;
-//        verify(profileCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).undoNestedCommand(any(RootCommand.class), eq(profileContext));
         verify(profileCommand).undoCommand(profileContext);
         verify(profileCommand).executeUndo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));

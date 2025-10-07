@@ -1,8 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import java.util.Deque;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
@@ -11,14 +9,11 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -26,9 +21,7 @@ import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.SchedulingTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,21 +39,19 @@ import org.springframework.stereotype.Component;
 public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
         implements AuthorityPersonCommand<Boolean> {
     // executor of parallel nested commands
-    private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    private final int maxPoolSize;
+    private final SchedulingTaskExecutor executor;
     // persistence facade for get instance of authority person by person-id (creat-context phase)
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper = null;
 
-    public DeleteAuthorityPersonMacroCommand(
-            @Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
-            @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
-            final AuthorityPersonPersistenceFacade persistence,
-            final ActionExecutor actionExecutor,
-            @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize) {
+    public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
+                                             @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
+                                             final AuthorityPersonPersistenceFacade persistence,
+                                             final ActionExecutor actionExecutor,
+                                             final SchedulingTaskExecutor executor) {
         super(actionExecutor);
-        this.maxPoolSize = maxPoolSize;
+        this.executor = executor;
         this.persistence = persistence;
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
@@ -89,30 +80,6 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     @Override
     public SchedulingTaskExecutor getExecutor() {
         return executor;
-    }
-
-    /**
-     * To prepare and run nested commands runner executor
-     *
-     * @see ThreadPoolTaskExecutor#initialize()
-     * @see MacroCommand#fromNest()
-     */
-    @PostConstruct
-    public void runThreadPoolExecutor() {
-        executor.setCorePoolSize(fromNest().size());
-        executor.setMaxPoolSize(maxPoolSize);
-        executor.setQueueCapacity(maxPoolSize);
-        executor.initialize();
-    }
-
-    /**
-     * To shut down nested commands runner executor
-     *
-     * @see ThreadPoolTaskExecutor#shutdown()
-     */
-    @PreDestroy
-    public void stopThreadPoolExecutor() {
-        executor.shutdown();
     }
 
     /**
@@ -180,43 +147,12 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override
     public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
-        return super.acceptPreparedContext(visitor, macroInputParameter);
+        return AuthorityPersonCommand.super.acceptPreparedContext(visitor, macroInputParameter);
     }
-
-    /**
-     * To execute command Do as a nested command
-     *
-     * @param visitor       visitor to do nested command execution
-     * @param context       context for nested command execution
-     * @param stateListener listener of context-state-change
-     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see CompositeCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     */
-//    @Override
-//    public void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                  final Context<?> context, final Context.StateChangedListener stateListener) {
-//        super.doAsNestedCommand(visitor, context, stateListener);
-//    }
-
-    /**
-     * To execute command Undo as a nested command
-     *
-     * @param visitor visitor to do nested command execution
-     * @param context context for nested command execution
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
-     * @see CompositeCommand#undoCommand(Context)
-     */
-//    @Override
-//    public Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//        return super.undoAsNestedCommand(visitor, context);
-//    }
 
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());

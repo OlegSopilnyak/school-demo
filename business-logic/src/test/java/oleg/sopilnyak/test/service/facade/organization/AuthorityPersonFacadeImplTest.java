@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,6 +60,8 @@ class AuthorityPersonFacadeImplTest {
     AuthorityPersonFacadeImpl facade;
     @Mock
     ActionExecutor actionExecutor;
+    @Mock
+    SchedulingTaskExecutor schedulingTaskExecutor;
 
     @Mock
     AuthorityPerson mockPerson;
@@ -77,8 +80,9 @@ class AuthorityPersonFacadeImplTest {
         createProfileCommand = spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
         deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(deletePersonCommand, deleteProfileCommand, persistenceFacade, actionExecutor, 10));
-        deletePersonMacroCommand.runThreadPoolExecutor();
+        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
+                deletePersonCommand, deleteProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+        ));
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
     }

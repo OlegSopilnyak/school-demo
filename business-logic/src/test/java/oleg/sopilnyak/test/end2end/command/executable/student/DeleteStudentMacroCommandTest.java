@@ -36,7 +36,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -86,6 +86,9 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ActionExecutor actionExecutor;
+    @SpyBean
+    @Autowired
+    SchedulingTaskExecutor schedulingTaskExecutor;
 
     DeleteStudentMacroCommand command;
 
@@ -98,13 +101,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
-        command = spy(new DeleteStudentMacroCommand(personCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
-        command.runThreadPoolExecutor();
-    }
-
-    @AfterEach
-    void tearDown() {
-        command.stopThreadPoolExecutor();
+        command = spy(new DeleteStudentMacroCommand(personCommand, profileCommand, persistence, actionExecutor, schedulingTaskExecutor));
     }
 
     @Test

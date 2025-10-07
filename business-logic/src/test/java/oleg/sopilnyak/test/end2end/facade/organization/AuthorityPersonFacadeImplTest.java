@@ -1,15 +1,37 @@
 package oleg.sopilnyak.test.end2end.facade.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.LoginAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.LogoutAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -18,7 +40,6 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -29,24 +50,15 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {ActionExecutorImpl.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
@@ -61,6 +73,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ActionExecutor actionExecutor;
+    @SpyBean
+    @Autowired
+    SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
     PersistenceFacade database;
 
@@ -313,14 +328,17 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         CreateOrUpdatePrincipalProfileCommand createOrUpdatePrincipalProfileCommand =
                 spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
         CreateAuthorityPersonMacroCommand createAuthorityPersonMacroCommand =
-                spy(new CreateAuthorityPersonMacroCommand(createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper, actionExecutor));
+                spy(new CreateAuthorityPersonMacroCommand(
+                        createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper, actionExecutor
+                ));
         DeleteAuthorityPersonCommand deleteAuthorityPersonCommand =
                 spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         DeletePrincipalProfileCommand deletePrincipalProfileCommand =
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
-                spy(new DeleteAuthorityPersonMacroCommand(deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, actionExecutor, 10));
-        deleteAuthorityPersonMacroCommand.runThreadPoolExecutor();
+                spy(new DeleteAuthorityPersonMacroCommand(
+                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+                ));
         return new AuthorityPersonCommandsFactory(
                 Set.of(
                         spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),

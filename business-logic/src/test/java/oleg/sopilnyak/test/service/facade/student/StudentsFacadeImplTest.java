@@ -34,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,6 +55,8 @@ class StudentsFacadeImplTest {
     StudentsFacadeImpl facade;
     @Mock
     ActionExecutor actionExecutor;
+    @Mock
+    SchedulingTaskExecutor schedulingTaskExecutor;
 
     @Mock
     Student mockedStudent;
@@ -78,8 +81,9 @@ class StudentsFacadeImplTest {
         createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, 10));
-        deleteStudentMacroCommand.runThreadPoolExecutor();
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
+                deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+        ));
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
     }

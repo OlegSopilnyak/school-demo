@@ -43,6 +43,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +60,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     DeleteStudentCommand studentCommand;
     @Mock
     ActionExecutor actionExecutor;
+    @Mock
+    SchedulingTaskExecutor schedulingTaskExecutor;
 
     final int maxPoolSize = 10;
 
@@ -71,14 +74,12 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteStudentMacroCommand(studentCommand, profileCommand, persistence, actionExecutor, maxPoolSize));
-        command.runThreadPoolExecutor();
+        command = spy(new DeleteStudentMacroCommand(studentCommand, profileCommand, persistence, actionExecutor, schedulingTaskExecutor));
     }
 
     @AfterEach
     void tearDown() {
         reset(payloadMapper);
-        command.stopThreadPoolExecutor();
     }
 
     @Test

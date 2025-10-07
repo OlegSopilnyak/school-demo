@@ -20,18 +20,14 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,21 +36,12 @@ import org.springframework.context.annotation.Import;
 @Import({SchoolCommandsConfiguration.class})
 @RequiredArgsConstructor
 public class BusinessLogicConfiguration {
-    private final ApplicationContext applicationContext;
+    private final ActionExecutor actionExecutor;
     @Bean
     public BusinessMessagePayloadMapper messagePayloadMapper() {
         return Mappers.getMapper(BusinessMessagePayloadMapper.class);
     }
 
-    @Bean
-    public ActionExecutor actionExecutor() {
-        return new ActionExecutorImpl(commandThroughMessageService());
-    }
-
-    @Bean
-    public CommandThroughMessageService commandThroughMessageService() {
-        return new CommandThroughMessageServiceLocalImpl(applicationContext);
-    }
     // --------- Business' facades ---------------
     @Bean
     public StudentsFacade studentsFacade(
@@ -67,7 +54,7 @@ public class BusinessLogicConfiguration {
     public CoursesFacade coursesFacade(
             @Qualifier(CourseCommand.FACTORY_BEAN_NAME) CommandsFactory<CourseCommand<?>> factory
     ) {
-        return new CoursesFacadeImpl(factory, messagePayloadMapper(), actionExecutor());
+        return new CoursesFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean

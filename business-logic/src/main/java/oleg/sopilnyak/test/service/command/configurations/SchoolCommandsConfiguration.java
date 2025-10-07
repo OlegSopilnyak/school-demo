@@ -1,6 +1,9 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import com.fasterxml.jackson.databind.Module;
+import java.util.Deque;
+import lombok.RequiredArgsConstructor;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -10,6 +13,7 @@ import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsF
 import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
@@ -19,19 +23,73 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
+import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Collection;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Configuration for courses-subsystem commands
  */
 @Configuration
 @ComponentScan("oleg.sopilnyak.test.service.command.executable")
+@RequiredArgsConstructor
 public class SchoolCommandsConfiguration {
+    private final ApplicationContext applicationContext;
+
+    /**
+     * Executor for school-commands
+     *
+     * @return the instance
+     */
+    @Bean
+    public ActionExecutor actionExecutor() {
+        return new ActionExecutorImpl(commandThroughMessageService());
+    }
+
+    /**
+     * Local implementation of command messages deliverer for action-executor
+     *
+     * @return implementation based on local queues
+     * @see ActionExecutorImpl#processActionCommand(BaseCommandMessage)
+     */
+    @Bean
+    @Profile("!AMQP")
+    public CommandThroughMessageService commandThroughMessageService() {
+        return new CommandThroughMessageServiceLocalImpl(applicationContext);
+    }
+
+    /**
+     * TaskExecutor for all parallel commands
+     *
+     * @param maxPoolSize maximum size of threads-pool
+     * @return ready to use executor
+     * @see SchedulingTaskExecutor
+     * @see oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand#rollbackNested(Deque)
+     */
+    @Bean
+    public SchedulingTaskExecutor parallelCommandNestedCommandsExecutor(
+            @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
+    ) {
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        final int operationalPoolSize = Math.max(maxPoolSize, Runtime.getRuntime().availableProcessors());
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(operationalPoolSize);
+        executor.setThreadNamePrefix("ParallelCommandThread-");
+        executor.initialize();
+        return executor;
+    }
 // ----------------- Commands factories ----------------
 
     /**
