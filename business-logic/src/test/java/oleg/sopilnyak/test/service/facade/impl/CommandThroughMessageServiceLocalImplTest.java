@@ -89,7 +89,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(operationalExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
         assertThat(operationalExecutorService.getThreadPoolExecutor().isTerminated()).isFalse();
 
-        service.stopService();
+        service.shutdown();
 
         assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isFalse();
         assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isTrue();
@@ -169,7 +169,7 @@ class CommandThroughMessageServiceLocalImplTest {
                 .actionContext(actionContext).context((Context<T>) commandContext)
                 .build());
         doReturn(command).when(commandContext).getCommand();
-        service.stopService();
+        service.shutdown();
 
         Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.send(message));
 
@@ -228,7 +228,7 @@ class CommandThroughMessageServiceLocalImplTest {
                 .actionContext(actionContext).context((Context<Void>) commandContext)
                 .build());
         doReturn(command).when(commandContext).getCommand();
-        service.stopService();
+        service.shutdown();
 
         Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.send(message));
 
@@ -320,7 +320,7 @@ class CommandThroughMessageServiceLocalImplTest {
                 .build());
         String commandId = command.getId();
         String correlationId = message.getCorrelationId();
-        service.stopService();
+        service.shutdown();
 
         Exception e = assertThrows(UnableExecuteCommandException.class, () -> service.receive(commandId, correlationId));
 

@@ -37,6 +37,7 @@ import java.util.Collection;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Configuration for courses-subsystem commands
@@ -45,8 +46,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan("oleg.sopilnyak.test.service.command.executable")
 @RequiredArgsConstructor
 public class SchoolCommandsConfiguration {
-    private final ApplicationContext applicationContext;
-
+    private final PlatformTransactionManager platformTransactionManager;
     /**
      * Executor for school-commands
      *
@@ -66,7 +66,7 @@ public class SchoolCommandsConfiguration {
     @Bean
     @Profile("!AMQP")
     public CommandThroughMessageService commandThroughMessageService() {
-        return new CommandThroughMessageServiceLocalImpl(applicationContext);
+        return new CommandThroughMessageServiceLocalImpl(platformTransactionManager);
     }
 
     /**

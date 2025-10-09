@@ -521,7 +521,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(studentContext.<Student>getUndoParameter().value());
@@ -566,7 +566,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));
@@ -618,7 +618,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));

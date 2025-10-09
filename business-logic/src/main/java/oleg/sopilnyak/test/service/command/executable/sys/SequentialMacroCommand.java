@@ -38,8 +38,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * To add the command to the commands nest
      *
      * @param command the instance to add
+     * @param <N>     the result type of the nested command
      * @see RootCommand
-     * @param <N> the result type of the nested command
      */
     @Override
     public <N> boolean putToNest(final NestedCommand<N> command) {
@@ -76,13 +76,13 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         final AtomicReference<Context<?>> previousContextReference = new AtomicReference<>(null);
         // sequential walking through contexts set
         return contexts.stream().map(context -> isExecutionFailed.get()
-                        ?
-                        // previous nested command's context.state has value FAIL, cancel it
-                        cancelSequentialNestedCommandContext(context, listener)
-                        :
-                        // try to execute nested command
-                        doSequentialNestedCommand(context, previousContextReference, listener, isExecutionFailed)
-                ).collect(Collectors.toCollection(LinkedList::new));
+                ?
+                // previous nested command's context.state has value FAIL, cancel it
+                cancelSequentialNestedCommandContext(context, listener)
+                :
+                // try to execute nested command
+                doSequentialNestedCommand(context, previousContextReference, listener, isExecutionFailed)
+        ).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -99,13 +99,14 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         final List<Context<?>> reverted = new ArrayList<>(contexts);
         // revert the order of undo contexts
         Collections.reverse(reverted);
-        final AtomicBoolean isUndoNestedFailed = new AtomicBoolean(false);
+        final AtomicBoolean isNestedRollbackFailed = new AtomicBoolean(false);
         // rollback commands' changes
         return reverted.stream()
-                .map(nestedDoneContext -> undoNested(nestedDoneContext, isUndoNestedFailed))
+                .map(successfulContext -> rollbackNestedCommand(successfulContext, isNestedRollbackFailed))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
+    // private methods
     // To mark canceled sequential nested command execution
     private <N> Context<N> cancelSequentialNestedCommandContext(final Context<N> context, final Context.StateChangedListener listener) {
         // getting last state from the context history and use it for the listener's notification
@@ -146,7 +147,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
     }
 
     // To transfer result of previous nested context to current one
-    private <N,S> void transferringPreviousResult(final Context<S> previous, final Context<N> current) {
+    private <N, S> void transferringPreviousResult(final Context<S> previous, final Context<N> current) {
         final Optional<RootCommand<S>> source = getSourceCommand(previous);
         if (source.isEmpty()) {
             // invalid previous context
@@ -192,20 +193,22 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         return Optional.of(source);
     }
 
-    // private methods
-    private Context<?> undoNested(final Context<?> nestedDoneContext, final AtomicBoolean isFailed) {
-        return isFailed.get() ? nestedDoneContext : undoNestedCommand(nestedDoneContext, isFailed);
-    }
-
-    private Context<?> undoNestedCommand(final Context<?> nestedDoneContext, final AtomicBoolean isFailed) {
-//        final Context<?> nestedContext = nestedDoneContext.getCommand().undoAsNestedCommand(this, nestedDoneContext);
-        final Context<?> nestedContext = executeUndoNested((Context<Void>) nestedDoneContext);
-        if (nestedContext.isFailed()) {
-            // nested command undo is failed
-            isFailed.compareAndSet(false, true);
+    // to rollback nested command execution results
+    private Context<?> rollbackNestedCommand(final Context<?> successfulContext, final AtomicBoolean isNestedRollbackFailed) {
+        if (isNestedRollbackFailed.get()) {
+            getLog().debug("Skipping nested undone because previous context failed");
+            return successfulContext;
         }
-        return nestedContext;
-//        return executeUndoNested((Context<Void>) nestedDoneContext);
+        getLog().debug("Rolling back nested command for '{}'", successfulContext.getCommand().getId());
+        final Context<?> resultContext = executeUndoNested(successfulContext);
+        if (resultContext.isFailed()) {
+            // nested command undo is failed
+            getLog().warn("= Rollback of the nested command '{}' failed", resultContext.getCommand().getId(), resultContext.getException());
+            isNestedRollbackFailed.compareAndSet(false, true);
+            return resultContext;
+        }
+        getLog().debug("Rollback of the nested command '{}' finished successfully", resultContext.getCommand().getId());
+        return resultContext;
     }
 
     // inner class-wrapper for nested command

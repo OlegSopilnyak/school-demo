@@ -69,7 +69,9 @@ public class CommandContext<T> implements Context<T> {
     @ToString.Exclude
     private final Queue<StateChangedListener> listeners = new ConcurrentLinkedQueue<>();
 
-    /** Add some functionality to the generated builder class */
+    /**
+     * Add some functionality to the generated builder class
+     */
     public static class CommandContextBuilder<T> {
         // to build context with INIT state
         public CommandContext<T> build() {
@@ -78,6 +80,7 @@ public class CommandContext<T> implements Context<T> {
             return context;
         }
     }
+
     /**
      * To set up current state of the context
      *
@@ -135,10 +138,11 @@ public class CommandContext<T> implements Context<T> {
      * @see State#DONE
      */
     @Override
-    public void setResult(T result) {
+    public void setResult(final T result) {
         if (isWorking()) {
             this.resultData = result;
-            setState(DONE);
+            // null result is going from command undo
+            setState(isNull(result) ? WORK : DONE);
         }
     }
 
@@ -184,6 +188,7 @@ public class CommandContext<T> implements Context<T> {
     // private methods
 
     // nested classes
+
     /**
      * Internal listener of context state changes
      * <p>
@@ -196,7 +201,8 @@ public class CommandContext<T> implements Context<T> {
         private final Predicate<State> isReady = Set.of(READY, DONE)::contains;
         private final Predicate<State> isWorks = WORK::equals;
         private final Predicate<State> isFinished = Set.of(DONE, UNDONE, FAIL)::contains;
-        private final CommandContext <?> commandContext;
+        private final CommandContext<?> commandContext;
+
         public <T> InternalStateChangedListener(CommandContext<T> context) {
             this.commandContext = context;
         }
@@ -244,8 +250,8 @@ public class CommandContext<T> implements Context<T> {
         /**
          * To save to context-history time when command started execution with context
          *
-         * @param context the context of command execution
-         * @param startedAt the time when command execution started
+         * @param context      the context of command execution
+         * @param startedAt    the time when command execution started
          * @param startedAfter which state was before
          * @see Context#getState()
          * @see Context#getStartedAt()
@@ -267,7 +273,7 @@ public class CommandContext<T> implements Context<T> {
         /**
          * To save to context-history duration of command execution with context
          *
-         * @param context the context of command execution
+         * @param context    the context of command execution
          * @param finishedBy the state which finishes command execution
          * @see Context#getState()
          * @see Context#getDuration()

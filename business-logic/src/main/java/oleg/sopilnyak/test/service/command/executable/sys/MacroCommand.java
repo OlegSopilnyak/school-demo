@@ -121,7 +121,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @param context context of undo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see MacroCommand#rollbackNestedDone(Input)
+     * @see MacroCommand#rollbackNested(Deque)
      * @see MacroCommand#afterRollbackProcessing(Context, Deque)
      */
     @Override
@@ -142,18 +142,6 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     /**
-     * To rollback changes for nested successful commands (contexts with state DONE)
-     *
-     * @param contexts collection of nested contexts with DONE state
-     * @see CompositeCommand#rollbackNested(Deque)
-     * @deprecated
-     */
-    @Deprecated
-    public Deque<Context<?>> rollbackNestedDone(final Input<Deque<Context<?>>> contexts) {
-        return rollbackNested(contexts.value());
-    }
-
-    /**
      * To run undo execution for each macro-command's nested contexts in DONE state
      *
      * @param contexts nested contexts to execute
@@ -164,22 +152,9 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     @Override
     public Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
-        return contexts.stream().filter(Context::isDone).map(context -> executeUndoNested((Context<Void>) context))
+        return contexts.stream().filter(Context::isDone).map(this::executeUndoNested)
                 .collect(Collectors.toCollection(LinkedList::new));
     }
-
-    /**
-     * To rollback changes of nested command
-     *
-     * @param context nested context
-     * @return context with nested command undo results
-     * @see CompositeCommand#executeUndoNested(Context)
-     * @deprecated
-     */
-//    @Deprecated
-//    public Context<?> undoNestedCommand(final Context<?> context) {
-//        return context.getCommand().undoAsNestedCommand(this, context);
-//    }
 
     /**
      * To get final main do-command result from nested command-contexts

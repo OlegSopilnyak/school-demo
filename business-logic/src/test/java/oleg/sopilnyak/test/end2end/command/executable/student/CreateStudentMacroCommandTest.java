@@ -466,7 +466,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         Context<Optional<Student>> studentContext = (Context<Optional<Student>>) nestedContexts.pop();
 
         RuntimeException exception = new RuntimeException("Cannot process student undo command");
-        doThrow(exception).when(command).rollbackNestedDone(any(Input.class));
+        doThrow(exception).when(command).rollbackNested(any(Deque.class));
 
         command.doCommand(context);
         Optional<StudentProfile> profileResult = profileContext.getResult().orElseThrow();
@@ -482,7 +482,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isEqualTo(exception);
 
         verify(command).executeUndo(context);
-        verify(command).rollbackNestedDone(any(Input.class));
+        verify(command).rollbackNested(any(Deque.class));
 //        verify(studentCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 //        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
 

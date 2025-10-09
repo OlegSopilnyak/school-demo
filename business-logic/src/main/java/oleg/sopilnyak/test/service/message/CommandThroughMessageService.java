@@ -9,10 +9,20 @@ import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
  */
 public interface CommandThroughMessageService {
     /**
+     * To start background processors for requests
+     */
+    void initialize();
+
+    /**
+     * To shut down background processors for requests
+     */
+    void shutdown();
+
+    /**
      * To send command message for processing
      *
      * @param message the command message to be sent
-     * @param <T> the type of command execution result in command message
+     * @param <T>     the type of command execution result in command message
      * @see BaseCommandMessage
      */
     <T> void send(BaseCommandMessage<T> message);
@@ -24,6 +34,7 @@ public interface CommandThroughMessageService {
      * @param requestMessage message to process
      */
     void processActionCommandAndProceed(final BaseCommandMessage<?> requestMessage);
+
     /**
      * To receive processed command message (sent by send(message)) by correlationId
      *
