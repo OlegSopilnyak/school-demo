@@ -598,7 +598,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     // private methods
-    private <T> T findEntity(Class<T> entityClass, Long pk) {
+    private <T> T findEntity(Class<T> entityClass, Object pk) {
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
             T entity = em.find(entityClass, pk);

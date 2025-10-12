@@ -11,8 +11,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Deque;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -33,9 +39,11 @@ import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,13 +62,16 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class,
-        StudentsFacadeImpl.class,
-        DeleteStudentProfileCommand.class,
-        DeleteStudentCommand.class,
-        DeleteStudentMacroCommand.class,
-        ActionExecutorImpl.class,
-        SchoolCommandsConfiguration.class, TestConfig.class})
+@ContextConfiguration(classes = {StudentsFacadeImpl.class,
+        PersistenceConfiguration.class, SchoolCommandsConfiguration.class, TestConfig.class
+})
+//@ContextConfiguration(classes = {PersistenceConfiguration.class,
+//        StudentsFacadeImpl.class,
+//        DeleteStudentProfileCommand.class,
+//        DeleteStudentCommand.class,
+//        DeleteStudentMacroCommand.class,
+//        ActionExecutorImpl.class,
+//        SchoolCommandsConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {
         "school.parallel.max.pool.size=10",
         "school.spring.jpa.show-sql=true",
@@ -72,7 +83,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     PersistenceFacade persistence;
     @Autowired
-    StudentsFacadeImpl facade;
+    StudentsFacade facade;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -89,10 +100,13 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
+    @Autowired
+    CommandThroughMessageService messagesExchangeService;
+    @Autowired
+    EntityManagerFactory entityManagerFactory;
 
     DeleteStudentMacroCommand command;
 
-    final int maxPoolSize = 10;
     @Captor
     ArgumentCaptor<StudentCommand> personCaptor;
     @Captor
@@ -102,6 +116,14 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
         command = spy(new DeleteStudentMacroCommand(personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
+        messagesExchangeService.initialize();
+    }
+
+    @AfterEach
+    void tearDown() {
+        reset(command, profileCommand, personCommand, persistence, payloadMapper);
+        messagesExchangeService.shutdown();
     }
 
     @Test
@@ -112,7 +134,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
         assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
-        assertThat(ReflectionTestUtils.getField(command, "maxPoolSize")).isSameAs(maxPoolSize);
         assertThat(ReflectionTestUtils.getField(personCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
@@ -292,7 +313,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         StudentPayload studentPayload = createStudent(makeClearStudent(9));
         Long personId = studentPayload.getId();
         Long profileId = studentPayload.getProfileId();
-        Student student = persistence.findStudentById(personId).orElseThrow();
+        Student person = persistence.findStudentById(personId).orElseThrow();
         StudentProfile profile = persistence.findStudentProfileById(profileId).orElseThrow();
         Context<Boolean> context = command.createContext(Input.of(personId));
         reset(persistence);
@@ -304,8 +325,8 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isDone()).isTrue();
-        assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
+        assertThat(studentContext.getResult().orElseThrow()).isTrue();
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isEqualTo(person);
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
@@ -318,8 +339,8 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verifyStudentDoCommand(studentContext);
         verifyProfileDoCommand(profileContext);
-        assertThat(persistence.findStudentById(personId)).isEmpty();
-        assertThat(persistence.findStudentProfileById(profileId)).isEmpty();
+        assertThat(findEntity(StudentEntity.class, personId)).isNull();
+        assertThat(findEntity(StudentProfileEntity.class, profileId)).isNull();
     }
 
     @Test
@@ -450,7 +471,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         Student student = persistence.findStudentById(studentId).orElseThrow();
         reset(persistence);
         Context<Boolean> context = command.createContext(Input.of(studentId));
-        String errorMessage = "Cannot delete profile";
+        String errorMessage = "Don't want to delete profile. Bad guy.";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).deleteProfileById(profileId);
 
@@ -463,7 +484,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> studentContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(studentContext.isUndone()).isTrue();
-        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
+        assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isEqualTo(student);
         assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -639,6 +660,19 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
 
     // private methods
+    private <T> T findEntity(Class<T> entityClass, Object pk) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            T entity = em.find(entityClass, pk);
+            if (entity != null) {
+                em.refresh(entity);
+            }
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
     private StudentPayload createStudent(Student newStudent) {
         return (StudentPayload) facade.create(newStudent).orElseThrow();
     }
@@ -648,9 +682,10 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
+        verify(command, times(i)).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
 //        verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
 //        verify(command, times(i)).doNestedCommand(profileCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
-        profileCaptor.getAllValues().forEach(cmd -> assertThat(profileCommand.getId()).isEqualTo(cmd.getId()));
+//        profileCaptor.getAllValues().forEach(cmd -> assertThat(profileCommand.getId()).isEqualTo(cmd.getId()));
         verify(profileCommand, times(i)).doCommand(nestedContext);
         verify(profileCommand, times(i)).executeDo(nestedContext);
     }
@@ -660,26 +695,29 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyStudentDoCommand(Context<Boolean> nestedContext, int i) {
+        verify(command, times(i)).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
 //        verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
 //        verify(command, times(i)).doNestedCommand(personCaptor.capture(), eq(nestedContext), any(Context.StateChangedListener.class));
-        personCaptor.getAllValues().forEach(cmd -> assertThat(personCommand.getId()).isEqualTo(cmd.getId()));
+//        personCaptor.getAllValues().forEach(cmd -> assertThat(personCommand.getId()).isEqualTo(cmd.getId()));
 
         verify(personCommand, times(i)).doCommand(nestedContext);
         verify(personCommand, times(i)).executeDo(nestedContext);
     }
 
     private void verifyStudentUndoCommand(Context<Boolean> nestedContext) {
+        verify(command).executeUndoNested(nestedContext);
 //        verify(personCommand).undoAsNestedCommand(command, nestedContext);
 //        verify(command).undoNestedCommand(personCaptor.capture(), eq(nestedContext));
-        assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
+//        assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
         verify(personCommand).undoCommand(nestedContext);
         verify(personCommand).executeUndo(nestedContext);
     }
 
     private void verifyProfileUndoCommand(Context<Boolean> nestedContext) {
+        verify(command).executeUndoNested(nestedContext);
 //        verify(profileCommand).undoAsNestedCommand(command, nestedContext);
 //        verify(command).undoNestedCommand(profileCaptor.capture(), eq(nestedContext));
-        assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
+//        assertThat(profileCommand.getId()).isEqualTo(profileCaptor.getValue().getId());
         verify(profileCommand).undoCommand(nestedContext);
         verify(profileCommand).executeUndo(nestedContext);
     }

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import java.util.Deque;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -32,9 +33,11 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,8 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class,
         AuthorityPersonFacadeImpl.class,
-        DeletePrincipalProfileCommand.class,
-        DeleteAuthorityPersonCommand.class,
+//        DeletePrincipalProfileCommand.class,
+//        DeleteAuthorityPersonCommand.class,
         SchoolCommandsConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {
         "school.parallel.max.pool.size=10",
@@ -78,6 +81,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
+    @Autowired
+    CommandThroughMessageService messagesExchangeService;
     @SpyBean
     @Autowired
     @Qualifier("profilePrincipalDelete")
@@ -97,6 +102,14 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
         command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
+        messagesExchangeService.initialize();
+    }
+
+    @AfterEach
+    void tearDown() {
+        reset(command, profileCommand, personCommand, persistence, payloadMapper);
+        messagesExchangeService.shutdown();
     }
 
     @Test
@@ -546,7 +559,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         Context<Boolean> context = command.createContext(inputId);
         command.doCommand(context);
         reset(persistence);
-        String errorMessage = "Cannot restore profile";
+        String errorMessage = "Don't want to restore profile. Bad guy!";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).save(any(PrincipalProfile.class));
 

@@ -77,7 +77,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student> implements
             // setup undo parameter for deleted entity
             prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
             // successful delete entity operation
-            context.setResult(true);
+            context.setResult(Boolean.TRUE);
             log.debug("Deleted student with ID: {} successfully.", id);
         } catch (Exception e) {
             log.error("Cannot delete the student by Id: {}", parameter, e);

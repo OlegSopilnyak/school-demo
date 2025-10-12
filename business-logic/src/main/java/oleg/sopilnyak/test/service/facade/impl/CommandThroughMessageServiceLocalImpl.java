@@ -150,9 +150,6 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
      */
     @Override
     public void processActionCommandAndProceed(final BaseCommandMessage<?> requestMessage) {
-        // set up action context for current thread
-        ActionContext.install(requestMessage.getActionContext());
-        //
         final String correlationId = requestMessage.getCorrelationId();
         log.debug("Processing request message with correlationId='{}'", correlationId);
         // check if the request in progress map by correlation-id
@@ -161,7 +158,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             return;
         }
         // process the request's command and send the result responses queue
-        if (sendToResponsesQueue(actionExecutor.processActionCommand(requestMessage))) {
+        final BaseCommandMessage<?> responseMessage = actionExecutor.processActionCommand(requestMessage);
+        log.debug("Processed request message with correlationId='{}'", correlationId);
+        if (sendToResponsesQueue(responseMessage)) {
             log.debug("Message with correlationId='{}' is processed and sent to responses queue", correlationId);
         } else {
             log.error("Message with correlationId='{}' is processed but NOT added to responses queue", correlationId);
@@ -429,18 +428,38 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          */
         @Override
         protected void processTakenMessage(final BaseCommandMessage<?> message) {
+            // set up action context for current thread
+            ActionContext.install(message.getActionContext());
+            // prepare the transaction
             final DefaultTransactionDefinition transactionDefinition = transactionDefinitionFor(message);
             final TransactionStatus transaction = platformTransactionManager.getTransaction(transactionDefinition);
             try {
                 log.info("Start processing request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
+                log.info("The processing request uses transaction:{}", transaction);
                 processActionCommandAndProceed(message);
                 log.info("Successfully processed request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
                 platformTransactionManager.commit(transaction);
             } catch (Throwable e) {
                 platformTransactionManager.rollback(transaction);
                 log.error("== Cannot process message {}", message.getCorrelationId(), e);
+            } finally {
+                // release current action context
+                ActionContext.release();
             }
         }
+//        protected void processTakenMessage(final BaseCommandMessage<?> message) {
+//            final DefaultTransactionDefinition transactionDefinition = transactionDefinitionFor(message);
+//            final TransactionStatus transaction = platformTransactionManager.getTransaction(transactionDefinition);
+//            try {
+//                log.info("Start processing request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
+//                processActionCommandAndProceed(message);
+//                log.info("Successfully processed request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
+//                platformTransactionManager.commit(transaction);
+//            } catch (Throwable e) {
+//                platformTransactionManager.rollback(transaction);
+//                log.error("== Cannot process message {}", message.getCorrelationId(), e);
+//            }
+//        }
 
         /**
          * To check if the processor is active
