@@ -226,7 +226,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public Context<Optional<Student>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> input) {
-        return super.acceptPreparedContext(visitor, input);
+        return StudentCommand.super.acceptPreparedContext(visitor, input);
     }
 
     /**

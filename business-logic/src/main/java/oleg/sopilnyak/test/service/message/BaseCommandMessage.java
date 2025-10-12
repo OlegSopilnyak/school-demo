@@ -147,7 +147,7 @@ public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
                         .correlationId(correlationId).actionContext(actionContext).context(commandContext)
                         .build();
                 case UNDO -> UndoCommandMessage.builder()
-                        .correlationId(correlationId).actionContext(actionContext).context((Context<Void>) commandContext)
+                        .correlationId(correlationId).actionContext(actionContext).context(commandContext)
                         .build();
                 default ->  null;
             };

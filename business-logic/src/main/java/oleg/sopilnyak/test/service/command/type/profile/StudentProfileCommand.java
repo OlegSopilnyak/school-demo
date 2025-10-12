@@ -6,8 +6,6 @@ import java.util.Optional;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.legacy.NestedCommandExecutionVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
@@ -100,35 +98,4 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return visitor.prepareContext(this, macroInputParameter);
     }
-
-    /**
-     * To execute command Do as a nested command
-     *
-     * @param visitor       visitor to do nested command execution
-     * @param context       context for nested command execution
-     * @param stateListener listener of context-state-change
-     * @see NestedCommandExecutionVisitor#doNestedCommand(RootCommand, Context, Context.StateChangedListener)
-     * @see Context#addStateListener(Context.StateChangedListener)
-     * @see StudentProfileCommand#doCommand(Context)
-     * @see Context#removeStateListener(Context.StateChangedListener)
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     */
-//    @Override
-//    default void doAsNestedCommand(final NestedCommandExecutionVisitor visitor,
-//                                   final Context<?> context, final Context.StateChangedListener stateListener) {
-//        visitor.doNestedCommand(this, (Context<T>) context, stateListener);
-//    }
-
-    /**
-     * To execute command Undo as a nested command
-     *
-     * @param visitor visitor to do nested command execution
-     * @param context context for nested command execution
-     * @see NestedCommandExecutionVisitor#undoNestedCommand(RootCommand, Context)
-     * @see StudentProfileCommand#undoCommand(Context)
-     */
-//    @Override
-//    default Context<?> undoAsNestedCommand(final NestedCommandExecutionVisitor visitor, final Context<?> context) {
-//        return visitor.undoNestedCommand(this, context);
-//    }
 }

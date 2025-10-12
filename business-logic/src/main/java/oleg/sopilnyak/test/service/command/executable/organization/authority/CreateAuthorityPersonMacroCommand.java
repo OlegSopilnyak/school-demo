@@ -254,7 +254,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> commandInputParameter) {
-        return super.acceptPreparedContext(visitor, commandInputParameter);
+        return AuthorityPersonCommand.super.acceptPreparedContext(visitor, commandInputParameter);
     }
 
     // private methods

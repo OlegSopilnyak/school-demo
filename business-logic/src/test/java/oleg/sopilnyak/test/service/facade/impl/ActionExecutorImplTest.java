@@ -31,8 +31,6 @@ class ActionExecutorImplTest<T> {
     @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;
-//    @Mock
-//    ApplicationContext applicationContext;
     @Mock
     PlatformTransactionManager platformTransactionManager;
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
@@ -58,7 +56,6 @@ class ActionExecutorImplTest<T> {
     @Test
     void shouldCommitAction() {
         doReturn(command).when(commandContext).getCommand();
-//        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
 
@@ -71,7 +68,6 @@ class ActionExecutorImplTest<T> {
     @Test
     void shouldRollbackAction() {
         doReturn(command).when(commandContext).getCommand();
-//        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
 
@@ -87,7 +83,6 @@ class ActionExecutorImplTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
-//        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
@@ -102,7 +97,6 @@ class ActionExecutorImplTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
-//        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
 
         BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 

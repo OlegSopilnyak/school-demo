@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResul
  * @see CompositeCommand
  * @deprecated
  */
-@Deprecated
+@Deprecated(since = "ActionExecutor is used instead")
 public interface NestedCommandExecutable<T> extends Serializable {
     /**
      * To prepare context for nested command using the visitor

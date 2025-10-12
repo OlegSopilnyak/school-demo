@@ -343,7 +343,6 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verifyStudentDoCommand(studentContext);
         verifyStudentUndoCommand(studentContext);
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
     }
 
     @Test

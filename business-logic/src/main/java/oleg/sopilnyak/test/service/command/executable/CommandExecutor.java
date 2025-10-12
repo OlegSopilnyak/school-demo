@@ -15,8 +15,9 @@ import static java.util.Objects.nonNull;
 
 /**
  * The main engine for execute school commands
+ * @deprecated
  */
-@Deprecated(forRemoval = true, since = "ActionExecutor is used instead")
+@Deprecated(since = "ActionExecutor is used instead")
 public interface CommandExecutor {
     /**
      * To do simple school-command using Context

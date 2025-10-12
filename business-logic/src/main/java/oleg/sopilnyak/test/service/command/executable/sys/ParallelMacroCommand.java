@@ -148,7 +148,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
             final Context<?> context, final Context.StateChangedListener stateListener) {
         getLog().debug("Submit executing of command: '{}' with context:{}", context.getCommand().getId(), context);
         final var runner = new DoNestedCommandRunner(actionsQueue, context, stateListener, ActionContext.current());
-        return CompletableFuture.supplyAsync(() -> runner.action(), getExecutor());
+        return CompletableFuture.supplyAsync(runner::action, getExecutor());
     }
 
     private CompletableFuture<Context<?>> kickOffUndoRunner(
@@ -156,7 +156,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
             final Context<?> context) {
         getLog().debug("Submit rolling back of command: '{}' with context:{}", context.getCommand().getId(), context);
         final var runner = new UndoNestedCommandRunner(actionsQueue, context, ActionContext.current());
-        return CompletableFuture.supplyAsync(() -> runner.action(), getExecutor());
+        return CompletableFuture.supplyAsync(runner::action, getExecutor());
     }
 
     // private classes methods

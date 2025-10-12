@@ -357,7 +357,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(studentContext.getState()).isEqualTo(CANCEL);
 
         verify(command).executeDoNested(eq(profileContext), any(Context.StateChangedListener.class));
-        verify(profileCommand).doCommand(eq(profileContext));
+        verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(StudentProfile.class));
@@ -549,8 +549,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         inOrder.verify(command).executeDoNested(eq(profileContext), any(Context.StateChangedListener.class));
         inOrder.verify(command).executeDoNested(eq(studentContext), any(Context.StateChangedListener.class));
         // undo creating profile and student (student is first) revers commands order
-        inOrder.verify(command).executeUndoNested(eq(studentContext));
-        inOrder.verify(command).executeUndoNested(eq(profileContext));
+        inOrder.verify(command).executeUndoNested(studentContext);
+        inOrder.verify(command).executeUndoNested(profileContext);
 
         // persistence operations order
         inOrder = Mockito.inOrder(persistence);
