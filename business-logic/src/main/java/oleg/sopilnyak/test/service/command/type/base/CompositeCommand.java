@@ -143,7 +143,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     private static <N> void notifyStateChangeListener(final Context.StateChangedListener listener,
-                                                      final Context<N> result,
+                                                      final Context<N> contextAfterCommit,
                                                       final Deque<Context.State> statesAfter,
                                                       final Context.State lastBeforeState) {
         // prepare previous state
@@ -151,7 +151,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
         // iterating after execution context states
         statesAfter.forEach(current -> {
             // apply state changes to passed state-change-listener instance
-            listener.stateChanged(result, previous.get(), current);
+            listener.stateChanged(contextAfterCommit, previous.get(), current);
             // set up previous state to current one
             previous.getAndSet(current);
         });

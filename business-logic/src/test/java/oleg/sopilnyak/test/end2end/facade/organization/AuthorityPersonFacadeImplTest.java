@@ -337,7 +337,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
                 spy(new DeleteAuthorityPersonMacroCommand(
-                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
                 ));
         return new AuthorityPersonCommandsFactory(
                 Set.of(

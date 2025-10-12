@@ -43,9 +43,9 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
 
     public DeleteStudentMacroCommand(@Qualifier("studentDelete") StudentCommand<?> personCommand,
                                      @Qualifier("profileStudentDelete") StudentProfileCommand<?> profileCommand,
+                                     @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
                                      final StudentsPersistenceFacade persistence,
-                                     final ActionExecutor actionExecutor,
-                                     final SchedulingTaskExecutor executor) {
+                                     final ActionExecutor actionExecutor) {
         super(actionExecutor);
         this.executor = executor;
         this.persistence = persistence;
@@ -138,9 +138,8 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      * @see StudentsPersistenceFacade#findStudentById(Long)
      */
     public <N> Context<N> createStudentProfileContext(StudentProfileCommand<N> command, Long studentId) {
-        final Long profileId = persistence.findStudentById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."))
-                .getProfileId();
+        final Long profileId = persistence.findStudentById(studentId).map(Student::getProfileId)
+                .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."));
         return command.createContext(Input.of(profileId));
     }
 

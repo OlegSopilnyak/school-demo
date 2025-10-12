@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.facade.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -23,6 +24,7 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +36,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.mockito.stubbing.Answer;
 import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -82,10 +86,11 @@ class StudentsFacadeImplTest {
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
-                deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+                deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @Test
@@ -194,6 +199,8 @@ class StudentsFacadeImplTest {
         when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
         when(persistenceFacade.save(any(StudentProfilePayload.class))).thenReturn(Optional.of(mockedStudentProfilePayload));
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         Optional<Student> result = facade.create(mockedStudent);
 
@@ -225,6 +232,12 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long studentId = 101L;
         Long profileId = 1001L;
         when(mockedStudent.getProfileId()).thenReturn(profileId);
@@ -233,8 +246,11 @@ class StudentsFacadeImplTest {
         when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         facade.delete(studentId);
+        threadPoolTaskExecutor.shutdown();
 
         verify(factory).command(STUDENT_DELETE_ALL);
         verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
@@ -265,6 +281,12 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long studentId = 103L;
         Long profileId = 1003L;
         when(mockedStudent.getProfileId()).thenReturn(profileId);
@@ -274,8 +296,11 @@ class StudentsFacadeImplTest {
         when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
+        threadPoolTaskExecutor.shutdown();
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
         verify(factory).command(STUDENT_DELETE_ALL);

@@ -1,11 +1,15 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -20,14 +24,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SchoolCommandsConfiguration.class)
+@ContextConfiguration(classes = {
+        SchoolCommandsConfiguration.class, TestConfig.class
+})
 class SchoolCommandsConfigurationTest {
+    @MockBean
+    PlatformTransactionManager platformTransactionManager;
     @MockBean
     PersistenceFacade persistenceFacade;
     @MockBean

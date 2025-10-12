@@ -80,10 +80,10 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     ActionExecutor actionExecutor;
     @Autowired
     CommandThroughMessageService messagesExchangeService;
+    @Autowired
+    EntityManagerFactory entityManagerFactory;
 
     CreateAuthorityPersonMacroCommand command;
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
 
     @BeforeEach
     void setUp() {

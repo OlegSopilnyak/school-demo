@@ -1,6 +1,11 @@
 package oleg.sopilnyak.test.service.command.factory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collection;
+import java.util.Set;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -13,13 +18,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.Collection;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = CourseCommandsFactorySpringTest.FactoryConfiguration.class)
@@ -27,6 +28,10 @@ class CourseCommandsFactorySpringTest {
     private static final String FACTORY_NAME = "Courses";
     private static final String SPRING_NAME = "courseCommandsFactory";
     private Collection<String> commandsId;
+    @MockBean
+    ActionExecutor actionExecutor;
+    @MockBean(name = "parallelCommandNestedCommandsExecutor")
+    SchedulingTaskExecutor executor;
     @MockBean
     PersistenceFacade persistenceFacade;
     @MockBean

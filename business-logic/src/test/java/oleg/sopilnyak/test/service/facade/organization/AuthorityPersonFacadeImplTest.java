@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
@@ -18,8 +19,10 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +33,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.mockito.stubbing.Answer;
 import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,10 +86,16 @@ class AuthorityPersonFacadeImplTest {
         deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
-                deletePersonCommand, deleteProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
+    }
+
+    @AfterEach
+    void tearDown() {
+        reset(schedulingTaskExecutor);
     }
 
     @Test
@@ -203,6 +214,8 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPerson));
         when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfile));
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         Optional<AuthorityPerson> result = facade.create(mockPerson);
 
@@ -249,6 +262,12 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 302L;
         Long profileId = 402L;
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -257,8 +276,11 @@ class AuthorityPersonFacadeImplTest {
         when(persistenceFacade.toEntity(mockProfile)).thenReturn(mockProfile);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         facade.deleteAuthorityPersonById(id);
+        threadPoolTaskExecutor.shutdown();
 
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
@@ -289,6 +311,12 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 304L;
         Long profileId = 404L;
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -299,9 +327,12 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(mockPersonPayload.getFaculties()).thenReturn(List.of(mockFaculty));
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         AuthorityPersonManagesFacultyException thrown =
                 assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
+        threadPoolTaskExecutor.shutdown();
 
         assertEquals("AuthorityPerson with ID:304 is managing faculties.", thrown.getMessage());
 

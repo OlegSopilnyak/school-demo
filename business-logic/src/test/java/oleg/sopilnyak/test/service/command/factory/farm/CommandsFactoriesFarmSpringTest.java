@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory.farm;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -19,6 +20,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -31,6 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = CommandsFactoriesFarmSpringTest.FactoryConfiguration.class)
 class CommandsFactoriesFarmSpringTest {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
+    @MockBean
+    ActionExecutor actionExecutor;
+    @MockBean(name = "parallelCommandNestedCommandsExecutor")
+    SchedulingTaskExecutor executor;
     @MockBean
     PersistenceFacade persistenceFacade;
     @MockBean

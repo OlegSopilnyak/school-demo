@@ -96,7 +96,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
-                deleteStudentCommand, deleteProfileCommand, persistenceFacade, actionExecutor, schedulingTaskExecutor
+                deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));

@@ -39,10 +39,13 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
 class ContextInputParameterTest {
+    @MockBean
+    PlatformTransactionManager platformTransactionManager;
     @MockBean
     private PersistenceFacade persistenceFacade;
     @MockBean

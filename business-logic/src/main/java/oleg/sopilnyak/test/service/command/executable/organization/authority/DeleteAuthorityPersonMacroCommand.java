@@ -9,9 +9,11 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
@@ -47,9 +49,9 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
 
     public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
                                              @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
+                                             @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
                                              final AuthorityPersonPersistenceFacade persistence,
-                                             final ActionExecutor actionExecutor,
-                                             final SchedulingTaskExecutor executor) {
+                                             final ActionExecutor actionExecutor) {
         super(actionExecutor);
         this.executor = executor;
         this.persistence = persistence;
@@ -62,7 +64,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -147,13 +149,14 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
+     * @see CompositeCommand#createContext(Input)
      */
     @Override
     public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
         return AuthorityPersonCommand.super.acceptPreparedContext(visitor, macroInputParameter);
     }
 
+    // private methods
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());
     }

@@ -96,7 +96,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
-        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, persistence, actionExecutor, schedulingTaskExecutor));
+        command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor));
     }
 
     @Test

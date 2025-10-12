@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class})
@@ -39,6 +40,8 @@ class UndoCommandMessageTest {
     private static final String CORRELATION_ID = "correlation-id";
     private static final String TEST_ACTION = "test-action";
     private static final String TEST_FACADE = "test-facade";
+    @MockBean
+    PlatformTransactionManager platformTransactionManager;
     @MockBean
     private PersistenceFacade persistenceFacade;
     @Autowired

@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
 class RegisterCourseCommandConfigurationTest {
     static final String REGISTER_COMMAND_ID = "course.register";
+    @MockBean
+    PlatformTransactionManager platformTransactionManager;
     @MockBean
     PersistenceFacade persistence;
     @MockBean

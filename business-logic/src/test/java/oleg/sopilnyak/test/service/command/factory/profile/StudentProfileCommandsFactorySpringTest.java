@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory.profile;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -13,6 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -27,6 +29,10 @@ class StudentProfileCommandsFactorySpringTest {
     private static final String FACTORY_NAME = "Student-Profiles";
     private static final String SPRING_NAME = "studentProfileCommandsFactory";
     private Collection<String> commandsId;
+    @MockBean
+    ActionExecutor actionExecutor;
+    @MockBean(name = "parallelCommandNestedCommandsExecutor")
+    SchedulingTaskExecutor executor;
     @MockBean
     PersistenceFacade persistenceFacade;
     @MockBean
