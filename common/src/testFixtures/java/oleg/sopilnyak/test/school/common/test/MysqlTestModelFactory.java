@@ -1,5 +1,8 @@
 package oleg.sopilnyak.test.school.common.test;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,6 +37,21 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         registry.add("spring.datasource.url", database::getJdbcUrl);
         registry.add("spring.datasource.username", database::getUsername);
         registry.add("spring.datasource.password", database::getPassword);
+    }
+
+    @Autowired
+    protected EntityManagerFactory entityManagerFactory;
+    protected  <T> T findEntity(Class<T> entityClass, Object pk) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            T entity = em.find(entityClass, pk);
+            if (entity != null) {
+                em.refresh(entity);
+            }
+            return entity;
+        } finally {
+            em.close();
+        }
     }
 
 }

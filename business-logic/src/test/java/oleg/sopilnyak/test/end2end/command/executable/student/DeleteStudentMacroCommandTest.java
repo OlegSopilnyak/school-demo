@@ -11,8 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Deque;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
@@ -27,9 +25,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -37,7 +33,6 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
@@ -102,8 +97,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
     CommandThroughMessageService messagesExchangeService;
-    @Autowired
-    EntityManagerFactory entityManagerFactory;
 
     DeleteStudentMacroCommand command;
 
@@ -660,19 +653,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
 
     // private methods
-    private <T> T findEntity(Class<T> entityClass, Object pk) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
-            T entity = em.find(entityClass, pk);
-            if (entity != null) {
-                em.refresh(entity);
-            }
-            return entity;
-        } finally {
-            em.close();
-        }
-    }
-
     private StudentPayload createStudent(Student newStudent) {
         return (StudentPayload) facade.create(newStudent).orElseThrow();
     }

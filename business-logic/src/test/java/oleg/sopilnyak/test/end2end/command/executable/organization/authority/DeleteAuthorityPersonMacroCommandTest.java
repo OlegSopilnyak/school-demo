@@ -22,9 +22,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -625,7 +623,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         Context<Boolean> personContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(personContext.isFailed()).isTrue();
         assertThat(personContext.getException()).isSameAs(exception);
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isEqualTo(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
