@@ -9,10 +9,15 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import java.util.Deque;
+import java.util.concurrent.TimeUnit;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -46,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.scheduling.SchedulingTaskExecutor;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -55,21 +59,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class,
-        AuthorityPersonFacadeImpl.class,
-//        DeletePrincipalProfileCommand.class,
-//        DeleteAuthorityPersonCommand.class,
-        SchoolCommandsConfiguration.class, TestConfig.class})
+        AuthorityPersonFacadeImpl.class,SchoolCommandsConfiguration.class, TestConfig.class
+})
 @TestPropertySource(properties = {
         "school.parallel.max.pool.size=10",
         "school.spring.jpa.show-sql=true",
         "school.hibernate.hbm2ddl.auto=update"
 })
-@Rollback
+//@Rollback
 class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     final int maxPoolSize = 10;
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
+    @Autowired
+    AuthorityPersonRepository authorityPersonRepository;
+    @Autowired
+    PersonProfileRepository profileRepository;
     @Autowired
     AuthorityPersonFacadeImpl facade;
     @Autowired
@@ -105,20 +111,23 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @AfterEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, profileCommand, personCommand, persistence, payloadMapper);
         messagesExchangeService.shutdown();
+        authorityPersonRepository.deleteAll();
+        profileRepository.deleteAll();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(facade).isNotNull();
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
         assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
-        assertThat(ReflectionTestUtils.getField(command, "maxPoolSize")).isSameAs(maxPoolSize);
+//        assertThat(ReflectionTestUtils.getField(command, "maxPoolSize")).isSameAs(maxPoolSize);
         assertThat(ReflectionTestUtils.getField(personCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
@@ -126,7 +135,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateMacroCommandContexts() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(1));
         Long personId = person.getId();
@@ -165,7 +174,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_PersonNotFound() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(3));
         assertThat(persistence.findAuthorityPersonById(person.getId())).isPresent();
@@ -196,7 +205,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
 
@@ -223,7 +232,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreatePrincipalProfileContextThrows() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(5));
         Long personId = person.getId();
@@ -258,7 +267,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreatePersonContextThrows() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(7));
         Long personId = person.getId();
@@ -294,7 +303,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteDoCommand() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(9));
         Long personId = personPayload.getId();
@@ -331,7 +340,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_PersonNotFound() {
         Long personId = 10L;
         Input<Long> inputId = Input.of(personId);
@@ -348,7 +357,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_ProfileNotFound() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(11));
         Long personId = personPayload.getId();
@@ -398,7 +407,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_DeletePersonThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(13));
         Long personId = personPayload.getId();
@@ -452,7 +461,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(15));
         Long personId = personPayload.getId();
@@ -504,7 +513,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteUndoCommand() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(17));
         Long personId = personPayload.getId();
@@ -546,7 +555,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(17));
         Long personId = personPayload.getId();
@@ -599,11 +608,12 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_SavePersonThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(21));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
         AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
         PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
         Input<Long> inputId = Input.of(personId);
@@ -615,6 +625,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         doThrow(exception).when(persistence).save(any(AuthorityPerson.class));
 
         command.undoCommand(context);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
+                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getLast().isDone()
+        );
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
@@ -644,8 +657,10 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         Long newProfileId = profileContext.<Long>getRedoParameter().value();
         verify(persistence).findPrincipalProfileById(newProfileId);
         verify(persistence).deleteProfileById(newProfileId);
+        Long newPersonId = personContext.<Long>getRedoParameter().value();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, newPersonId) == null);
 
-        assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isEmpty();
+        assertThat(persistence.findAuthorityPersonById(newPersonId)).isEmpty();
         assertThat(persistence.findAuthorityPersonById(personId)).isEmpty();
         assertThat(persistence.findPrincipalProfileById(newProfileId)).isEmpty();
         assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();

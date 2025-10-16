@@ -15,7 +15,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import lombok.SneakyThrows;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
@@ -50,7 +49,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -62,7 +60,6 @@ import org.springframework.transaction.annotation.Transactional;
         PersistenceConfiguration.class, SchoolCommandsConfiguration.class, TestConfig.class
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
@@ -102,6 +99,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @AfterEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, profileCommand, personCommand, persistence, payloadMapper);
         messagesExchangeService.shutdown();
@@ -110,6 +108,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
@@ -122,7 +121,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateMacroCommandContexts() {
         AuthorityPerson newPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(1));
         reset(payloadMapper);
@@ -166,7 +164,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
         Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
@@ -194,7 +191,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreateProfileContextThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(2);
         Input<AuthorityPerson> newPersonInput = (Input<AuthorityPerson>) Input.of(newPerson);
@@ -224,7 +220,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreatePersonContextThrows() {
         String errorMessage = "Cannot create nested person context";
         RuntimeException exception = new RuntimeException(errorMessage);
@@ -253,9 +248,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(nestedPersonCommand).createContext(newPersonInput);
     }
 
-    @SneakyThrows
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteDoCommand() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(4);
         Input<?> newPersonInput = Input.of(newPerson);
@@ -303,7 +296,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_DoNestedCommandsThrows() {
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(makeCleanAuthorityPerson(5)));
         RuntimeException exception = new RuntimeException("Cannot process nested commands");
@@ -317,7 +309,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_getCommandResultThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(15);
         Input<?> newPersonInput = Input.of(newPerson);
@@ -362,7 +353,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(6);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
@@ -395,9 +385,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(personCommand, never()).doCommand(any(Context.class));
     }
 
-    @SneakyThrows
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_CreateAuthorityPersonDoNestedCommandsThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(7);
         Input<AuthorityPerson> newPersonInput = (Input<AuthorityPerson>) Input.of(newPerson);
@@ -443,8 +431,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldExecuteUndoCommand() throws InterruptedException {
+    void shouldExecuteUndoCommand() {
         AuthorityPerson person = makeCleanAuthorityPerson(8);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(person));
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
@@ -479,9 +466,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
 
-    @SneakyThrows
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_UndoNestedCommandsThrowsException() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(11);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
@@ -515,9 +500,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
-    @SneakyThrows
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_AuthorityPersonUndoThrowsException() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(9);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
@@ -553,9 +536,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
-    @SneakyThrows
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_ProfileUndoThrowsException() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(10);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
