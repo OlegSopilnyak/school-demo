@@ -118,7 +118,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(facade).isNotNull();
         assertThat(profileCommand).isNotNull();
@@ -519,11 +518,12 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteUndoCommand() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(17));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
         AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
         PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
         Input<Long> inputId = Input.of(personId);
@@ -539,7 +539,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> personContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isEqualTo(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -556,14 +556,16 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyProfileUndoCommand(profileContext);
         verify(persistence).save(profileContext.<PrincipalProfile>getUndoParameter().value());
 
-        assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
+        Long undoPersonId = personContext.<Long>getRedoParameter().value();
+        Long undoProfileId = profileContext.<Long>getRedoParameter().value();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, undoPersonId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, undoProfileId) != null);
     }
 
     @Test
 //    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
-        AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(17));
+        AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(117));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
         AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
