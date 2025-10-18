@@ -30,6 +30,6 @@ import javax.persistence.Table;
         @Index(name = "principal_login", columnList = "login", unique = true)
 })
 public class PrincipalProfileEntity extends PersonProfileEntity implements PrincipalProfile {
-    private volatile String login;
+    private String login;
     private String signature;
 }

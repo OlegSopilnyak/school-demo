@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.exception;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 /**
- * Exception throws when command-executor cannot execute the command
- */
+ * Exception throws when countdown latch was interrupted
+ * */
 public class CountDownLatchInterruptedException extends RuntimeException {
     /**
      * Constructs a new instance of th exception with the specified detail command-id and

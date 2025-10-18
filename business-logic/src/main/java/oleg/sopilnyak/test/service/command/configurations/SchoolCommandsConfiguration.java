@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import com.fasterxml.jackson.databind.Module;
+import java.util.Collection;
 import java.util.Deque;
 import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
@@ -14,10 +15,10 @@ import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCom
 import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -32,12 +33,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collection;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Configuration for courses-subsystem commands
@@ -46,7 +44,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @ComponentScan("oleg.sopilnyak.test.service.command.executable")
 @RequiredArgsConstructor
 public class SchoolCommandsConfiguration {
-    private final PlatformTransactionManager platformTransactionManager;
     /**
      * Executor for school-commands
      *
@@ -66,7 +63,7 @@ public class SchoolCommandsConfiguration {
     @Bean
     @Profile("!AMQP")
     public CommandThroughMessageService commandThroughMessageService() {
-        return new CommandThroughMessageServiceLocalImpl(platformTransactionManager);
+        return new CommandThroughMessageServiceLocalImpl();
     }
 
     /**

@@ -160,6 +160,7 @@ public class CommandContext<T> implements Context<T> {
     public Context<T> failed(Exception exception) {
         setState(State.FAIL);
         setException(exception);
+        setResult(null);
         return this;
     }
 

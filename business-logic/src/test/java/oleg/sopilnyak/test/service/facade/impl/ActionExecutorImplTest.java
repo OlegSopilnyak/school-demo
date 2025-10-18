@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import java.util.UUID;
@@ -24,15 +23,14 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(MockitoExtension.class)
 class ActionExecutorImplTest<T> {
     @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;
-    @Mock
-    PlatformTransactionManager platformTransactionManager;
+    @Spy
+    @InjectMocks
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
 
     ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
@@ -43,7 +41,6 @@ class ActionExecutorImplTest<T> {
 
     @BeforeEach
     void setUp() {
-        messagesExchangeService = spy(new CommandThroughMessageServiceLocalImpl(platformTransactionManager));
         messagesExchangeService.initialize();
         ReflectionTestUtils.setField(actionExecutor, "messagesExchangeService", messagesExchangeService);
     }

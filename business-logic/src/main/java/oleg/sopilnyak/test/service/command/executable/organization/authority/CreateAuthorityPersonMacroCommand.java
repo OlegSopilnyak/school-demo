@@ -273,15 +273,15 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     // inner classes
     private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand<?>>
             implements AuthorityPersonCommand<Void> {
-        private final AuthorityPersonCommand<?> command;
+        private final AuthorityPersonCommand<?> wrappedCommand;
 
-        private PersonInSequenceCommand(AuthorityPersonCommand<?> command) {
-            this.command = command;
+        private PersonInSequenceCommand(AuthorityPersonCommand<?> concreteCommand) {
+            this.wrappedCommand = concreteCommand;
         }
 
         @Override
         public AuthorityPersonCommand<?> unWrap() {
-            return command;
+            return wrappedCommand;
         }
 
         /**
@@ -297,17 +297,17 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public <S, N> void transferResultTo(TransferTransitionalResultVisitor visitor, S value, Context<N> target) {
-            visitor.transferPreviousExecuteDoResult(command, value, target);
+            visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
         }
 
         @Override
         public Logger getLog() {
-            return command.getLog();
+            return wrappedCommand.getLog();
         }
 
         @Override
         public String getId() {
-            return command.getId();
+            return wrappedCommand.getId();
         }
 
         /**
@@ -332,7 +332,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public void doCommand(Context context) {
-            command.doCommand(context);
+            wrappedCommand.doCommand(context);
         }
 
         /**
@@ -346,21 +346,21 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public void undoCommand(Context<?> context) {
-            command.undoCommand(context);
+            wrappedCommand.undoCommand(context);
         }
     }
 
     private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
             implements PrincipalProfileCommand<Void> {
-        private final PrincipalProfileCommand<?> command;
+        private final PrincipalProfileCommand<?> wrappedCommand;
 
-        private ProfileInSequenceCommand(PrincipalProfileCommand<?> command) {
-            this.command = command;
+        private ProfileInSequenceCommand(PrincipalProfileCommand<?> concreteCommand) {
+            this.wrappedCommand = concreteCommand;
         }
 
         @Override
         public PrincipalProfileCommand<?> unWrap() {
-            return command;
+            return wrappedCommand;
         }
 
         /**
@@ -377,17 +377,17 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public <S, N> void transferResultTo(final TransferTransitionalResultVisitor visitor, final S value, final Context<N> target) {
-            visitor.transferPreviousExecuteDoResult(command, value, target);
+            visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
         }
 
         @Override
         public Logger getLog() {
-            return command.getLog();
+            return wrappedCommand.getLog();
         }
 
         @Override
         public String getId() {
-            return command.getId();
+            return wrappedCommand.getId();
         }
 
         /**
@@ -424,7 +424,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public void doCommand(Context context) {
-            command.doCommand(context);
+            wrappedCommand.doCommand(context);
         }
 
         /**
@@ -438,7 +438,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          */
         @Override
         public void undoCommand(Context<?> context) {
-            command.undoCommand(context);
+            wrappedCommand.undoCommand(context);
         }
     }
 
