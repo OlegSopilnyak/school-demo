@@ -1,7 +1,9 @@
 package oleg.sopilnyak.test.school.common.test;
 
+import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -11,8 +13,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.UUID;
 
 @DataJpaTest
 @TestPropertySource(properties = {"spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect"})
@@ -41,7 +41,8 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
 
     @Autowired
     protected EntityManagerFactory entityManagerFactory;
-    protected  <T> T findEntity(Class<T> entityClass, Object pk) {
+
+    protected <T> T findEntity(Class<T> entityClass, Object pk) {
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
             T entity = em.find(entityClass, pk);
@@ -49,6 +50,25 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
                 em.refresh(entity);
             }
             return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    protected <T> T deleteEntity(Class<T> entityClass, Object pk) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            T entity = em.find(entityClass, pk);
+            if (entity != null) {
+                EntityTransaction transaction = em.getTransaction();
+                transaction.begin();
+                em.remove(entity);
+                em.flush();
+                em.clear();
+                transaction.commit();
+                return em.find(entityClass, pk);
+            }
+            return null;
         } finally {
             em.close();
         }

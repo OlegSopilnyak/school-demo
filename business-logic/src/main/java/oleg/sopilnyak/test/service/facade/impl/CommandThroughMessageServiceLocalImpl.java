@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -176,7 +177,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
      * @see ActionExecutor#processActionCommand(BaseCommandMessage)
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
     public void processActionCommandAndProceed(final BaseCommandMessage<?> message) {
         final String correlationId = message.getCorrelationId();
         log.debug("Processing request message with correlationId='{}'", correlationId);

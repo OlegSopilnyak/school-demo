@@ -125,7 +125,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
         assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
-//        assertThat(ReflectionTestUtils.getField(command, "maxPoolSize")).isSameAs(maxPoolSize);
         assertThat(ReflectionTestUtils.getField(personCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
@@ -137,8 +136,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(1));
         Long personId = person.getId();
         Long profileId = person.getProfileId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
         reset(persistence);
@@ -176,12 +175,10 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     void shouldNotCreateMacroCommandContext_PersonNotFound() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(3));
         Long personId = person.getId();
-        final Long createdPersonId = personId;
         Long profileId = person.getProfileId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, createdPersonId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-        personId = 3L;
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        assertThat(deletePersonEntity(personId)).isNull();
 
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
@@ -208,7 +205,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_WrongInputType() {
         Object wrongTypeInput = "something";
 
@@ -239,10 +235,8 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(5));
         Long personId = person.getId();
         Long profileId = person.getProfileId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
 
@@ -271,13 +265,12 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateMacroCommandContext_CreatePersonContextThrows() {
         AuthorityPersonPayload person = create(makeCleanAuthorityPerson(7));
         Long personId = person.getId();
         Long profileId = person.getProfileId();
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
 
@@ -307,22 +300,21 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteDoCommand() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(9));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
-        PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        AuthorityPerson person = findPersonEntity(personId);
+        PrincipalProfile profile = findProfileEntity(profileId);
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
         reset(persistence);
 
         command.doCommand(context);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) == null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) == null);
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
@@ -346,7 +338,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_PersonNotFound() {
         Long personId = 10L;
         Input<Long> inputId = Input.of(personId);
@@ -363,14 +354,14 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_ProfileNotFound() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(11));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
-        persistence.deleteProfileById(profileId);
-        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        AuthorityPersonEntity person = findPersonEntity(personId);
+        assertThat(deleteProfileEntity(profileId)).isNull();
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
         assertThat(context.isReady()).isTrue();
@@ -385,7 +376,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> personContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isEqualTo(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -404,22 +395,24 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(any(AuthorityPersonPayload.class));
-        assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
+        Long undoPersonId = personContext.<Long>getRedoParameter().value();
+        Long undoProfileId = profileContext.<Long>getRedoParameter().value();
+        assertThat(findPersonEntity(personId)).isNull();
+        assertThat(findProfileEntity(profileId)).isNull();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(undoPersonId) != null);
 
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-
-        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
-        assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isEmpty();
+        verify(profileCommand, never()).undoCommand(any(Context.class));
+        assertThat(findProfileEntity(undoProfileId)).isNull();
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_DeletePersonThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(13));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        PrincipalProfile profile = findProfileEntity(profileId);
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
@@ -461,22 +454,25 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyProfileUndoCommand(profileContext);
         verify(persistence).save(savedProfile);
 
-//        verify(personCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
+        verify(personCommand, never()).undoCommand(any(Context.class));
+        Long undonePersonId = personContext.<Long>getRedoParameter().value();
+        Long undoneProfileId = profileContext.<Long>getRedoParameter().value();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(undonePersonId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(undoneProfileId) != null);
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(15));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        AuthorityPerson person = findPersonEntity(personId);
         reset(persistence);
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
-        String errorMessage = "Cannot delete profile";
+        String errorMessage = "Don't want to delete profile";
         RuntimeException exception = new RuntimeException(errorMessage);
         doThrow(exception).when(persistence).deleteProfileById(profileId);
 
@@ -489,7 +485,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         Context<Boolean> personContext = (Context<Boolean>) parameter.getNestedContexts().pop();
         assertThat(personContext.isUndone()).isTrue();
-        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
+        assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isEqualTo(person);
         assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
         Context<Boolean> profileContext = (Context<Boolean>) parameter.getNestedContexts().pop();
@@ -513,9 +509,11 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyPersonUndoCommand(personContext);
         verify(persistence).save(personContext.<AuthorityPerson>getUndoParameter().value());
 
-//        verify(profileCommand, never()).undoAsNestedCommand(eq(command), any(Context.class));
-        assertThat(persistence.findAuthorityPersonById(personContext.<Long>getRedoParameter().value())).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isPresent();
+        verify(profileCommand, never()).undoCommand(any(Context.class));
+        Long undonePersonId = personContext.<Long>getRedoParameter().value();
+        Long undoneProfileId = profileContext.<Long>getRedoParameter().value();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(undonePersonId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(undoneProfileId) != null);
     }
 
     @Test
@@ -523,10 +521,10 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(17));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
-        PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        AuthorityPerson person = findPersonEntity(personId);
+        PrincipalProfile profile = findProfileEntity(profileId);
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
         command.doCommand(context);
@@ -559,18 +557,19 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
 
         Long undoPersonId = personContext.<Long>getRedoParameter().value();
         Long undoProfileId = profileContext.<Long>getRedoParameter().value();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, undoPersonId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, undoProfileId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(undoPersonId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(undoProfileId) != null);
     }
 
     @Test
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
         AuthorityPersonPayload personPayload = create(makeCleanAuthorityPerson(117));
         Long personId = personPayload.getId();
         Long profileId = personPayload.getProfileId();
-        AuthorityPerson person = persistence.findAuthorityPersonById(personId).orElseThrow();
-        PrincipalProfile profile = persistence.findPrincipalProfileById(profileId).orElseThrow();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        AuthorityPerson person = findPersonEntity(personId);
+        PrincipalProfile profile = findProfileEntity(profileId);
         Input<Long> inputId = Input.of(personId);
         Context<Boolean> context = command.createContext(inputId);
         command.doCommand(context);
@@ -606,14 +605,15 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).save(profileContext.<PrincipalProfile>getUndoParameter().value());
 
         verifyPersonDoCommand(personContext, 2);
-        Long newPersonId = personContext.<Long>getRedoParameter().value();
-        verify(persistence).findAuthorityPersonById(newPersonId);
-        verify(persistence).deleteAuthorityPerson(newPersonId);
+        Long doPersonId = personContext.<Long>getRedoParameter().value();
+        Long doProfileId = profileContext.<Long>getRedoParameter().value();
+        verify(persistence).findAuthorityPersonById(doPersonId);
+        verify(persistence).deleteAuthorityPerson(doPersonId);
 
-        assertThat(persistence.findAuthorityPersonById(newPersonId)).isEmpty();
-        assertThat(persistence.findAuthorityPersonById(personId)).isEmpty();
-        assertThat(persistence.findPrincipalProfileById(profileContext.<Long>getRedoParameter().value())).isEmpty();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
+        assertThat(findPersonEntity(doPersonId)).isNull();
+        assertThat(findPersonEntity(personId)).isNull();
+        assertThat(findProfileEntity(doProfileId)).isNull();
+        assertThat(findProfileEntity(profileId)).isNull();
     }
 
     @Test
@@ -667,17 +667,17 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verify(persistence).save(any(PrincipalProfilePayload.class));
 
         verifyProfileDoCommand(profileContext, 2);
-        Long newProfileId = profileContext.<Long>getRedoParameter().value();
-        verify(persistence).findPrincipalProfileById(newProfileId);
-        verify(persistence).deleteProfileById(newProfileId);
-        Long newPersonId = personContext.<Long>getRedoParameter().value();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(newPersonId) == null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(newProfileId) == null);
+        Long doProfileId = profileContext.<Long>getRedoParameter().value();
+        verify(persistence).findPrincipalProfileById(doProfileId);
+        verify(persistence).deleteProfileById(doProfileId);
+        Long doPersonId = personContext.<Long>getRedoParameter().value();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(doPersonId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(doProfileId) == null);
 
-        assertThat(persistence.findAuthorityPersonById(newPersonId)).isEmpty();
-        assertThat(persistence.findAuthorityPersonById(personId)).isEmpty();
-        assertThat(persistence.findPrincipalProfileById(newProfileId)).isEmpty();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isEmpty();
+        assertThat(findPersonEntity(doPersonId)).isNull();
+        assertThat(findPersonEntity(personId)).isNull();
+        assertThat(findProfileEntity(doProfileId)).isNull();
+        assertThat(findProfileEntity(profileId)).isNull();
     }
 
 
@@ -686,8 +686,16 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         return findEntity(AuthorityPersonEntity.class, id);
     }
 
+    private AuthorityPersonEntity deletePersonEntity(Long id) {
+        return deleteEntity(AuthorityPersonEntity.class, id);
+    }
+
     private PrincipalProfileEntity findProfileEntity(Long id) {
         return findEntity(PrincipalProfileEntity.class, id);
+    }
+
+    private PrincipalProfileEntity deleteProfileEntity(Long id) {
+        return deleteEntity(PrincipalProfileEntity.class, id);
     }
 
     private AuthorityPersonPayload create(AuthorityPerson person) {
@@ -699,8 +707,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
-//        verify(profileCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         verify(profileCommand, times(i)).doCommand(nestedContext);
         verify(profileCommand, times(i)).executeDo(nestedContext);
     }
@@ -710,22 +717,19 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyPersonDoCommand(Context<Boolean> nestedContext, int i) {
-//        verify(personCommand, times(i)).doAsNestedCommand(eq(command), eq(nestedContext), any(Context.StateChangedListener.class));
-//        verify(command, times(i)).doNestedCommand(any(RootCommand.class), eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         verify(personCommand, times(i)).doCommand(nestedContext);
         verify(personCommand, times(i)).executeDo(nestedContext);
     }
 
     private void verifyPersonUndoCommand(Context<Boolean> nestedContext) {
-//        verify(personCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
+        verify(command).executeUndoNested(eq(nestedContext));
         verify(personCommand).undoCommand(nestedContext);
         verify(personCommand).executeUndo(nestedContext);
     }
 
     private void verifyProfileUndoCommand(Context<Boolean> nestedContext) {
-//        verify(profileCommand).undoAsNestedCommand(command, nestedContext);
-//        verify(command).undoNestedCommand(any(RootCommand.class), eq(nestedContext));
+        verify(command).executeUndoNested(eq(nestedContext));
         verify(profileCommand).undoCommand(nestedContext);
         verify(profileCommand).executeUndo(nestedContext);
     }

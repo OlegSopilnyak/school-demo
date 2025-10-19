@@ -38,7 +38,7 @@ public abstract class PersonProfileEntity implements PersonProfile {
     private String phone;
     private String location;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "profile_extras", joinColumns = @JoinColumn(name = "person_id"))
     @MapKeyColumn(name = "extra_key")
     @Column(name = "extra_value")
