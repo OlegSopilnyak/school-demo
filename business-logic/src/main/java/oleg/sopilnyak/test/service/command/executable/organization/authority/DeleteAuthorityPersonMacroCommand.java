@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPerso
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
@@ -31,14 +31,14 @@ import org.springframework.stereotype.Component;
  *
  * @see AuthorityPerson
  * @see PrincipalProfile
- * @see ParallelMacroCommand
+ * @see LegacyParallelMacroCommand
  * @see DeleteAuthorityPersonCommand
  * @see DeletePrincipalProfileCommand
  * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
 @Component("authorityPersonMacroDelete")
-public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
+public class DeleteAuthorityPersonMacroCommand extends LegacyParallelMacroCommand<Boolean>
         implements AuthorityPersonCommand<Boolean> {
     // executor of parallel nested commands
     private final SchedulingTaskExecutor executor;
@@ -148,7 +148,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
      * @see CompositeCommand#createContext(Input)
      */
     @Override

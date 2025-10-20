@@ -423,7 +423,7 @@ class ParallelMacroCommandTest {
     }
 
     //    // inner classes
-    static class FakeParallelCommand extends ParallelMacroCommand<Double> {
+    static class FakeParallelCommand extends LegacyParallelMacroCommand<Double> {
         static CommandContext<Double> overrideStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
         private final SchedulingTaskExecutor commandContextExecutor;

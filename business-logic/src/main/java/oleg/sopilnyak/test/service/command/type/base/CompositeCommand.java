@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -89,7 +89,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * @param mainInputParameter composite command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> mainInputParameter) {
@@ -97,24 +97,38 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     /**
-     * To execute nested do command with the nested context
+     * To run DO execution for each macro-command's nested command-contexts
      *
-     * @param <N>     the type of nested command execution result
-     * @param context the context used for use with the nested command
-     * @return context after nested command do
+     * @param contexts nested contexts to execute
+     * @param listener listener of nested context-state-change
+     * @return nested contexts after DO execution
+     * @see Deque
+     * @see Context.StateChangedListener
      * @see CompositeCommand#executeDoNested(Context, Context.StateChangedListener)
      */
-    default <N> Context<N> executeDoNested(final Context<N> context) {
-        return executeDoNested(context, null);
+    default Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
+        return contexts.stream()
+                // execute do for nested command's context
+                .map(context -> executeDoNested(context, listener))
+                // prepare result as Deque
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
-     * To execute do of nested command with the nested context and context-state-change listener
+     * To execute DO of nested command with the nested context and context-state-change listener through action-executor
      *
      * @param <N>      the type of nested command execution result
      * @param context  the context used for use with the nested command
      * @param listener which will be notified by new states after do execution
      * @return context after nested command do
+     * @see CompositeCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see ActionExecutor#commitAction(ActionContext, Context)
+     * @see Context
+     * @see Context#getHistory()
+     * @see Context.State
+     * @see Context.LifeCycleHistory#states()
+     * @see Context.StateChangedListener
+     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
         if (isNull(listener)) {
@@ -133,48 +147,62 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
             getLog().error("Cannot commit nested context using action executor...", e);
         }
         //
-        // notifying context state-change-listener by new states after do execution
+        // notifying context the state-change-listener by new states after DO execution
         final Deque<Context.State> statesAfter = new LinkedList<>(context.getHistory().states());
         if (statesAfter.removeAll(statesBefore) && !statesAfter.isEmpty()) {
-            // notifying passed state-change listener
-            notifyStateChangeListener(listener, result, statesAfter, statesBefore.getLast());
+            // notifying by new states state-change listener instances
+            // prepare previous state
+            final AtomicReference<Context.State> previous = new AtomicReference<>(statesBefore.getLast());
+            // iterating after execution context states
+            final Context<N> contextAfterCommit = result;
+            statesAfter.forEach(current -> {
+                // apply new state changes to the state-change-listener instance
+                listener.stateChanged(contextAfterCommit, previous.get(), current);
+                // set up previous state to current one
+                previous.getAndSet(current);
+            });
         }
         return result;
     }
 
-    private static <N> void notifyStateChangeListener(final Context.StateChangedListener listener,
-                                                      final Context<N> contextAfterCommit,
-                                                      final Deque<Context.State> statesAfter,
-                                                      final Context.State lastBeforeState) {
-        // prepare previous state
-        final AtomicReference<Context.State> previous = new AtomicReference<>(lastBeforeState);
-        // iterating after execution context states
-        statesAfter.forEach(current -> {
-            // apply state changes to passed state-change-listener instance
-            listener.stateChanged(contextAfterCommit, previous.get(), current);
-            // set up previous state to current one
-            previous.getAndSet(current);
-        });
+    /**
+     * To execute DO of nested command with the nested context only
+     *
+     * @param <N>     the type of nested command execution result
+     * @param context the context used for use with the nested command
+     * @return context after nested command do
+     * @see CompositeCommand#executeDoNested(Context, Context.StateChangedListener)
+     * @see Context.StateChangedListener
+     */
+    default <N> Context<N> executeDoNested(final Context<N> context) {
+        return executeDoNested(context, null);
     }
 
     /**
-     * To run do execution for each macro-command's nested contexts in READY state
+     * To run UNDO execution for each macro-command's nested contexts in DONE state
      *
      * @param contexts nested contexts to execute
-     * @param listener listener of nested context-state-change
      * @return nested contexts after execution
-     * @see Context.State#READY
+     * @see Context#isDone()
      * @see Deque
-     * @see Context.StateChangedListener
-     * @see CompositeCommand#executeDoNested(Context, Context.StateChangedListener)
+     * @see CompositeCommand#executeUndoNested(Context)
      */
-    Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener);
+    default Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
+        return contexts.stream()
+                // rollback only for contexts in DONE state
+                .filter(Context::isDone)
+                // execute rollback for the nested command's context
+                .map(this::executeUndoNested)
+                // prepare result as Deque
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
 
     /**
-     * To execute undo of nested command with the nested context
+     * To execute UNDO of nested command with the nested context
      *
      * @param context the context used for use with the nested command
      * @return context after nested command undo
+     * @see CompositeCommand#rollbackNested(Deque)
      */
     default Context<?> executeUndoNested(final Context<?> context) {
         try{
@@ -185,15 +213,4 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
             return context.failed(e);
         }
     }
-
-    /**
-     * To run undo execution for each macro-command's nested contexts in DONE state
-     *
-     * @param contexts nested contexts to execute
-     * @return nested contexts after execution
-     * @see Context.State#DONE
-     * @see Deque
-     * @see CompositeCommand#executeUndoNested(Context)
-     */
-    Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts);
 }

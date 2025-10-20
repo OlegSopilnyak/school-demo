@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -249,7 +249,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param commandInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override

@@ -24,10 +24,12 @@ import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultExceptio
 import org.springframework.util.ObjectUtils;
 
 /**
- * Sequential MacroCommand: macro-command the command with nested commands inside, uses sequence of command
+ * MacroCommand: The command type with nested commands inside which are executing in sequential way.
  *
  * @param <T> the type of command execution (do) result
+ * @see CompositeCommand
  * @see MacroCommand
+ * @see TransferTransitionalResultVisitor
  */
 public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implements TransferTransitionalResultVisitor {
     protected SequentialMacroCommand(ActionExecutor actionExecutor) {
@@ -70,6 +72,10 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      */
     @Override
     public Deque<Context<?>> executeNested(final Deque<Context<?>> contexts, final Context.StateChangedListener listener) {
+        if (ObjectUtils.isEmpty(contexts)) {
+            getLog().warn("Nothing to do");
+            return contexts;
+        }
         // flag if something went wrong
         final AtomicBoolean isExecutionFailed = new AtomicBoolean(false);
         // the value of previous nested command context

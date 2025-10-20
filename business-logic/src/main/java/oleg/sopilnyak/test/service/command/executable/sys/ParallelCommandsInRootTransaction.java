@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 
 /**
  * To execute commands in one transaction through the actions queue
+ * @deprecated
  */
 abstract class ParallelCommandsInRootTransaction<T> {
     private final BlockingQueue<ActionInRootTransaction<T>> actionsQueue;

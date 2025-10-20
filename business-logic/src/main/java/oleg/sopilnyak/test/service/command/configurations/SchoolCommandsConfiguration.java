@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Deque;
 import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -72,8 +73,8 @@ public class SchoolCommandsConfiguration {
      * @param maxPoolSize maximum size of threads-pool
      * @return ready to use executor
      * @see SchedulingTaskExecutor
-     * @see oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand#rollbackNested(Deque)
+     * @see LegacyParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see LegacyParallelMacroCommand#rollbackNested(Deque)
      */
     @Bean
     public SchedulingTaskExecutor parallelCommandNestedCommandsExecutor(

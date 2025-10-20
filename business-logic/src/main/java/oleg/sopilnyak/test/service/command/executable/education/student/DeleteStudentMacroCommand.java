@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -28,14 +28,14 @@ import org.springframework.stereotype.Component;
  *
  * @see Student
  * @see StudentProfile
- * @see ParallelMacroCommand
+ * @see LegacyParallelMacroCommand
  * @see DeleteStudentCommand
  * @see DeleteStudentProfileCommand
  * @see StudentsPersistenceFacade
  */
 @Slf4j
 @Component("studentMacroDelete")
-public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements StudentCommand<Boolean> {
+public class DeleteStudentMacroCommand extends LegacyParallelMacroCommand<Boolean> implements StudentCommand<Boolean> {
     // executor of parallel nested commands
     private final SchedulingTaskExecutor executor;
     // persistence facade for get instance of student by student-id
@@ -152,7 +152,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      * @param macroInputParameter Macro-Command execute input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override
