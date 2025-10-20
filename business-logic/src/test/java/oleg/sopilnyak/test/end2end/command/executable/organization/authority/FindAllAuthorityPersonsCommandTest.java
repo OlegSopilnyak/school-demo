@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -41,14 +42,18 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     @Autowired
     AuthorityPersonPersistenceFacade persistence;
     @Autowired
+    AuthorityPersonRepository authorityPersonRepository;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     AuthorityPersonCommand command;
 
     @AfterEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        authorityPersonRepository.deleteAll();
     }
 
     @Test

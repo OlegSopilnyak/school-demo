@@ -56,8 +56,6 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class,
@@ -107,10 +105,12 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         command = spy(new DeleteAuthorityPersonMacroCommand(personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
         messagesExchangeService.initialize();
+        authorityPersonRepository.deleteAll();
+        profileRepository.deleteAll();
     }
 
     @AfterEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, profileCommand, personCommand, persistence, payloadMapper);
         messagesExchangeService.shutdown();
@@ -579,6 +579,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         doThrow(exception).when(persistence).save(any(PrincipalProfile.class));
 
         command.undoCommand(context);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
+                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getFirst().isDone()
+        );
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
