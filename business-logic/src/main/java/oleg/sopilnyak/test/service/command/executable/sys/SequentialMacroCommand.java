@@ -64,6 +64,9 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @param contexts nested command contexts deque to do
      * @param listener listener of the nested command context state-change
      * @return nested contexts after execution
+     * @see Context.State#DONE
+     * @see Context.State#FAIL
+     * @see Context.State#CANCEL
      * @see SequentialMacroCommand#cancelSequentialNestedCommandContext(Context, Context.StateChangedListener)
      * @see SequentialMacroCommand#doSequentialNestedCommand(Context, AtomicReference, Context.StateChangedListener, AtomicBoolean)
      * @see AtomicReference
@@ -76,18 +79,18 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
             getLog().warn("Nothing to do");
             return contexts;
         }
-        // flag if something went wrong
-        final AtomicBoolean isExecutionFailed = new AtomicBoolean(false);
+        // flag if something went wrong previously
+        final AtomicBoolean isPreviousFailed = new AtomicBoolean(false);
         // the value of previous nested command context
-        final AtomicReference<Context<?>> previousContextReference = new AtomicReference<>(null);
+        final AtomicReference<Context<?>> previous = new AtomicReference<>(null);
         // sequential walking through contexts set
-        return contexts.stream().map(context -> isExecutionFailed.get()
+        return contexts.stream().map(context -> isPreviousFailed.get()
                 ?
                 // previous nested command's context.state has value FAIL, cancel it
                 cancelSequentialNestedCommandContext(context, listener)
                 :
                 // try to execute nested command
-                doSequentialNestedCommand(context, previousContextReference, listener, isExecutionFailed)
+                doSequentialNestedCommand(context, previous, listener, isPreviousFailed)
         ).collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -101,22 +104,29 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
      * @see CompositeCommand#executeUndoNested(Context)
      */
     @Override
-    public Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
+    public Deque<Context<?>> rollbackNested(final Deque<Context<?>> contexts) {
         final List<Context<?>> reverted = new ArrayList<>(contexts);
-        // revert the order of undo contexts
-        Collections.reverse(reverted);
         final AtomicBoolean isNestedRollbackFailed = new AtomicBoolean(false);
-        // rollback commands' changes
-        return reverted.stream()
-                .map(successfulContext -> rollbackNestedCommand(successfulContext, isNestedRollbackFailed))
+        // reverse the order of undo nested command contexts
+        Collections.reverse(reverted);
+        // rollback nested commands changes in the reverse order
+        final LinkedList<Context<?>> rolledBack = reverted.stream()
+                .map(context -> rollbackNestedCommand(context, isNestedRollbackFailed))
                 .collect(Collectors.toCollection(LinkedList::new));
+        // reverse the order of rolled back nested command contexts back to the original order
+        Collections.reverse(rolledBack);
+        return rolledBack;
     }
 
     // private methods
     // To mark canceled sequential nested command execution
     private <N> Context<N> cancelSequentialNestedCommandContext(final Context<N> context, final Context.StateChangedListener listener) {
         // getting last state from the context history and use it for the listener's notification
-        listener.stateChanged(context, context.getHistory().states().getLast(), Context.State.CANCEL);
+        final Context.State lastState = context.getHistory().states().getLast();
+        getLog().debug("Cancel nested command execution from state {}", lastState);
+        // update context-state-change listener
+        listener.stateChanged(context, lastState, Context.State.CANCEL);
+        // update context state to CANCEL
         context.setState(Context.State.CANCEL);
         return context;
     }
@@ -200,21 +210,27 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
     }
 
     // to rollback nested command execution results
-    private Context<?> rollbackNestedCommand(final Context<?> successfulContext, final AtomicBoolean isNestedRollbackFailed) {
+    private Context<?> rollbackNestedCommand(final Context<?> context, final AtomicBoolean isNestedRollbackFailed) {
         if (isNestedRollbackFailed.get()) {
             getLog().debug("Skipping nested undone because previous context failed");
-            return successfulContext;
+            return context;
         }
-        getLog().debug("Rolling back nested command for '{}'", successfulContext.getCommand().getId());
-        final Context<?> resultContext = executeUndoNested(successfulContext);
-        if (resultContext.isFailed()) {
-            // nested command undo is failed
-            getLog().warn("= Rollback of the nested command '{}' failed", resultContext.getCommand().getId(), resultContext.getException());
+
+        getLog().debug("Rolling back nested command for '{}'", context.getCommand().getId());
+        // rollback nested command
+        final Context<?> result = executeUndoNested(context);
+
+        // check rollback result
+        final String commandId = result.getCommand().getId();
+        if (result.isFailed()) {
+            // nested command rollback is failed
+            getLog().warn("= Rollback of the nested command '{}' is failed", commandId, result.getException());
             isNestedRollbackFailed.compareAndSet(false, true);
-            return resultContext;
+        } else {
+            // nested command rollback is successful
+            getLog().debug("Rollback of the nested command '{}' is successful", commandId);
         }
-        getLog().debug("Rollback of the nested command '{}' finished successfully", resultContext.getCommand().getId());
-        return resultContext;
+        return result;
     }
 
     // inner class-wrapper for nested command

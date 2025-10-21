@@ -150,14 +150,16 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
         // notifying context the state-change-listener by new states after DO execution
         final Deque<Context.State> statesAfter = new LinkedList<>(context.getHistory().states());
         if (statesAfter.removeAll(statesBefore) && !statesAfter.isEmpty()) {
-            // notifying by new states state-change listener instances
-            // prepare previous state
+            //
+            // prepare previous state and context after DO execution
             final AtomicReference<Context.State> previous = new AtomicReference<>(statesBefore.getLast());
-            // iterating after execution context states
-            final Context<N> contextAfterCommit = result;
+            final Context<N> contextAfterCommandDo = result;
+            //
+            // notifying by new states state-change listener instances
+            // iterating after DO execution context states
             statesAfter.forEach(current -> {
                 // apply new state changes to the state-change-listener instance
-                listener.stateChanged(contextAfterCommit, previous.get(), current);
+                listener.stateChanged(contextAfterCommandDo, previous.get(), current);
                 // set up previous state to current one
                 previous.getAndSet(current);
             });
