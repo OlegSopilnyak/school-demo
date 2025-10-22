@@ -30,6 +30,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @return value of command-id
      */
+    @Override
     String getId();
 
     /**

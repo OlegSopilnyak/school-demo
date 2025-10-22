@@ -50,6 +50,7 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -78,6 +79,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
     PersistenceFacade database;
+    @Autowired
+    ApplicationContext applicationContext;
 
     PersistenceFacade persistence;
     CommandsFactory<AuthorityPersonCommand<?>> factory;
@@ -337,7 +340,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
                 spy(new DeleteAuthorityPersonMacroCommand(
-                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
+                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor,
+                        persistenceFacade, actionExecutor, applicationContext
                 ));
         return new AuthorityPersonCommandsFactory(
                 Set.of(

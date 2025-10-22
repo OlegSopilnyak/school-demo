@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import static java.util.Objects.isNull;
+
 import java.util.Deque;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,11 @@ import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Command-Implementation: command to delete the authority person and the profile assigned to the person
@@ -39,21 +44,41 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("authorityPersonMacroDelete")
 public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
-        implements AuthorityPersonCommand<Boolean> {
+        implements MacroDeleteAuthorityPerson<Boolean> {
     // persistence facade for get instance of authority person by person-id (creat-context phase)
     private final transient AuthorityPersonPersistenceFacade persistence;
+    private final ApplicationContext applicationContext;
+    private volatile MacroDeleteAuthorityPerson self;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper = null;
 
     public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
                                              @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
                                              @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
-                                             final AuthorityPersonPersistenceFacade persistence,
-                                             final ActionExecutor actionExecutor) {
+                                             AuthorityPersonPersistenceFacade persistence,
+                                             ActionExecutor actionExecutor,
+                                             ApplicationContext applicationContext) {
         super(actionExecutor, executor);
         this.persistence = persistence;
+        this.applicationContext = applicationContext;
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
+    }
+
+    /**
+     * To get the reference to current command instance for transactional command create context processing
+     *
+     * @return the reference to the command
+     */
+    public MacroDeleteAuthorityPerson self() {
+        synchronized (AuthorityPersonCommand.class) {
+            if (isNull(self)) {
+                // getting service reference which can be used for transactional operations
+                // actually it's proxy of service with transactional processActionCommandAndProceed method
+                self = applicationContext.getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+            }
+        }
+        return self;
     }
 
     /**
@@ -107,7 +132,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     @Override
     public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> mainInput) {
         return mainInput.value() instanceof Long personId && PrincipalProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
-                createPrincipalProfileContext(command, personId) : cannotCreateNestedContextFor(command);
+                self().createPrincipalProfileContext(command, personId) : cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -119,10 +144,11 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @return built context of the command for input parameter
      * @see AuthorityPersonPersistenceFacade#findAuthorityPersonById(Long)
      */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public <N> Context<N> createPrincipalProfileContext(PrincipalProfileCommand<N> command, Long personId) {
-        final Long profileId = persistence.findAuthorityPersonById(personId)
-                .orElseThrow(() -> new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists."))
-                .getProfileId();
+        final Long profileId = persistence.findAuthorityPersonById(personId).map(AuthorityPerson::getProfileId)
+                .orElseThrow(() -> new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists."));
         return command.createContext(Input.of(profileId));
     }
 
@@ -140,7 +166,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      */
     @Override
     public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
-        return AuthorityPersonCommand.super.acceptPreparedContext(visitor, macroInputParameter);
+        return MacroDeleteAuthorityPerson.super.acceptPreparedContext(visitor, macroInputParameter);
     }
 
     // private methods

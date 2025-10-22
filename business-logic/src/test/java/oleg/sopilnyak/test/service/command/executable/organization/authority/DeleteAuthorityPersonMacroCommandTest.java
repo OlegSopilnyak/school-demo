@@ -43,6 +43,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -63,6 +64,8 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Spy
     @InjectMocks
     DeleteAuthorityPersonCommand personCommand;
+    @Mock
+    ApplicationContext applicationContext;
     DeleteAuthorityPersonMacroCommand command;
 
     @Mock
@@ -73,7 +76,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @BeforeEach
     void setUp() {
         command = spy(new DeleteAuthorityPersonMacroCommand(
-                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
+                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor, applicationContext
         ));
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();

@@ -12,6 +12,14 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
  * @see CompositeCommand
  */
 public interface NestedCommand<T> extends Serializable {
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    String getId();
+
     /**
      * To prepare context for nested command using the visitor
      *

@@ -65,12 +65,16 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
         // preparing contexts for the nested commands of the composite command
         final Deque<Context<?>> contexts = fromNest().stream()
                 .map(nestedCommand -> {
+                    // nested command context to build
+                    Context<?> nestedContext;
                     try {
-                        return nestedCommand.acceptPreparedContext(this, input);
+                        nestedContext = nestedCommand.acceptPreparedContext(this, input);
                     } catch (Exception e) {
-                        getLog().error("Cannot prepare nested command context '{}' for value {}", nestedCommand, input, e);
-                        return nestedCommand.createFailedContext(e);
+                        getLog().error("Cannot prepare nested command context '{}' for value {}", nestedCommand.getId(), input, e);
+                        nestedContext = nestedCommand.createFailedContext(e);
                     }
+                    // return built nested command context
+                    return nestedContext;
                 }).collect(Collectors.toCollection(LinkedList::new));
         // looking for failed nested command context after nested command context preparing
         return contexts.stream().filter(Objects::nonNull).filter(Context::isFailed).findFirst()

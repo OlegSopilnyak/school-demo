@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -52,6 +53,8 @@ class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
 
+    @Mock
+    ApplicationContext applicationContext;
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
 
@@ -86,7 +89,7 @@ class AuthorityPersonFacadeImplTest {
         deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
-                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
+                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor, applicationContext
         ));
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
