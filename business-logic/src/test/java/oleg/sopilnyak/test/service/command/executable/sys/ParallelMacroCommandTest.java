@@ -423,14 +423,12 @@ class ParallelMacroCommandTest {
     }
 
     //    // inner classes
-    static class FakeParallelCommand extends LegacyParallelMacroCommand<Double> {
+    static class FakeParallelCommand extends ParallelMacroCommand<Double> {
         static CommandContext<Double> overrideStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
-        private final SchedulingTaskExecutor commandContextExecutor;
 
         public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand<Double> student, ActionExecutor actionExecutor) {
-            super(actionExecutor);
-            this.commandContextExecutor = commandContextExecutor;
+            super(actionExecutor, commandContextExecutor);
             overrideStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }
 
@@ -483,11 +481,6 @@ class ParallelMacroCommandTest {
         @Override
         public BusinessMessagePayloadMapper getPayloadMapper() {
             return null;
-        }
-
-        @Override
-        public SchedulingTaskExecutor getExecutor() {
-            return commandContextExecutor;
         }
     }
 

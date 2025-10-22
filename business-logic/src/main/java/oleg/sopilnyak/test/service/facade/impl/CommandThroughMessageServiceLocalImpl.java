@@ -54,6 +54,26 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     // Create outcome message queue
     private final BlockingQueue<BaseCommandMessage<?>> responses = new LinkedBlockingQueue<>();
 
+    @Autowired
+    private ApplicationContext applicationContext;
+    private volatile CommandThroughMessageService service;
+
+    /**
+     * To get the reference to current service instance for transactional command execution processing
+     *
+     * @return the reference to the service
+     */
+    public CommandThroughMessageService service() {
+        synchronized (CommandThroughMessageService.class) {
+            if (isNull(service)) {
+                // getting service reference which can be used for transactional operations
+                // actually it's proxy of service with transactional processActionCommandAndProceed method
+                service = applicationContext.getBean(CommandThroughMessageService.class);
+            }
+        }
+        return service;
+    }
+
     /**
      * Start background processors for requests
      */
@@ -228,18 +248,6 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         // return the result
         log.info("The result of command '{}' is {}", commandId, messageWatcher.result);
         return messageWatcher.result;
-    }
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    /**
-     * To get the reference to current service instance for transactional command execution processing
-     *
-     * @return the reference to the service
-     */
-    public CommandThroughMessageService service() {
-        return applicationContext.getBean(CommandThroughMessageService.class);
     }
 
     /**

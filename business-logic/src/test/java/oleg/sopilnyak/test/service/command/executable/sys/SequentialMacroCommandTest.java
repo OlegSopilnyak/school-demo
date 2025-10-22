@@ -452,7 +452,7 @@ class SequentialMacroCommandTest {
         List<Context<?>> params = nestedUndoneContexts.stream().toList();
         List<Context<?>> undone = rollbackResults.stream().toList();
         // check revers
-        IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
+        IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(i)));
         // check contexts states
         rollbackResults.forEach(context -> {
             assertThat(context.isUndone()).isTrue();
@@ -498,23 +498,9 @@ class SequentialMacroCommandTest {
         List<Context<?>> params = nestedUndoneContexts.stream().toList();
         List<Context<?>> undone = rollbackResults.stream().toList();
         // check revers
-        IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(size - i - 1)));
+        IntStream.range(0, size).forEach(i -> assertThat(undone.get(i)).isEqualTo(params.get(i)));
         // check contexts order and states
         Context<?> nestedContext;
-        //
-        // check behavior of intCommand
-        nestedContext = rollbackResults.pop();
-        assertThat(nestedContext.isUndone()).isTrue();
-        verify(command).executeUndoNested(nestedContext);
-        verify(intCommand).undoCommand(nestedContext);
-        verify(pureIntCommand).undoCommand(nestedContext);
-        //
-        // check behavior of booleanCommand
-        nestedContext = rollbackResults.pop();
-        assertThat(nestedContext.isUndone()).isTrue();
-        verify(command).executeUndoNested(nestedContext);
-        verify(booleanCommand).undoCommand(nestedContext);
-        verify(pureBoolCommand).undoCommand(nestedContext);
         //
         // check behavior of doubleCommand
         nestedContext = rollbackResults.pop();
@@ -523,6 +509,20 @@ class SequentialMacroCommandTest {
         verify(command).executeUndoNested(nestedContext);
         verify(doubleCommand).undoCommand(nestedContext);
         verify(pureDoubleCommand).undoCommand(nestedContext);
+        //
+        // check behavior of booleanCommand
+        nestedContext = rollbackResults.pop();
+        assertThat(nestedContext.isUndone()).isTrue();
+        verify(command).executeUndoNested(nestedContext);
+        verify(booleanCommand).undoCommand(nestedContext);
+        verify(pureBoolCommand).undoCommand(nestedContext);
+        //
+        // check behavior of intCommand
+        nestedContext = rollbackResults.pop();
+        assertThat(nestedContext.isUndone()).isTrue();
+        verify(command).executeUndoNested(nestedContext);
+        verify(intCommand).undoCommand(nestedContext);
+        verify(pureIntCommand).undoCommand(nestedContext);
     }
 
     static class FakeSequentialCommand extends SequentialMacroCommand<Double> {

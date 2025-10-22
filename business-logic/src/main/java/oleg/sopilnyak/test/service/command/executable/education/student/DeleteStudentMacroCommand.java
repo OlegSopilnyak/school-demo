@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -28,16 +28,14 @@ import org.springframework.stereotype.Component;
  *
  * @see Student
  * @see StudentProfile
- * @see LegacyParallelMacroCommand
+ * @see ParallelMacroCommand
  * @see DeleteStudentCommand
  * @see DeleteStudentProfileCommand
  * @see StudentsPersistenceFacade
  */
 @Slf4j
 @Component("studentMacroDelete")
-public class DeleteStudentMacroCommand extends LegacyParallelMacroCommand<Boolean> implements StudentCommand<Boolean> {
-    // executor of parallel nested commands
-    private final SchedulingTaskExecutor executor;
+public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements StudentCommand<Boolean> {
     // persistence facade for get instance of student by student-id
     private final transient StudentsPersistenceFacade persistence;
 
@@ -46,8 +44,7 @@ public class DeleteStudentMacroCommand extends LegacyParallelMacroCommand<Boolea
                                      @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
                                      final StudentsPersistenceFacade persistence,
                                      final ActionExecutor actionExecutor) {
-        super(actionExecutor);
-        this.executor = executor;
+        super(actionExecutor, executor);
         this.persistence = persistence;
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
@@ -66,16 +63,6 @@ public class DeleteStudentMacroCommand extends LegacyParallelMacroCommand<Boolea
         return contexts.stream()
                 .map(nested -> ((Context<Boolean>) nested).getResult().orElse(false))
                 .reduce(Boolean.TRUE, Boolean::logicalAnd);
-    }
-
-    /**
-     * To get access to command's command-context executor
-     *
-     * @return instance of executor
-     */
-    @Override
-    public SchedulingTaskExecutor getExecutor() {
-        return executor;
     }
 
     /**
@@ -152,7 +139,7 @@ public class DeleteStudentMacroCommand extends LegacyParallelMacroCommand<Boolea
      * @param macroInputParameter Macro-Command execute input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override

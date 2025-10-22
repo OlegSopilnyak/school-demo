@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 import java.util.UUID;
@@ -12,6 +13,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 import org.junit.jupiter.api.AfterEach;
@@ -22,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +32,8 @@ class ActionExecutorImplTest<T> {
     @Spy
     @InjectMocks
     ActionExecutorImpl actionExecutor;
+    @Mock
+    ApplicationContext applicationContext;
     @Spy
     @InjectMocks
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
@@ -43,6 +48,7 @@ class ActionExecutorImplTest<T> {
     void setUp() {
         messagesExchangeService.initialize();
         ReflectionTestUtils.setField(actionExecutor, "messagesExchangeService", messagesExchangeService);
+        doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
     }
 
     @AfterEach
@@ -103,6 +109,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_UnknownDirection() {
+        reset(applicationContext);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {
@@ -122,6 +129,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_NullDirection() {
+        reset(applicationContext);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {

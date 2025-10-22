@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPerso
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
@@ -31,17 +31,15 @@ import org.springframework.stereotype.Component;
  *
  * @see AuthorityPerson
  * @see PrincipalProfile
- * @see LegacyParallelMacroCommand
+ * @see ParallelMacroCommand
  * @see DeleteAuthorityPersonCommand
  * @see DeletePrincipalProfileCommand
  * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
 @Component("authorityPersonMacroDelete")
-public class DeleteAuthorityPersonMacroCommand extends LegacyParallelMacroCommand<Boolean>
+public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
         implements AuthorityPersonCommand<Boolean> {
-    // executor of parallel nested commands
-    private final SchedulingTaskExecutor executor;
     // persistence facade for get instance of authority person by person-id (creat-context phase)
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
@@ -52,8 +50,7 @@ public class DeleteAuthorityPersonMacroCommand extends LegacyParallelMacroComman
                                              @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
                                              final AuthorityPersonPersistenceFacade persistence,
                                              final ActionExecutor actionExecutor) {
-        super(actionExecutor);
-        this.executor = executor;
+        super(actionExecutor, executor);
         this.persistence = persistence;
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
@@ -72,16 +69,6 @@ public class DeleteAuthorityPersonMacroCommand extends LegacyParallelMacroComman
         return contexts.stream()
                 .map(nested -> ((Context<Boolean>) nested).getResult().orElse(false))
                 .reduce(Boolean.TRUE, Boolean::logicalAnd);
-    }
-
-    /**
-     * To get access to command's command-context executor
-     *
-     * @return instance of executor
-     */
-    @Override
-    public SchedulingTaskExecutor getExecutor() {
-        return executor;
     }
 
     /**
@@ -148,7 +135,7 @@ public class DeleteAuthorityPersonMacroCommand extends LegacyParallelMacroComman
      * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see CompositeCommand#createContext(Input)
      */
     @Override

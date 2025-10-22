@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -26,8 +27,8 @@ import org.springframework.util.ObjectUtils;
  * @see CompletableFuture
  */
 public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
-    private final SchedulingTaskExecutor executor;
-    protected ParallelMacroCommand(ActionExecutor actionExecutor, SchedulingTaskExecutor executor) {
+    protected final SchedulingTaskExecutor executor;
+    protected ParallelMacroCommand(final ActionExecutor actionExecutor, final SchedulingTaskExecutor executor) {
         super(actionExecutor);
         this.executor = executor;
     }
@@ -106,14 +107,30 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     }
 
     // private methods
-    // run nested command do in separate thread
+    // launch nested command DO
     private CompletableFuture<Context<?>> launchNestedCommandDo(final Context<?> context, final Context.StateChangedListener listener) {
-        return CompletableFuture.supplyAsync(() -> this.executeDoNested(context, listener), executor);
+        return launchNestedCommandWith(() -> executeDoNested(context, listener));
     }
 
-    // run nested command undo in separate thread
+    // launch nested command UNDO
     private CompletableFuture<Context<?>> launchNestedCommandUndo(final Context<?> context) {
-        return CompletableFuture.supplyAsync(() -> this.executeUndoNested(context), executor);
+        return launchNestedCommandWith(() -> executeUndoNested(context));
+    }
+
+    // run nested command execution in the separate thread
+    private CompletableFuture<Context<?>> launchNestedCommandWith(final Supplier<Context<?>> commandExecution) {
+        // prepare action context for execute command execution of the nested command
+        final ActionContext actionContext = ActionContext.current();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // setup action context for the thread of threads pool
+                ActionContext.install(actionContext);
+                return commandExecution.get();
+            } finally {
+                // release current thread
+                ActionContext.release();
+            }
+        }, executor);
     }
 
     // restore execution context from completable future

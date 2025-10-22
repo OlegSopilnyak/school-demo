@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -221,7 +221,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param input   Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
      */
     @Override

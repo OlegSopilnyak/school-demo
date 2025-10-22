@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -89,7 +89,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * @param mainInputParameter composite command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(LegacyParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> mainInputParameter) {

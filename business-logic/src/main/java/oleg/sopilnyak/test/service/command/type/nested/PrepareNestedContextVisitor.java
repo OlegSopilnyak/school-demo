@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -63,17 +63,17 @@ public interface PrepareNestedContextVisitor {
     }
 
     /**
-     * To prepare context for particular type (LegacyParallelMacroCommand) of the nested command
+     * To prepare context for particular type (ParallelMacroCommand) of the nested command
      *
      * @param command            nested command instance
      * @param mainInputParameter macro-command input parameter
      * @param <T>                type of command's do result
      * @return built context of the nested command for the macro input parameter
-     * @see LegacyParallelMacroCommand
-     * @see LegacyParallelMacroCommand#createContext(Input)
+     * @see ParallelMacroCommand
+     * @see ParallelMacroCommand#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final LegacyParallelMacroCommand<T> command, final Input<?> mainInputParameter) {
+    default <T> Context<T> prepareContext(final ParallelMacroCommand<T> command, final Input<?> mainInputParameter) {
         return command.createContext(mainInputParameter);
     }
 

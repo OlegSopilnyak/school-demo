@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Deque;
 import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.LegacyParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -73,8 +73,8 @@ public class SchoolCommandsConfiguration {
      * @param maxPoolSize maximum size of threads-pool
      * @return ready to use executor
      * @see SchedulingTaskExecutor
-     * @see LegacyParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see LegacyParallelMacroCommand#rollbackNested(Deque)
+     * @see ParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see ParallelMacroCommand#rollbackNested(Deque)
      */
     @Bean
     public SchedulingTaskExecutor parallelCommandNestedCommandsExecutor(
@@ -196,6 +196,7 @@ public class SchoolCommandsConfiguration {
      * @see com.fasterxml.jackson.databind.ObjectMapper
      * @see Module
      */
+    @SuppressWarnings("unchecked")
     @Bean(name = "jsonContextModule")
     public <T extends RootCommand<?>> Module createConetxtModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
         return new JsonContextModule(context, farm);
