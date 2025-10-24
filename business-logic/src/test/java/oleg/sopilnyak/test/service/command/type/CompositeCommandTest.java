@@ -111,6 +111,8 @@ class CompositeCommandTest {
         doReturn(logger).when(compositeCommand).getLog();
         Input<Void> input = Input.empty();
         NestedCommand<Void> firstCommand = mock(NestedCommand.class);
+        String commandId = "first.command.id";
+        doReturn(commandId).when(firstCommand).getId();
         Context<?> firstContext = mock(Context.class);
         NestedCommand<Void> secondCommand = mock(NestedCommand.class);
         Context<?> secondContext = mock(Context.class);
@@ -137,7 +139,7 @@ class CompositeCommandTest {
         assertThat(context.getException()).isEqualTo(exception);
         assertThat(context.getException()).isEqualTo(firstContext.getException());
         // check the behavior
-        verify(logger).error(anyString(), eq(firstCommand), eq(input), eq(exception));
+        verify(logger).error(anyString(), eq(commandId), eq(input), eq(exception));
         verify(firstCommand).createFailedContext(exception);
     }
 
@@ -153,6 +155,8 @@ class CompositeCommandTest {
         Context<?> secondContext = mock(Context.class);
         doReturn(secondContext).when(secondCommand).acceptPreparedContext(compositeCommand, input);
         NestedCommand<Void> thirdCommand = mock(NestedCommand.class);
+        String commandId = "third.command.id";
+        doReturn(commandId).when(thirdCommand).getId();
         Context<?> thirdContext = mock(Context.class);
         doReturn(List.of(firstCommand, secondCommand, thirdCommand)).when(compositeCommand).fromNest();
         doCallRealMethod().when(compositeCommand).createContext(any(Input.class));
@@ -173,7 +177,7 @@ class CompositeCommandTest {
         assertThat(context.getException()).isEqualTo(exception);
         assertThat(context.getException()).isEqualTo(thirdContext.getException());
         // check the behavior
-        verify(logger).error(anyString(), eq(thirdCommand), eq(input), eq(exception));
+        verify(logger).error(anyString(), eq(commandId), eq(input), eq(exception));
         verify(thirdCommand).createFailedContext(exception);
     }
 

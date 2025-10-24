@@ -28,15 +28,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.mockito.stubbing.Answer;
-import org.springframework.context.ApplicationContext;
-import org.springframework.scheduling.SchedulingTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -273,6 +273,7 @@ class AuthorityPersonFacadeImplTest {
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 302L;
         Long profileId = 402L;
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
@@ -299,6 +300,7 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         Long id = 303L;
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
 
         AuthorityPersonNotFoundException thrown =
                 assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
@@ -322,6 +324,7 @@ class AuthorityPersonFacadeImplTest {
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 304L;
         Long profileId = 404L;
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
         when(persistenceFacade.save(mockProfilePayload)).thenReturn(Optional.of(mockProfilePayload));

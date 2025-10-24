@@ -3,15 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doCallRealMethod;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -84,6 +76,7 @@ class DeleteAuthorityPersonMacroCommandTest {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
             return null;
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
+        doReturn(command).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
@@ -91,7 +84,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldBeValidCommand() {
-        reset(actionExecutor, schedulingTaskExecutor);
+        reset(actionExecutor, schedulingTaskExecutor, applicationContext);
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
@@ -166,7 +159,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotCreateMacroCommandContext_WrongInputType() {
-        reset(actionExecutor, schedulingTaskExecutor);
+        reset(actionExecutor, schedulingTaskExecutor, applicationContext);
         Object wrongTypeInput = "something";
 
         Input<?> wrongInput = Input.of(wrongTypeInput);
