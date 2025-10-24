@@ -22,6 +22,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +49,12 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     AuthorityPersonCommand command;
+
+    @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void setUp() {
+        authorityPersonRepository.deleteAll();
+    }
 
     @AfterEach
     @Transactional(propagation = Propagation.REQUIRES_NEW)

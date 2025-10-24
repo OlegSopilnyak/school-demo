@@ -96,6 +96,10 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         });
         ActionContext.setup("test-facade", "test-action");
         messagesExchangeService.initialize();
+        authorityPersonRepository.deleteAll();
+        profileRepository.deleteAll();
+        authorityPersonRepository.flush();
+        profileRepository.flush();
     }
 
     @AfterEach
@@ -105,6 +109,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         messagesExchangeService.shutdown();
         authorityPersonRepository.deleteAll();
         profileRepository.deleteAll();
+        authorityPersonRepository.flush();
+        profileRepository.flush();
     }
 
     @Test

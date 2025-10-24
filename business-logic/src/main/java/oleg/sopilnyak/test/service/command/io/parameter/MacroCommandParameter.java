@@ -1,8 +1,5 @@
 package oleg.sopilnyak.test.service.command.io.parameter;
 
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -16,15 +13,20 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Deque;
-import java.util.LinkedList;
 import lombok.ToString;
 import lombok.Value;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
  * Type-wrapper: The wrapper of MacroCommand input parameter bean
@@ -44,11 +46,19 @@ public class MacroCommandParameter implements Input<MacroCommandParameter> {
     private static final String NESTED_CONTEXTS_FIELD_NAME = "nested-contexts";
     private static final Input.ParameterDeserializer<?> parameterDeserializer = new Input.ParameterDeserializer<>();
     Input<?> rootInput;
-    Deque<Context<?>> nestedContexts = new LinkedList<>();
+    AtomicReference<Deque<Context<?>>> nestedContexts = new AtomicReference<>();
 
     public MacroCommandParameter(final Input<?> mainInputParameter, final Deque<Context<?>> nestedContexts) {
         this.rootInput = mainInputParameter;
-        this.nestedContexts.addAll(nestedContexts);
+        this.nestedContexts.getAndSet(nestedContexts);
+    }
+
+    public Deque<Context<?>> getNestedContexts() {
+        return new LinkedList<>(nestedContexts.get());
+    }
+
+    public void updateNestedContexts(final Deque<Context<?>> nestedContexts) {
+        this.nestedContexts.getAndSet(nestedContexts);
     }
 
     /**

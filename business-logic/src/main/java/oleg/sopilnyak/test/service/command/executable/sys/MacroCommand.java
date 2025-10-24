@@ -100,6 +100,9 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             // wait for all nested command executions have done
             getLog().debug("Waiting for {} nested commands done", nestedContextCount);
             nestedLatch.await();
+            //
+            // store results to the root context input parameter
+            mainCommandParameter.updateNestedContexts(executionResults);
 
             // after execution of nested, success and fail dequeues processing
             afterExecutionProcessing(context, succeed.getDeque(), failed.getDeque(), executionResults);
