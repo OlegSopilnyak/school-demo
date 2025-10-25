@@ -12,15 +12,23 @@ import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+
+import static java.util.Objects.isNull;
 
 /**
  * Command-Implementation: command to delete the authority person by id
@@ -34,16 +42,45 @@ import java.util.function.UnaryOperator;
 @Component("authorityPersonDelete")
 public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Boolean> {
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // facade to manipulate AuthorityPerson entities
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    // reference to current command for transactional operations
+    private final AtomicReference<RootCommand<Boolean>> self;
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public RootCommand<Boolean> self() {
+        synchronized (AuthorityPersonCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("authorityPersonDelete", AuthorityPersonCommand.class));
+            }
+        }
+        return self.get();
+    }
 
     public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
         super(AuthorityPerson.class);
+        self = new  AtomicReference<>(null);
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }
+
 
     /**
      * DO: To delete authority person by id<BR/>
@@ -60,6 +97,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      * @see AuthorityPersonNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -102,6 +140,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

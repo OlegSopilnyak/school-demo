@@ -1,16 +1,15 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import static java.util.Objects.isNull;
-
-import java.util.Optional;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+import static java.util.Objects.isNull;
 
 /**
  * Type: School Command to execute the business-logic action
@@ -34,12 +33,14 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     String getId();
 
     /**
-     * To get mapper for business-message-payload
+     * To get mapper instance for business-message-payload transformation
      *
      * @return mapper instance
      * @see BusinessMessagePayloadMapper
      */
-    BusinessMessagePayloadMapper getPayloadMapper();
+    default BusinessMessagePayloadMapper getPayloadMapper() {
+        return null;
+    }
 
     /**
      * To check nullable of the input parameter
@@ -98,18 +99,30 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     }
 
     /**
+     * Reference to the current command for operations with the command's entities in transaction possibility
+     *
+     * @return the reference to the current command from spring beans factory
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    default RootCommand<T> self() {
+        return this;
+    }
+
+    /**
      * To execute command logic with context
      *
      * @param context context of redo execution
      * @see Context
      * @see CommandExecutable#executeDo(Context)
+     * @see RootCommand#self()
      */
     @Override
     default void doCommand(Context<T> context) {
         if (context.isReady()) {
-            // start redo with correct context state
+            // start executing command-do with correct context state
             context.setState(Context.State.WORK);
-            executeDo(context);
+            self().executeDo(context);
             afterExecuteDo(context);
         } else {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
@@ -124,14 +137,14 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context
      * @see Context#getUndoParameter()
      * @see CommandExecutable#executeUndo(Context)
+     * @see RootCommand#self()
      */
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     default void undoCommand(Context<?> context) {
         if (context.isDone()) {
-            // start undo with correct context state
+            // start executing command-undo with correct context state
             context.setState(Context.State.WORK);
-            executeUndo(context);
+            self().executeUndo(context);
         } else {
             getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);

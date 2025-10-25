@@ -12,6 +12,8 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -30,8 +32,8 @@ import java.util.function.UnaryOperator;
 @Getter
 public abstract class DeleteProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
         implements ProfileCommand<Boolean> {
-    protected final ProfilePersistenceFacade persistence;
-    protected final BusinessMessagePayloadMapper payloadMapper;
+    protected final transient ProfilePersistenceFacade persistence;
+    protected final transient BusinessMessagePayloadMapper payloadMapper;
 
     protected DeleteProfileCommand(final Class<E> entityType,
                                    final ProfilePersistenceFacade persistence,
@@ -79,6 +81,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
      * @see ProfileNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -116,6 +119,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
      * @see DeleteProfileCommand#functionSave()
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

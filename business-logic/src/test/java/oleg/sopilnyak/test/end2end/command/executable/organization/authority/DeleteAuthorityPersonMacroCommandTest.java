@@ -329,8 +329,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
-        verify(command).executeDo(context);
-        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
+//        verify(command).executeDo(context);
+//        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
+        verify(command, times(2)).self();
         assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 
@@ -718,7 +719,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
-        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         verify(profileCommand, times(i)).doCommand(nestedContext);
         verify(profileCommand, times(i)).executeDo(nestedContext);
     }
@@ -728,7 +729,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyPersonDoCommand(Context<Boolean> nestedContext, int i) {
-        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
+//        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
         verify(personCommand, times(i)).doCommand(nestedContext);
         verify(personCommand, times(i)).executeDo(nestedContext);
     }
