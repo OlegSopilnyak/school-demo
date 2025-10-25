@@ -68,7 +68,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @BeforeEach
     void setUp() {
         command = spy(new DeleteAuthorityPersonMacroCommand(
-                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor, applicationContext
+                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();

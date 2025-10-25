@@ -1,19 +1,5 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
-
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
@@ -60,6 +46,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class,
         AuthorityPersonFacadeImpl.class, SchoolCommandsConfiguration.class, TestConfig.class
@@ -69,6 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
         "school.hibernate.hbm2ddl.auto=update"
 })
 class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
+    @Autowired
+    ApplicationContext applicationContext;
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
@@ -95,8 +91,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     @Qualifier("authorityPersonDelete")
     AuthorityPersonCommand personCommand;
-    @Autowired
-    ApplicationContext applicationContext;
+    // delete person macro command
     DeleteAuthorityPersonMacroCommand command;
     @Captor
     ArgumentCaptor<AuthorityPersonCommand> personCaptor;
@@ -108,8 +103,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
         command = spy(new DeleteAuthorityPersonMacroCommand(
-                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor, applicationContext
+                personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
         ActionContext.setup("test-facade", "test-action");
         messagesExchangeService.initialize();
         authorityPersonRepository.deleteAll();
@@ -329,8 +325,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
-//        verify(command).executeDo(context);
-//        verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
         verify(command, times(2)).self();
         assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
@@ -587,9 +581,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         doThrow(exception).when(persistence).save(any(PrincipalProfile.class));
 
         command.undoCommand(context);
-//        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
-//                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getFirst().isDone()
-//        );
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
+                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getFirst().isDone()
+        );
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
@@ -648,9 +642,9 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         doThrow(exception).when(persistence).save(any(AuthorityPerson.class));
 
         command.undoCommand(context);
-//        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
-//                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getLast().isDone()
-//        );
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() ->
+                context.<MacroCommandParameter>getRedoParameter().value().getNestedContexts().getLast().isDone()
+        );
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(exception);
@@ -719,7 +713,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyProfileDoCommand(Context<Boolean> nestedContext, int i) {
-//        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).self();
         verify(profileCommand, times(i)).doCommand(nestedContext);
         verify(profileCommand, times(i)).executeDo(nestedContext);
     }
@@ -729,7 +723,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     }
 
     private void verifyPersonDoCommand(Context<Boolean> nestedContext, int i) {
-//        verify(command).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
+        verify(command).self();
         verify(personCommand, times(i)).doCommand(nestedContext);
         verify(personCommand, times(i)).executeDo(nestedContext);
     }

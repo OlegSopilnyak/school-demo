@@ -1,5 +1,23 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
@@ -9,7 +27,15 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.*;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.LoginAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.LogoutAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.MacroDeleteAuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -22,6 +48,11 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,16 +63,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorityPersonFacadeImplTest {
@@ -89,8 +111,10 @@ class AuthorityPersonFacadeImplTest {
         deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
-                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor, applicationContext
+                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
+        ReflectionTestUtils.setField(deletePersonMacroCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(deletePersonCommand, "applicationContext", applicationContext);
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
@@ -274,6 +298,7 @@ class AuthorityPersonFacadeImplTest {
         Long id = 302L;
         Long profileId = 402L;
         doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
@@ -325,6 +350,7 @@ class AuthorityPersonFacadeImplTest {
         Long id = 304L;
         Long profileId = 404L;
         doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
         when(persistenceFacade.save(mockProfilePayload)).thenReturn(Optional.of(mockProfilePayload));

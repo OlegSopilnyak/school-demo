@@ -10,10 +10,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
@@ -43,6 +39,11 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,6 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,8 +79,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
     PersistenceFacade database;
-    @Autowired
-    ApplicationContext applicationContext;
 
     PersistenceFacade persistence;
     CommandsFactory<AuthorityPersonCommand<?>> factory;
@@ -340,8 +338,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
         DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
                 spy(new DeleteAuthorityPersonMacroCommand(
-                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor,
-                        persistenceFacade, actionExecutor, applicationContext
+                        deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
                 ));
         return new AuthorityPersonCommandsFactory(
                 Set.of(

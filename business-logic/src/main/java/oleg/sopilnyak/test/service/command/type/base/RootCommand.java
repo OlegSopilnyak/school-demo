@@ -102,6 +102,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * Reference to the current command for operations with the command's entities in transaction possibility
      *
      * @return the reference to the current command from spring beans factory
+     * @see org.springframework.context.ApplicationContext
      * @see RootCommand#doCommand(Context)
      * @see RootCommand#undoCommand(Context)
      */

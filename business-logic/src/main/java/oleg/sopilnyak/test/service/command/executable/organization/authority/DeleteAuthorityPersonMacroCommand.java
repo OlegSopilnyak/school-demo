@@ -2,9 +2,6 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import static java.util.Objects.isNull;
 
-import java.util.Deque;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -22,14 +19,18 @@ import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisit
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
-import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Deque;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to delete the authority person and the profile assigned to the person
@@ -45,40 +46,46 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("authorityPersonMacroDelete")
 public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
         implements MacroDeleteAuthorityPerson<Boolean> {
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
     // persistence facade for get instance of authority person by person-id (creat-context phase)
     private final transient AuthorityPersonPersistenceFacade persistence;
-    private final ApplicationContext applicationContext;
-    private volatile MacroDeleteAuthorityPerson self;
-    @Getter
-    private final transient BusinessMessagePayloadMapper payloadMapper = null;
+    // reference to current command for transactional operations
+    private final AtomicReference<MacroDeleteAuthorityPerson<Boolean>> self;
 
     public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
                                              @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
                                              @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
                                              AuthorityPersonPersistenceFacade persistence,
-                                             ActionExecutor actionExecutor,
-                                             ApplicationContext applicationContext) {
+                                             ActionExecutor actionExecutor) {
         super(actionExecutor, executor);
         this.persistence = persistence;
-        this.applicationContext = applicationContext;
+        this.self = new AtomicReference<>(null);
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
     }
 
     /**
-     * To get the reference to current command instance for transactional command create context processing
+     * Reference to the current command for transactional operations create context processing
      *
-     * @return the reference to the command
+     * @return the reference to the current command from spring beans factory
+     * @see org.springframework.context.ApplicationContext
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
      */
-    public MacroDeleteAuthorityPerson self() {
+    @Override
+    @SuppressWarnings("unchecked")
+    public MacroDeleteAuthorityPerson<Boolean> self() {
         synchronized (AuthorityPersonCommand.class) {
-            if (isNull(self)) {
-                // getting service reference which can be used for transactional operations
-                // actually it's proxy of service with transactional processActionCommandAndProceed method
-                self = applicationContext.getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class));
             }
         }
-        return self;
+        return self.get();
     }
 
     /**
