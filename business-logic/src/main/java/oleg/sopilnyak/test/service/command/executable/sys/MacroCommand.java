@@ -1,24 +1,27 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
-import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.type.nested.NestedContextDeque;
-import oleg.sopilnyak.test.service.command.type.nested.NestedStateChangedListener;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.nested.NestedContextDeque;
+import oleg.sopilnyak.test.service.command.type.nested.NestedStateChangedListener;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import org.springframework.util.ObjectUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * Command-Base: macro-command the command with nest of commands inside
@@ -52,8 +55,8 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * To add the command to the commands nest
      *
      * @param command the instance to add
+     * @param <N>     the result type of the nested command
      * @see NestedCommand
-     * @param <N> the result type of the nested command
      */
     @Override
     public <N> boolean putToNest(final NestedCommand<N> command) {
@@ -82,7 +85,8 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             checkNullParameter(inputParameter);
             final MacroCommandParameter mainCommandParameter = inputParameter.value();
             checkNullParameter(mainCommandParameter);
-            getLog().debug("Do Execution For {}", mainCommandParameter);
+            checkNullNested(mainCommandParameter);
+            getLog().debug("Doing Execution For {}", mainCommandParameter);
             final Deque<Context<?>> nestedContexts = mainCommandParameter.getNestedContexts();
             final int nestedContextCount = nestedContexts.size();
 
@@ -95,7 +99,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             final var nestedStateListener = new NestedStateChangedListener(succeed, failed, nestedLatch, getLog());
 
             // executing nested commands using their contexts and collect the results
-            final Deque<Context<?>>executionResults = executeNested(nestedContexts, nestedStateListener);
+            final Deque<Context<?>> executionResults = executeNested(nestedContexts, nestedStateListener);
 
             // wait for all nested command executions have done
             getLog().debug("Waiting for {} nested commands done", nestedContextCount);
@@ -135,7 +139,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             // shouldn't be null
             checkNullParameter(parameter);
             // rolling back successful nested do command contexts
-            final Deque<Context<?>>rollbackResult = rollbackNested(parameter.value());
+            final Deque<Context<?>> rollbackResult = rollbackNested(parameter.value());
             // after rollback process, check the resulting contexts
             afterRollbackProcessing(context, rollbackResult);
         } catch (Exception e) {
@@ -203,7 +207,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     /**
      * Post-processing nested commands rolling back contexts
      *
-     * @param context main context of macro-command
+     * @param context        main context of macro-command
      * @param rollbackResult collection of all nested contexts after nested commands rollback
      */
     protected void afterRollbackProcessing(final Context<?> context, final Deque<Context<?>> rollbackResult) {
@@ -229,6 +233,15 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     // private methods
+    private void checkNullNested(final MacroCommandParameter input) {
+        input.getNestedContexts().forEach(context -> {
+            if (isNull(context)) {
+                getLog().error("Nested context is null in parameter {}", input);
+                throw new NullPointerException("Nested context is null");
+            }
+        });
+    }
+
     private void afterProcessSuccessfulExecution(final Deque<Context<?>> successful, final Deque<Context<?>> after,
                                                  final CommandContext<T> context) {
         final T result = finalCommandResult(after);

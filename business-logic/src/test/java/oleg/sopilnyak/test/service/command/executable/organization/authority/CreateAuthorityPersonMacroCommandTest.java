@@ -1,5 +1,19 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -7,9 +21,9 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -20,25 +34,22 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.*;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
@@ -241,8 +252,9 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         command.doCommand(context);
 
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
-        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
-        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+        Deque<Context<?>> nestedContexts = parameter.getNestedContexts();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
 
         checkContextAfterDoCommand(context);
         Optional<AuthorityPerson> savedPerson = context.getResult().orElseThrow();
@@ -256,8 +268,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.<Long>getUndoParameter().value()).isEqualTo(profileId);
 
         checkContextAfterDoCommand(personContext);
-        Optional<AuthorityPerson> studentResult = personContext.getResult().orElseThrow();
-        final AuthorityPerson person = studentResult.orElseThrow();
+        Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
+        final AuthorityPerson person = personResult.orElseThrow();
         assertAuthorityPersonEquals(person, newPerson, false);
         assertThat(person.getId()).isEqualTo(personId);
         assertThat(person.getProfileId()).isEqualTo(profileId);
@@ -307,8 +319,9 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
-        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
-        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+        Deque<Context<?>> nestedContexts = parameter.getNestedContexts();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
 
         checkContextAfterDoCommand(profileContext);
         Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
@@ -338,7 +351,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(6);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
-        RuntimeException exception = new RuntimeException("Cannot process profile nested command");
+        RuntimeException exception = new RuntimeException("Don't want to process profile nested command. Bad guy!");
         doThrow(exception).when(persistence).save(any(PrincipalProfile.class));
 
         command.doCommand(context);
@@ -347,8 +360,9 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getException()).isEqualTo(exception);
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
-        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
-        Context<?> personContext = parameter.getNestedContexts().pop();
+        Deque<Context<?>> nestedContexts = parameter.getNestedContexts();
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<?> personContext = nestedContexts.pop();
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
         assertThat(profileContext.getException()).isEqualTo(exception);

@@ -3,11 +3,17 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -20,12 +26,17 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +81,8 @@ class DeleteAuthorityPersonMacroCommandTest {
         command = spy(new DeleteAuthorityPersonMacroCommand(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
@@ -246,6 +259,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     void shouldExecuteDoCommand() {
         Long profileId = 8L;
         Long personId = 9L;
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         when(person.getProfileId()).thenReturn(profileId);
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
@@ -295,6 +309,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteDoCommand_ProfileNotFound() {
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 12L;
         Long personId = 11L;
@@ -333,6 +348,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteDoCommand_DeletePersonThrows() {
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 14L;
         Long personId = 13L;
@@ -377,6 +393,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 16L;
         Long personId = 15L;
@@ -423,6 +440,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldExecuteUndoCommand() {
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         Long profileId = 18L;
         Long personId = 17L;
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);
@@ -451,6 +469,7 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @Test
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 20L;
         Long personId = 19L;
@@ -489,6 +508,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     void shouldNotExecuteUndoCommand_SavePersonThrows() {
         Long profileId = 22L;
         Long personId = 21L;
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         when(profile.getId()).thenReturn(profileId);
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);

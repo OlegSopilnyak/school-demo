@@ -58,6 +58,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldCommitAction() {
+        reset(applicationContext);
         doReturn(command).when(commandContext).getCommand();
 
         Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
@@ -70,6 +71,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldRollbackAction() {
+        reset(applicationContext);
         doReturn(command).when(commandContext).getCommand();
 
         Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
@@ -81,6 +83,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldProcessDoActionCommand() {
+        reset(applicationContext);
         DoCommandMessage<T> message = DoCommandMessage.<T>builder()
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
@@ -95,6 +98,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldProcessUndoActionCommand() {
+        reset(applicationContext);
         UndoCommandMessage message = UndoCommandMessage.builder()
                 .actionContext(actionContext).context((Context<Void>) commandContext)
                 .correlationId(UUID.randomUUID().toString())

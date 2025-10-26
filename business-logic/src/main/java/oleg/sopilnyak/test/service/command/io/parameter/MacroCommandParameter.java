@@ -54,7 +54,7 @@ public class MacroCommandParameter implements Input<MacroCommandParameter> {
     }
 
     public Deque<Context<?>> getNestedContexts() {
-        return new LinkedList<>(nestedContexts.get());
+        return nestedContexts.get();
     }
 
     public void updateNestedContexts(final Deque<Context<?>> nestedContexts) {
