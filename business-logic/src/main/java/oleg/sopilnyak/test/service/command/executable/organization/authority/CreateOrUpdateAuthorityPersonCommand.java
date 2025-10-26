@@ -1,12 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -15,10 +10,24 @@ import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to update the authority person
@@ -32,15 +41,42 @@ import org.springframework.stereotype.Component;
 @Component("authorityPersonUpdate")
 public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<AuthorityPersonCommand<Optional<AuthorityPerson>>> self;
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public AuthorityPersonCommand<Optional<AuthorityPerson>> self() {
+        synchronized (AuthorityPersonCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("authorityPersonUpdate", AuthorityPersonCommand.class));
+            }
+        }
+        return self.get();
+    }
 
     public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                                 final BusinessMessagePayloadMapper payloadMapper) {
         super(AuthorityPerson.class);
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
+        self = new AtomicReference<>(null);
     }
 
     /**
@@ -60,6 +96,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      * @see AuthorityPersonNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Input<AuthorityPerson> parameter = context.getRedoParameter();
         try {
@@ -110,6 +147,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      * @see AuthorityPersonNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

@@ -81,7 +81,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
         synchronized (AuthorityPersonCommand.class) {
             if (isNull(self.get())) {
                 // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
+                // actually it's proxy of the command with transactional executeDo/executeUndo methods
                 self.getAndSet(applicationContext.getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class));
             }
         }

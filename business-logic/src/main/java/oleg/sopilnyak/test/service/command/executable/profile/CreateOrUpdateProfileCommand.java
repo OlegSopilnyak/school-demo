@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
@@ -17,6 +16,9 @@ import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
 
 /**
  * Command-Base-Implementation: command to update person profile instance
@@ -32,6 +34,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
         implements ProfileCommand<Optional<E>> {
     protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;
+
 
     protected CreateOrUpdateProfileCommand(final Class<E> entityType,
                                            final ProfilePersistenceFacade persistence,
@@ -80,6 +83,8 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
      * @see ProfileNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @SuppressWarnings("unchecked")
     public void executeDo(Context<Optional<E>> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {
@@ -129,6 +134,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
      * @see CreateOrUpdateProfileCommand#functionSave()
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

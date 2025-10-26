@@ -158,9 +158,9 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public Context<T> failed(Exception exception) {
-        setState(State.FAIL);
-        setException(exception);
         setResult(null);
+        this.exception = exception;
+        setState(State.FAIL);
         return this;
     }
 

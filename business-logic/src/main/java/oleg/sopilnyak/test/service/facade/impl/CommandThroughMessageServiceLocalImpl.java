@@ -39,7 +39,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     private int maximumPoolSize;
     // Create executor for processing message commands by default
     // @see ActionExecutor#processActionCommand(BaseCommandMessage)
-    private static final ActionExecutor actionExecutor = () -> log;
+    private static final ActionExecutor basicActionExecutor = () -> log;
     // Executor services for background processing
     private ThreadPoolTaskExecutor controlExecutorService;
     private ThreadPoolTaskExecutor operationalExecutorService;
@@ -189,7 +189,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             return;
         }
         // process the request's command locally and send the result to the responses queue
-        final BaseCommandMessage<?> responseMessage = actionExecutor.processActionCommand(message);
+        final BaseCommandMessage<?> responseMessage = basicActionExecutor.processActionCommand(message);
         log.debug("Processed request message with correlationId='{}'", correlationId);
         // try to send result to the responses queue
         if (sendToResponsesQueue(responseMessage)) {
@@ -439,9 +439,19 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
                 log.info("Start processing request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
                 // process action in the transaction
                 CommandThroughMessageServiceLocalImpl.this.processActionCommandAndProceed(message);
-                log.info("Successfully processed request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
+                log.info(" ++ Successfully processed request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
             } catch (Throwable e) {
                 log.error("== Cannot process message {}", message.getCorrelationId(), e);
+                if (!message.getContext().isFailed()) {
+                    log.error("=+= Context not failed but something thrown after {}", message.getContext(), e);
+                    if (e instanceof Exception exception) {
+                        message.getContext().failed(exception);
+                    } else {
+                        log.warn("=?= Something strange was thrown =?=", e);
+                    }
+                }
+                log.error("== Sending failed context of message {}", message.getCorrelationId());
+                CommandThroughMessageServiceLocalImpl.this.sendToResponsesQueue(message);
             } finally {
                 // release current action context
                 ActionContext.release();

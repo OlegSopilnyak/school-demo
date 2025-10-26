@@ -49,6 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -61,6 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
+    @Autowired
+    ApplicationContext applicationContext;
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
@@ -87,6 +90,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     CreateAuthorityPersonMacroCommand command;
 
     @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
         command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
@@ -114,7 +118,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
@@ -354,7 +357,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         verifyPersonDoCommand(personContext);
 
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
+         assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
         assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
     }
 
@@ -587,6 +590,14 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     }
 
     // private methods
+    private AuthorityPersonEntity findPersonEntity(Long id) {
+        return findEntity(AuthorityPersonEntity.class, id);
+    }
+
+    private PrincipalProfileEntity findProfileEntity(Long id) {
+        return findEntity(PrincipalProfileEntity.class, id);
+    }
+
     private void checkUndoNestedCommandsOrder(Context<Optional<PrincipalProfile>> profileContext,
                                               Context<Optional<AuthorityPerson>> personContext,
                                               Long personId, Long profileId) {

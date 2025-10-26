@@ -1,10 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Deque;
-import java.util.Optional;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
@@ -25,11 +20,17 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import java.security.NoSuchAlgorithmException;
+import java.util.Deque;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to create the authority person instance with related profile
@@ -57,7 +58,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         this.putToNest(profileCommand);
         this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
+
     }
+
 
     /**
      * To get final main do-command result from nested command-contexts
@@ -191,7 +194,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         } else if (command instanceof PrincipalProfileCommand<?> profileCommand) {
             return wrap(profileCommand);
         }
-        throw new UnableExecuteCommandException(((RootCommand<?>) command).getId());
+        throw new UnableExecuteCommandException(command.getId());
     }
 
 // for command do activities as nested command
@@ -331,6 +334,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @see RootCommand#doCommand(Context)
          */
         @Override
+        @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             wrappedCommand.doCommand(context);
         }
@@ -423,6 +427,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @see RootCommand#doCommand(Context)
          */
         @Override
+        @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             wrappedCommand.doCommand(context);
         }
