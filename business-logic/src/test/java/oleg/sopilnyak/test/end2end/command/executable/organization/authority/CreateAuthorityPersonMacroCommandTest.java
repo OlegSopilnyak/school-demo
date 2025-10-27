@@ -366,7 +366,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         assertThat(personContext.getState()).isEqualTo(CANCEL);
 
-        verify(profileCommand).doCommand(profileContext);
         verify(command).executeDoNested(eq(profileContext), any(Context.StateChangedListener.class));
         verify(profileCommand).doCommand(profileContext);
         verify(profileCommand).executeDo(profileContext);
@@ -420,7 +419,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         // changes' compensation after nested command fail
         verifyProfileUndoCommand(profileContext, profileId);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) == null);
     }
 
     @Test
@@ -438,8 +437,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Long personId = personResult.orElseThrow().getId();
         assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
         await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         assertAuthorityPersonEquals(findPersonEntity(personId), person, false);
-        assertThat(findProfileEntity(profileId)).isNotNull();
 
         command.undoCommand(context);
 
@@ -454,8 +453,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // nested commands order
         checkUndoNestedCommandsOrder(profileContext, personContext, personId, profileId);
 
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) == null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) == null);
     }
 
 

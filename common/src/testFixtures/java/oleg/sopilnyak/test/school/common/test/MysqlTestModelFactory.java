@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.school.common.test;
 
-import java.util.List;
-import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -9,7 +7,9 @@ import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -54,6 +54,20 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
             T entity = em.find(entityClass, pk);
             if (entity != null) {
                 em.refresh(entity);
+            }
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    protected <T> T findEntity(Class<T> entityClass, Object pk, Consumer<T> refreshEntity) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            T entity = em.find(entityClass, pk);
+            if (entity != null) {
+                em.refresh(entity);
+                refreshEntity.accept(entity);
             }
             return entity;
         } finally {
