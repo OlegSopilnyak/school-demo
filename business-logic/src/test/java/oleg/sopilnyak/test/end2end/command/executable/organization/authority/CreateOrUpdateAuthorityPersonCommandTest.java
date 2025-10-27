@@ -1,8 +1,24 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -16,46 +32,57 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
+    @Autowired
+    AuthorityPersonRepository authorityPersonRepository;
+    @Autowired
+    EntityMapper entityMapper;
     @SpyBean
     @Autowired
     AuthorityPersonPersistenceFacade persistence;
+    @SpyBean
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     AuthorityPersonCommand command;
 
+    @BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void setUp() {
+        ActionContext.setup("test-facade", "test-action");
+        authorityPersonRepository.deleteAll();
+        authorityPersonRepository.flush();
+    }
+
     @AfterEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        authorityPersonRepository.deleteAll();
+        authorityPersonRepository.flush();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -63,7 +90,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
         AuthorityPerson entity = makeCleanAuthorityPerson(1);
         Input<AuthorityPerson> input = (Input<AuthorityPerson>) Input.of(entity);
@@ -80,7 +106,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateEntity() {
         AuthorityPerson entity = persist();
         Long id = entity.getId();
@@ -103,7 +128,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 301L;
         AuthorityPerson entity = spy(makeTestAuthorityPerson(id));
@@ -122,7 +146,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         Long id = 302L;
         AuthorityPerson entity = spy(makeTestAuthorityPerson(id));
@@ -141,13 +164,12 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         AuthorityPerson entity = spy(makeTestAuthorityPerson(null));
         doThrow(RuntimeException.class).when(persistence).save(entity);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
 
-        command.doCommand(context);
+        assertThrows(UnexpectedRollbackException.class, () -> command.doCommand(context));
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -157,7 +179,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         AuthorityPerson entity = spy(persist());
         Long id = entity.getId();
@@ -176,7 +197,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of("input"));
 
@@ -188,7 +208,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<AuthorityPerson>> context = command.createContext(null);
 
@@ -200,7 +219,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
 
@@ -212,11 +230,10 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateEntity() {
         AuthorityPerson entity = spy(persist());
         Long id = entity.getId();
-        assertThat(persistence.findAuthorityPersonById(id)).isPresent();
+        assertThat(findPersonEntity(id)).isNotNull();
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
         if (context instanceof CommandContext<?> commandContext) {
@@ -226,39 +243,37 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
         command.undoCommand(context);
 
-        assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
+        assertThat(context.isUndone()).isTrue();
         verify(command).executeUndo(context);
         verify(persistence).deleteAuthorityPerson(id);
         assertThat(persistence.findAuthorityPersonById(id)).isEmpty();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateEntity() {
         AuthorityPerson entity = spy(persist());
         Long id = entity.getId();
-        assertAuthorityPersonEquals(entity, persistence.findAuthorityPersonById(id).orElseThrow());
+        assertAuthorityPersonEquals(entity, findPersonEntity(id));
         AuthorityPerson entityUpdated = payloadMapper.toPayload(entity);
         if (entityUpdated instanceof AuthorityPersonPayload updated) {
             updated.setFirstName(entity.getFirstName() + "-updated");
         }
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
+        context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
             commandContext.setUndoParameter(Input.of(entityUpdated));
         }
-        context.setState(Context.State.DONE);
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
         verify(command).executeUndo(context);
         verify(persistence).save(entityUpdated);
-        assertAuthorityPersonEquals(entityUpdated, persistence.findAuthorityPersonById(entity.getId()).orElseThrow());
+        assertAuthorityPersonEquals(entityUpdated, findPersonEntity(entity.getId()));
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
 
@@ -269,7 +284,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -283,7 +297,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<AuthorityPerson>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -301,7 +314,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileNotFoundException {
         Long id = 305L;
         Context<Optional<AuthorityPerson>> context = command.createContext();
@@ -310,9 +322,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
             commandContext.setUndoParameter(Input.of(id));
         }
         context.setState(Context.State.DONE);
-
         doThrow(new RuntimeException()).when(persistence).deleteAuthorityPerson(id);
-        command.undoCommand(context);
+
+        assertThrows(UnexpectedRollbackException.class, () -> command.undoCommand(context));
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -321,7 +333,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
         AuthorityPerson entity = spy(persist());
         Context<Optional<AuthorityPerson>> context = command.createContext();
@@ -330,9 +341,9 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
             commandContext.setUndoParameter(Input.of(entity));
         }
         context.setState(Context.State.DONE);
-        doThrow(new RuntimeException()).when(persistence).save(entity);
+        doThrow(new RuntimeException("Don't want to create person. Bad Guy!")).when(persistence).save(entity);
 
-        command.undoCommand(context);
+        assertThrows(UnexpectedRollbackException.class, () -> command.undoCommand(context));
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -341,18 +352,25 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private AuthorityPersonEntity findPersonEntity(Long id) {
+        return findEntity(AuthorityPersonEntity.class, id);
+    }
+
     private AuthorityPerson persist() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             AuthorityPerson source = makeCleanAuthorityPerson(0);
-            AuthorityPerson entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
-            assertAuthorityPersonEquals(person.orElseThrow(), source, false);
-            assertThat(person).contains(entity);
-            return payloadMapper.toPayload(entity);
+            AuthorityPersonEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(AuthorityPersonEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

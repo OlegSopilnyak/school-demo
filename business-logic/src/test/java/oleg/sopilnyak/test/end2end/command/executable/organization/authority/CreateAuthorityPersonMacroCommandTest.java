@@ -11,10 +11,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
@@ -39,6 +35,11 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -62,8 +62,6 @@ import org.springframework.transaction.annotation.Transactional;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
-    @Autowired
-    ApplicationContext applicationContext;
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
@@ -299,9 +297,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         verifyPersonDoCommand(personContext);
 
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        assertAuthorityPersonEquals(findPersonEntity(personId), newPerson, false);
+        assertThat(findProfileEntity(profileId)).isNotNull();
     }
 
     @Test
@@ -343,9 +341,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Optional<AuthorityPerson> personResult = personContext.getResult().orElseThrow();
         final AuthorityPerson person = personResult.orElseThrow();
         assertAuthorityPersonEquals(person, newPerson, false);
-        Long studentId = person.getId();
+        Long personId = person.getId();
         assertThat(person.getProfileId()).isEqualTo(profileId);
-        assertThat(personContext.<Long>getUndoParameter().value()).isEqualTo(studentId);
+        assertThat(personContext.<Long>getUndoParameter().value()).isEqualTo(personId);
 
         verify(command).executeDo(context);
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
@@ -357,8 +355,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         verifyPersonDoCommand(personContext);
 
-         assertAuthorityPersonEquals(persistence.findAuthorityPersonById(studentId).orElseThrow(), newPerson, false);
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        assertAuthorityPersonEquals(findPersonEntity(personId), newPerson, false);
+        assertThat(findProfileEntity(profileId)).isNotNull();
     }
 
     @Test
@@ -453,9 +451,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Long profileId = profileResult.orElseThrow().getId();
         Long personId = personResult.orElseThrow().getId();
         assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), person, false);
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        assertAuthorityPersonEquals(findPersonEntity(personId), person, false);
+        assertThat(findProfileEntity(profileId)).isNotNull();
 
         command.undoCommand(context);
 
@@ -489,10 +487,10 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Long profileId = profileResult.orElseThrow().getId();
         Long personId = personResult.orElseThrow().getId();
         assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-        RuntimeException exception = new RuntimeException("Don't want to process nested undo commands");
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        assertAuthorityPersonEquals(findPersonEntity(personId), newPerson, false);
+        RuntimeException exception = new RuntimeException("Don't want to process nested undo commands. Bad Guy!");
         doThrow(exception).when(command).rollbackNested(any(Deque.class));
 
         command.undoCommand(context);
@@ -505,8 +503,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(personCommand, never()).undoCommand(any(Context.class));
         verify(profileCommand, never()).undoCommand(any(Context.class));
 
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        assertThat(findPersonEntity(personId)).isNotNull();
+        assertThat(findProfileEntity(profileId)).isNotNull();
     }
 
     @Test
@@ -523,9 +521,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Long profileId = profileResult.orElseThrow().getId();
         Long personId = personResult.orElseThrow().getId();
         assertThat(profileId).isEqualTo(personResult.orElseThrow().getProfileId());
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(PrincipalProfileEntity.class, profileId) != null);
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
+        assertAuthorityPersonEquals(findPersonEntity(personId), newPerson, false);
         RuntimeException exception = new RuntimeException("Don't want to process person undo command");
         doThrow(exception).when(persistence).deleteAuthorityPerson(personId);
 
@@ -541,8 +539,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(command).executeUndo(context);
         verifyPersonUndoCommand(personContext, personId);
 
-        assertThat(persistence.findAuthorityPersonById(personId)).isPresent();
-        assertThat(persistence.findPrincipalProfileById(profileId)).isPresent();
+        assertThat(findPersonEntity(personId)).isNotNull();
+        assertThat(findProfileEntity(profileId)).isNotNull();
     }
 
     @Test
@@ -560,13 +558,13 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Long profileId = profileResult.orElseThrow().getId();
         final Long personId = studentResult.orElseThrow().getId();
         assertThat(profileId).isEqualTo(studentResult.orElseThrow().getProfileId());
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) != null);
-        assertAuthorityPersonEquals(persistence.findAuthorityPersonById(personId).orElseThrow(), newPerson, false);
-        RuntimeException exception = new RuntimeException("Don't want to process profile undo command");
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) != null);
+        assertAuthorityPersonEquals(findPersonEntity(personId), newPerson, false);
+        RuntimeException exception = new RuntimeException("Don't want to process profile undo command, Bad Guy!");
         doThrow(exception).when(persistence).deleteProfileById(profileId);
 
         command.undoCommand(context);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findEntity(AuthorityPersonEntity.class, personId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(personId) == null);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(exception);
@@ -580,13 +578,10 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verifyPersonUndoCommand(personContext, personId);
         verifyPersonDoCommand(personContext);
 
-        assertThat(findEntity(AuthorityPersonEntity.class, personId)).isNull();
-        assertThat(findEntity(PrincipalProfileEntity.class, profileId)).isNotNull();
+        assertThat(findPersonEntity(personId)).isNull();
+        assertThat(findProfileEntity(profileId)).isNotNull();
         Long resultPersonId = personContext.getResult().orElseThrow().orElseThrow().getId();
-        Long resultProfileId = profileContext.getResult().orElseThrow().orElseThrow().getId();
-        assertThat(resultProfileId).isEqualTo(profileId);
-        assertThat(findEntity(AuthorityPersonEntity.class, resultPersonId)).isNotNull();
-        assertThat(findEntity(PrincipalProfileEntity.class, resultProfileId)).isNotNull();
+        assertThat(findPersonEntity(resultPersonId)).isNotNull();
     }
 
     // private methods
