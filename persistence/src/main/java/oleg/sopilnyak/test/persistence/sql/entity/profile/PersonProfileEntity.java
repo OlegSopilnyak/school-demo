@@ -1,16 +1,30 @@
 package oleg.sopilnyak.test.persistence.sql.entity.profile;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapKeyColumn;
+import javax.persistence.Table;
+import java.util.Map;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
-
-import javax.persistence.*;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * DatabaseEntity: Base Entity for Profile Subsystem entities

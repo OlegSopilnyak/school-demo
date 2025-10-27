@@ -11,14 +11,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
-import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -33,6 +29,8 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +43,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.UnexpectedRollbackException;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
-    @Autowired
-    AuthorityPersonRepository authorityPersonRepository;
     @Autowired
     EntityMapper entityMapper;
     @SpyBean
@@ -67,19 +61,14 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     AuthorityPersonCommand command;
 
     @BeforeEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
-        ActionContext.setup("test-facade", "test-action");
-        authorityPersonRepository.deleteAll();
-        authorityPersonRepository.flush();
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @AfterEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, persistence, payloadMapper);
-        authorityPersonRepository.deleteAll();
-        authorityPersonRepository.flush();
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test

@@ -15,8 +15,6 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
-import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
-import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -53,8 +51,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {
@@ -65,10 +61,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
-    @Autowired
-    AuthorityPersonRepository authorityPersonRepository;
-    @Autowired
-    PersonProfileRepository profileRepository;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -88,7 +80,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     CreateAuthorityPersonMacroCommand command;
 
     @BeforeEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
         command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
             @Override
@@ -98,21 +89,16 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         });
         ActionContext.setup("test-facade", "test-action");
         messagesExchangeService.initialize();
-        authorityPersonRepository.deleteAll();
-        profileRepository.deleteAll();
-        authorityPersonRepository.flush();
-        profileRepository.flush();
+        deleteEntities(AuthorityPersonEntity.class);
+        deleteEntities(PrincipalProfileEntity.class);
     }
 
     @AfterEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, profileCommand, personCommand, persistence, payloadMapper);
         messagesExchangeService.shutdown();
-        authorityPersonRepository.deleteAll();
-        profileRepository.deleteAll();
-        authorityPersonRepository.flush();
-        profileRepository.flush();
+        deleteEntities(AuthorityPersonEntity.class);
+        deleteEntities(PrincipalProfileEntity.class);
     }
 
     @Test

@@ -1,8 +1,20 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.principal;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -12,32 +24,29 @@ import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOr
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdatePrincipalProfileCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
+    @Autowired
+    EntityMapper entityMapper;
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
@@ -47,13 +56,18 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Autowired
     PrincipalProfileCommand command;
 
+    @BeforeEach
+    void setUp() {
+        deleteEntities(PrincipalProfileEntity.class);
+    }
+
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(PrincipalProfileEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -61,7 +75,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateProfile() {
         PrincipalProfile profile = persistPrincipalProfile();
         Long id = profile.getId();
@@ -82,7 +95,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateProfile() {
         PrincipalProfile profile = makePrincipalProfile(null);
         if (profile instanceof FakePrincipalProfile fakeProfile) {
@@ -104,7 +116,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
 
@@ -115,7 +126,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_IncompatibleProfileType() {
         StudentProfile profile = persistStudentProfile();
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
@@ -133,7 +143,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ProfileNotFound() {
         Long id = 701L;
         PrincipalProfile profile = makePrincipalProfile(id);
@@ -155,7 +164,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         PrincipalProfile profile = persistPrincipalProfile();
         Long id = profile.getId();
@@ -174,7 +182,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         PrincipalProfile profile = makePrincipalProfile(null);
         if (profile instanceof FakePrincipalProfile fakeProfile) {
@@ -195,7 +202,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         PrincipalProfile profile = persistPrincipalProfile();
         Long id = profile.getId();
@@ -218,7 +224,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of("input"));
 
@@ -231,7 +236,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<PrincipalProfile>> context = command.createContext(null);
 
@@ -244,7 +248,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_DeleteCreated() {
         Long id = persistPrincipalProfile().getId();
         Context<Optional<PrincipalProfile>> context = command.createContext();
@@ -263,7 +266,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_RestoreUpdated() {
         PrincipalProfile profile = persistPrincipalProfile();
         Context<Optional<PrincipalProfile>> context = command.createContext();
@@ -282,7 +284,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
 
@@ -293,7 +294,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -307,7 +307,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<PrincipalProfile>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -325,7 +324,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteByIdExceptionThrown() throws ProfileNotFoundException {
         PrincipalProfile profile = persistPrincipalProfile();
         Long id = profile.getId();
@@ -337,7 +335,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
         context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteProfileById(id);
 
-        command.undoCommand(context);
+        assertThrows(UnexpectedRollbackException.class, () -> command.undoCommand(context));
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -347,7 +345,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveProfileExceptionThrown() {
         PrincipalProfile profile = persistPrincipalProfile();
         Context<Optional<PrincipalProfile>> context = command.createContext();
@@ -369,41 +366,45 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private PrincipalProfile persistPrincipalProfile() {
-        int order = 0;
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {
-                fakeProfile.setLogin(fakeProfile.getLogin() + "->" + order);
-                fakeProfile.setEmail(fakeProfile.getEmail() + ".site" + order);
+                fakeProfile.setLogin(fakeProfile.getLogin() + "->0");
+                fakeProfile.setEmail(fakeProfile.getEmail() + ".site0");
             }
-            PrincipalProfile entity = persistence.save(profile).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<PrincipalProfile> dbProfile = persistence.findPrincipalProfileById(id);
-            assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
-            assertThat(dbProfile).contains(entity);
-            return payloadMapper.toPayload(persistence.toEntity(entity));
+            PrincipalProfileEntity entity = entityMapper.toEntity(profile);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(PrincipalProfileEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 
     private StudentProfile persistStudentProfile() {
-        int order = 0;
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {
-                fakeProfile.setEmail(fakeProfile.getEmail() + ".site" + order);
+                fakeProfile.setEmail(fakeProfile.getEmail() + ".site0");
             }
-            StudentProfile entity = persistence.save(profile).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
-            assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
-            assertThat(dbProfile).contains(entity);
-            return payloadMapper.toPayload(persistence.toEntity(entity));
+            StudentProfileEntity entity = entityMapper.toEntity(profile);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentProfileEntity.class, entity.getId()));
         } finally {
             reset(persistence, payloadMapper);
+            em.close();
         }
     }
 }

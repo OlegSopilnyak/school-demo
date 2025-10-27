@@ -1,9 +1,15 @@
 package oleg.sopilnyak.test.school.common.test;
 
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -69,6 +75,28 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
                 return em.find(entityClass, pk);
             }
             return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    protected <T> void deleteEntities(Class<T> entityClass) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+        Root<T> entityRoot = criteriaQuery.from(entityClass);
+        criteriaQuery.select(entityRoot);
+        Query query = em.createQuery(criteriaQuery);
+        try{
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            List<T> entities = query.getResultList();
+            if (entities != null && !entities.isEmpty()) {
+                entities.forEach(em::remove);
+            }
+            em.flush();
+            em.clear();
+            transaction.commit();
         } finally {
             em.close();
         }
