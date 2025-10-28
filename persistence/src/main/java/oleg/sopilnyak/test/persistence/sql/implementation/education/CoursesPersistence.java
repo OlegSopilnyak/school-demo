@@ -5,12 +5,11 @@ import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
-import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Persistence facade implementation for courses entities
@@ -32,7 +31,7 @@ public interface CoursesPersistence extends CoursesPersistenceFacade {
      * @see Optional#empty()
      */
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED)
     default Optional<Course> findCourseById(Long id) {
         getLog().debug("Looking for Course with ID:{}", id);
         return getCourseRepository().findById(id).map(Course.class::cast);
@@ -74,7 +73,7 @@ public interface CoursesPersistence extends CoursesPersistenceFacade {
      * @return true if there is no course in database
      */
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED)
     default boolean isNoCourses() {
         return getCourseRepository().count() == 0;
     }

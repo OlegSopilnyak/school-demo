@@ -1,21 +1,21 @@
 package oleg.sopilnyak.test.persistence.sql.implementation.education;
 
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.education.CourseRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
-import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.isNull;
+import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Persistence facade implementation for student-course entities relations

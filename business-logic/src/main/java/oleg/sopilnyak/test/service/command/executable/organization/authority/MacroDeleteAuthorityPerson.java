@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 
 /**
- * Type for school-organization authority persons macro deletion command
+ * Type for school-organization authority persons macro deletion command  (for create the command context)
  *
  * @param <T> the type of command execution (do) result
  * @see AuthorityPersonCommand

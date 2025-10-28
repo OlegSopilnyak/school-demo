@@ -42,13 +42,13 @@ import static java.util.Objects.isNull;
 @Component("authorityPersonDelete")
 public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Boolean> {
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
     // facade to manipulate AuthorityPerson entities
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
     // reference to current command for transactional operations
     private final AtomicReference<RootCommand<Boolean>> self;
 

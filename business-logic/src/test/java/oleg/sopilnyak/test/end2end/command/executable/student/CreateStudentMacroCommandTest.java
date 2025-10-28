@@ -438,10 +438,10 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         Optional<Student> studentResult = studentContext.getResult().orElseThrow();
         Long profileId = profileResult.orElseThrow().getId();
         Long studentId = studentResult.orElseThrow().getId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(studentId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findStudentEntity(studentId) != null);
         await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         assertThat(profileId).isEqualTo(studentResult.orElseThrow().getProfileId());
-        assertStudentEquals(findPersonEntity(studentId), person, false);
+        assertStudentEquals(findStudentEntity(studentId), person, false);
 
         command.undoCommand(context);
 
@@ -456,7 +456,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         // nested commands order
         checkUndoNestedCommandsOrder(profileContext, studentContext, studentId, profileId);
 
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(studentId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findStudentEntity(studentId) == null);
         await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) == null);
     }
 
@@ -543,7 +543,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         Optional<Student> studentResult = studentContext.getResult().orElseThrow();
         Long profileId = profileResult.orElseThrow().getId();
         Long studentId = studentResult.orElseThrow().getId();
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(studentId) != null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findStudentEntity(studentId) != null);
         await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findProfileEntity(profileId) != null);
         assertThat(profileId).isEqualTo(studentResult.orElseThrow().getProfileId());
         assertStudentEquals(persistence.findStudentById(studentId).orElseThrow(), newStudent, false);
@@ -551,7 +551,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         doThrow(exception).when(persistence).deleteProfileById(profileId);
 
         command.undoCommand(context);
-        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findPersonEntity(studentId) == null);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findStudentEntity(studentId) == null);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(exception);
@@ -565,14 +565,14 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         verifyStudentUndoCommand(studentContext, studentId);
         verifyStudentDoCommand(studentContext);
 
-        assertThat(findPersonEntity(studentId)).isNull();
+        assertThat(findStudentEntity(studentId)).isNull();
         assertThat(findProfileEntity(profileId)).isNotNull();
         Long resultPersonId = studentContext.getResult().orElseThrow().orElseThrow().getId();
-        assertThat(findPersonEntity(resultPersonId)).isNotNull();
+        assertThat(findStudentEntity(resultPersonId)).isNotNull();
     }
 
     // private methods
-    private StudentEntity findPersonEntity(Long id) {
+    private StudentEntity findStudentEntity(Long id) {
         return findEntity(StudentEntity.class, id, student -> student.getCourseSet().size());
     }
 

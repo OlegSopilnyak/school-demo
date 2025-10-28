@@ -54,18 +54,6 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     // reference to current command for transactional operations
     private final AtomicReference<MacroDeleteAuthorityPerson<Boolean>> self;
 
-    public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
-                                             @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
-                                             @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
-                                             AuthorityPersonPersistenceFacade persistence,
-                                             ActionExecutor actionExecutor) {
-        super(actionExecutor, executor);
-        this.persistence = persistence;
-        this.self = new AtomicReference<>(null);
-        super.putToNest(personCommand);
-        super.putToNest(profileCommand);
-    }
-
     /**
      * Reference to the current command for transactional operations create context processing
      *
@@ -74,6 +62,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @see RootCommand#self()
      * @see RootCommand#doCommand(Context)
      * @see RootCommand#undoCommand(Context)
+     * @see this#createPrincipalProfileContext(PrincipalProfileCommand, Long)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -86,6 +75,18 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
             }
         }
         return self.get();
+    }
+
+    public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
+                                             @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
+                                             @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
+                                             AuthorityPersonPersistenceFacade persistence,
+                                             ActionExecutor actionExecutor) {
+        super(actionExecutor, executor);
+        this.persistence = persistence;
+        this.self = new AtomicReference<>(null);
+        super.putToNest(personCommand);
+        super.putToNest(profileCommand);
     }
 
     /**

@@ -107,8 +107,8 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
             List<T> entities = query.getResultList();
             if (entities != null && !entities.isEmpty()) {
                 entities.forEach(em::remove);
+                em.flush();
             }
-            em.flush();
             em.clear();
             transaction.commit();
         } finally {

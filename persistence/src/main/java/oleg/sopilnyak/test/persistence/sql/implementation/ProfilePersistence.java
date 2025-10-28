@@ -1,24 +1,23 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
-import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
+import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Persistence facade implementation for person-profile entities
@@ -40,7 +39,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED)
     default Optional<PersonProfile> findProfileById(Long id) {
         getLog().debug("Looking for PersonProfile with ID:{}", id);
         return findPersonProfileById(id).map(PersonProfile.class::cast);
@@ -56,7 +55,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * @see Optional#empty()
      */
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRED)
     default Optional<PersonProfile> findPersonProfileByLogin(String login) {
         getLog().debug("Looking for PersonProfile with login:{}", login);
         return getPersonProfileRepository().findByLogin(login).map(PersonProfile.class::cast);
@@ -134,6 +133,7 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
      * @return instance ready to use in the repository
      */
     @Override
+    @SuppressWarnings("unchecked")
     default PersonProfileEntity toEntity(PersonProfile profile) {
         if (profile instanceof StudentProfile student) {
             return student instanceof StudentProfileEntity entity ? entity : toEntity(student);

@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import java.util.Deque;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -18,10 +18,18 @@ import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisit
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Deque;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to delete the student and it's profile
@@ -35,9 +43,37 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component("studentMacroDelete")
-public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements StudentCommand<Boolean> {
+public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
     // persistence facade for get instance of student by student-id
     private final transient StudentsPersistenceFacade persistence;
+    // reference to current command for transactional operations
+    private final AtomicReference<MacroDeleteStudent<Boolean>> self;
+
+    /**
+     * Reference to the current command for transactional operations create context processing
+     *
+     * @return the reference to the current command from spring beans factory
+     * @see org.springframework.context.ApplicationContext
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     * @see this#createStudentProfileContext(StudentProfileCommand, Long)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public MacroDeleteStudent<Boolean> self() {
+        synchronized (StudentCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo/executeUndo methods
+                self.getAndSet(applicationContext.getBean("studentMacroDelete", MacroDeleteStudent.class));
+            }
+        }
+        return self.get();
+    }
 
     public DeleteStudentMacroCommand(@Qualifier("studentDelete") StudentCommand<?> personCommand,
                                      @Qualifier("profileStudentDelete") StudentProfileCommand<?> profileCommand,
@@ -46,6 +82,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
                                      final ActionExecutor actionExecutor) {
         super(actionExecutor, executor);
         this.persistence = persistence;
+        this.self = new AtomicReference<>(null);
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
     }
@@ -112,7 +149,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
     @Override
     public <N> Context<N> prepareContext(final StudentProfileCommand<N> command, final Input<?> macroInputParameter) {
         return macroInputParameter.value() instanceof Long studentId && StudentProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
-                createStudentProfileContext(command, studentId) : cannotCreateNestedContextFor(command);
+                self().createStudentProfileContext(command, studentId) : cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -124,6 +161,8 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      * @return built context of the command for input parameter
      * @see StudentsPersistenceFacade#findStudentById(Long)
      */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public <N> Context<N> createStudentProfileContext(StudentProfileCommand<N> command, Long studentId) {
         final Long profileId = persistence.findStudentById(studentId).map(Student::getProfileId)
                 .orElseThrow(() -> new StudentNotFoundException(STUDENT_WITH_ID_PREFIX + studentId + " is not exists."));
@@ -144,7 +183,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      */
     @Override
     public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
-        return StudentCommand.super.acceptPreparedContext(visitor, macroInputParameter);
+        return MacroDeleteStudent.super.acceptPreparedContext(visitor, macroInputParameter);
     }
 
     // private methods
