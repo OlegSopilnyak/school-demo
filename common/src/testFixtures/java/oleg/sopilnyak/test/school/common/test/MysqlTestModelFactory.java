@@ -10,6 +10,7 @@ import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -116,4 +117,17 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         }
     }
 
+    protected <T> T transactional(Supplier<T> activity) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            T result = activity.get();
+            em.flush();
+            transaction.commit();
+            return result;
+        } finally {
+            em.close();
+        }
+    }
 }
