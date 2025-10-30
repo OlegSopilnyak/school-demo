@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -13,9 +14,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -26,10 +24,12 @@ import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.MacroDeleteStudent;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -37,6 +37,10 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +52,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -71,6 +76,8 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
 
     DeleteStudentMacroCommand command;
+    @Mock
+    ApplicationContext applicationContext;
 
     @Mock
     Student student;
@@ -86,6 +93,9 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
             return null;
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(studentCommand, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
@@ -101,7 +111,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldBeValidCommand() {
-        reset(actionExecutor, schedulingTaskExecutor);
+        reset(actionExecutor, schedulingTaskExecutor, applicationContext);
         assertThat(profileCommand).isNotNull();
         assertThat(studentCommand).isNotNull();
         assertThat(command).isNotNull();
@@ -176,7 +186,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotCreateMacroCommandContext_WrongInputType() {
-        reset(actionExecutor, schedulingTaskExecutor);
+        reset(actionExecutor, schedulingTaskExecutor, applicationContext);
         Object wrongTypeInput = "something";
 
         Input<?> wrongInput = Input.of(wrongTypeInput);
@@ -261,6 +271,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldExecuteDoCommand() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         Long profileId = 8L;
         Long studentId = 9L;
         when(student.getProfileId()).thenReturn(profileId);
@@ -310,6 +321,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteDoCommand_ProfileNotFound() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 12L;
         Long studentId = 11L;
@@ -347,6 +359,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteDoCommand_DeleteStudentThrows() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 14L;
         Long studentId = 13L;
@@ -391,6 +404,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 16L;
         Long studentId = 15L;
@@ -436,6 +450,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldExecuteUndoCommand() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 18L;
         Long studentId = 17L;
@@ -465,6 +480,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 20L;
         Long studentId = 19L;
@@ -490,7 +506,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
-        assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
+        assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeUndo(context);
         verify(command).rollbackNested(any(Deque.class));
@@ -501,6 +517,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteUndoCommand_SaveStudentThrows() {
+        doReturn(studentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 22L;
         Long studentId = 21L;
@@ -520,7 +537,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(studentContext.isFailed()).isTrue();
         assertThat(studentContext.getException()).isSameAs(exception);
         assertThat(studentContext.<StudentPayload>getUndoParameter().value().getOriginal()).isSameAs(student);
-        assertThat(studentContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
+        assertThat(studentContext.getResult()).isEmpty();
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();

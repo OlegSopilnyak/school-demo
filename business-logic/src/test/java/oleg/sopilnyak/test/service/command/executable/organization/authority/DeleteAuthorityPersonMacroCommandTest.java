@@ -495,7 +495,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isSameAs(profile);
-        assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
+        assertThat(profileContext.getResult()).isEmpty();
 
         verify(command).executeUndo(context);
         verify(command).rollbackNested(any(Deque.class));
@@ -526,7 +526,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         assertThat(personContext.isFailed()).isTrue();
         assertThat(personContext.getException()).isSameAs(exception);
         assertThat(personContext.<AuthorityPersonPayload>getUndoParameter().value().getOriginal()).isSameAs(person);
-        assertThat(personContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
+        assertThat(personContext.getResult()).isEmpty();
 
         Context<?> profileContext = parameter.getNestedContexts().pop();
         assertThat(profileContext.isDone()).isTrue();

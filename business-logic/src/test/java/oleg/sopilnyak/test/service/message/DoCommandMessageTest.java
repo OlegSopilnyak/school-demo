@@ -88,7 +88,7 @@ class DoCommandMessageTest {
         assertThat(restored.getContext()).isNotNull();
         assertThat(restored.getContext().getRedoParameter().isEmpty()).isFalse();
         assertThat(restored.getContext().getRedoParameter().value()).isEqualTo(1L);
-        assertThat(restored.getContext().getResult()).isNotNull().isPresent().isEqualTo(Optional.of(true));
+        assertThat(restored.getContext().getResult()).isEmpty();
         assertThat(restored.getContext().getException()).isNotNull().isInstanceOf(Exception.class);
         assertThat(restored.getContext().getException().getMessage()).isNotBlank().isEqualTo(errorMessage);
     }

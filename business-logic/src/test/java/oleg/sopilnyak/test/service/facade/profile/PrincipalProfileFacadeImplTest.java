@@ -16,12 +16,16 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +43,11 @@ class PrincipalProfileFacadeImplTest {
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
     CommandsFactory<PrincipalProfileCommand<?>> factory = buildFactory();
+    @Mock
+    ApplicationContext applicationContext;
+    FindPrincipalProfileCommand findCommand;
+    CreateOrUpdatePrincipalProfileCommand updateCommand;
+    DeletePrincipalProfileCommand deleteCommand;
 
     @Spy
     @InjectMocks
@@ -47,6 +56,11 @@ class PrincipalProfileFacadeImplTest {
     PrincipalProfile profile;
     @Mock
     PrincipalProfilePayload payload;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(updateCommand, "applicationContext", applicationContext);
+    }
 
     @Test
     void shouldFindProfileById() {
@@ -98,6 +112,7 @@ class PrincipalProfileFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateProfile() {
+        doReturn(updateCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         when(persistence.save(payload)).thenReturn(Optional.of(payload));
 
@@ -114,6 +129,7 @@ class PrincipalProfileFacadeImplTest {
 
     @Test
     void shouldNotCreateOrUpdateProfile() {
+        doReturn(updateCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
 
         Optional<PrincipalProfile> result = facade.createOrUpdateProfile(profile);
@@ -231,13 +247,12 @@ class PrincipalProfileFacadeImplTest {
     }
 
     private CommandsFactory<PrincipalProfileCommand<?>> buildFactory() {
-        return new PrincipalProfileCommandsFactory(
-                Set.of(
-                        spy(new FindPrincipalProfileCommand(persistence, payloadMapper)),
-                        spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper)),
-                        spy(new DeletePrincipalProfileCommand(persistence, payloadMapper))
-                )
+        findCommand = spy(new FindPrincipalProfileCommand(persistence, payloadMapper));
+        updateCommand = spy(new CreateOrUpdatePrincipalProfileCommand(persistence, payloadMapper));
+        deleteCommand = spy(new DeletePrincipalProfileCommand(persistence, payloadMapper));
 
+        return new PrincipalProfileCommandsFactory(
+                Set.of(findCommand, updateCommand, deleteCommand)
         );
     }
 }

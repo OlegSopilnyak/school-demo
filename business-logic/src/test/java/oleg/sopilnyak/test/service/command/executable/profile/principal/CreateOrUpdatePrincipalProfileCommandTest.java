@@ -8,14 +8,18 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.NoSuchAlgorithmException;
@@ -38,9 +42,18 @@ class CreateOrUpdatePrincipalProfileCommandTest {
     @Spy
     @InjectMocks
     CreateOrUpdatePrincipalProfileCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
+    }
 
     @Test
     void shouldBeValidCommand() {
+        reset(applicationContext);
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
@@ -48,6 +61,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldGenerateCorrectSignature() throws NoSuchAlgorithmException {
+        reset(applicationContext);
         String login = "login";
         String password = "password";
         PrincipalProfilePayload secure = new PrincipalProfilePayload();
@@ -63,6 +77,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldWorkFunctionFindById() {
+        reset(applicationContext);
         Long id = 710L;
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
 
@@ -74,6 +89,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldWorkFunctionCopyEntity() {
+        reset(applicationContext);
         when(persistence.toEntity(profile)).thenReturn(profile);
         command.functionAdoptEntity().apply(profile);
 
@@ -83,6 +99,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldWorkFunctionSave() {
+        reset(applicationContext);
         doCallRealMethod().when(persistence).save(profile);
 
         command.functionSave().apply(profile);
@@ -142,6 +159,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongState() {
+        reset(applicationContext);
         Context<Optional<PrincipalProfile>> context = command.createContext();
 
         command.doCommand(context);
@@ -303,6 +321,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
 
     @Test
     void shouldNotUndoCommand_WrongState() {
+        reset(applicationContext);
         Context<Optional<PrincipalProfile>> context = command.createContext();
 
         command.undoCommand(context);

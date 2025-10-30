@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -49,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +69,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     ActionExecutor actionExecutor;
 
     CreateAuthorityPersonMacroCommand command;
+    @Mock
+    ApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
@@ -76,6 +80,10 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
                 return spy(super.wrap(command));
             }
         });
+        ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
+        doReturn(personCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
@@ -83,7 +91,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
     @AfterEach
     void tearDown() {
-        reset(payloadMapper);
+        reset(payloadMapper, applicationContext);
     }
 
     @Test

@@ -43,6 +43,7 @@ import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonC
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
@@ -113,6 +114,8 @@ class AuthorityPersonFacadeImplTest {
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
                 deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
+        ReflectionTestUtils.setField(createPersonCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deletePersonMacroCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deletePersonCommand, "applicationContext", applicationContext);
         factory = buildFactory();
@@ -235,6 +238,8 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldCreateNewAuthorityPerson() {
+        doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
+        doReturn(createProfileCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(mockPersonPayload.getFirstName()).thenReturn("John");
         when(mockPersonPayload.getLastName()).thenReturn("Doe");
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
@@ -258,6 +263,7 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Create() {
+        doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
 
         Optional<AuthorityPerson> result = facade.createOrUpdateAuthorityPerson(mockPerson);
@@ -273,6 +279,7 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Update() {
+        doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockPersonPayload)).thenReturn(mockPersonPayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPersonPayload));

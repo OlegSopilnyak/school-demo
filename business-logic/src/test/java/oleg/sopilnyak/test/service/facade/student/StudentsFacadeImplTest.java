@@ -1,5 +1,20 @@
 package oleg.sopilnyak.test.service.facade.student;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
@@ -15,34 +30,33 @@ import oleg.sopilnyak.test.service.command.executable.education.student.DeleteSt
 import oleg.sopilnyak.test.service.command.executable.education.student.FindEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindNotEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindStudentCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.MacroDeleteStudent;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class StudentsFacadeImplTest {
@@ -78,6 +92,8 @@ class StudentsFacadeImplTest {
     DeleteStudentMacroCommand deleteStudentMacroCommand;
 
     CommandsFactory<StudentCommand<?>> factory;
+    @Mock
+    ApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
@@ -88,6 +104,8 @@ class StudentsFacadeImplTest {
         deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
                 deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
+        ReflectionTestUtils.setField(deleteStudentMacroCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(deleteStudentCommand, "applicationContext", applicationContext);
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
@@ -232,6 +250,8 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
+        doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
+        doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
@@ -266,6 +286,7 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
+        doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         Long studentId = 102L;
 
         StudentNotFoundException exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
@@ -281,6 +302,8 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
+        doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
+        doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
