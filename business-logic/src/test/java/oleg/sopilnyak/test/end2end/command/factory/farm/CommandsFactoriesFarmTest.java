@@ -1,36 +1,42 @@
 package oleg.sopilnyak.test.end2end.command.factory.farm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
+import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
+import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
+
+import java.util.Collection;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -40,8 +46,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
-    @SpyBean
-    PersistenceFacade persistence;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -121,6 +125,29 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
         @Bean
         public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
             return new CommandsFactoriesFarm<>(factories);
+        }
+
+        @Bean
+        public ActionExecutor actionExecutor() {
+            return new ActionExecutorImpl(commandThroughMessageService());
+        }
+
+        @Bean
+        public CommandThroughMessageService commandThroughMessageService() {
+            return new CommandThroughMessageServiceLocalImpl();
+        }
+
+        @Bean
+        public SchedulingTaskExecutor parallelCommandNestedCommandsExecutor(
+                @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
+        ) {
+            final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+            final int operationalPoolSize = Math.max(maxPoolSize, Runtime.getRuntime().availableProcessors());
+            executor.setCorePoolSize(2);
+            executor.setMaxPoolSize(operationalPoolSize);
+            executor.setThreadNamePrefix("ParallelCommandThread-");
+            executor.initialize();
+            return executor;
         }
     }
 }
