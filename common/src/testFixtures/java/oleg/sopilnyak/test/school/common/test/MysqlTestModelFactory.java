@@ -8,9 +8,12 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -18,6 +21,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -129,5 +135,26 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         } finally {
             em.close();
         }
+    }
+
+    @Autowired
+    PlatformTransactionManager ptm;
+    protected Object transactCommand(final Object targetBean) {
+        TransactionInterceptor interceptor = new TransactionInterceptor();
+        interceptor.setTransactionManager(ptm);
+        // Configure transaction attributes for methods if needed
+        // Example:
+         Properties transactionAttributes = new Properties();
+         transactionAttributes.setProperty("execute*", "PROPAGATION_REQUIRES_NEW");
+         interceptor.setTransactionAttributes(transactionAttributes);
+        interceptor.afterPropertiesSet();
+        final Object realBean = MockUtil.isSpy(targetBean)
+                ?
+                Mockito.mockingDetails(targetBean).getMockCreationSettings().getSpiedInstance()
+                :
+                targetBean;
+        ProxyFactory proxyFactory = new ProxyFactory(realBean);
+        proxyFactory.addAdvice(interceptor);
+        return proxyFactory.getProxy();
     }
 }

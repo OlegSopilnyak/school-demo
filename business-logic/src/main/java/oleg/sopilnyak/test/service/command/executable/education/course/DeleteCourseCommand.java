@@ -1,11 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
@@ -15,12 +11,25 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to delete the course by id
@@ -35,6 +44,32 @@ import org.springframework.util.ObjectUtils;
 public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
     private final transient CoursesPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<CourseCommand<Boolean>> self = new AtomicReference<>(null);
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public CourseCommand<Boolean> self() {
+        synchronized (CourseCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("courseDelete", CourseCommand.class));
+            }
+        }
+        return self.get();
+    }
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                final BusinessMessagePayloadMapper payloadMapper) {
@@ -55,6 +90,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -96,6 +132,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
      * @see this#rollbackCachedEntity(Context, Function)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<Course> parameter = context.getUndoParameter();
         try {

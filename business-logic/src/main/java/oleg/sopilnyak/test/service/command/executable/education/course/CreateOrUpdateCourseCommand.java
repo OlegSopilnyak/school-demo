@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -10,14 +10,26 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.function.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to create or update the course
@@ -34,6 +46,32 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
         implements CourseCommand<Optional<Course>> {
     private final transient CoursesPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<CourseCommand<Optional<Course>>> self = new AtomicReference<>(null);
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public CourseCommand<Optional<Course>> self() {
+        synchronized (CourseCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("courseUpdate", CourseCommand.class));
+            }
+        }
+        return self.get();
+    }
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
                                        final BusinessMessagePayloadMapper payloadMapper) {
@@ -57,6 +95,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      * @see CourseNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<Course>> context) {
         final Input<Course> parameter = context.getRedoParameter();
         try {
@@ -106,6 +145,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
      * @see InvalidParameterTypeException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

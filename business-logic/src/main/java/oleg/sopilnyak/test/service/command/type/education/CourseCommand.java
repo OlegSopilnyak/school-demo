@@ -34,6 +34,21 @@ public interface CourseCommand<T> extends RootCommand<T> {
     String REGISTER = "course.register";
     String UN_REGISTER = "course.unRegister";
 
+
+    /**
+     * To adopt course to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param course entity from persistence layer
+     * @return instance from business-logic data model
+     * @see Course#getStudents()
+     * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Course)
+     * @see RootCommand#getPayloadMapper()
+     */
+    default Course toBusiness(final Course course) {
+        getLog().debug("In course with id={} registered {} student(s)", course.getId(), course.getStudents().size());
+        return getPayloadMapper().toPayload(course);
+    }
+
     /**
      * To detach command result data from persistence layer
      *

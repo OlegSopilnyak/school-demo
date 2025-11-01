@@ -1,29 +1,67 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to find courses registered to student
  */
 @Slf4j
-@AllArgsConstructor
 @Getter
 @Component("courseFindWithStudents")
 public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<CourseCommand<Set<Course>>> self = new AtomicReference<>(null);
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public CourseCommand<Set<Course>> self() {
+        synchronized (CourseCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("courseFindWithStudents", CourseCommand.class));
+            }
+        }
+        return self.get();
+    }
+
+    public FindRegisteredCoursesCommand(RegisterPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {
+        this.persistenceFacade = persistenceFacade;
+        this.payloadMapper = payloadMapper;
+    }
 
     /**
      * To find courses registered to student by id <BR/>
@@ -36,6 +74,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
      * @see Context.State#WORK
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void executeDo(Context<Set<Course>> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -43,7 +82,8 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
             final Long id = parameter.value();
             log.debug("Trying to find courses registered to student ID: {}", id);
 
-            final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id);
+            final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id).stream()
+                    .map(this::toBusiness).collect(Collectors.toSet());
 
             log.debug("Got courses {} for student with ID:{}", courses, id);
             context.setResult(courses);

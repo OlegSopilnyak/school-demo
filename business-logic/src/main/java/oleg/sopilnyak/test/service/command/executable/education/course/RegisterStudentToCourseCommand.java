@@ -4,10 +4,6 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
-import java.util.Collection;
-import java.util.Objects;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -18,11 +14,22 @@ import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -36,6 +43,32 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
     private final transient BusinessMessagePayloadMapper payloadMapper;
     private final int maximumRooms;
     private final int coursesExceed;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<CourseCommand<Boolean>> self = new AtomicReference<>(null);
+
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public CourseCommand<Boolean> self() {
+        synchronized (CourseCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("courseRegisterStudent", CourseCommand.class));
+            }
+        }
+        return self.get();
+    }
 
     public RegisterStudentToCourseCommand(final EducationPersistenceFacade persistenceFacade,
                                           final BusinessMessagePayloadMapper payloadMapper,
@@ -61,13 +94,14 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      * @see Context.State#WORK
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @SuppressWarnings("unchecked")
     public void executeDo(Context<Boolean> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             log.debug("Trying to register student to course: {}", parameter);
-            final PairParameter<Long> input = PairParameter.class.cast(parameter);
+            final PairParameter<Long> input = (PairParameter) parameter;
             final Student student = retrieveStudent(input);
             final Course course = retrieveCourse(input);
             final Long studentId = student.getId();
@@ -110,6 +144,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
      */
     @Override
     @SuppressWarnings("unchecked")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         if (isNull(parameter) || parameter.isEmpty()) {
@@ -119,7 +154,7 @@ public class RegisterStudentToCourseCommand implements CourseCommand<Boolean>, E
         }
         log.debug("Trying to undo student to course linking using: {}", parameter);
         try {
-            final PairParameter<Long> input = PairParameter.class.cast(parameter);
+            final PairParameter<Long> input = (PairParameter) parameter;
 
             final boolean successful = persistenceFacade.unLink(retrieveStudent(input), retrieveCourse(input));
 
