@@ -2,13 +2,14 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import static java.util.Objects.isNull;
 
-import java.util.Optional;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.Optional;
 
 /**
  * Type for school-student-profile commands

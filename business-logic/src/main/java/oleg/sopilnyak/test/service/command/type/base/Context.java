@@ -1,12 +1,13 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import oleg.sopilnyak.test.service.command.io.Input;
+
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
 import java.util.Optional;
-import oleg.sopilnyak.test.service.command.io.Input;
 
 /**
  * Type: The context of the command execution

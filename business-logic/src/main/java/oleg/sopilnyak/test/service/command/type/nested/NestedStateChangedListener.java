@@ -1,11 +1,12 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import java.util.Deque;
-import java.util.concurrent.CountDownLatch;
-import lombok.AllArgsConstructor;
 import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.util.Deque;
+import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
+import lombok.AllArgsConstructor;
 
 /**
  * StateChangedListener: Context state changed listener. According to state, put context to appropriate deque

@@ -1,15 +1,15 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
 
 import java.util.Optional;
-
-import static java.util.Objects.isNull;
+import org.slf4j.Logger;
 
 /**
  * Type: School Command to execute the business-logic action

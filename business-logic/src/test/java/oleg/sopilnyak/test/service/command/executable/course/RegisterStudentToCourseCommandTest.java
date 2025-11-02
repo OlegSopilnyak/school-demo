@@ -11,12 +11,14 @@ import oleg.sopilnyak.test.service.command.executable.education.course.RegisterS
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -37,14 +39,19 @@ class RegisterStudentToCourseCommandTest {
     @Mock
     BusinessMessagePayloadMapper payloadMapper;
     RegisterStudentToCourseCommand command;
+    @Mock
+    ApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
         command = spy(new RegisterStudentToCourseCommand(persistence, payloadMapper, 2, 2));
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("courseRegisterStudent", CourseCommand.class);
     }
 
     @Test
     void shouldBeValidCommand() {
+        reset(applicationContext);
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistenceFacade"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));

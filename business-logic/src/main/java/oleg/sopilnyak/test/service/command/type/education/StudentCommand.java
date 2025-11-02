@@ -2,15 +2,16 @@ package oleg.sopilnyak.test.service.command.type.education;
 
 import static java.util.Objects.isNull;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Type for school-students command

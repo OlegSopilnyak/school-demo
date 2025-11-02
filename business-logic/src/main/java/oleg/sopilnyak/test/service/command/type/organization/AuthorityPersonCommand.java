@@ -2,15 +2,16 @@ package oleg.sopilnyak.test.service.command.type.organization;
 
 import static java.util.Objects.isNull;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Type for school-organization authority persons management command

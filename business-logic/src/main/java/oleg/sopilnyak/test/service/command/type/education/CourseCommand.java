@@ -2,9 +2,6 @@ package oleg.sopilnyak.test.service.command.type.education;
 
 import static java.util.Objects.isNull;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -12,9 +9,13 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * Type for school-courses command
-
+ *
  * @param <T> the type of command execution (do) result
  * @see RootCommand
  * @see Course
@@ -82,7 +83,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
      * @see #detachedResult(Object)
      */
     private Course detach(Course entity) {
-        getLog().info("Entity to detach:'{}'", entity);
+        getLog().debug("Entity to detach:'{}'", entity);
         return entity instanceof CoursePayload payload ? payload : getPayloadMapper().toPayload(entity);
     }
 
@@ -95,10 +96,10 @@ public interface CourseCommand<T> extends RootCommand<T> {
      */
     private Optional<Course> detach(Optional<Course> optionalEntity) {
         if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
+            getLog().debug("Result is null or empty");
             return Optional.empty();
         } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
+            getLog().debug("Optional entity to detach:'{}'", optionalEntity);
             return optionalEntity.map(this::detach);
         }
     }
@@ -111,7 +112,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
      * @see #detachedResult(Object)
      */
     private Set<Course> detach(Set<Course> entitiesSet) {
-        getLog().info("Entities set to detach:'{}'", entitiesSet);
+        getLog().debug("Entities set to detach:'{}'", entitiesSet);
         return entitiesSet.stream().map(this::detach).collect(Collectors.toSet());
     }
 
@@ -120,8 +121,8 @@ public interface CourseCommand<T> extends RootCommand<T> {
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor visitor of prepared contexts
-     * @param macroInputParameter   Macro-Command call's input
+     * @param visitor             visitor of prepared contexts
+     * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(CourseCommand, Input)
      * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)

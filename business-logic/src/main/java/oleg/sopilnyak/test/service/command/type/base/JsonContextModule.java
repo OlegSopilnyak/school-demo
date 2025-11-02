@@ -16,15 +16,16 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
@@ -59,7 +60,7 @@ public class JsonContextModule<T> extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
+        serializers.addSerializer(Context.class, new CommandContextSerializer());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
         setupContext.addSerializers(serializers);

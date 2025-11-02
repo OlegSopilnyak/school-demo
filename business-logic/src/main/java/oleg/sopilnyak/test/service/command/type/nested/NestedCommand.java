@@ -1,9 +1,10 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import java.io.Serializable;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.io.Serializable;
 
 /**
  * Type: Command to execute the business-logic action as a nested-command of CompositeCommand

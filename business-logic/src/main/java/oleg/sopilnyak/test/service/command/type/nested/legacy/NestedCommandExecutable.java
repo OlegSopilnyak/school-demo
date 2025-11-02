@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.type.nested.legacy;
 
-import java.io.Serializable;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -8,6 +7,8 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
+
+import java.io.Serializable;
 
 /**
  * Type: Command to execute the business-logic action as a nested-command of CompositeCommand
