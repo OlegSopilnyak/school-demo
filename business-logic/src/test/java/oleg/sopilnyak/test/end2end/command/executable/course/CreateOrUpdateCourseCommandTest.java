@@ -1,45 +1,56 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     CoursesPersistenceFacade persistence;
+    @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -52,7 +63,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -60,7 +70,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateCourse() {
         Course course = makeClearCourse(1);
         Context<Optional<Course>> context = command.createContext(Input.of(course));
@@ -76,7 +85,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateCourse() {
         Course course = persistCourse();
         Course courseUpdated = payloadMapper.toPayload(course);
@@ -97,7 +105,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<Course>> context = command.createContext(Input.of("course"));
 
@@ -112,7 +119,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<Course>> context = command.createContext(null);
 
@@ -127,7 +133,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CreateExceptionThrown() {
         Course course = makeClearCourse(1);
         CoursePayload payload = payloadMapper.toPayload(course);
@@ -147,7 +152,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_UpdateExceptionThrown() {
         Course course = persistCourse();
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
@@ -166,7 +170,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateCourse() {
         Long id = persistCourse().getId();
         assertThat(persistence.isNoCourses()).isFalse();
@@ -185,7 +188,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateCourse() {
         Course course = persistCourse();
         Context<Optional<Course>> context = command.createContext();
@@ -203,7 +205,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Course>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -222,7 +223,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_NullParameter() {
         Context<Optional<Course>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -238,7 +238,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_CreateExceptionThrown() {
         Long id = 104L;
         Context<Optional<Course>> context = command.createContext();
@@ -258,7 +257,6 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_UpdateExceptionThrown() {
         Course course = persistCourse();
         Context<Optional<Course>> context = command.createContext();
@@ -278,6 +276,40 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private Student persist(Student newInstance) {
+        StudentEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Course persist(Course newInstance) {
+        CourseEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            entity.getStudents().forEach(em::persist);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Optional<Student> findStudentById(Long id) {
+        return Optional.ofNullable(findEntity(StudentEntity.class, id, e -> e.getCourses().size()));
+    }
+
+    private Optional<Course> findCourseById(Long id) {
+        return Optional.ofNullable(findEntity(CourseEntity.class, id, e -> e.getStudents().size()));
+    }
     private Course persistCourse() {
         try {
             Course course = makeCourse(0);

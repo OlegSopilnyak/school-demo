@@ -46,7 +46,7 @@ public abstract class SchoolCommandCache<T extends BaseType> {
     /**
      * To cache into context old value of the student instance for possible rollback
      *
-     * @param inputId           system-id of the student
+     * @param inputId           system-id of the entity to retrieve
      * @param findEntityById    function for find entity by id
      * @param adoptEntity       function for transform entity to payload
      * @param exceptionSupplier function-source of entity-not-found exception
