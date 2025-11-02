@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.context.History;
+import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -59,7 +59,7 @@ public class JsonContextModule<T> extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer());
+        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // apply modified serializer/deserializer
         setupContext.addSerializers(serializers);

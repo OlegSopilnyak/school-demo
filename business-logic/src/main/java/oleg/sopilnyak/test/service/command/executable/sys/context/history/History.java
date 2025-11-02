@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys.context;
+package oleg.sopilnyak.test.service.command.executable.sys.context.history;
 
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
@@ -23,8 +23,12 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import oleg.sopilnyak.test.service.command.type.base.Context;
 
 /**
@@ -33,6 +37,8 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
  * @see Context.LifeCycleHistory
  */
 @Data
+@Getter(AccessLevel.NONE)
+@Setter(AccessLevel.NONE)
 @Builder
 @JsonSerialize(using = History.Serializer.class)
 @JsonDeserialize(using = History.Deserializer.class)
@@ -41,11 +47,11 @@ public class History implements Context.LifeCycleHistory {
     public static final String STARTED_FILED_NAME = "started";
     public static final String STATES_FILED_NAME = "states";
     @Builder.Default
-    private List<StateChangedHistoryItem> states = new LinkedList<>();
+    private transient List<StateChangedHistoryItem> states = new LinkedList<>();
     @Builder.Default
-    private List<StartedAtHistoryItem> started = new LinkedList<>();
+    private transient List<StartedAtHistoryItem> started = new LinkedList<>();
     @Builder.Default
-    private List<WorkedHistoryItem> worked = new LinkedList<>();
+    private transient List<WorkedHistoryItem> worked = new LinkedList<>();
 
     public void add(final Context.State state) {
         states.add(new StateChangedHistoryItem(state, Instant.now()));

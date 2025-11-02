@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.cache;
+package oleg.sopilnyak.test.service.command.executable.sys.cache;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
@@ -24,6 +24,12 @@ import static java.util.Objects.nonNull;
 public abstract class SchoolCommandCache<T extends BaseType> {
     private final Class<T> entityType;
     private final String entityName;
+
+    @SuppressWarnings("unchecked")
+    protected SchoolCommandCache() {
+        this.entityType = (Class<T>) BaseType.class;
+        this.entityName = "BaseType";
+    }
 
     protected SchoolCommandCache(final Class<T> entityType) {
         this.entityType = entityType;

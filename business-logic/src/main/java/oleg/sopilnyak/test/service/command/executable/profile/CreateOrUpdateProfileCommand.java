@@ -4,13 +4,14 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import java.io.Serial;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -32,6 +33,8 @@ import lombok.Getter;
 @Getter
 public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
         implements ProfileCommand<Optional<E>> {
+    @Serial
+    private static final long serialVersionUID = 7633483084007364540L;
     protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;
 

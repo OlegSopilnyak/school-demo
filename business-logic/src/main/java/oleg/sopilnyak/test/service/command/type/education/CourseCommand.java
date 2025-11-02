@@ -36,17 +36,17 @@ public interface CourseCommand<T> extends RootCommand<T> {
 
 
     /**
-     * To adopt course to business-logic data model from persistence data model refreshing entity's relation
+     * To adopt course entity to business-logic data model from persistence data model refreshing entity's relation
      *
-     * @param course entity from persistence layer
+     * @param entity entity from persistence layer
      * @return instance from business-logic data model
      * @see Course#getStudents()
      * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Course)
      * @see RootCommand#getPayloadMapper()
      */
-    default Course toBusiness(final Course course) {
-        getLog().debug("In course with id={} registered {} student(s)", course.getId(), course.getStudents().size());
-        return getPayloadMapper().toPayload(course);
+    default Course adoptEntity(final Course entity) {
+        getLog().debug("In course entity with id={} registered {} student(s)", entity.getId(), entity.getStudents().size());
+        return getPayloadMapper().toPayload(entity);
     }
 
     /**

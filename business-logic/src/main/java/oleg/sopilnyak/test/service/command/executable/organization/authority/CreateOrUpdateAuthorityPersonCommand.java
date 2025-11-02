@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import java.io.Serial;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -41,11 +42,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component("authorityPersonUpdate")
 public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+    @Serial
+    private static final long serialVersionUID = 7993304161987426016L;
     @Autowired
     // beans factory to prepare the current command for transactional operations
     private transient ApplicationContext applicationContext;
     // reference to current command for transactional operations
-    private final AtomicReference<AuthorityPersonCommand<Optional<AuthorityPerson>>> self;
+    private final AtomicReference<AuthorityPersonCommand<Optional<AuthorityPerson>>> self = new AtomicReference<>(null);
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -76,7 +79,6 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
         super(AuthorityPerson.class);
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
-        self = new AtomicReference<>(null);
     }
 
     /**

@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNot
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -34,6 +35,8 @@ import java.util.function.UnaryOperator;
 @Component("studentsGroupUpdate")
 public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
         implements StudentsGroupCommand<Optional<StudentsGroup>> {
+    @Serial
+    private static final long serialVersionUID = 2559618909624986644L;
     private final transient StudentsGroupPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 

@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsE
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import java.io.Serial;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -42,6 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Component("courseDelete")
 public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
+    @Serial
+    private static final long serialVersionUID = -1507762215785914152L;
     private final transient CoursesPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
     @Autowired

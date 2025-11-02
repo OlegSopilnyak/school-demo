@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
 import java.util.Optional;
 import java.util.function.*;
 
@@ -31,6 +32,8 @@ import java.util.function.*;
 @Component("studentUpdate")
 public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
         implements StudentCommand<Optional<Student>> {
+    @Serial
+    private static final long serialVersionUID = 8556778799431039028L;
     private final transient StudentsPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 

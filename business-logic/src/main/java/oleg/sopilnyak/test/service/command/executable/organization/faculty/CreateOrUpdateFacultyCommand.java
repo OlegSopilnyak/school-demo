@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
+import java.io.Serial;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -11,7 +12,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -33,6 +34,8 @@ import org.springframework.stereotype.Component;
 @Component("facultyUpdate")
 public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
         implements FacultyCommand<Optional<Faculty>> {
+    @Serial
+    private static final long serialVersionUID = 5254196736520677394L;
     private final transient FacultyPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 

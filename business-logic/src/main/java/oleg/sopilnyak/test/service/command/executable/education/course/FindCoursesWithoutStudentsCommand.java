@@ -80,7 +80,7 @@ public class FindCoursesWithoutStudentsCommand implements CourseCommand<Set<Cour
             log.debug("Trying to find courses without students");
 
             final Set<Course> courses = persistenceFacade.findCoursesWithoutStudents().stream()
-                    .map(this::toBusiness).collect(Collectors.toSet());
+                    .map(this::adoptEntity).collect(Collectors.toSet());
 
             log.debug("Got courses without student {}", courses);
             context.setResult(courses);

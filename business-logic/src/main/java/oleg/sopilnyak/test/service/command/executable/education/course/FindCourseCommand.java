@@ -81,7 +81,7 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
             final Long id = parameter.value();
             log.debug("Trying to find course by ID:{}", id);
 
-            final Optional<Course> course = persistenceFacade.findCourseById(id).map(this::toBusiness);
+            final Optional<Course> course = persistenceFacade.findCourseById(id).map(this::adoptEntity);
 
             log.debug("Got course {} by ID:{}", course, id);
             context.setResult(course);

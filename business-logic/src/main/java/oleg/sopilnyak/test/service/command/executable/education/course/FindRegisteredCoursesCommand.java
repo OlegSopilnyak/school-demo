@@ -83,7 +83,7 @@ public class FindRegisteredCoursesCommand implements CourseCommand<Set<Course>> 
             log.debug("Trying to find courses registered to student ID: {}", id);
 
             final Set<Course> courses = persistenceFacade.findCoursesRegisteredForStudent(id).stream()
-                    .map(this::toBusiness).collect(Collectors.toSet());
+                    .map(this::adoptEntity).collect(Collectors.toSet());
 
             log.debug("Got courses {} for student with ID:{}", courses, id);
             context.setResult(courses);
