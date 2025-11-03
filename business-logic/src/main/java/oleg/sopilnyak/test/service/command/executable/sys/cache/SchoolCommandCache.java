@@ -122,6 +122,8 @@ public abstract class SchoolCommandCache<T extends BaseType> {
         if (parameter instanceof Long id) {
             // remove created entity by id from the parameter
             facadeDeleteById.accept(id);
+            // clear the do command result after entity deleting
+            context.setResult(null);
             final Input<?> doInput = context.getRedoParameter();
             if (isNull(doInput) || doInput.isEmpty()) {
                 // command do input is empty
@@ -132,8 +134,6 @@ public abstract class SchoolCommandCache<T extends BaseType> {
             if (doInput.value() instanceof BasePayload<?> payload) {
                 // clear ID for further CREATE entity
                 payload.setId(null);
-                // clear the do command result after entity deleting
-                context.setResult(null);
 
                 getLog().debug("Got deleted {} with ID:{} successfully", entityName, id);
                 return Optional.empty();
