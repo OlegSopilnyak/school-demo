@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -207,7 +207,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param result  the result of successful command execution
      * @param target  next command context to execute command's redo
      * @see PrincipalProfileCommand#doCommand(Context)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+     * @see CommandContext#setRedoParameter(Input)
      * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see CreateAuthorityPersonMacroCommand#transferProfileIdToAuthorityPersonInput(Long, Context)
      * @see AuthorityPersonPayload#setProfileId(Long)
@@ -232,7 +232,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param profileId the id of profile created before person
      * @param target    create-person command context
      * @see Context#getRedoParameter()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+     * @see CommandContext#setRedoParameter(Input)
      * @see AuthorityPersonPayload#setProfileId(Long)
      */
     public void transferProfileIdToAuthorityPersonInput(final Long profileId, @NonNull final Context<?> target) {

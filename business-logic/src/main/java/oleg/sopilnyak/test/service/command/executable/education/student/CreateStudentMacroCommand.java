@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -176,7 +176,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param result  the result of successful command execution
      * @param target  next command context to execute command's redo
      * @see StudentProfileCommand#doCommand(Context)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+     * @see CommandContext#setRedoParameter(Input)
      * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
      * @see CannotTransferCommandResultException
@@ -201,7 +201,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @param profileId the id of profile created before person
      * @param target    create-person command context
      * @see Context#getRedoParameter()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+     * @see CommandContext#setRedoParameter(Input)
      * @see StudentPayload#setProfileId(Long)
      */
     public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {

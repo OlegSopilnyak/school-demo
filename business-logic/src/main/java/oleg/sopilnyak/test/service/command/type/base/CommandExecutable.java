@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 
 /**

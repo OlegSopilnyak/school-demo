@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -20,7 +21,7 @@ public interface CommandInSequence {
      * @param <S>     type of source command execution result
      * @param <N>     type of target command execution result
      * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+     * @see CommandContext#setRedoParameter(Input)
      */
     <S, N> void transferResultTo(TransferTransitionalResultVisitor visitor, S value, Context<N> target);
 }

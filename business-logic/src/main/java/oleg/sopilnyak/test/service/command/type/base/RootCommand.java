@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.executable.sys.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;

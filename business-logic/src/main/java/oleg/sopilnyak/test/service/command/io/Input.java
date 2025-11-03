@@ -19,6 +19,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
@@ -49,7 +50,7 @@ import org.mockito.internal.util.MockUtil;
  *
  * @param <P> the type of command input parameter
  * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#executeDo(Context)
- * @see oleg.sopilnyak.test.service.command.executable.sys.CommandContext#setRedoParameter(Input)
+ * @see CommandContext#setRedoParameter(Input)
  */
 public interface Input<P> extends IOBase<P> {
 
