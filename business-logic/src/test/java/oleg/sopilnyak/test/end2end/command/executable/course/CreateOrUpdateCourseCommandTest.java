@@ -9,18 +9,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -31,17 +30,21 @@ import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
+//@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
@@ -55,11 +58,13 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
+    @Qualifier("courseUpdate")
     CourseCommand command;
 
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(CourseEntity.class);
     }
 
     @Test
@@ -141,8 +146,10 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         RuntimeException cannotExecute = new RuntimeException("Cannot create");
         doThrow(cannotExecute).when(persistence).save(payload);
-        command.doCommand(context);
 
+        var error = assertThrows(Exception.class, () -> command.doCommand(context));
+
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
@@ -172,7 +179,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @Test
     void shouldUndoCommand_CreateCourse() {
         Long id = persistCourse().getId();
-        assertThat(persistence.isNoCourses()).isFalse();
+        assertThat(isEmpty(CourseEntity.class)).isFalse();
         Context<Optional<Course>> context = command.createContext();
         if (context instanceof CommandContext<?> commandContext) {
             commandContext.setState(Context.State.DONE);
@@ -180,9 +187,9 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         }
 
         command.undoCommand(context);
+        await().atMost(200, TimeUnit.MILLISECONDS).until(() -> isEmpty(CourseEntity.class));
 
         assertThat(context.getState()).isEqualTo(Context.State.UNDONE);
-        assertThat(persistence.isNoCourses()).isTrue();
         verify(command).executeUndo(context);
         verify(persistence).deleteCourse(id);
     }
@@ -248,8 +255,9 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         RuntimeException cannotExecute = new RuntimeException("Cannot undo create");
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
 
-        command.undoCommand(context);
+        var error = assertThrows(Exception.class, () -> command.undoCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeUndo(context);
@@ -267,8 +275,9 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         RuntimeException cannotExecute = new RuntimeException("Cannot undo update");
         doThrow(cannotExecute).when(persistence).save(course);
 
-        command.undoCommand(context);
+        var error = assertThrows(Exception.class, () -> command.undoCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeUndo(context);
@@ -276,16 +285,12 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private Student persist(Student newInstance) {
-        StudentEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
+    private Course persistCourse() {
         try {
-            em.getTransaction().begin();
-            em.persist(entity);
-            em.getTransaction().commit();
-            return entity;
+            Course course = persist(makeClearCourse(0));
+            return payloadMapper.toPayload(findCourseById(course.getId()).orElseThrow());
         } finally {
-            em.close();
+            reset(payloadMapper);
         }
     }
 
@@ -303,25 +308,7 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
         }
     }
 
-    private Optional<Student> findStudentById(Long id) {
-        return Optional.ofNullable(findEntity(StudentEntity.class, id, e -> e.getCourses().size()));
-    }
-
     private Optional<Course> findCourseById(Long id) {
         return Optional.ofNullable(findEntity(CourseEntity.class, id, e -> e.getStudents().size()));
-    }
-    private Course persistCourse() {
-        try {
-            Course course = makeCourse(0);
-            Course entity = persistence.save(course).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<Course> dbCourse = persistence.findCourseById(id);
-            assertCourseEquals(dbCourse.orElseThrow(), course, false);
-            assertThat(dbCourse).contains(entity);
-            return payloadMapper.toPayload(entity);
-        } finally {
-            reset(persistence, payloadMapper);
-        }
     }
 }

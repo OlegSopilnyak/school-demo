@@ -123,6 +123,26 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         }
     }
 
+    protected <T> boolean isEmpty(Class<T> entityClass) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+        Root<T> entityRoot = criteriaQuery.from(entityClass);
+        criteriaQuery.select(entityRoot);
+        Query query = em.createQuery(criteriaQuery);
+        try{
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            List<T> entities = query.getResultList();
+            boolean empty = entities == null || entities.isEmpty();
+            em.clear();
+            transaction.commit();
+            return empty;
+        } finally {
+            em.close();
+        }
+    }
+
     protected <T> T transactional(Supplier<T> activity) {
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
