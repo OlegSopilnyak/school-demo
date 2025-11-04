@@ -1,61 +1,77 @@
 package oleg.sopilnyak.test.end2end.command.executable.course;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
-import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.education.course.DeleteCourseCommand;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteCourseCommand.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class DeleteCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     EducationPersistenceFacade persistence;
     @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
+    @Qualifier("courseDelete")
     CourseCommand command;
 
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(CourseEntity.class);
+        deleteEntities(StudentEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -63,7 +79,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CourseFound() {
         Course course = persistCourse();
         Long id = course.getId();
@@ -82,7 +97,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CourseNotFound() {
         Long id = 102L;
         Context<Boolean> context = command.createContext(Input.of(id));
@@ -100,30 +114,29 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_CourseHasEnrolledStudent() {
         Course course = persistCourse();
         Student student = persistStudent();
-        persistence.link(student, course);
-        Long id = course.getId();
-        assertThat(persistence.findCourseById(id).orElseThrow().getStudents()).contains(student);
-        reset(persistence);
-        Context<Boolean> context = command.createContext(Input.of(id));
+        Long studentId = student.getId();
+        Long courseId = course.getId();
+        assertThat(link(studentId, courseId)).isTrue();
+        assertThat(findCourseById(courseId).orElseThrow().getStudents()).contains(findStudentById(studentId).orElseThrow());
+        Context<Boolean> context = command.createContext(Input.of(courseId));
 
         command.doCommand(context);
 
+        assertThat(unlink(studentId, courseId)).isTrue();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         assertThat(context.getException()).isInstanceOf(CourseWithStudentsException.class);
         assertThat(context.getException().getMessage()).startsWith("Course with ID:").endsWith(" has enrolled students.");
         verify(command).executeDo(context);
-        verify(persistence).findCourseById(id);
+        verify(persistence).findCourseById(courseId);
         verify(payloadMapper).toPayload(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() {
         Course course = persistCourse();
         Long id = course.getId();
@@ -132,8 +145,9 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
         doThrow(cannotExecute).when(persistence).deleteCourse(id);
         Context<Boolean> context = command.createContext(Input.of(id));
 
-        command.doCommand(context);
+        var error = assertThrows(Exception.class, () -> command.doCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isSameAs(cannotExecute);
         assertThat(context.getException().getMessage()).isSameAs(errorMessage);
@@ -144,7 +158,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CourseFound() {
         Course course = persistCourse();
         Context<Boolean> context = command.createContext();
@@ -162,7 +175,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
@@ -180,7 +192,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_NullParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(DONE);
@@ -195,7 +206,6 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
         Course course = persistCourse();
         Context<Boolean> context = command.createContext();
@@ -206,8 +216,9 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
             commandContext.setUndoParameter(Input.of(course));
         }
 
-        command.undoCommand(context);
+        var error = assertThrows(Exception.class, () -> command.undoCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);
         verify(command).executeUndo(context);
@@ -215,33 +226,94 @@ class DeleteCourseCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private Student persistStudent() {
+    private Course persistCourse() {
         try {
-            Student student = makeStudent(0);
-            Student entity = persistence.save(student).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<Student> dbStudent = persistence.findStudentById(id);
-            assertStudentEquals(dbStudent.orElseThrow(), student, false);
-            assertThat(dbStudent).contains(entity);
-            return entity;
+            Course course = persist(makeClearCourse(0));
+            return payloadMapper.toPayload(findCourseById(course.getId()).orElseThrow());
         } finally {
-            reset(persistence);
+            reset(payloadMapper);
         }
     }
 
-    private Course persistCourse() {
+    private Course persist(Course newInstance) {
+        CourseEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
         try {
-            Course course = makeCourse(0);
-            Course entity = persistence.save(course).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<Course> dbCourse = persistence.findCourseById(id);
-            assertCourseEquals(dbCourse.orElseThrow(), course, false);
-            assertThat(dbCourse).contains(entity);
-            return payloadMapper.toPayload(entity);
+            em.getTransaction().begin();
+            em.persist(entity);
+            entity.getStudents().forEach(em::persist);
+            em.getTransaction().commit();
+            return entity;
         } finally {
-            reset(persistence, payloadMapper);
+            em.close();
+        }
+    }
+
+    private Optional<Course> findCourseById(Long id) {
+        return Optional.ofNullable(findEntity(CourseEntity.class, id, e -> e.getStudentSet().size()));
+    }
+
+    private Optional<Student> findStudentById(Long id) {
+        return Optional.ofNullable(findEntity(StudentEntity.class, id, student -> student.getCourseSet().size()));
+    }
+
+    private StudentPayload persistStudent() {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            Student source = makeClearStudent(0);
+            StudentEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
+        } finally {
+            reset(payloadMapper);
+            em.close();
+        }
+    }
+
+    private boolean link(Long studentId, Long courseId) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            StudentEntity student = em.find(StudentEntity.class, studentId);
+            CourseEntity course = em.find(CourseEntity.class, courseId);
+            if (!student.add(course)) {
+                transaction.rollback();
+                return false;
+            }
+            em.merge(student);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return true;
+        } finally {
+            em.close();
+        }
+    }
+
+    private boolean unlink(Long studentId, Long courseId) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            StudentEntity student = em.find(StudentEntity.class, studentId);
+            CourseEntity course = em.find(CourseEntity.class, courseId);
+            if (!student.remove(course)) {
+                transaction.rollback();
+                return false;
+            }
+            em.merge(student);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return true;
+        } finally {
+            em.close();
         }
     }
 }

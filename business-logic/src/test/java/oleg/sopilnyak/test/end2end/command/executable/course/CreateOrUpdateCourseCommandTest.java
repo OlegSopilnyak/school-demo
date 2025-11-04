@@ -44,7 +44,6 @@ import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
-//@ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateCourseCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
     @SpyBean
