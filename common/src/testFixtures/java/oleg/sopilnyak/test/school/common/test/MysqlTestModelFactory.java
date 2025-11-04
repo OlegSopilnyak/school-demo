@@ -4,6 +4,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -124,20 +125,29 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
     }
 
     protected <T> boolean isEmpty(Class<T> entityClass) {
+        return findAllFor(entityClass).isEmpty();
+    }
+
+    protected <T> List<T>  findAllFor(Class<T> entityClass) {
+        return findAllFor(entityClass, null);
+    }
+        protected <T> List<T>  findAllFor(Class<T> entityClass, Consumer<T> refreshEntity) {
         EntityManager em = entityManagerFactory.createEntityManager();
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
         Root<T> entityRoot = criteriaQuery.from(entityClass);
         criteriaQuery.select(entityRoot);
-        Query query = em.createQuery(criteriaQuery);
+        TypedQuery<T> query = em.createQuery(criteriaQuery);
         try{
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             List<T> entities = query.getResultList();
-            boolean empty = entities == null || entities.isEmpty();
+            if (refreshEntity != null) {
+                entities.forEach(refreshEntity::accept);
+            }
             em.clear();
             transaction.commit();
-            return empty;
+            return entities;
         } finally {
             em.close();
         }
