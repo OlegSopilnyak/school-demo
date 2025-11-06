@@ -48,10 +48,6 @@ import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
@@ -71,7 +67,6 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,8 +92,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
-    @Autowired
-    PersistenceFacade database;
     @Autowired
     EntityManagerFactory emf;
     @Autowired
@@ -128,7 +121,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldBeEverythingIsValid() {
-        assertThat(database).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(factory).isNotNull();
@@ -200,8 +192,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldFindAllAuthorityPersons_ExistsInstance() {
-        AuthorityPerson person = persistAuthorityPerson();
-        assertThat(database.findAuthorityPersonById(person.getId())).contains(person);
+        AuthorityPersonPayload person = createAuthorityPerson();
+        assertThat(findAuthorityPersonById(person.getId())).isEqualTo(person.getOriginal());
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
@@ -342,25 +334,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     // private methods
     private AuthorityPerson findAuthorityPersonByProfileId(Long profileId) {
-        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, profileId, e -> e.getExtras().size());
-        assertThat(profile).isNotNull();
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
-            CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-            CriteriaQuery<AuthorityPersonEntity> criteriaQuery = criteriaBuilder.createQuery(AuthorityPersonEntity.class);
-            Root<AuthorityPersonEntity> entityRoot = criteriaQuery.from(AuthorityPersonEntity.class);
-            criteriaQuery.select(entityRoot);
-            criteriaQuery.where(criteriaBuilder.equal(entityRoot.get("profileId"), profileId));
-            TypedQuery<AuthorityPersonEntity> query = em.createQuery(criteriaQuery);
-            List<AuthorityPersonEntity> employees = query.getResultList();
-            AuthorityPersonEntity person = ObjectUtils.isEmpty(employees) ? null : employees.get(0);
-            if (person != null) {
-                person.getFacultyEntitySet().size();
-            }
-            return person;
-        } finally {
-            em.close();
-        }
+        String fkAttributeName = "profileId";
+        return findEntityByFK(AuthorityPersonEntity.class, fkAttributeName, profileId, e -> e.getFacultyEntitySet().size());
     }
 
     private AuthorityPerson findAuthorityPersonById(Long id) {
@@ -429,16 +404,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         return new AuthorityPersonCommandsFactory(commands.keySet());
     }
 
-    private AuthorityPerson persistAuthorityPerson() {
-        AuthorityPerson authorityPerson = makeCleanAuthorityPerson(1);
-        AuthorityPerson entity = database.save(authorityPerson).orElse(null);
-        assertThat(entity).isNotNull();
-        Optional<AuthorityPerson> dbAuthorityPerson = database.findAuthorityPersonById(entity.getId());
-        assertAuthorityPersonEquals(dbAuthorityPerson.orElseThrow(), authorityPerson, false);
-        assertThat(dbAuthorityPerson).contains(entity);
-        return entity;
-    }
-
     private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
         PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
         profile.setLogin(username);
@@ -454,11 +419,10 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     private AuthorityPersonPayload createAuthorityPerson() {
         try {
-            PrincipalProfile profile = makePrincipalProfile(null);
-            PrincipalProfile profileEntity = persist(profile);
+            PrincipalProfile profile = persist(makePrincipalProfile(null));
             AuthorityPerson person = makeCleanAuthorityPerson(0);
             if (person instanceof FakeAuthorityPerson fake) {
-                fake.setProfileId(profileEntity.getId());
+                fake.setProfileId(profile.getId());
             }
             return payloadMapper.toPayload(persist(person));
         } finally {

@@ -25,6 +25,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.util.ObjectUtils;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -57,16 +58,7 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
     protected EntityManagerFactory entityManagerFactory;
 
     protected <T> T findEntity(Class<T> entityClass, Object pk) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
-            T entity = em.find(entityClass, pk);
-            if (entity != null) {
-                em.refresh(entity);
-            }
-            return entity;
-        } finally {
-            em.close();
-        }
+        return findEntity(entityClass, pk, null);
     }
 
     protected <T> T findEntity(Class<T> entityClass, Object pk, Consumer<T> refreshEntity) {
@@ -75,6 +67,33 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
             T entity = em.find(entityClass, pk);
             if (entity != null) {
                 em.refresh(entity);
+                if (refreshEntity != null) {
+                    refreshEntity.accept(entity);
+                }
+            }
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    protected <T> T findEntityByFK(Class<T> entityClass, String fkAttributeName, Object fk) {
+        return findEntityByFK(entityClass, fkAttributeName, fk, null);
+    }
+
+    protected <T> T findEntityByFK(Class<T> entityClass, String fkAttributeName, Object fk, Consumer<T> refreshEntity) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+            CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+            Root<T> entityRoot = criteriaQuery.from(entityClass);
+            criteriaQuery.select(entityRoot).where(criteriaBuilder.equal(entityRoot.get(fkAttributeName), fk));
+            List<T> entities = em.createQuery(criteriaQuery).getResultList();
+            if (ObjectUtils.isEmpty(entities)) {
+                return null;
+            }
+            final T entity = entities.get(0);
+            if (refreshEntity != null) {
                 refreshEntity.accept(entity);
             }
             return entity;
@@ -82,6 +101,7 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
             em.close();
         }
     }
+
 
     protected <T> T deleteEntity(Class<T> entityClass, Object pk) {
         EntityManager em = entityManagerFactory.createEntityManager();
