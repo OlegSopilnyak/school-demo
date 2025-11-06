@@ -10,6 +10,9 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Command-Base-Implementation: command to get profile by id
  *
@@ -20,7 +23,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
  */
 @Getter
 public abstract class FindProfileCommand<E extends PersonProfile> implements ProfileCommand<Optional<E>> {
-    protected final ProfilePersistenceFacade persistence;
+    protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;
 
     protected FindProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
@@ -46,6 +49,7 @@ public abstract class FindProfileCommand<E extends PersonProfile> implements Pro
      * @see this#functionFindById()
      */
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<E>> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {

@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProf
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
@@ -39,7 +38,7 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
     // beans factory to prepare the current command for transactional operations
     private transient ApplicationContext applicationContext;
     // reference to current command for transactional operations
-    private final AtomicReference<ProfileCommand<Optional<PrincipalProfile>>> self;
+    private final AtomicReference<PrincipalProfileCommand<Optional<PrincipalProfile>>> self = new AtomicReference<>(null);
 
     /**
      * Reference to the current command for transactional operations
@@ -51,7 +50,7 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
      */
     @Override
     @SuppressWarnings("unchecked")
-    public ProfileCommand<Optional<PrincipalProfile>> self() {
+    public PrincipalProfileCommand<Optional<PrincipalProfile>> self() {
         synchronized (PrincipalProfileCommand.class) {
             if (isNull(self.get())) {
                 // getting command reference which can be used for transactional operations
@@ -70,7 +69,6 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
     public CreateOrUpdatePrincipalProfileCommand(final ProfilePersistenceFacade persistence,
                                                  final BusinessMessagePayloadMapper payloadMapper) {
         super(PrincipalProfile.class, persistence, payloadMapper);
-        self = new AtomicReference<>(null);
     }
 
     /**
