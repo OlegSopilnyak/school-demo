@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.student;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.never;
@@ -10,17 +11,18 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
-import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
@@ -39,27 +41,36 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
@@ -68,6 +79,11 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_CREATE_NEW = "student.create.macro";
     private static final String STUDENT_DELETE = "student.delete.macro";
 
+    @Autowired
+    ConfigurableApplicationContext context;
+    @Autowired
+    ApplicationContext applicationContext;
+
     @SpyBean
     @Autowired
     ActionExecutor actionExecutor;
@@ -75,39 +91,34 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
-    PersistenceFacade database;
-
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @SpyBean
+    @Autowired
     PersistenceFacade persistenceFacade;
-    CommandsFactory<StudentCommand<?>> factory;
-
-    StudentsFacadeImpl facade;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
 
-    CreateOrUpdateStudentCommand createStudentCommand;
-    CreateOrUpdateStudentProfileCommand createProfileCommand;
-    DeleteStudentCommand deleteStudentCommand;
-    DeleteStudentProfileCommand deleteProfileCommand;
-    DeleteStudentMacroCommand deleteStudentMacroCommand;
+    CommandsFactory<StudentCommand<?>> factory;
+    StudentsFacadeImpl facade;
 
     @BeforeEach
     void setUp() {
-        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
-        persistenceFacade = spy(new PersistenceFacadeDelegate(database));
-        createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
-        createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
-        deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
-                deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
-        ));
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
+    }
+
+    @AfterEach
+    void tearDown() {
+        deleteEntities(StudentProfileEntity.class);
+        deleteEntities(StudentEntity.class);
+        deleteEntities(CourseEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void allComponentsShouldBeValid() {
-        assertThat(database).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
         assertThat(factory).isNotNull();
@@ -115,7 +126,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindById() {
         Long studentId = 100L;
 
@@ -129,7 +139,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindById() {
         Student newStudent = makeClearTestStudent();
         Long studentId = getPersistentStudent(newStudent).getId();
@@ -144,7 +153,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindEnrolledTo() {
         Student newStudent = makeClearTestStudent();
         Student saved = getPersistentStudent(newStudent);
@@ -160,7 +168,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindEnrolledTo_NoCourseById() {
         Long courseId = 200L;
 
@@ -174,14 +181,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindEnrolledTo_NoEnrolledStudents() {
         Course course = makeClearCourse(0);
         Long courseId = getPersistentCourse(course).getId();
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
-        assertCourseEquals(course, database.findCourseById(courseId).orElse(null), false);
+        assertCourseEquals(course, findCourseById(courseId), false);
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_ENROLLED_TO);
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
@@ -190,7 +196,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindNotEnrolled() {
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
@@ -209,7 +214,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindNotEnrolled_StudentNotExists() {
 
         Set<Student> students = facade.findNotEnrolled();
@@ -222,7 +226,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindNotEnrolled_StudentHasCourses() {
         getPersistentStudent(makeClearTestStudent());
 
@@ -236,7 +239,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdate_Create() {
         Student student = makeClearTestStudent();
 
@@ -250,28 +252,22 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdate_Update() {
-        Student student = getPersistentStudent(makeClearTestStudent());
-        Student oldStudent = payloadMapper.toPayload(student);
-        if (oldStudent instanceof StudentPayload entity) {
-            entity.setFirstName(student.getFirstName() + "-newOne");
-        }
-        reset(persistenceFacade);
+        StudentPayload student = createStudent(makeClearTestStudent());
+        student.setFirstName(student.getFirstName() + "-newOne");
 
-        Optional<Student> result = facade.createOrUpdate(oldStudent);
+        Optional<Student> result = facade.createOrUpdate(student);
 
         assertThat(result).isNotEmpty();
-        assertStudentEquals(oldStudent, result.orElseThrow());
+        assertStudentEquals(student, result.orElseThrow());
         verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(oldStudent));
+        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(student));
         verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(student.getId());
-        verify(persistenceFacade).save(oldStudent);
+        verify(persistenceFacade).save(student);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
@@ -280,13 +276,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         StudentPayload created = createStudent(newStudent);
         Long studentId = created.getId();
         Long profileId = created.getProfileId();
-        assertThat(database.findStudentById(studentId)).isPresent();
-        assertThat(database.findStudentProfileById(profileId)).isPresent();
+        assertThat(findStudentById(studentId)).isNotNull();
+        assertThat(findStudentProfileById(profileId)).isNotNull();
 
         facade.delete(studentId);
 
-        assertThat(database.findStudentById(studentId)).isEmpty();
-        assertThat(database.findStudentProfileById(profileId)).isEmpty();
+        assertThat(findStudentById(studentId)).isNull();
+        assertThat(findStudentProfileById(profileId)).isNull();
         verify(factory).command(STUDENT_DELETE);
         verify(factory.command(STUDENT_DELETE)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_DELETE)).doCommand(any(Context.class));
@@ -299,7 +295,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDelete_StudentNotExists() {
         Long studentId = 101L;
 
@@ -314,9 +309,8 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDelete_StudentWithCourses() {
-        Long studentId = getPersistentStudent(makeClearTestStudent()).getId();
+        Long studentId = createStudent(makeClearTestStudent()).getId();
         assertThat(studentId).isNotNull();
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
@@ -332,34 +326,126 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
-    private StudentPayload createStudent(Student newStudent) {
-        return (StudentPayload) facade.create(newStudent).orElseThrow();
+    private Student findStudentById(Long id) {
+        return findEntity(StudentEntity.class, id, e -> e.getCourseSet().size());
+    }
+
+    private Student findStudentProfileById(Long profileId) {
+        return findEntityByFK(StudentEntity.class, "profileId", profileId, e -> e.getCourseSet().size());
+    }
+
+    private Course findCourseById(Long id) {
+        return findEntity(CourseEntity.class, id, e -> e.getStudentSet().size());
     }
 
     private Student getPersistentStudent(Student newStudent) {
-        Optional<Student> saved = database.save(newStudent);
-        assertThat(saved).isPresent();
-        return saved.get();
+        return payloadMapper.toPayload(persist(newStudent));
     }
 
     private Course getPersistentCourse(Course newCourse) {
-        Optional<Course> saved = database.save(newCourse);
-        assertThat(saved).isPresent();
-        return saved.get();
+        return payloadMapper.toPayload(persist(newCourse));
+    }
+
+    private StudentPayload createStudent(Student newStudent) {
+        try {
+            StudentProfile profile = persist(makeStudentProfile(null));
+            if (newStudent instanceof FakeStudent fake) {
+                fake.setProfileId(profile.getId());
+            } else {
+                fail("Not a fake person type");
+            }
+            return payloadMapper.toPayload(persist(newStudent));
+        } finally {
+            reset(payloadMapper);
+        }
+    }
+
+    private Student persist(Student newInstance) {
+        Student entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Course persist(Course newInstance) {
+        Course entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private StudentProfile persist(StudentProfile newInstance) {
+        StudentProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
     }
 
     private CommandsFactory<StudentCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
-        return spy(new StudentCommandsFactory(
-                        Set.of(
-                                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
-                                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-                                createStudentCommand,
-                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)),
-                                deleteStudentCommand,
-                                deleteStudentMacroCommand
-                        )
-                )
+        CreateOrUpdateStudentCommand createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
+        CreateOrUpdateStudentProfileCommand createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
+        DeleteStudentCommand deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
+        DeleteStudentProfileCommand deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
+        Map<StudentProfileCommand<?>, String> profiles = Map.of(
+                createProfileCommand, "profileStudentUpdate",
+                deleteProfileCommand, "profileStudentDelete"
         );
+        Map<StudentCommand<?>, String> commands = Map.of(
+                spy(new FindStudentCommand(persistenceFacade, payloadMapper)), "studentFind",
+                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)), "studentFindEnrolled",
+                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)), "studentFindNotEnrolled",
+                createStudentCommand, "studentUpdate",
+                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)), "studentMacroCreate",
+                deleteStudentCommand, "studentDelete",
+                spy(new DeleteStudentMacroCommand(
+                        deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
+                )), "studentMacroDelete"
+        );
+        String acName = "applicationContext";
+        profiles.entrySet().forEach(entry -> {
+            StudentProfileCommand<?> command = entry.getKey();
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+            String beanName = entry.getValue();
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
+            if (beanFactory.containsSingleton(beanName)) {
+                beanFactory.destroySingleton(beanName);
+            }
+            StudentProfileCommand<?> transactionalCommand = (StudentProfileCommand<?>) transactCommand(command);
+            context.getBeanFactory().registerSingleton(beanName, transactionalCommand);
+        });
+        commands.entrySet().forEach(entry -> {
+            StudentCommand<?> command = entry.getKey();
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+            String beanName = entry.getValue();
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
+            if (beanFactory.containsSingleton(beanName)) {
+                beanFactory.destroySingleton(beanName);
+            }
+            StudentCommand<?> transactionalCommand = (StudentCommand<?>) transactCommand(command);
+            context.getBeanFactory().registerSingleton(beanName, transactionalCommand);
+        });
+        return spy(new StudentCommandsFactory(commands.keySet()));
     }
 }

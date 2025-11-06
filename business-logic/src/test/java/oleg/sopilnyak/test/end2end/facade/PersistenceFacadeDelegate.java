@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import java.util.Optional;
 import java.util.Set;
 
+@Deprecated
 public class PersistenceFacadeDelegate implements PersistenceFacade {
     final PersistenceFacade delegator;
 

@@ -50,7 +50,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
     // persistence facade for get instance of student by student-id
     private final transient StudentsPersistenceFacade persistence;
     // reference to current command for transactional operations
-    private final AtomicReference<MacroDeleteStudent<Boolean>> self;
+    private final AtomicReference<MacroDeleteStudent<Boolean>> self = new AtomicReference<>(null);
 
     /**
      * Reference to the current command for transactional operations create context processing
@@ -82,7 +82,6 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
                                      final ActionExecutor actionExecutor) {
         super(actionExecutor, executor);
         this.persistence = persistence;
-        this.self = new AtomicReference<>(null);
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
     }
