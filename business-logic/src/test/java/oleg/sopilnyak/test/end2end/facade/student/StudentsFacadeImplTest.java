@@ -13,6 +13,8 @@ import static org.mockito.Mockito.verify;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
@@ -55,7 +57,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsFacadeImplTest extends MysqlTestModelFactory {

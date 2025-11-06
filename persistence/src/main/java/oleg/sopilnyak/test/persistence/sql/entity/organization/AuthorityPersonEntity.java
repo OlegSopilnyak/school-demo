@@ -42,7 +42,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      * @return list of faculties
      */
     public List<Faculty> getFaculties() {
-        refreshStudentCourses();
+        refreshFaculties();
         return getFacultyEntitySet().stream()
                 .map(Faculty.class::cast)
                 .sorted(Comparator.comparing(Faculty::getName))
@@ -55,7 +55,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      * @param faculties new faculties list
      */
     public void setFaculties(List<Faculty> faculties) {
-        refreshStudentCourses();
+        refreshFaculties();
         new HashSet<>(getFacultyEntitySet()).forEach(this::remove);
         faculties.forEach(this::add);
     }
@@ -67,7 +67,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      * @return true if success
      */
     public boolean add(Faculty faculty) {
-        refreshStudentCourses();
+        refreshFaculties();
         final Set<FacultyEntity> facultyEntities = getFacultyEntitySet();
         final Optional<FacultyEntity> existsFaculty = facultyEntities.stream()
                 .filter(f -> equals(f, faculty)).findFirst();
@@ -90,7 +90,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
      * @return true if success
      */
     public boolean remove(Faculty faculty) {
-        refreshStudentCourses();
+        refreshFaculties();
         final Set<FacultyEntity> facultyEntities = getFacultyEntitySet();
         final FacultyEntity existsFaculty = facultyEntities.stream()
                 .filter(f -> equals(f, faculty)).findFirst().orElse(null);
@@ -106,7 +106,7 @@ public class AuthorityPersonEntity implements AuthorityPerson {
         return true;
     }
 
-    private void refreshStudentCourses() {
+    private void refreshFaculties() {
         if (isNull(facultyEntitySet)) facultyEntitySet = new HashSet<>();
     }
 

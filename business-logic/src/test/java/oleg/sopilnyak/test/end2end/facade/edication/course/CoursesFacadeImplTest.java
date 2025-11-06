@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
@@ -23,6 +24,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.DeleteCourseCommand;
@@ -37,8 +39,6 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.CoursesFacadeImpl;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import javax.persistence.EntityManager;
@@ -51,14 +51,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -67,18 +64,11 @@ import org.springframework.util.ReflectionUtils;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ActionExecutorImpl.class, CommandThroughMessageServiceLocalImpl.class,
-        PersistenceConfiguration.class, CoursesFacadeImplTest.TestConfig.class
+@ContextConfiguration(classes = {
+        SchoolCommandsConfiguration.class,PersistenceConfiguration.class, TestConfig.class
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
-    @Configuration
-    static class TestConfig {
-        @Bean
-        public BusinessMessagePayloadMapper messagePayloadMapper() {
-            return spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
-        }
-    }
 
     public static final String COURSE_FIND_BY_ID = "course.findById";
     public static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";

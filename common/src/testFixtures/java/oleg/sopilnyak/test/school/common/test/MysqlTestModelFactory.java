@@ -92,8 +92,8 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
                 transaction.begin();
                 em.remove(entity);
                 em.flush();
-                em.clear();
                 transaction.commit();
+                em.clear();
                 return em.find(entityClass, pk);
             }
             return null;

@@ -26,9 +26,11 @@ public interface PersistenceFacade
      * @return true if changes applied
      */
     default boolean updateAuthorityPersonAccess(AuthorityPerson person, String username, String password) {
-        return nonNull(person) &&
-                nonNull(person.getId()) && person.getId() > 0L &&
-                updateAuthorityPersonAccess(person.getId(), username, password);
+        return isValid(person) && updateAuthorityPersonAccess(person.getId(), username, password);
+    }
+
+    private static boolean isValid(final AuthorityPerson person) {
+        return nonNull(person) && nonNull(person.getId()) && person.getId() > 0L;
     }
 
     /**

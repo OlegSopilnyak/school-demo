@@ -1,9 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import java.util.Optional;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -12,10 +10,21 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to log in authority person by username/password
@@ -25,13 +34,42 @@ import org.springframework.stereotype.Component;
  * @see PersistenceFacade
  */
 @Slf4j
-@AllArgsConstructor
 @Component("authorityPersonLogin")
 public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient PersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+    @Autowired
+    // beans factory to prepare the current command for transactional operations
+    private transient ApplicationContext applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<AuthorityPersonCommand<Optional<AuthorityPerson>>> self = new AtomicReference<>(null);
 
+    /**
+     * Reference to the current command for transactional operations
+     *
+     * @return reference to the current command
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public AuthorityPersonCommand<Optional<AuthorityPerson>> self() {
+        synchronized (CourseCommand.class) {
+            if (isNull(self.get())) {
+                // getting command reference which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo method
+                self.getAndSet(applicationContext.getBean("authorityPersonLogin", AuthorityPersonCommand.class));
+            }
+        }
+        return self.get();
+    }
+
+    public LoginAuthorityPersonCommand(PersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
+        this.persistence = persistence;
+        this.payloadMapper = payloadMapper;
+    }
 
     /**
      * DO: To login authority person by credentials<BR/>
@@ -46,6 +84,7 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
      */
     @SuppressWarnings("unchecked")
     @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {
