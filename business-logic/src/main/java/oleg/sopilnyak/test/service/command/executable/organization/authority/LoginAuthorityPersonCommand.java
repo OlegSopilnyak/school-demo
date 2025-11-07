@@ -84,7 +84,7 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
      */
     @SuppressWarnings("unchecked")
     @Override
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<AuthorityPerson>> context) {
         final Input<?> parameter = context.getRedoParameter();
         try {

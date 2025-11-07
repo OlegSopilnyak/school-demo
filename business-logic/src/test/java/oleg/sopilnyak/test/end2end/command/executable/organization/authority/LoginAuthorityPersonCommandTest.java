@@ -45,7 +45,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
-//@ContextConfiguration(classes = {PersistenceConfiguration.class, LoginAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @SpyBean
