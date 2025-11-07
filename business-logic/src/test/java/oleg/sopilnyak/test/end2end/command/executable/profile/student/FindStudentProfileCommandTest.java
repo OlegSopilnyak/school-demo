@@ -1,56 +1,66 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentProfileCommand.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
     @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
+    @Qualifier("profileStudentFind")
     StudentProfileCommand command;
 
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(StudentProfileEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -58,7 +68,6 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityFound() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
@@ -74,7 +83,6 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotFound() {
         Long id = 815L;
         Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
@@ -89,7 +97,6 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         long id = 816L;
         Context<Optional<StudentProfile>> context = command.createContext(Input.of("" + id));
@@ -103,7 +110,6 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
@@ -120,7 +126,6 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         Long id = 818L;
         Context<Optional<StudentProfile>> context = command.createContext(Input.of(id));
@@ -137,20 +142,35 @@ class FindStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private StudentProfile findStudentProfileById(long id) {
+        return findEntity(StudentProfileEntity.class, id);
+    }
 
-    private StudentProfile persistStudentProfile() {
-        int order = 0;
+    private StudentProfile persist(StudentProfile newInstance) {
+        StudentProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private StudentProfilePayload persistStudentProfile() {
         try {
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {
-                fakeProfile.setEmail(fakeProfile.getEmail() + ".site" + order);
+                fakeProfile.setEmail(fakeProfile.getEmail() + ".site.0");
             }
-            StudentProfile entity = persistence.save(profile).orElse(null);
+            StudentProfile entity = persist(profile);
             assertThat(entity).isNotNull();
             long id = entity.getId();
-            Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
-            assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
-            assertThat(dbProfile).contains(entity);
+            StudentProfile dbProfile = findStudentProfileById(id);
+            assertProfilesEquals(dbProfile, profile, false);
+            assertThat(dbProfile).isEqualTo(entity);
             return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
             reset(persistence, payloadMapper);
