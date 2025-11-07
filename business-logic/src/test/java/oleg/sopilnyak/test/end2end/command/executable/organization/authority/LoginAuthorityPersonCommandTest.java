@@ -1,56 +1,75 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.LoginAuthorityPersonCommand;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.security.NoSuchAlgorithmException;
+import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, LoginAuthorityPersonCommand.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
+//@ContextConfiguration(classes = {PersistenceConfiguration.class, LoginAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
+    @Qualifier("authorityPersonLogin")
     AuthorityPersonCommand command;
 
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(PrincipalProfileEntity.class);
+        deleteEntities(AuthorityPersonEntity.class);
+    }
+
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
@@ -58,7 +77,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityExists() {
         String username = "test-login";
         String password = "test-password";
@@ -78,7 +96,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_AuthorityPersonNotExists() {
         String username = "login";
         String password = "pass";
@@ -86,7 +103,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-        persistence.deleteAuthorityPerson(entity.getId());
+        deleteEntity(AuthorityPersonEntity.class, entity.getId());
 
         command.doCommand(context);
 
@@ -99,7 +116,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_PrincipalProfileNotExists() {
         String username = "login";
         String password = "pass";
@@ -107,7 +123,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-        persistence.deleteProfileById(id);
+        deleteEntity(PrincipalProfileEntity.class, id);
 
         command.doCommand(context);
 
@@ -122,7 +138,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindPrincipalProfileThrows() {
         String username = "login";
         String password = "pass";
@@ -146,7 +161,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_PrincipalProfileWrongPassword() {
         String username = "login";
         String password = "pass";
@@ -168,7 +182,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindAuthorityPersonThrows() {
         String username = "login";
         String password = "pass";
@@ -193,7 +206,6 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         String username = "login";
         String password = "pass";
@@ -215,30 +227,65 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     // private methods
     private AuthorityPersonPayload persist() {
         try {
-            PrincipalProfile profile = persistence.save(makePrincipalProfile(null)).orElse(null);
-            assertThat(profile).isNotNull();
-
-            AuthorityPerson source = makeCleanAuthorityPerson(0);
-            if (source instanceof FakeAuthorityPerson person) {
-                person.setProfileId(profile.getId());
+            PrincipalProfile profile = persist(makePrincipalProfile(null));
+            AuthorityPerson person = makeCleanAuthorityPerson(0);
+            if (person instanceof FakeAuthorityPerson fake) {
+                fake.setProfileId(profile.getId());
             }
-            AuthorityPerson entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
-            assertAuthorityPersonEquals(person.orElseThrow(), source, false);
-            assertThat(person).contains(entity);
-            return payloadMapper.toPayload(entity);
+            return payloadMapper.toPayload(persist(person));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+        }
+    }
+
+    private AuthorityPerson persist(AuthorityPerson newInstance) {
+        AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
         }
     }
 
     private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
+        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
+        profile.setLogin(username);
         try {
-            assertThat(persistence.updateAuthorityPersonAccess(person, username, password)).isTrue();
+            profile.setSignature(profile.makeSignatureFor(password));
+            merge(profile);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace(System.err);
         } finally {
             reset(persistence);
+        }
+    }
+
+    private void merge(PrincipalProfile instance) {
+        PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+    }
+
+    private PrincipalProfile persist(PrincipalProfile newInstance) {
+        PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
         }
     }
 }
