@@ -82,6 +82,7 @@ class DeleteAuthorityPersonMacroCommandTest {
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();
@@ -260,6 +261,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         Long profileId = 8L;
         Long personId = 9L;
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(person.getProfileId()).thenReturn(profileId);
         when(persistence.findAuthorityPersonById(personId)).thenReturn(Optional.of(person));
         when(persistence.findPrincipalProfileById(profileId)).thenReturn(Optional.of(profile));
@@ -310,6 +312,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldNotExecuteDoCommand_ProfileNotFound() {
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 12L;
         Long personId = 11L;
@@ -349,6 +352,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldNotExecuteDoCommand_DeletePersonThrows() {
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 14L;
         Long personId = 13L;
@@ -394,6 +398,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldNotExecuteDoCommand_DeleteProfileThrows() {
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 16L;
         Long personId = 15L;
@@ -441,6 +446,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     void shouldExecuteUndoCommand() {
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         Long profileId = 18L;
         Long personId = 17L;
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);
@@ -470,6 +476,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @Test
     void shouldNotExecuteUndoCommand_SaveProfileThrows() {
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         Long profileId = 20L;
         Long personId = 19L;
@@ -509,6 +516,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         Long profileId = 22L;
         Long personId = 21L;
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).rollbackAction(any(ActionContext.class), any(Context.class));
         when(profile.getId()).thenReturn(profileId);
         Context<Boolean> context = createPrincipalAndProfileFor(profileId, personId);
