@@ -1,58 +1,69 @@
 package oleg.sopilnyak.test.end2end.command.executable.profile.student;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteStudentProfileCommand.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
     @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
+    @Qualifier("profileStudentDelete")
     StudentProfileCommand command;
 
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(StudentProfileEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -60,12 +71,11 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_ProfileExists() {
         StudentProfile profile = persistStudentProfile();
         Long id = profile.getId();
-        StudentProfile exists = persistence.findStudentProfileById(id).orElseThrow();
-        reset(persistence);
+        StudentProfile exists = findStudentProfileById(id);
+        assertThat(exists).isNotNull();
         Context<Boolean> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
@@ -80,11 +90,10 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         verify(persistence).toEntity(exists);
         verify(payloadMapper).toPayload(exists);
         verify(persistence).deleteProfileById(id);
-        assertThat(persistence.findStudentProfileById(id)).isEmpty();
+        assertThat(findStudentProfileById(id)).isNull();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NoProfile() {
         long id = 415L;
         Context<Boolean> context = command.createContext(Input.of(id));
@@ -102,7 +111,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() throws ProfileNotFoundException {
         Context<Boolean> context = command.createContext(Input.of("id"));
 
@@ -115,7 +123,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() throws ProfileNotFoundException {
         Context<Boolean> context = command.createContext(null);
 
@@ -129,15 +136,15 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() throws ProfileNotFoundException {
         StudentProfilePayload profile = persistStudentProfile();
         long id = profile.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteProfileById(id);
         Context<Boolean> context = command.createContext(Input.of(id));
 
-        command.doCommand(context);
+        var error = assertThrows(Exception.class, () -> command.doCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeDo(context);
@@ -148,7 +155,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoProfileExists() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
@@ -167,7 +173,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_WrongUndoCommandParameterType() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -185,7 +190,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NullUndoCommandParameter() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -203,7 +207,6 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
         StudentProfile profile = persistStudentProfile();
         Context<Boolean> context = command.createContext();
@@ -211,8 +214,8 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
         if (context instanceof CommandContext<?> commandContext) {
             commandContext.setUndoParameter(Input.of(profile));
         }
-
         doThrow(new UnsupportedOperationException()).when(persistence).saveProfile(profile);
+
         command.undoCommand(context);
 
         assertThat(context.isFailed()).isTrue();
@@ -223,19 +226,35 @@ class DeleteStudentProfileCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private StudentProfile findStudentProfileById(long id) {
+        return findEntity(StudentProfileEntity.class, id);
+    }
+
+    private StudentProfile persist(StudentProfile newInstance) {
+        StudentProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
     private StudentProfilePayload persistStudentProfile() {
-        int order = 0;
         try {
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {
-                fakeProfile.setEmail(fakeProfile.getEmail() + ".site" + order);
+                fakeProfile.setEmail(fakeProfile.getEmail() + ".site.0");
             }
-            StudentProfile entity = persistence.save(profile).orElse(null);
+            StudentProfile entity = persist(profile);
             assertThat(entity).isNotNull();
             long id = entity.getId();
-            Optional<StudentProfile> dbProfile = persistence.findStudentProfileById(id);
-            assertProfilesEquals(dbProfile.orElseThrow(), profile, false);
-            assertThat(dbProfile).contains(entity);
+            StudentProfile dbProfile = findStudentProfileById(id);
+            assertProfilesEquals(dbProfile, profile, false);
+            assertThat(dbProfile).isEqualTo(entity);
             return payloadMapper.toPayload(persistence.toEntity(entity));
         } finally {
             reset(persistence, payloadMapper);

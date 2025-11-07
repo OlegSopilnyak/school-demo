@@ -145,7 +145,6 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
         var error = assertThrows(Exception.class, () -> command.doCommand(context));
 
         assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
-
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeDo(context);
