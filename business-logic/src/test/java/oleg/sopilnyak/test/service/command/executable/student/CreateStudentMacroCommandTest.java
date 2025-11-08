@@ -1,19 +1,36 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
+import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -21,24 +38,23 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
-import org.mockito.*;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Optional;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CreateStudentMacroCommandTest extends TestModelFactory {
@@ -54,6 +70,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
     CreateOrUpdateStudentCommand personCommand;
     @Mock
     ActionExecutor actionExecutor;
+    @Mock
+    ApplicationContext applicationContext;
 
     CreateStudentMacroCommand command;
 
@@ -65,6 +83,12 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
                 return spy(super.wrap(command));
             }
         });
+        // setup nested commands
+        ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
+        doReturn(profileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
+        ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
+        doReturn(personCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
+        // execute command locally
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
@@ -77,7 +101,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldBeValidCommand() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         assertThat(profileCommand).isNotNull();
         assertThat(personCommand).isNotNull();
         assertThat(command).isNotNull();
@@ -102,7 +126,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldCreateMacroCommandContexts() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         StudentPayload newStudent = payloadMapper.toPayload(makeClearStudent(1));
         reset(payloadMapper);
         Deque<NestedCommand<?>> nestedCommands = new LinkedList<>(command.fromNest());
@@ -146,7 +170,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotCreateMacroCommandContext_WrongInputType() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         Object wrongTypeInput = "something";
         Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
         StudentProfileCommand<?> nestedProfileCommand = (StudentProfileCommand<?>) nested.pop();
@@ -172,7 +196,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotCreateMacroCommandContext_CreateProfileContextThrows() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         Input<Student> inputParameter = (Input<Student>) Input.of(makeClearStudent(2));
         String errorMessage = "Cannot create nested profile context";
         Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
@@ -202,7 +226,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotCreateMacroCommandContext_CreatePersonContextThrows() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         Input<Student> inputParameter = (Input<Student>) Input.of(makeClearStudent(3));
         String errorMessage = "Cannot create nested student context";
         Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
@@ -278,7 +302,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteDoCommand_DoNestedCommandsThrows() {
-        reset(actionExecutor);
+        reset(actionExecutor, applicationContext);
         Student newStudent = makeClearStudent(5);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot process nested commands");
@@ -337,6 +361,10 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @Test
     void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
+        reset(applicationContext);
+        ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
+        doReturn(profileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
+
         Student newStudent = makeClearStudent(6);
         Context<Optional<Student>> context = command.createContext(Input.of(newStudent));
         RuntimeException exception = new RuntimeException("Cannot process profile nested command");
