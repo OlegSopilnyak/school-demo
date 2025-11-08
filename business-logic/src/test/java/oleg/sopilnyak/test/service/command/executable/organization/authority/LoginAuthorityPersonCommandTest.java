@@ -35,8 +35,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class LoginAuthorityPersonCommandTest {
     @Mock
-    ApplicationContext applicationContext;
-    @Mock
     PersistenceFacade persistence;
     @Mock
     BusinessMessagePayloadMapper payloadMapper;
@@ -51,6 +49,8 @@ class LoginAuthorityPersonCommandTest {
     PrincipalProfile profile;
     @Mock
     PrincipalProfilePayload profilePayload;
+    @Mock
+    ApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
