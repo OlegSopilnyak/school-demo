@@ -10,7 +10,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -42,6 +41,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
@@ -52,6 +52,7 @@ import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
@@ -65,6 +66,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorityPersonFacadeImplTest {
@@ -78,14 +80,19 @@ class AuthorityPersonFacadeImplTest {
 
     @Mock
     ApplicationContext applicationContext;
-    PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
-    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
+    @Mock
+    PersistenceFacade persistenceFacade;
+    @Mock
+    BusinessMessagePayloadMapper payloadMapper;
 
+    // person command
     CreateOrUpdateAuthorityPersonCommand createPersonCommand;
-    CreateOrUpdatePrincipalProfileCommand createProfileCommand;
     DeleteAuthorityPersonCommand deletePersonCommand;
-    DeletePrincipalProfileCommand deleteProfileCommand;
     DeleteAuthorityPersonMacroCommand deletePersonMacroCommand;
+    LoginAuthorityPersonCommand loginPersonCommand;
+    // profile command
+    CreateOrUpdatePrincipalProfileCommand createProfileCommand;
+    DeletePrincipalProfileCommand deleteProfileCommand;
 
     CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
@@ -107,17 +114,6 @@ class AuthorityPersonFacadeImplTest {
 
     @BeforeEach
     void setUp() {
-        createPersonCommand = spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper));
-        createProfileCommand = spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
-        deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
-                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
-        ));
-        ReflectionTestUtils.setField(createPersonCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(deletePersonMacroCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(deletePersonCommand, "applicationContext", applicationContext);
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
@@ -141,6 +137,7 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldLoginAuthorityPerson() {
+        doReturn(loginPersonCommand).when(applicationContext).getBean("authorityPersonLogin", AuthorityPersonCommand.class);
         Long id = 341L;
         String username = "test-login";
         String password = "test-password";
@@ -163,6 +160,7 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldNotLoginAuthorityPerson_WrongPassword() {
+        doReturn(loginPersonCommand).when(applicationContext).getBean("authorityPersonLogin", AuthorityPersonCommand.class);
         String username = "test-login";
         when(persistenceFacade.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(mockProfile));
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
@@ -281,7 +279,6 @@ class AuthorityPersonFacadeImplTest {
     void shouldCreateOrUpdateAuthorityPerson_Update() {
         doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
-        when(payloadMapper.toPayload(mockPersonPayload)).thenReturn(mockPersonPayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPersonPayload));
 
         Optional<AuthorityPerson> result = facade.createOrUpdateAuthorityPerson(mockPerson);
@@ -306,6 +303,7 @@ class AuthorityPersonFacadeImplTest {
         Long profileId = 402L;
         doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(deleteProfileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
@@ -358,9 +356,9 @@ class AuthorityPersonFacadeImplTest {
         Long profileId = 404L;
         doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
+        doReturn(deleteProfileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
         when(persistenceFacade.findPrincipalProfileById(profileId)).thenReturn(Optional.of(mockProfile));
-        when(persistenceFacade.save(mockProfilePayload)).thenReturn(Optional.of(mockProfilePayload));
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
         when(persistenceFacade.toEntity(mockProfile)).thenReturn(mockProfile);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
@@ -383,18 +381,35 @@ class AuthorityPersonFacadeImplTest {
     }
 
     private CommandsFactory<AuthorityPersonCommand<?>> buildFactory() {
-        return spy(new AuthorityPersonCommandsFactory(
-                        Set.of(
-                                spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)),
-                                spy(new LogoutAuthorityPersonCommand()),
-                                spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)),
-                                spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)),
-                                createPersonCommand,
-                                spy(new CreateAuthorityPersonMacroCommand(createPersonCommand, createProfileCommand, payloadMapper, actionExecutor)),
-                                deletePersonCommand,
-                                deletePersonMacroCommand
-                        )
-                )
+        createPersonCommand = spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        createProfileCommand = spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
+        deletePersonCommand = spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        deleteProfileCommand = spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
+        deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
+                deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
+        ));
+        loginPersonCommand = spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(deleteProfileCommand, "applicationContext", applicationContext);
+
+        Map<AuthorityPersonCommand<?>, String> commands =  Map.of(
+                loginPersonCommand, "authorityPersonLogin",
+                spy(new LogoutAuthorityPersonCommand()), "authorityPersonLogout",
+                spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)), "authorityPersonFindAll",
+                spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonFind",
+                createPersonCommand, "authorityPersonUpdate",
+                spy(new CreateAuthorityPersonMacroCommand(createPersonCommand, createProfileCommand, payloadMapper, actionExecutor)), "authorityPersonMacroCreate",
+                deletePersonCommand, "authorityPersonDelete",
+                deletePersonMacroCommand, "authorityPersonMacroDelete"
+        );
+        String acName = "applicationContext";
+        commands.entrySet().forEach(entry -> {
+            RootCommand<?> command = entry.getKey();
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+        });
+        return spy(new AuthorityPersonCommandsFactory(commands.keySet())
         );
     }
 }
