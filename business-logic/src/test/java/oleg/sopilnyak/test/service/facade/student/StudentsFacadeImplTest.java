@@ -38,6 +38,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
@@ -87,6 +88,7 @@ class StudentsFacadeImplTest {
 
     CreateOrUpdateStudentCommand createStudentCommand;
     CreateOrUpdateStudentProfileCommand createProfileCommand;
+    CreateStudentMacroCommand createMacroCommand;
     DeleteStudentCommand deleteStudentCommand;
     DeleteStudentProfileCommand deleteProfileCommand;
     DeleteStudentMacroCommand deleteStudentMacroCommand;
@@ -99,13 +101,19 @@ class StudentsFacadeImplTest {
     void setUp() {
         createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
         createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
+        createMacroCommand = spy(new CreateStudentMacroCommand(
+                createStudentCommand, createProfileCommand, payloadMapper, actionExecutor
+        ));
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
         deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
         deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
                 deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
+        ReflectionTestUtils.setField(createStudentCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deleteStudentMacroCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deleteStudentCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(deleteProfileCommand, "applicationContext", applicationContext);
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
@@ -196,6 +204,7 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotCreateOrUpdate() {
+        doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
 
         Optional<Student> result = facade.createOrUpdate(mockedStudent);
@@ -211,6 +220,8 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldCreateNewStudent() {
+        doReturn(createProfileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
+        doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
         when(mockedStudentPayload.getFirstName()).thenReturn("John");
         when(mockedStudentPayload.getLastName()).thenReturn("Doe");
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
@@ -233,6 +244,7 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateStudent() {
+        doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
@@ -251,6 +263,7 @@ class StudentsFacadeImplTest {
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
         doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
+        doReturn(deleteProfileCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.initialize();
@@ -341,7 +354,7 @@ class StudentsFacadeImplTest {
                                 spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
                                 createStudentCommand,
-                                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)),
+                                createMacroCommand,
                                 deleteStudentCommand,
                                 deleteStudentMacroCommand
                         )
