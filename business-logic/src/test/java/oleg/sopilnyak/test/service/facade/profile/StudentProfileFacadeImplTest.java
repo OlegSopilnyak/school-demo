@@ -1,9 +1,21 @@
 package oleg.sopilnyak.test.service.facade.profile;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
@@ -16,40 +28,48 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class StudentProfileFacadeImplTest {
     private static final String PROFILE_FIND_BY_ID = "profile.student.findById";
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String PROFILE_DELETE = "profile.student.deleteById";
-    ProfilePersistenceFacade persistence = mock(ProfilePersistenceFacade.class);
-    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
-    @Spy
-    CommandsFactory<?> factory = buildFactory();
 
-    @Spy
-    @InjectMocks
+    @Mock
+    ProfilePersistenceFacade persistence;
+    @Mock
+    ApplicationContext applicationContext;
+    BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
+    FindStudentProfileCommand findCommand;
+    CreateOrUpdateStudentProfileCommand updateCommand;
+    DeleteStudentProfileCommand deleteCommand;
+    CommandsFactory<StudentProfileCommand<?>> factory;
     StudentProfileFacadeImpl facade;
+
     @Mock
     StudentProfile profile;
     @Mock
     StudentProfilePayload payload;
 
+    @BeforeEach
+    void setUp() {
+        factory = spy(buildFactory());
+        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper));
+    }
+
     @Test
     void shouldFindProfileById() {
+        doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 700L;
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
@@ -69,6 +89,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotFindProfileById() {
+        doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 710L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
@@ -85,6 +106,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotFindProfileById_WrongProfileType() {
+        doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 711L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(mock(PrincipalProfile.class)));
@@ -102,6 +124,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateProfile() {
+        doReturn(updateCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).save(payload);
         when(persistence.saveProfile(payload)).thenReturn(Optional.of(payload));
@@ -120,6 +143,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotCreateOrUpdateProfile() {
+        doReturn(updateCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).save(payload);
 
@@ -137,6 +161,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldDeleteProfileById() {
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 702L;
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
@@ -158,6 +183,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfile_ProfileNotExists() throws ProfileNotFoundException {
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 715L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
@@ -174,6 +200,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 703L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
@@ -190,6 +217,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldDeleteProfileInstance() throws ProfileNotFoundException {
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 714L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
@@ -211,6 +239,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileInstance_ProfileNotExists() throws ProfileNotFoundException {
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 716L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
@@ -251,13 +280,13 @@ class StudentProfileFacadeImplTest {
     }
 
     private CommandsFactory<StudentProfileCommand<?>> buildFactory() {
-        return new StudentProfileCommandsFactory(
-                Set.of(
-                        spy(new FindStudentProfileCommand(persistence, payloadMapper)),
-                        spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)),
-                        spy(new DeleteStudentProfileCommand(persistence, payloadMapper))
-                )
+        findCommand = spy(new FindStudentProfileCommand(persistence, payloadMapper));
+        updateCommand = spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper));
+        deleteCommand = spy(new DeleteStudentProfileCommand(persistence, payloadMapper));
+        ReflectionTestUtils.setField(findCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(updateCommand, "applicationContext", applicationContext);
+        ReflectionTestUtils.setField(deleteCommand, "applicationContext", applicationContext);
 
-        );
+        return new StudentProfileCommandsFactory(Set.of(findCommand, updateCommand, deleteCommand));
     }
 }

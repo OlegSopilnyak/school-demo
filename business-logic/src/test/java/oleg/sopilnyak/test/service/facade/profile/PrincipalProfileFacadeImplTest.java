@@ -267,8 +267,6 @@ class PrincipalProfileFacadeImplTest {
         ReflectionTestUtils.setField(updateCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deleteCommand, "applicationContext", applicationContext);
 
-        return new PrincipalProfileCommandsFactory(
-                Set.of(findCommand, updateCommand, deleteCommand)
-        );
+        return new PrincipalProfileCommandsFactory(Set.of(findCommand, updateCommand, deleteCommand));
     }
 }
