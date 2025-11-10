@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.type.base;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 
 /**
  * Type: Command to execute command business-logic
- * @param <T> the type of command execution (do) result
+ *
+ * @param <T> the type of command execution result
  */
 public interface CommandExecutable<T> {
     /**
@@ -13,8 +13,6 @@ public interface CommandExecutable<T> {
      *
      * @return context instance
      * @see Context
-     * @see CommandContext
-     * @see Context.State#INIT
      * @see CommandExecutable#executeDo(Context)
      * @see CommandExecutable#executeUndo(Context)
      */
@@ -26,22 +24,25 @@ public interface CommandExecutable<T> {
      * @param input context's doParameter input value
      * @return context instance
      * @see Input
-     * @see Context
-     * @see Context#getRedoParameter()
-     * @see CommandContext
-     * @see Context.State#READY
      * @see CommandExecutable#executeDo(Context)
      * @see CommandExecutable#executeUndo(Context)
      */
     Context<T> createContext(Input<?> input);
 
-
+    /**
+     * Reference to the current command for operations with the command's entities in transaction possibility
+     *
+     * @return the reference to the current command from spring beans factory
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    CommandExecutable<T> self();
     /**
      * To execute command do with correct context state (default implementation)
      *
      * @param context context of redo execution
-     * @see Context
-     * @see Context.State#WORK
+     * @see Context.State#DONE
+     * @see Context#setState(Context.State)
      * @see RootCommand#doCommand(Context)
      */
     default void executeDo(Context<T> context) {
@@ -61,8 +62,9 @@ public interface CommandExecutable<T> {
      * <BR/> the type of command result doesn't matter
      *
      * @param context context of redo execution
-     * @see Context
-     * @see Context#getUndoParameter()
+     * @see Context.State#DONE
+     * @see Context#setState(Context.State)
+     * @see RootCommand#executeUndo(Context)
      */
     default void executeUndo(Context<?> context) {
         context.setState(Context.State.UNDONE);

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 /**
  * Type: School Command to execute the business-logic action
  *
- * @param <T> the type of command execution (do) result
+ * @param <T> the type of command execution result
  */
 public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     /**
@@ -23,6 +23,21 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @return reference to the logger
      */
     Logger getLog();
+
+    /**
+     * The name of bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    String springName();
+
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @param <F> class of command's family
+     */
+    <F extends RootCommand<T>> Class<F> commandFamily();
 
     /**
      * To get unique command-id for the command
@@ -46,6 +61,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * To check nullable of the input parameter
      *
      * @param parameter input value to check
+     * @see Input#isEmpty()
      */
     default <I> void checkNullParameter(Input<I> parameter) {
         if (isNull(parameter) || parameter.isEmpty()) {
@@ -57,8 +73,10 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * To create command's context without parameters
      *
      * @return context instance
-     * @see Context
-     * @see CommandContext
+     * @see CommandContext#builder()
+     * @see CommandContext.CommandContextBuilder#command(RootCommand)
+     * @see CommandContext.CommandContextBuilder#build()
+     * @see Context#setState(Context.State)
      * @see Context.State#INIT
      */
     @Override
@@ -74,9 +92,12 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @param parameter context's doParameter input value
      * @return context instance
      * @see Input
-     * @see Context
-     * @see Context#getRedoParameter()
-     * @see CommandContext
+     * @see CommandContext#builder()
+     * @see CommandContext.CommandContextBuilder#command(RootCommand)
+     * @see CommandContext.CommandContextBuilder#redoParameter(Input)
+     * @see CommandContext.CommandContextBuilder#build()
+     * @see Context#setState(Context.State)
+     * @see Context.State#INIT
      * @see Context.State#READY
      */
     @Override
@@ -92,6 +113,8 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param cause cause of fail
      * @return instance of failed command-context
+     * @see RootCommand#createContext()
+     * @see Context#failed(Exception)
      */
     @Override
     default Context<T> createFailedContext(Exception cause) {
@@ -102,10 +125,10 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * Reference to the current command for operations with the command's entities in transaction possibility
      *
      * @return the reference to the current command from spring beans factory
-     * @see org.springframework.context.ApplicationContext
      * @see RootCommand#doCommand(Context)
      * @see RootCommand#undoCommand(Context)
      */
+    @Override
     default RootCommand<T> self() {
         return this;
     }
@@ -114,9 +137,12 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * To execute command logic with context
      *
      * @param context context of redo execution
-     * @see Context
-     * @see CommandExecutable#executeDo(Context)
+     * @see Context#isReady()
+     * @see Context#setState(Context.State)
+     * @see Context.State#WORK
      * @see RootCommand#self()
+     * @see CommandExecutable#executeDo(Context)
+     * @see RootCommand#afterExecuteDo(Context)
      */
     @Override
     default void doCommand(Context<T> context) {
@@ -135,8 +161,9 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * To rollback command's execution according to command context
      *
      * @param context context of undo execution
-     * @see Context
-     * @see Context#getUndoParameter()
+     * @see Context#isDone()
+     * @see Context#setState(Context.State)
+     * @see Context.State#WORK
      * @see CommandExecutable#executeUndo(Context)
      * @see RootCommand#self()
      */
@@ -156,10 +183,11 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * To detach command result data from persistence layer after command execution
      *
      * @param context context of command execution
-     * @see Context
      * @see Context#isDone()
      * @see Context#getResult()
+     * @see Optional#isEmpty()
      * @see #detachedResult(Object)
+     * @see Context#setResult(Object)
      */
     default void afterExecuteDo(Context<T> context) {
         // check if command is done and has result
@@ -189,19 +217,21 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      */
     T detachedResult(T result);
 
-    // For commands playing as a Nested Command
+    // For commands playing as a nested-command
 
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor             visitor of prepared contexts
-     * @param macroInputParameter Macro-Command call's input
+     * @param visitor visitor of prepared contexts
+     * @param input   Macro-Command input for command-context preparation
      * @return prepared for nested command context
+     * @see NestedCommand#acceptPreparedContext(PrepareNestedContextVisitor, Input)
      * @see PrepareNestedContextVisitor#prepareContext(RootCommand, Input)
      */
     @Override
-    default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {
-        return visitor.prepareContext(this, macroInputParameter);
+    default Context<T> acceptPreparedContext(PrepareNestedContextVisitor visitor, Input<?> input) {
+        // it's using visitor for preparing concrete command-context
+        return visitor.prepareContext(this, input);
     }
 
 }
