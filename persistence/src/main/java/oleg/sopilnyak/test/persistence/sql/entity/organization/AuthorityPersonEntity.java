@@ -12,8 +12,6 @@ import java.util.*;
 import static java.util.Objects.isNull;
 
 @Data
-@EqualsAndHashCode(exclude = {"facultyEntitySet"})
-@ToString(exclude = {"facultyEntitySet"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,7 +31,9 @@ public class AuthorityPersonEntity implements AuthorityPerson {
     private String lastName;
     private String gender;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "dean")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "dean")
     private Set<FacultyEntity> facultyEntitySet;
 
     /**

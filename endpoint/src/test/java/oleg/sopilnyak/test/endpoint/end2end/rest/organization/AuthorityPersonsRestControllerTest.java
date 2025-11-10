@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
@@ -19,8 +20,12 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.endpoint.rest.organization.AuthorityPersonsRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -28,12 +33,15 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +67,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/authorities";
 
     @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
     PersistenceFacade database;
     @Autowired
     CommandsFactory<AuthorityPersonCommand<?>> factory;
@@ -82,6 +94,13 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        deleteEntities(FacultyEntity.class);
+        deleteEntities(PrincipalProfileEntity.class);
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test
@@ -166,10 +185,11 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String username = "test-username";
         String password = "test-password";
         AuthorityPerson person = create(makeCleanAuthorityPerson(212));
+        setPersonPermissions(person, username, password);
         assertThat(database.updateAuthorityPersonAccess(person, username, password)).isTrue();
         if (person instanceof AuthorityPersonEntity entity) {
             entity.setFaculties(List.of());
-            database.save(entity);
+            merge(entity);
         }
         String requestPath = ROOT + "/login";
 
@@ -187,7 +207,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         verify(controller).login(username, password);
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
-
         assertAuthorityPersonEquals(person, personDto, false);
         checkControllerAspect();
     }
@@ -197,10 +216,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String username = "test-username";
         String password = "test-password";
         AuthorityPerson person = create(makeCleanAuthorityPerson(213));
-        assertThat(database.updateAuthorityPersonAccess(person, username, password)).isTrue();
+        setPersonPermissions(person, username, password);
         if (person instanceof AuthorityPersonEntity entity) {
             entity.setFaculties(List.of());
-            database.save(entity);
+            merge(entity);
         }
         String requestPath = ROOT + "/login";
 
@@ -228,11 +247,12 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
         String username = "test-username";
         String password = "test-password";
+        String wrongPassword = "wrong-password";
         AuthorityPerson person = create(makeCleanAuthorityPerson(214));
-        assertThat(database.updateAuthorityPersonAccess(person, username, password)).isTrue();
+        setPersonPermissions(person, username, password);
         if (person instanceof AuthorityPersonEntity entity) {
             entity.setFaculties(List.of());
-            database.save(entity);
+            merge(entity);
         }
         String requestPath = ROOT + "/login";
 
@@ -240,14 +260,14 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(requestPath)
                                         .param("username", username)
-                                        .param("password", "password")
+                                        .param("password", wrongPassword)
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isForbidden())
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).login(username, "password");
+        verify(controller).login(username, wrongPassword);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -407,10 +427,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         AuthorityPerson person = create(makeCleanAuthorityPerson(202));
         if (person instanceof AuthorityPersonEntity entity) {
             entity.setFaculties(List.of());
-            database.save(entity);
+            merge(entity);
         }
         Long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
+        assertThat(findAuthorityPersonById(id)).isNotNull();
         String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
@@ -420,7 +440,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andDo(print());
 
         verify(controller).deletePerson(id.toString());
-        assertThat(database.findAuthorityPersonById(id)).isEmpty();
+        assertThat(findAuthorityPersonById(id)).isNull();
         checkControllerAspect();
     }
 
@@ -495,7 +515,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         }
         AuthorityPerson person = create(source);
         long id = person.getId();
-        assertThat(database.findAuthorityPersonById(id)).isPresent();
+        assertThat(findAuthorityPersonById(id)).isNotNull();
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -524,15 +544,84 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthorityPersonsRestController.class);
     }
 
-    private AuthorityPerson getPersistent(AuthorityPerson newInstance) {
-        Optional<AuthorityPerson> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+    private void setPersonPermissions(AuthorityPerson person, String username, String password) {
+        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
+        profile.setLogin(username);
+        try {
+            profile.setSignature(profile.makeSignatureFor(password));
+            merge(profile);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void merge(PrincipalProfile instance) {
+        PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+    }
+
+    private AuthorityPerson findAuthorityPersonById(Long id) {
+        return findEntity(AuthorityPersonEntity.class, id, e -> e.getFacultyEntitySet().size());
+    }
+
+    private void merge(AuthorityPerson instance) {
+        AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+    }
+
+    private AuthorityPerson persist(AuthorityPerson newInstance) {
+        AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private PrincipalProfile persist(PrincipalProfile newInstance) {
+        PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
     }
 
     private AuthorityPerson create(AuthorityPerson newInstance) {
-        Optional<AuthorityPerson> saved = facade.create(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+        PrincipalProfile profile = persist(makePrincipalProfile(null));
+        AuthorityPerson person = newInstance;
+        if (person instanceof FakeAuthorityPerson fake) {
+            fake.setProfileId(profile.getId());
+        } else {
+            fail("Invalid person type '{}'", person.getClass());
+        }
+        return persist(person);
     }
+
+    private AuthorityPerson getPersistent(AuthorityPerson newInstance) {
+        return persist(newInstance);
+    }
+
 }
