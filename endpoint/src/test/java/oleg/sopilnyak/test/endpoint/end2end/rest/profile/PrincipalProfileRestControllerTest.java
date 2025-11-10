@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
@@ -20,6 +19,8 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.profile.PrincipalProfileRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -29,7 +30,11 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +53,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
@@ -59,6 +63,11 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
+
+    @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     PersistenceFacade database;
     @SpyBean
@@ -85,8 +94,12 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(PrincipalProfileEntity.class);
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
@@ -102,7 +115,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldFindPrincipalProfile() throws Exception {
         var profile = getPersistent(makePrincipalProfile(null));
         Long id = profile.getId();
@@ -124,7 +136,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotFoundPrincipalProfile_NotExists() throws Exception {
         long id = -402L;
         String requestPath = ROOT + "/" + id;
@@ -146,7 +157,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotFoundPrincipalProfile_WrongId() throws Exception {
         long id = -402L;
         String requestPath = ROOT + "/" + id + "!";
@@ -168,7 +178,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldUpdatePrincipalProfile() throws Exception {
         PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
         String originalEmail = profile.getEmail();
@@ -193,7 +202,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdatePrincipalProfile_NullId() throws Exception {
         PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
         profile.setId(null);
@@ -217,7 +225,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdatePrincipalProfile_NegativeId() throws Exception {
         PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
         profile.setId(-profile.getId());
@@ -241,7 +248,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdatePrincipalProfile_ExceptionThrown() throws Exception {
         PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -277,8 +283,15 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     private PrincipalProfile getPersistent(PrincipalProfile newInstance) {
-        Optional<PrincipalProfile> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+        PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
     }
 }

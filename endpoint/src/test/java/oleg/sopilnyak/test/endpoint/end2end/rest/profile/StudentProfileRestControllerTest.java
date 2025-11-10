@@ -19,6 +19,7 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.profile.StudentProfileRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -33,6 +34,7 @@ import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +43,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -50,13 +51,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/profiles/students";
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -92,8 +91,12 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(StudentProfileEntity.class);
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(payloadMapper).isNotNull();
@@ -109,7 +112,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldFindStudentProfile() throws Exception {
         var profile = getPersistent(makeStudentProfile(null));
         Long id = profile.getId();
@@ -131,7 +133,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotFoundStudentProfile_NegativeId() throws Exception {
         Long id = -401L;
         String requestPath = ROOT + "/" + id;
@@ -153,7 +154,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotFoundStudentProfile_WrongId() throws Exception {
         Long id = 401L;
         String requestPath = ROOT + "/" + id + "!";
@@ -175,7 +175,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldUpdateStudentProfile() throws Exception {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String originalEmail = profile.getEmail();
@@ -200,7 +199,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdateStudentProfile_NullId() throws Exception {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         profile.setId(null);
@@ -224,7 +222,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdateStudentProfile_NegativeId() throws Exception {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         Long id = profile.getId();
@@ -249,7 +246,6 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void shouldNotUpdateStudentProfile_ExceptionThrown() throws Exception {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
