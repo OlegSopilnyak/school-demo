@@ -11,11 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
@@ -32,31 +27,33 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
@@ -88,7 +85,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
@@ -104,7 +100,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldLogoutAuthorityPerson() throws Exception {
         String headerName = "Authorization";
         String token = "logged_in_person_token";
@@ -126,7 +121,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotLogoutAuthorityPerson_WrongHeaderValue() throws Exception {
         String headerName = "Authorization";
         String token = "logged_in_person_token";
@@ -148,7 +142,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotLogoutAuthorityPerson_WrongHeaderName() throws Exception {
         String headerName = "AuthoriSation";
         String token = "logged_in_person_token";
@@ -169,7 +162,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldLoginAuthorityPerson() throws Exception {
         String username = "test-username";
         String password = "test-password";
@@ -201,7 +193,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotLoginAuthorityPerson_WrongLoginUsername() throws Exception {
         String username = "test-username";
         String password = "test-password";
@@ -234,7 +225,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
         String username = "test-username";
         String password = "test-password";
@@ -267,7 +257,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllAuthorities() throws Exception {
         int personsAmount = 30;
         List<AuthorityPerson> staff = IntStream.range(0, personsAmount)
@@ -296,7 +285,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAuthorityPersonById() throws Exception {
         AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(100));
         Long id = person.getId();
@@ -320,7 +308,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateAuthorityPerson() throws Exception {
         AuthorityPerson person = makeCleanAuthorityPerson(200);
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -344,7 +331,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateAuthorityPerson() throws Exception {
         AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(201));
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -368,7 +354,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
         Long id = -301L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
@@ -394,7 +379,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
         AuthorityPerson person = makeTestAuthorityPerson(null);
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -419,7 +403,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteAuthorityPerson() throws Exception {
         AuthorityPerson person = create(makeCleanAuthorityPerson(202));
         if (person instanceof AuthorityPersonEntity entity) {
@@ -442,7 +425,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
         String requestPath = ROOT + "/" + null;
 
@@ -464,7 +446,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
         long id = -303L;
         String requestPath = ROOT + "/" + id;
@@ -486,7 +467,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
         long id = 304L;
         String requestPath = ROOT + "/" + id;
@@ -508,7 +488,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
         AuthorityPerson source = makeCleanAuthorityPerson(203);
         if (source instanceof FakeAuthorityPerson fake) {
