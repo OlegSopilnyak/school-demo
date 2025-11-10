@@ -40,8 +40,8 @@ public abstract class BasicCommand<T> implements RootCommand<T> {
     public RootCommand<T> self() {
         synchronized (RootCommand.class) {
             if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
+                // getting command instance reference, which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo/executeUndo methods
                 self.getAndSet(applicationContext.getBean(this.springName(), this.commandFamily()));
             }
         }
