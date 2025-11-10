@@ -1,7 +1,9 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -9,12 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
@@ -24,9 +20,12 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -34,35 +33,44 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class StudentsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/students";
 
+    @Autowired
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     PersistenceFacade database;
     @Autowired
@@ -72,6 +80,8 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper mapper;
     @Autowired
     StudentsFacade facade;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     StudentsRestController controller;
@@ -88,8 +98,14 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(StudentProfileEntity.class);
+        deleteEntities(StudentEntity.class);
+        deleteEntities(CourseEntity.class);
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
@@ -105,7 +121,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindStudent() throws Exception {
         Student student = getPersistent(makeClearTestStudent());
         Long id = student.getId();
@@ -129,16 +144,10 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindStudentsEnrolledForCourse() throws Exception {
-        Course course = getPersistent(makeClearCourse(0));
+        Course course = persist(makeClearTestCourse());
         Long courseId = course.getId();
-        int studentsAmount = 40;
-        IntStream.range(0, studentsAmount).forEach(i -> {
-            if (course instanceof CourseEntity ce) {
-                ce.add(getPersistent(makeClearStudent(i)));
-            }
-        });
+        int studentsAmount = course.getStudents().size();
 
         String requestPath = ROOT + "/enrolled/" + courseId;
 
@@ -157,12 +166,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         }).stream().map(Student.class::cast).toList();
 
         assertThat(studentList).hasSize(studentsAmount);
-        assertStudentLists(database.findCourseById(courseId).orElseThrow().getStudents(), studentList);
+        assertStudentLists(findCourseById(courseId).getStudents(), studentList);
         checkControllerAspect();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindStudentsWithEmptyCourses() throws Exception {
         int studentsAmount = 5;
         Set<Student> students = IntStream.range(0, studentsAmount)
@@ -189,7 +197,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateStudent() throws Exception {
         Student student = makeClearTestStudent();
         String jsonContent = MAPPER.writeValueAsString(student);
@@ -213,7 +220,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateValidStudent() throws Exception {
         Student student = getPersistent(makeClearStudent(0));
         Long studentId = student.getId();
@@ -234,12 +240,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
-        assertStudentEquals(database.findStudentById(studentId).orElseThrow(), studentDto, true);
+        assertStudentEquals(findStudentById(studentId), studentDto, true);
         checkControllerAspect();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateInvalidStudent_NullId() throws Exception {
         Student student = makeTestStudent(null);
         String jsonContent = MAPPER.writeValueAsString(student);
@@ -264,7 +269,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateInvalidStudent_NegativeId() throws Exception {
         Long id = -1001L;
         Student student = makeTestStudent(id);
@@ -290,11 +294,10 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentValidId() throws Exception {
         Student student = createStudent(makeClearStudent(0));
         Long id = student.getId();
-        assertThat(database.findStudentById(id)).isPresent();
+        assertThat(findStudentById(id)).isNotNull();
         String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
@@ -304,12 +307,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
                 .andDo(print());
 
         verify(controller).deleteStudent(id.toString());
-        assertThat(database.findStudentById(id)).isEmpty();
+        assertThat(findStudentById(id)).isNull();
         checkControllerAspect();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudent_StudentNotExistsException() throws Exception {
         long id = 103L;
         String requestPath = ROOT + "/" + id;
@@ -332,15 +334,11 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudent_StudentWithCoursesException() throws Exception {
-        Student student = createStudent(makeClearStudent(0));
+        Student student = createStudent(makeClearTestStudent());
         Long id = student.getId();
-        assertThat(database.findStudentById(id)).isPresent();
+        assertThat(findStudentById(id)).isNotNull();
         String requestPath = ROOT + "/" + id;
-        if (student instanceof StudentPayload payload && payload.getOriginal() instanceof StudentEntity entity) {
-            entity.add(getPersistent(makeClearCourse(0)));
-        }
 
         MvcResult result =
                 mockMvc.perform(
@@ -368,21 +366,74 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsRestController.class);
     }
 
-    private Course getPersistent(Course newInstance) {
-        Optional<Course> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+    private Student findStudentById(Long id) {
+        return findEntity(StudentEntity.class, id, e -> e.getCourseSet().size());
     }
 
-    private Student createStudent(Student newInstance) {
-        Optional<Student> saved = facade.create(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+    private Course findCourseById(Long id) {
+        return findEntity(CourseEntity.class, id, e -> e.getStudentSet().forEach(student -> student.getCourseSet().size()));
     }
 
-    private Student getPersistent(Student newInstance) {
-        Optional<Student> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+    private Student getPersistent(Student newStudent) {
+        return payloadMapper.toPayload(persist(newStudent));
     }
+
+    private Course getPersistent(Course newCourse) {
+        return payloadMapper.toPayload(persist(newCourse));
+    }
+
+    private StudentPayload createStudent(Student newStudent) {
+        try {
+            StudentProfile profile = persist(makeStudentProfile(null));
+            if (newStudent instanceof FakeStudent fake) {
+                fake.setProfileId(profile.getId());
+            } else {
+                fail("Not a fake person type");
+            }
+            return payloadMapper.toPayload(persist(newStudent));
+        } finally {
+            reset(payloadMapper);
+        }
+    }
+
+    private Student persist(Student newInstance) {
+        Student entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private Course persist(Course newInstance) {
+        CourseEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            entity.getStudentSet().forEach(em::persist);
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private StudentProfile persist(StudentProfile newInstance) {
+        StudentProfileEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
 }
