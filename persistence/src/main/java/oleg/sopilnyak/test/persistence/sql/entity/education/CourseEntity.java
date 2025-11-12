@@ -1,20 +1,33 @@
 package oleg.sopilnyak.test.persistence.sql.entity.education;
 
+import static java.util.Objects.isNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import org.mapstruct.factory.Mappers;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static java.util.Objects.isNull;
+import org.mapstruct.factory.Mappers;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(exclude = {"studentSet", "faculty"})
