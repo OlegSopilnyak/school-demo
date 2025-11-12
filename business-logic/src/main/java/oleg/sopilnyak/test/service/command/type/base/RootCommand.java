@@ -25,11 +25,13 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     Logger getLog();
 
     /**
-     * The name of bean in spring beans factory
+     * The name of bean in spring beans factory, should override in concrete command
      *
      * @return spring name of the command
      */
-    String springName();
+    default String springName() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * The class of commands family, the command is belonged to
@@ -37,7 +39,9 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @return command family class value
      * @param <F> class of command's family
      */
-    <F extends RootCommand<T>> Class<F> commandFamily();
+    default <F extends RootCommand> Class<F> commandFamily() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * To get unique command-id for the command

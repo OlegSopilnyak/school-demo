@@ -4,11 +4,10 @@ import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 
 import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,12 +18,12 @@ import org.springframework.stereotype.Component;
 @Component
 public abstract class BasicCommand<T> implements RootCommand<T> {
     // beans factory to prepare the current command for transactional operations
-    protected transient ApplicationContext applicationContext;
+    protected transient BeanFactory applicationContext;
     // reference to current command for transactional operations
     private final AtomicReference<RootCommand<T>> self = new AtomicReference<>(null);
 
     @Autowired
-    public final void setApplicationContext(ApplicationContext applicationContext) {
+    public final void setApplicationContext(BeanFactory applicationContext) {
         this.applicationContext = applicationContext;
     }
 
@@ -46,20 +45,5 @@ public abstract class BasicCommand<T> implements RootCommand<T> {
             }
         }
         return self.get();
-    }
-
-    @Override
-    public String springName() {
-        return "courseDelete";
-    }
-
-    /**
-     * The class of commands family, the command is belonged to
-     *
-     * @return command family class value
-     */
-    @Override
-    public Class<CourseCommand> commandFamily() {
-        return CourseCommand.class;
     }
 }

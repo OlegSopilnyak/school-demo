@@ -35,6 +35,26 @@ public interface CourseCommand<T> extends RootCommand<T> {
     String REGISTER = "course.register";
     String UN_REGISTER = "course.unRegister";
 
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) CourseCommand.class;
+    }
+
+    /**
+     * The name of bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    default String springName() {
+        return FACTORY_BEAN_NAME;
+    }
 
     /**
      * To adopt course entity to business-logic data model from persistence data model refreshing entity's relation
@@ -66,9 +86,13 @@ public interface CourseCommand<T> extends RootCommand<T> {
         } else if (result instanceof Course entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<Course>) optionalEntity);
-        } else if (result instanceof Set entitiesSet) {
-            return (T) detach(entitiesSet);
+            // To detach Course optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(Course.class::cast).map(this::detach);
+        } else if (result instanceof Set<?> entitiesSet) {
+            return (T) detach((Set<Course>) entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
@@ -85,23 +109,6 @@ public interface CourseCommand<T> extends RootCommand<T> {
     private Course detach(Course entity) {
         getLog().debug("Entity to detach:'{}'", entity);
         return entity instanceof CoursePayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach Course optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<Course> detach(Optional<Course> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().debug("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().debug("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
     /**
