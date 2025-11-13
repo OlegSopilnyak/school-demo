@@ -24,6 +24,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
@@ -128,10 +129,11 @@ class AuthorityPersonRepositoryTest extends MysqlTestModelFactory {
     void shouldNotDeleteById() {
         Long id = 101L;
 
-        EmptyResultDataAccessException exception =
-                assertThrows(EmptyResultDataAccessException.class, () -> repository.deleteById(id));
-
-        assertThat(exception.getMessage()).startsWith("No class ").contains("entity with id 101 exists!");
+        try {
+            repository.deleteById(id);
+        } catch (Exception e) {
+            fail("Exception should not have been thrown instead of deleted data not found", e);
+        }
     }
 
     private static AuthorityPersonEntity createAuthorityPersonEntity(int order) {

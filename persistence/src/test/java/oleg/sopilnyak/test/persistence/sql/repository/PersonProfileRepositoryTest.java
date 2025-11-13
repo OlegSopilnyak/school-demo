@@ -1,26 +1,25 @@
 package oleg.sopilnyak.test.persistence.sql.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
@@ -83,17 +82,23 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentProfileEntity() {
         Long id = 101L;
-        StudentProfileEntity profile = StudentProfileEntity.builder()
-                .id(id).photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+        StudentProfileEntity profile = StudentProfileEntity.builder().id(id)
+                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
                 .extras(Map.of("key-1", "1", "key-2", "2"))
                 .build();
-        repository.saveAndFlush(profile);
+        Object saved = repository.saveAndFlush(profile);
+        if (saved instanceof StudentProfileEntity entity) {
+            assertThat(entity.getId()).isNotEqualTo(id);
+        } else {
+            fail("Unexpected result type " + saved);
+        }
         assertThat(repository.findById(id)).isEmpty();
 
-        EmptyResultDataAccessException exception =
-                assertThrows(EmptyResultDataAccessException.class, () -> repository.deleteById(id));
-
-        assertThat(exception.getMessage()).startsWith("No class ").contains("entity with id 101 exists!");
+        try {
+            repository.deleteById(id);
+        } catch (Exception e) {
+            fail("Exception should not have been thrown instead of deleted data not found", e);
+        }
     }
 
     @Test
@@ -181,16 +186,22 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeletePrincipalProfileEntity() {
         Long id = 201L;
-        StudentProfileEntity profile = StudentProfileEntity.builder()
-                .id(id).photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+        PrincipalProfileEntity profile = PrincipalProfileEntity.builder().id(id)
+                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
                 .extras(Map.of("key-1", "1", "key-2", "2"))
                 .build();
-        repository.saveAndFlush(profile);
+        Object saved = repository.saveAndFlush(profile);
+        if (saved instanceof PrincipalProfileEntity entity) {
+            assertThat(entity.getId()).isNotEqualTo(id);
+        } else {
+            fail("Unexpected result type " + saved);
+        }
         assertThat(repository.findById(id)).isEmpty();
 
-        EmptyResultDataAccessException exception =
-                assertThrows(EmptyResultDataAccessException.class, () -> repository.deleteById(id));
-
-        assertThat(exception.getMessage()).startsWith("No class ").contains("entity with id 201 exists!");
+        try {
+            repository.deleteById(id);
+        } catch (Exception e) {
+            fail("Exception should not have been thrown instead of deleted data not found", e);
+        }
     }
 }

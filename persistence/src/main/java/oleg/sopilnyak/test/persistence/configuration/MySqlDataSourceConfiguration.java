@@ -1,16 +1,15 @@
 package oleg.sopilnyak.test.persistence.configuration;
 
-import lombok.AllArgsConstructor;
+import javax.sql.DataSource;
+import java.util.Objects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import lombok.RequiredArgsConstructor;
 
-import javax.sql.DataSource;
-import java.util.Objects;
-
-@AllArgsConstructor
 @Configuration
+@RequiredArgsConstructor
 public class MySqlDataSourceConfiguration {
     private final Environment env;
 
