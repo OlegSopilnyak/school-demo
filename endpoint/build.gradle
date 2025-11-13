@@ -1,13 +1,14 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'io.spring.dependency-management' version '1.1.7'
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 
 dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
+    // this version of mockito-core works properly with doCallRealMethod().when(
     implementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
 
     implementation project(":common")
@@ -23,9 +24,15 @@ dependencies {
     testImplementation project(":business-logic")
     testImplementation testFixtures(project(":common"))
 }
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
 bootJar {
     enabled = false
 }
+
 test {
     useJUnitPlatform()
 }

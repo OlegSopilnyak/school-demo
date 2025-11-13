@@ -34,8 +34,8 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;

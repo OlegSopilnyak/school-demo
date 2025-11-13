@@ -46,8 +46,8 @@ import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -105,7 +105,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @BeforeEach
     void setUp() {
-        factory = spy(buildFactory(persistenceFacade));
+        factory = buildFactory(persistenceFacade);
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
     }

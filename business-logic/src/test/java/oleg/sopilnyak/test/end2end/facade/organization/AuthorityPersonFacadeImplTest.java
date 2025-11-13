@@ -46,8 +46,8 @@ import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacad
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
