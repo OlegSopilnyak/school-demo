@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import org.mapstruct.factory.Mappers;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 import static java.util.Objects.isNull;

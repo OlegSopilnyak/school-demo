@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import org.mapstruct.factory.Mappers;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 import static java.util.Objects.isNull;

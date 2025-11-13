@@ -4,8 +4,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import jakarta.persistence.*;
 
 /**
  * DatabaseEntity: Entity for StudentProfile type

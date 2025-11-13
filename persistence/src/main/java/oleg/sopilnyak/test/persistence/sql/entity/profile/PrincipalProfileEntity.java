@@ -7,10 +7,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
+import jakarta.persistence.*;
 
 /**
  * DatabaseEntity: Entity for PrincipalProfile type
@@ -26,10 +23,8 @@ import javax.persistence.Table;
 
 @Entity
 @DiscriminatorValue("0")
-@Table(indexes = {
-        @Index(name = "principal_login", columnList = "login", unique = true)
-})
 public class PrincipalProfileEntity extends PersonProfileEntity implements PrincipalProfile {
+    @Column(unique = true)
     private String login;
     private String signature;
 }

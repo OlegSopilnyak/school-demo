@@ -4,21 +4,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.Table;
+import jakarta.persistence.*;
 import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
