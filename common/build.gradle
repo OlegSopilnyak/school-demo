@@ -4,8 +4,8 @@ plugins {
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 dependencies {
-    testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
     testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "${springBootVersion}"
+    testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
     testFixturesApi group: 'org.testcontainers', name: 'testcontainers', version: "${testcontainersVersion}"
     testFixturesApi group: 'org.testcontainers', name: 'junit-jupiter', version: "${testcontainersVersion}"
     testFixturesApi group: 'org.testcontainers', name: 'mysql', version: "${testcontainersVersion}"
