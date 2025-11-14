@@ -1,13 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import java.io.Serial;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.LongFunction;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -18,8 +10,16 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to create or update the faculty of the school
@@ -30,14 +30,32 @@ import org.springframework.stereotype.Component;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Getter
-@Component("facultyUpdate")
+@Component(FacultyCommand.SPRING_CREATE_OR_UPDATE)
 public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Optional<Faculty>>
         implements FacultyCommand<Optional<Faculty>> {
-    @Serial
-    private static final long serialVersionUID = 5254196736520677394L;
     private final transient FacultyPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return SPRING_CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CREATE_OR_UPDATE;
+    }
 
     public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
@@ -124,16 +142,6 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
             log.error("Cannot undo faculty change {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_OR_UPDATE;
     }
 
     /**

@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
@@ -21,26 +22,27 @@ import java.util.stream.Collectors;
  */
 public interface FacultyCommand<T> extends OrganizationCommand<T> {
     String FACULTY_WITH_ID_PREFIX = "Faculty with ID:";
-    /**
-     * The name of commands-factory SpringBean
-     */
+
+    // command-ids of the command family
     String FACTORY_BEAN_NAME = "facultyCommandsFactory";
-    /**
-     * Command-ID: for find all faculties
-     */
     String FIND_ALL = "organization.faculty.findAll";
-    /**
-     * Command-ID: for find by ID faculty
-     */
     String FIND_BY_ID = "organization.faculty.findById";
-    /**
-     * Command-ID: for create or update faculty entity
-     */
     String CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
-    /**
-     * Command-ID: for delete faculty entity
-     */
     String DELETE = "organization.faculty.delete";
+
+    // spring-bean names of the command family
+    String SPRING_CREATE_OR_UPDATE = "facultyUpdate";
+
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) FacultyCommand.class;
+    }
 
     /**
      * To detach command result data from persistence layer
@@ -58,7 +60,11 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
         } else if (result instanceof Faculty entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<Faculty>) optionalEntity);
+            // To detach Faculty optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(Faculty.class::cast).map(this::detach);
         } else if (result instanceof FacultySet entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
@@ -83,23 +89,6 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
     private Faculty detach(Faculty entity) {
         getLog().info("Entity to detach:'{}'", entity);
         return entity instanceof FacultyPayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach Faculty optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<Faculty> detach(Optional<Faculty> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
     /**
