@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
@@ -12,19 +10,14 @@ import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCac
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.io.Serial;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,38 +33,30 @@ import lombok.extern.slf4j.Slf4j;
  * @see CoursesPersistenceFacade
  */
 @Slf4j
-@Getter
-@Component("courseDelete")
-public class DeleteCourseCommand extends SchoolCommandCache<Course> implements CourseCommand<Boolean> {
-    @Serial
-    private static final long serialVersionUID = -1507762215785914152L;
+@Component(CourseCommand.SPRING_DELETE)
+public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> implements CourseCommand<Boolean> {
     private final transient CoursesPersistenceFacade persistenceFacade;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<CourseCommand<Boolean>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public CourseCommand<Boolean> self() {
-        synchronized (CourseCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("courseDelete", CourseCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return SPRING_DELETE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return DELETE;
     }
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,
@@ -154,16 +139,6 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course> implements C
             log.error("Cannot undo course deletion {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE;
     }
 
     /**

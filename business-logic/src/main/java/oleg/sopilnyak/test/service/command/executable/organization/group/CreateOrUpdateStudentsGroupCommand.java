@@ -33,7 +33,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Component("studentsGroupUpdate")
-public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup>
+public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup, Optional<StudentsGroup>>
         implements StudentsGroupCommand<Optional<StudentsGroup>> {
     @Serial
     private static final long serialVersionUID = 2559618909624986644L;

@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Getter
-public abstract class DeleteProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
+public abstract class DeleteProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E, Boolean>
         implements ProfileCommand<Boolean> {
     protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;

@@ -44,6 +44,16 @@ class SchoolCommandCacheTest {
             public Logger getLog() {
                 return LoggerFactory.getLogger(getClass());
             }
+
+            @Override
+            public String getId() {
+                return "test.command.cache";
+            }
+
+            @Override
+            public Object detachedResult(Object result) {
+                return result;
+            }
         });
     }
 

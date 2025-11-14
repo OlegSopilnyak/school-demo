@@ -1,20 +1,15 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.CoursesPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,38 +18,38 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to get course by id
+ *
+ * @see Course
+ * @see CourseCommand
+ * @see BasicCommand
+ * @see CoursesPersistenceFacade
+ * @see BusinessMessagePayloadMapper
  */
 @Slf4j
-@Getter
-@Component("courseFind")
-public class FindCourseCommand implements CourseCommand<Optional<Course>> {
+@Component(CourseCommand.SPRING_FIND_BY_ID)
+public class FindCourseCommand extends BasicCommand<Optional<Course>> implements CourseCommand<Optional<Course>> {
     private final transient CoursesPersistenceFacade persistenceFacade;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<CourseCommand<Optional<Course>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public CourseCommand<Optional<Course>> self() {
-        synchronized (CourseCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("courseFind", CourseCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return SPRING_FIND_BY_ID;
+    }
+
+    /**
+     * The unique command-id for this command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return FIND_BY_ID;
     }
 
     public FindCourseCommand(CoursesPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {
@@ -89,16 +84,6 @@ public class FindCourseCommand implements CourseCommand<Optional<Course>> {
             log.error("Cannot find the course by ID:{}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return FIND_BY_ID;
     }
 
     /**

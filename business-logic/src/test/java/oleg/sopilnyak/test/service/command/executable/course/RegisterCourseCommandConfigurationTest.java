@@ -1,12 +1,15 @@
 package oleg.sopilnyak.test.service.command.executable.course;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.education.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,17 +19,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class})
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
 class RegisterCourseCommandConfigurationTest {
     static final String REGISTER_COMMAND_ID = "course.register";
-    @MockBean
-    PlatformTransactionManager platformTransactionManager;
     @MockBean
     PersistenceFacade persistence;
     @MockBean

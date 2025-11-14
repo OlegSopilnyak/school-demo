@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Getter
 @Component("facultyUpdate")
-public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty>
+public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Optional<Faculty>>
         implements FacultyCommand<Optional<Faculty>> {
     @Serial
     private static final long serialVersionUID = 5254196736520677394L;

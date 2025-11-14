@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @Component("studentUpdate")
-public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student>
+public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student, Optional<Student>>
         implements StudentCommand<Optional<Student>> {
     @Serial
     private static final long serialVersionUID = 8556778799431039028L;

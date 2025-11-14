@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component("studentDelete")
-public class DeleteStudentCommand extends SchoolCommandCache<Student> implements StudentCommand<Boolean> {
+public class DeleteStudentCommand extends SchoolCommandCache<Student, Boolean> implements StudentCommand<Boolean> {
     private final transient StudentsPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;

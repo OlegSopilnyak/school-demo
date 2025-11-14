@@ -31,7 +31,7 @@ import lombok.Getter;
  * @see SchoolCommandCache
  */
 @Getter
-public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E>
+public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E, Optional<E>>
         implements ProfileCommand<Optional<E>> {
     @Serial
     private static final long serialVersionUID = 7633483084007364540L;

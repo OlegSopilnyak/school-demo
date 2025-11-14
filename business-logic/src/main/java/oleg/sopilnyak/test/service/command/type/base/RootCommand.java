@@ -25,7 +25,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     Logger getLog();
 
     /**
-     * The name of bean in spring beans factory, should override in concrete command
+     * The name of command bean in spring beans factory, should override in concrete command
      *
      * @return spring name of the command
      */

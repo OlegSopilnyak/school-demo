@@ -6,18 +6,15 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.education.EducationLinkCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,35 +26,29 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
-@Component("courseUnRegisterStudent")
-public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean>, EducationLinkCommand {
+@Component(CourseCommand.SPRING_UN_REGISTER)
+public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> implements CourseCommand<Boolean>, EducationLinkCommand {
     private final transient EducationPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<CourseCommand<Boolean>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public CourseCommand<Boolean> self() {
-        synchronized (CourseCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("courseUnRegisterStudent", CourseCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return SPRING_UN_REGISTER;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return UN_REGISTER;
     }
 
     public UnRegisterStudentFromCourseCommand(EducationPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {
@@ -138,16 +129,6 @@ public class UnRegisterStudentFromCourseCommand implements CourseCommand<Boolean
             log.error("Cannot undo student to course linking for {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return UN_REGISTER;
     }
 
     /**

@@ -41,7 +41,7 @@ import static java.util.Objects.isNull;
  */
 @Slf4j
 @Component("authorityPersonDelete")
-public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson>
+public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson, Boolean>
         implements AuthorityPersonCommand<Boolean> {
     @Serial
     private static final long serialVersionUID = -6678589218747269152L;

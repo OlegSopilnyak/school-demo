@@ -27,6 +27,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
      */
     String FACTORY_BEAN_NAME = "courseCommandsFactory";
 
+    // command-ids of the command family
     String FIND_BY_ID = "course.findById";
     String FIND_REGISTERED = "course.findRegisteredFor";
     String FIND_NOT_REGISTERED = "course.findWithoutStudents";
@@ -34,6 +35,15 @@ public interface CourseCommand<T> extends RootCommand<T> {
     String DELETE = "course.delete";
     String REGISTER = "course.register";
     String UN_REGISTER = "course.unRegister";
+
+    // spring-bean names of the command family
+    String SPRING_FIND_BY_ID = "courseFind";
+    String SPRING_FIND_REGISTERED = "courseFindWithStudents";
+    String SPRING_FIND_NOT_REGISTERED = "courseFindNoStudents";
+    String SPRING_CREATE_OR_UPDATE = "courseUpdate";
+    String SPRING_DELETE = "courseDelete";
+    String SPRING_REGISTER = "courseRegisterStudent";
+    String SPRING_UN_REGISTER = "courseUnRegisterStudent";
 
     /**
      * The class of commands family, the command is belonged to
@@ -44,16 +54,6 @@ public interface CourseCommand<T> extends RootCommand<T> {
     @SuppressWarnings("unchecked")
     default <F extends RootCommand> Class<F> commandFamily() {
         return (Class<F>) CourseCommand.class;
-    }
-
-    /**
-     * The name of bean in spring beans factory
-     *
-     * @return spring name of the command
-     */
-    @Override
-    default String springName() {
-        return FACTORY_BEAN_NAME;
     }
 
     /**

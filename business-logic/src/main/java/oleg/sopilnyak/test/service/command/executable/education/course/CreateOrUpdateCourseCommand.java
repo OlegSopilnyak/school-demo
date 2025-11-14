@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -11,21 +9,16 @@ import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCac
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.io.Serial;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,43 +30,36 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see Course
  * @see CourseCommand
- * @see CoursesPersistenceFacade
  * @see SchoolCommandCache
+ * @see CoursesPersistenceFacade
+ * @see BusinessMessagePayloadMapper
  */
 @Slf4j
-@Getter
-@Component("courseUpdate")
-public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
+@Component(CourseCommand.SPRING_CREATE_OR_UPDATE)
+public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course, Optional<Course>>
         implements CourseCommand<Optional<Course>> {
-    @Serial
-    private static final long serialVersionUID = 2674801450448775237L;
     private final transient CoursesPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<CourseCommand<Optional<Course>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public CourseCommand<Optional<Course>> self() {
-        synchronized (CourseCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("courseUpdate", CourseCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return SPRING_CREATE_OR_UPDATE;
+    }
+
+    /**
+     * The unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,
@@ -162,16 +148,6 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course>
             log.error("Cannot undo course change {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_OR_UPDATE;
     }
 
     /**

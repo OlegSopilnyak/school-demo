@@ -33,8 +33,7 @@ import java.util.function.UnaryOperator;
 @Slf4j
 @Getter
 @Component("facultyDelete")
-public class DeleteFacultyCommand extends SchoolCommandCache<Faculty>
-        implements FacultyCommand<Boolean> {
+public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> implements FacultyCommand<Boolean> {
     private final transient FacultyPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
 

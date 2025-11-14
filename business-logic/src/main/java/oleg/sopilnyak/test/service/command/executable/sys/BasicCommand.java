@@ -8,14 +8,12 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Type: Basic implementation of root-command for transactional do/undo operations
  *
  * @param <T> the type of command execution result
  */
-@Component
 public abstract class BasicCommand<T> implements RootCommand<T> {
     // beans factory to prepare the current command for transactional operations
     protected transient BeanFactory applicationContext;
@@ -41,7 +39,10 @@ public abstract class BasicCommand<T> implements RootCommand<T> {
             if (isNull(self.get())) {
                 // getting command instance reference, which can be used for transactional operations
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
-                self.getAndSet(applicationContext.getBean(this.springName(), this.commandFamily()));
+                final String springName = springName();
+                final Class<? extends RootCommand<T>> familyType = commandFamily();
+                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                self.getAndSet(applicationContext.getBean(springName, familyType));
             }
         }
         return self.get();
