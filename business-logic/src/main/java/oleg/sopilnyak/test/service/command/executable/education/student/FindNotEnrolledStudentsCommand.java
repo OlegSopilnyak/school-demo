@@ -1,26 +1,52 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Command-Implementation: command to get not enrolled to any course students
  */
 @Slf4j
 @AllArgsConstructor
-@Component("studentFindNotEnrolled")
-public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Student>> {
+@Component(StudentCommand.Component.FIND_NOT_ENROLLED)
+public class FindNotEnrolledStudentsCommand extends BasicCommand<Set<Student>> implements StudentCommand<Set<Student>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return Component.FIND_NOT_ENROLLED;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.FIND_NOT_ENROLLED;
+    }
 
     /**
      * To find not enrolled students<BR/>
@@ -33,39 +59,20 @@ public class FindNotEnrolledStudentsCommand implements StudentCommand<Set<Studen
      * @see RegisterPersistenceFacade#findNotEnrolledStudents()
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void executeDo(Context<Set<Student>> context) {
         log.debug("Trying to find not enrolled students");
         try {
 
-            Set<Student> students = persistenceFacade.findNotEnrolledStudents();
-            log.debug("Got students {}", students);
+            final Set<Student> students = persistenceFacade.findNotEnrolledStudents().stream()
+                    .map(this::adoptEntity).collect(Collectors.toSet());
 
+            log.debug("Got {} students", students.size());
             context.setResult(students);
         } catch (Exception e) {
             log.error("Cannot find not enrolled students", e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return FIND_NOT_ENROLLED;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

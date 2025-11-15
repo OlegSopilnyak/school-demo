@@ -4,14 +4,19 @@ import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersisten
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindNotEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Set;
 
@@ -33,6 +38,14 @@ class FindNotEnrolledStudentsCommandTest {
     @Spy
     @InjectMocks
     FindNotEnrolledStudentsCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
+    }
 
     @Test
     void shouldDoCommand_StudentsNotFound() {
@@ -51,6 +64,7 @@ class FindNotEnrolledStudentsCommandTest {
     @Test
     void shouldDoCommand_StudentsFound() {
         when(persistence.findNotEnrolledStudents()).thenReturn(Set.of(instance));
+        doReturn(payload).when(payloadMapper).toPayload(instance);
         Context<Set<Student>> context = command.createContext(null);
 
         command.doCommand(context);
@@ -58,7 +72,7 @@ class FindNotEnrolledStudentsCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
         Set<Student> result = context.getResult().orElseThrow();
-        assertThat(result).isEqualTo(Set.of(instance));
+        assertThat(result).isEqualTo(Set.of(payload));
         verify(command).executeDo(context);
         verify(persistence).findNotEnrolledStudents();
     }

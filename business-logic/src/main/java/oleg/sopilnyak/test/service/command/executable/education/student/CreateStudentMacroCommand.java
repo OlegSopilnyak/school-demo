@@ -1,15 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import java.util.Deque;
-import java.util.Optional;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -24,11 +20,16 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.Deque;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to create the student-person instance with related profile
@@ -39,22 +40,47 @@ import org.springframework.stereotype.Component;
  * @see StudentCommand
  */
 @Slf4j
-@Getter
-@Component("studentMacroCreate")
+@Component(StudentCommand.Component.CREATE_NEW)
 public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<Student>>
         implements StudentCommand<Optional<Student>> {
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
 
-    public CreateStudentMacroCommand(@Qualifier("studentUpdate") StudentCommand<?> personCommand,
-                                     @Qualifier("profileStudentUpdate") StudentProfileCommand<?> profileCommand,
-                                     final BusinessMessagePayloadMapper payloadMapper,
-                                     final ActionExecutor actionExecutor) {
+    /**
+     * Reference to the current command for operations with the command's entities in transaction possibility<BR/>
+     * Not needed transaction for this command
+     *
+     * @return the reference to the current command from spring beans factory
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    public StudentCommand<Optional<Student>> self() {
+        return this;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.CREATE_NEW;
+    }
+
+    public CreateStudentMacroCommand(
+            @Qualifier(Component.CREATE_OR_UPDATE) StudentCommand<?> personCommand,
+            @Qualifier(StudentProfileCommand.Component.CREATE_OR_UPDATE) StudentProfileCommand<?> profileCommand,
+            final BusinessMessagePayloadMapper payloadMapper,
+            final ActionExecutor actionExecutor
+    ) {
         super(actionExecutor);
-        this.putToNest(profileCommand);
-        this.putToNest(personCommand);
         this.payloadMapper = payloadMapper;
+        putToNest(profileCommand);
+        putToNest(personCommand);
     }
 
     /**
@@ -68,9 +94,9 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     @Override
     public Optional<Student> finalCommandResult(Deque<Context<?>> contexts) {
         return contexts.stream()
-                .filter(c -> c.getCommand() instanceof PersonInSequenceCommand)
-                .map(c -> (Context<Optional<Student>>) c).findFirst()
-                .flatMap(c -> c.getResult().orElseGet(Optional::empty));
+                .filter(context -> context.getCommand() instanceof PersonInSequenceCommand)
+                .map(context -> (Context<Optional<Student>>) context).findFirst()
+                .flatMap(context -> context.getResult().orElseGet(Optional::empty));
     }
 
     /**
@@ -81,16 +107,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     @Override
     public Logger getLog() {
         return log;
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_NEW;
     }
 
     /**
@@ -107,8 +123,13 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public <N> Context<N> prepareContext(final StudentCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof Student person && StudentCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
-                createPersonContext(command, person) : cannotCreateNestedContextFor(command);
+        return macroInputParameter.value() instanceof Student person
+                &&
+                StudentCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
+                ?
+                createPersonContext(command, person)
+                :
+                cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -122,8 +143,11 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see StudentPayload
      */
     public <N> Context<N> createPersonContext(final StudentCommand<N> command, final Student person) {
-        final StudentPayload payload =
-                person instanceof StudentPayload personPayload ? personPayload : payloadMapper.toPayload(person);
+        final StudentPayload payload = person instanceof StudentPayload personPayload
+                ?
+                personPayload
+                :
+                payloadMapper.toPayload(person);
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
@@ -182,12 +206,15 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(@NonNull final StudentProfileCommand<?> command,
-                                                       @NonNull final S result,
-                                                       @NonNull final Context<T> target) {
-        if (result instanceof Optional<?> opt &&
-            opt.orElseThrow() instanceof StudentProfile profile &&
-            StudentCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+    public <S, T> void transferPreviousExecuteDoResult(
+            @NonNull final StudentProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
+    ) {
+        if (result instanceof Optional<?> optional
+                &&
+                optional.orElseThrow() instanceof StudentProfile profile
+                &&
+                StudentCommand.CommandId.CREATE_OR_UPDATE.equals(target.getCommand().getId())
+        ) {
             // send create-profile result (profile-id) to create-person input (StudentPayload#setProfileId)
             transferProfileIdToStudentInput(profile.getId(), target);
         } else {
@@ -243,7 +270,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         } else if (command instanceof StudentProfileCommand<?> profileCommand) {
             return wrap(profileCommand);
         }
-        throw new UnableExecuteCommandException(((RootCommand<?>) command).getId());
+        throw new UnableExecuteCommandException(command.getId());
     }
 
     // private methods

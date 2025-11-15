@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
@@ -12,19 +10,15 @@ import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCac
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,42 +34,35 @@ import lombok.extern.slf4j.Slf4j;
  * @see StudentsPersistenceFacade
  */
 @Slf4j
-@Component("studentDelete")
+@Component(StudentCommand.Component.DELETE)
 public class DeleteStudentCommand extends SchoolCommandCache<Student, Boolean> implements StudentCommand<Boolean> {
     private final transient StudentsPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<StudentCommand<Boolean>> self;
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public StudentCommand<Boolean> self() {
-        synchronized (StudentCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("studentDelete", StudentCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.DELETE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.DELETE;
     }
 
     public DeleteStudentCommand(final StudentsPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
         super(Student.class);
-        self = new  AtomicReference<>(null);
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }
@@ -106,17 +93,22 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student, Boolean> i
 
             // previous student is storing to context for further rollback (undo)
             final Student entity = retrieveEntity(
-                    id, persistence::findStudentById, payloadMapper::toPayload, () -> exceptionFor(id)
+                    id, persistence::findStudentById, this::adoptEntity, () -> exceptionFor(id)
             );
+            //
+            // check candidate to delete state
             if (!ObjectUtils.isEmpty(entity.getCourses())) {
                 log.warn(STUDENT_WITH_ID_PREFIX + "{} has registered courses.", id);
                 throw new StudentWithCoursesException(STUDENT_WITH_ID_PREFIX + id + " has registered courses.");
             }
+            //
             // removing student instance by ID from the database
             persistence.deleteStudent(id);
+            //
             // setup undo parameter for deleted entity
             prepareDeleteEntityUndo(context, entity, () -> exceptionFor(id));
-            // successful delete entity operation
+            //
+            // successfully deleted the entity
             context.setResult(Boolean.TRUE);
             log.debug("Deleted student with ID: {} successfully.", id);
         } catch (Exception e) {
@@ -140,29 +132,22 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student, Boolean> i
         final Input<Student> parameter = context.getUndoParameter();
         try {
             checkNullParameter(parameter);
-            log.debug("Trying to undo student deletion using: {}", parameter.value());
+            log.debug("Trying to rollback student deletion using: {}", parameter.value());
+            // saving the rolled back entity
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
-
             log.debug("Updated in database: '{}'", entity);
-            // change student-id value for further do command action
+
+            // change redo parameter value of student-id for further do command action
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
+            } else {
+                throw new IllegalStateException("Cannot update redo parameter for " + getId());
             }
             context.setState(Context.State.UNDONE);
         } catch (Exception e) {
             log.error("Cannot undo student deletion {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE;
     }
 
     /**

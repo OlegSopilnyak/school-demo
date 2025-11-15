@@ -39,7 +39,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "courseCommandsFactory";
 
-    // spring-bean component names of the command family
+    // spring-bean component names of the commands family
     interface Component {
         String FIND_BY_ID = "courseFind";
         String FIND_REGISTERED = "courseFindWithStudents";

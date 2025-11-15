@@ -34,38 +34,6 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
     // class of the entity to manage
     private final Class<T> entityType;
     private final String entityName;
-//    // beans factory to prepare the current command for transactional operations
-//    protected transient BeanFactory applicationContext;
-//    // reference to current command for transactional operations
-//    private final AtomicReference<RootCommand<R>> self = new AtomicReference<>(null);
-//
-//    @Autowired
-//    public final void setApplicationContext(BeanFactory applicationContext) {
-//        this.applicationContext = applicationContext;
-//    }
-//
-//    /**
-//     * Reference to the current command for transactional operations
-//     *
-//     * @return reference to the current command
-//     * @see RootCommand#self()
-//     * @see RootCommand#doCommand(Context)
-//     * @see RootCommand#undoCommand(Context)
-//     */
-//    @Override
-//    public RootCommand<R> self() {
-//        synchronized (RootCommand.class) {
-//            if (isNull(self.get())) {
-//                // getting command instance reference, which can be used for transactional operations
-//                // actually it's proxy of the command with transactional executeDo/executeUndo methods
-//                final String springName = springName();
-//                final Class<? extends RootCommand<R>> familyType = commandFamily();
-//                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
-//                self.getAndSet(applicationContext.getBean(springName, familyType));
-//            }
-//        }
-//        return self.get();
-//    }
 
     @SuppressWarnings("unchecked")
     protected SchoolCommandCache() {

@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
@@ -10,21 +8,16 @@ import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCac
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.io.Serial;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,38 +34,30 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
-@Component("studentUpdate")
+@Component(StudentCommand.Component.CREATE_OR_UPDATE)
 public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student, Optional<Student>>
         implements StudentCommand<Optional<Student>> {
-    @Serial
-    private static final long serialVersionUID = 8556778799431039028L;
     private final transient StudentsPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<StudentCommand<Optional<Student>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public StudentCommand<Optional<Student>> self() {
-        synchronized (StudentCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("studentUpdate", StudentCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateStudentCommand(final StudentsPersistenceFacade persistence,
@@ -159,16 +144,6 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student, Op
             log.error("Cannot undo student change {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_OR_UPDATE;
     }
 
     /**

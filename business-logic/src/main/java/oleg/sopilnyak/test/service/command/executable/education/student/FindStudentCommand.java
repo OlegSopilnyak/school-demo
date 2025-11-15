@@ -1,27 +1,52 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to get student by id
  */
 @Slf4j
 @AllArgsConstructor
-@Component("studentFind")
-public class FindStudentCommand implements StudentCommand<Optional<Student>> {
+@Component(StudentCommand.Component.FIND_BY_ID)
+public class FindStudentCommand extends BasicCommand<Optional<Student>> implements StudentCommand<Optional<Student>> {
     private final transient StudentsPersistenceFacade persistenceFacade;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return Component.FIND_BY_ID;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.FIND_BY_ID;
+    }
 
     /**
      * To find student by id<BR/>
@@ -34,6 +59,7 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
      * @see StudentsPersistenceFacade#findStudentById(Long)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void executeDo(Context<Optional<Student>> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -41,7 +67,7 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
             final Long id = parameter.value();
             log.debug("Trying to find student by ID:{}", id);
 
-            final Optional<Student> student = persistenceFacade.findStudentById(id);
+            final Optional<Student> student = persistenceFacade.findStudentById(id).map(this::adoptEntity);
 
             log.debug("Got student {} by ID:{}", student, id);
             context.setResult(student);
@@ -49,27 +75,6 @@ public class FindStudentCommand implements StudentCommand<Optional<Student>> {
             log.error("Cannot find the student by ID:{}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public final String getId() {
-        return FIND_BY_ID;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

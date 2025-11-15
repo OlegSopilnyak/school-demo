@@ -1,25 +1,32 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Set;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FindEnrolledStudentsCommandTest {
@@ -34,6 +41,14 @@ class FindEnrolledStudentsCommandTest {
     @Spy
     @InjectMocks
     FindEnrolledStudentsCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
+    }
 
     @Test
     void shouldDoCommand_StudentsNotFound() {
@@ -54,6 +69,7 @@ class FindEnrolledStudentsCommandTest {
     void shouldDoCommand_StudentsFound() {
         Long id = 211L;
         when(persistence.findEnrolledStudentsByCourseId(id)).thenReturn(Set.of(instance));
+        doReturn(payload).when(payloadMapper).toPayload(instance);
         Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
@@ -61,7 +77,7 @@ class FindEnrolledStudentsCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
         Set<Student> result = context.getResult().orElseThrow();
-        assertThat(result).isEqualTo(Set.of(instance));
+        assertThat(result).isEqualTo(Set.of(payload));
         verify(command).executeDo(context);
         verify(persistence).findEnrolledStudentsByCourseId(id);
     }

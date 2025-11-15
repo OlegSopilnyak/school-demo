@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.type.education;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -18,43 +19,63 @@ import java.util.stream.Collectors;
  *
  * @param <T> the type of command execution (do) result
  * @see RootCommand
- * @see oleg.sopilnyak.test.school.common.model.Student
+ * @see Student
  */
 public interface StudentCommand<T> extends RootCommand<T> {
+    // template of error message
     String STUDENT_WITH_ID_PREFIX = "Student with ID:";
-    /**
-     * The name of commands-factory SpringBean
-     */
+
+    // command-ids of the command family
+    interface CommandId {
+        String FIND_BY_ID = "student.findById";
+        String FIND_ENROLLED = "student.findEnrolledTo";
+        String FIND_NOT_ENROLLED = "student.findNotEnrolled";
+        String CREATE_OR_UPDATE = "student.createOrUpdate";
+        String CREATE_NEW = "student.create.macro";
+        String DELETE = "student.delete";
+        String DELETE_ALL = "student.delete.macro";
+    }
+
+    // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "studentCommandsFactory";
 
+    // spring-bean component names of the commands family
+    interface Component {
+        String FIND_BY_ID = "studentFind";
+        String FIND_ENROLLED = "studentFindEnrolled";
+        String FIND_NOT_ENROLLED = "studentFindNotEnrolled";
+        String CREATE_OR_UPDATE = "studentUpdate";
+        String CREATE_NEW = "studentMacroCreate";
+        String DELETE = "studentDelete";
+        String DELETE_ALL = "studentMacroDelete";
+    }
+
     /**
-     * ID of student's findById command
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
      */
-    String FIND_BY_ID = "student.findById";
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) StudentCommand.class;
+    }
+
+
     /**
-     * ID of student's findEnrolledTo command
+     * To adopt course entity to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param entity entity from persistence layer
+     * @return instance from business-logic data model
+     * @see Student#getCourses()
+     * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Student)
+     * @see RootCommand#getPayloadMapper()
      */
-    String FIND_ENROLLED = "student.findEnrolledTo";
-    /**
-     * ID of student's findNotEnrolled command
-     */
-    String FIND_NOT_ENROLLED = "student.findNotEnrolled";
-    /**
-     * ID of student's createOrUpdate command
-     */
-    String CREATE_OR_UPDATE = "student.createOrUpdate";
-    /**
-     * ID of student's create command
-     */
-    String CREATE_NEW = "student.create.macro";
-    /**
-     * ID of student's delete command
-     */
-    String DELETE = "student.delete";
-    /**
-     * ID of student's delete macro-command
-     */
-    String DELETE_ALL = "student.delete.macro";
+    default Student adoptEntity(final Student entity) {
+        getLog().debug("In course entity with id={} registered {} course(s)", entity.getId(), entity.getCourses().size());
+        return getPayloadMapper().toPayload(entity);
+    }
 
     /**
      * To detach command result data from persistence layer
@@ -72,7 +93,11 @@ public interface StudentCommand<T> extends RootCommand<T> {
         } else if (result instanceof Student entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<Student>) optionalEntity);
+            // To detach Student optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(Student.class::cast).map(this::detach);
         } else if (result instanceof Set entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
@@ -91,23 +116,6 @@ public interface StudentCommand<T> extends RootCommand<T> {
     private Student detach(Student entity) {
         getLog().info("Entity to detach:'{}'", entity);
         return entity instanceof StudentPayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach Student optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<Student> detach(Optional<Student> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
     /**

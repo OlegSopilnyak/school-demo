@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 
@@ -9,9 +11,20 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
  *
  * @param <T> the type of command execution (do) result
  * @see StudentCommand
- * @see oleg.sopilnyak.test.school.common.model.Student
  */
 public interface MacroDeleteStudent<T> extends StudentCommand<T> {
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) MacroDeleteStudent.class;
+    }
+
     /**
      * To create context for delete person profile nested command
      *

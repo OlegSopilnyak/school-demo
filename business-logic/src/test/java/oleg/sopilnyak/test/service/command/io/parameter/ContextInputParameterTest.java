@@ -19,7 +19,6 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
@@ -43,6 +42,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
 class ContextInputParameterTest {
+    private static final String STUDENT_FIND_BY_ID = "student.findById";
+    private static final String STUDENT_FIND_ENROLLED = "student.findEnrolledTo";
     private static final String COURSE_FIND_BY_ID = "course.findById";
     private static final String COURSE_FIND_REGISTERED = "course.findRegisteredFor";
     @MockBean
@@ -90,7 +91,7 @@ class ContextInputParameterTest {
 
     @Test
     void shouldRestoreUndoDequeContextsParameter() throws JsonProcessingException {
-        String commandId = StudentCommand.FIND_BY_ID;
+        String commandId = STUDENT_FIND_BY_ID;
         RootCommand<?> command = farm.command(commandId);
         // context 1
         Context<Boolean> context1 = (Context<Boolean>) command.createContext(Input.of(1));
@@ -101,7 +102,7 @@ class ContextInputParameterTest {
         context1.setState(Context.State.WORK);
         context1.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
 
-        commandId = StudentCommand.FIND_ENROLLED;
+        commandId = STUDENT_FIND_ENROLLED;
         command = farm.command(commandId);
         // context 2
         Context<Student> context2 = (Context<Student>) command.createContext(Input.of(createStudent(10L)));

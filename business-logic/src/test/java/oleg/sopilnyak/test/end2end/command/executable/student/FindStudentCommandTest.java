@@ -27,6 +27,7 @@ import java.util.Optional;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,7 +97,7 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
         doThrow(cannotExecute).when(persistence).findStudentById(id);
         Context<Optional<Student>> context = command.createContext(Input.of(id));
 
-        command.doCommand(context);
+        var error = assertThrows(Exception.class, () -> command.doCommand(context));
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(cannotExecute);

@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import org.springframework.util.ObjectUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Command-Base: macro-command the command with nest of commands inside
@@ -32,8 +32,8 @@ import lombok.Getter;
  * @see RootCommand
  * @see CompositeCommand
  */
-@AllArgsConstructor
-public abstract class MacroCommand<T> implements CompositeCommand<T> {
+@RequiredArgsConstructor
+public abstract class MacroCommand<T> extends BasicCommand<T> implements CompositeCommand<T> {
     @Getter
     // commands executor for the commands from the nest
     private final transient ActionExecutor actionExecutor;

@@ -5,14 +5,19 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindStudentCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -34,6 +39,14 @@ class FindStudentCommandTest {
     @Spy
     @InjectMocks
     FindStudentCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentFind", StudentCommand.class);
+    }
 
     @Test
     void shouldDoCommand_StudentNotFound() {
@@ -62,7 +75,7 @@ class FindStudentCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
         Optional<Student> result = context.getResult().orElseThrow();
-        assertThat(result).contains(instance);
+        assertThat(result).contains(payload);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
     }
