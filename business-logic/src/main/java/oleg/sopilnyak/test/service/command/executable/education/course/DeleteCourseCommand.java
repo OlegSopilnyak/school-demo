@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see CoursesPersistenceFacade
  */
 @Slf4j
-@Component(CourseCommand.SPRING_DELETE)
+@Component(CourseCommand.Component.DELETE)
 public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> implements CourseCommand<Boolean> {
     private final transient CoursesPersistenceFacade persistenceFacade;
     @Getter
@@ -46,7 +46,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> imp
      */
     @Override
     public String springName() {
-        return SPRING_DELETE;
+        return Component.DELETE;
     }
 
     /**
@@ -56,7 +56,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> imp
      */
     @Override
     public String getId() {
-        return DELETE;
+        return CommandId.DELETE;
     }
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,

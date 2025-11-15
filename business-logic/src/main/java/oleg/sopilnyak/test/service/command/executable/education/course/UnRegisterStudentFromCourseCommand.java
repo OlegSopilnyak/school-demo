@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
-@Component(CourseCommand.SPRING_UN_REGISTER)
+@Component(CourseCommand.Component.UN_REGISTER)
 public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> implements CourseCommand<Boolean>, EducationLinkCommand {
     private final transient EducationPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -38,7 +38,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
      */
     @Override
     public String springName() {
-        return SPRING_UN_REGISTER;
+        return Component.UN_REGISTER;
     }
 
     /**
@@ -48,7 +48,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
      */
     @Override
     public String getId() {
-        return UN_REGISTER;
+        return CommandId.UN_REGISTER;
     }
 
     public UnRegisterStudentFromCourseCommand(EducationPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {
@@ -69,6 +69,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
      * @see Context#setResult(Object)
      * @see Context.State#WORK
      */
+    @SuppressWarnings("unchecked")
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
@@ -108,6 +109,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
      * @see Context
      * @see Context#getUndoParameter()
      */
+    @SuppressWarnings("unchecked")
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {

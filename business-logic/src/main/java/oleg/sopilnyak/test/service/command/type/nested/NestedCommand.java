@@ -13,13 +13,15 @@ import java.io.Serializable;
  * @see CompositeCommand
  */
 public interface NestedCommand<T> extends Serializable {
-
     /**
      * To get unique command-id for the command
      *
      * @return value of command-id
      */
-    String getId();
+    default String getId() {
+        throw new UnsupportedOperationException("Please declare command-id");
+    }
+//    String getId();
 
     /**
      * To prepare context for nested command using the visitor

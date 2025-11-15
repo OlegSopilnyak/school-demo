@@ -10,25 +10,25 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,13 +39,12 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
 class ContextInputParameterTest {
-    @MockBean
-    PlatformTransactionManager platformTransactionManager;
+    private static final String COURSE_FIND_BY_ID = "course.findById";
+    private static final String COURSE_FIND_REGISTERED = "course.findRegisteredFor";
     @MockBean
     private PersistenceFacade persistenceFacade;
     @MockBean
@@ -149,7 +148,7 @@ class ContextInputParameterTest {
     @Test
     void shouldRestoreMacroCommandInputParameter() throws JsonProcessingException {
         Input<StudentPayload> rootInput = Input.of(createStudent(111L));
-        String commandId = CourseCommand.FIND_BY_ID;
+        String commandId = COURSE_FIND_BY_ID;
         RootCommand<?> command = farm.command(commandId);
         // context 1
         Context<Boolean> context1 = (Context<Boolean>) command.createContext(Input.of(1));
@@ -160,7 +159,7 @@ class ContextInputParameterTest {
         context1.setState(Context.State.WORK);
         context1.failed((Exception) new UnableExecuteCommandException(commandId).fillInStackTrace());
 
-        commandId = CourseCommand.FIND_REGISTERED;
+        commandId = COURSE_FIND_REGISTERED;
         command = farm.command(commandId);
         // context 2
         Context<Student> context2 = (Context<Student>) command.createContext(Input.of(createStudent(11L)));

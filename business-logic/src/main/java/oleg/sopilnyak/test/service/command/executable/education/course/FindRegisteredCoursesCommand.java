@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * Command-Implementation: command to find courses registered to student
  */
 @Slf4j
-@Component(CourseCommand.SPRING_FIND_REGISTERED)
+@Component(CourseCommand.Component.FIND_REGISTERED)
 public class FindRegisteredCoursesCommand extends BasicCommand<Set<Course>> implements CourseCommand<Set<Course>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
     @Getter
@@ -34,7 +34,7 @@ public class FindRegisteredCoursesCommand extends BasicCommand<Set<Course>> impl
      */
     @Override
     public String springName() {
-        return SPRING_FIND_REGISTERED;
+        return Component.FIND_REGISTERED;
     }
 
     /**
@@ -44,7 +44,7 @@ public class FindRegisteredCoursesCommand extends BasicCommand<Set<Course>> impl
      */
     @Override
     public String getId() {
-        return FIND_REGISTERED;
+        return CommandId.FIND_REGISTERED;
     }
 
     public FindRegisteredCoursesCommand(RegisterPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {

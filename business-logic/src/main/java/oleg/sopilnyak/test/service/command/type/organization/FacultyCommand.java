@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.type.organization;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -21,14 +22,17 @@ import java.util.stream.Collectors;
  * @see oleg.sopilnyak.test.school.common.model.Faculty
  */
 public interface FacultyCommand<T> extends OrganizationCommand<T> {
+    // template of error message
     String FACULTY_WITH_ID_PREFIX = "Faculty with ID:";
 
     // command-ids of the command family
-    String FACTORY_BEAN_NAME = "facultyCommandsFactory";
     String FIND_ALL = "organization.faculty.findAll";
     String FIND_BY_ID = "organization.faculty.findById";
     String CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
     String DELETE = "organization.faculty.delete";
+
+    // the name of factory in Spring Beans Factory
+    String FACTORY_BEAN_NAME = "facultyCommandsFactory";
 
     // spring-bean names of the command family
     String SPRING_CREATE_OR_UPDATE = "facultyUpdate";
@@ -37,6 +41,7 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
      * The class of commands family, the command is belonged to
      *
      * @return command family class value
+     * @see BasicCommand#self()
      */
     @Override
     @SuppressWarnings("unchecked")

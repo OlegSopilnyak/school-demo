@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see BusinessMessagePayloadMapper
  */
 @Slf4j
-@Component(CourseCommand.SPRING_FIND_BY_ID)
+@Component(CourseCommand.Component.FIND_BY_ID)
 public class FindCourseCommand extends BasicCommand<Optional<Course>> implements CourseCommand<Optional<Course>> {
     private final transient CoursesPersistenceFacade persistenceFacade;
     @Getter
@@ -39,7 +39,7 @@ public class FindCourseCommand extends BasicCommand<Optional<Course>> implements
      */
     @Override
     public String springName() {
-        return SPRING_FIND_BY_ID;
+        return Component.FIND_BY_ID;
     }
 
     /**
@@ -49,7 +49,7 @@ public class FindCourseCommand extends BasicCommand<Optional<Course>> implements
      */
     @Override
     public String getId() {
-        return FIND_BY_ID;
+        return CommandId.FIND_BY_ID;
     }
 
     public FindCourseCommand(CoursesPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {

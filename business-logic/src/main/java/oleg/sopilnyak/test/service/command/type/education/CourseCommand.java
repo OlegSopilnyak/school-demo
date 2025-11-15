@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.type.education;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -21,34 +22,39 @@ import java.util.stream.Collectors;
  * @see Course
  */
 public interface CourseCommand<T> extends RootCommand<T> {
+    // template of error message
     String COURSE_WITH_ID_PREFIX = "Course with ID:";
-    /**
-     * The name of commands-factory SpringBean
-     */
-    String FACTORY_BEAN_NAME = "courseCommandsFactory";
 
     // command-ids of the command family
-    String FIND_BY_ID = "course.findById";
-    String FIND_REGISTERED = "course.findRegisteredFor";
-    String FIND_NOT_REGISTERED = "course.findWithoutStudents";
-    String CREATE_OR_UPDATE = "course.createOrUpdate";
-    String DELETE = "course.delete";
-    String REGISTER = "course.register";
-    String UN_REGISTER = "course.unRegister";
+    interface CommandId {
+        String FIND_BY_ID = "course.findById";
+        String FIND_REGISTERED = "course.findRegisteredFor";
+        String FIND_NOT_REGISTERED = "course.findWithoutStudents";
+        String CREATE_OR_UPDATE = "course.createOrUpdate";
+        String DELETE = "course.delete";
+        String REGISTER = "course.register";
+        String UN_REGISTER = "course.unRegister";
+    }
 
-    // spring-bean names of the command family
-    String SPRING_FIND_BY_ID = "courseFind";
-    String SPRING_FIND_REGISTERED = "courseFindWithStudents";
-    String SPRING_FIND_NOT_REGISTERED = "courseFindNoStudents";
-    String SPRING_CREATE_OR_UPDATE = "courseUpdate";
-    String SPRING_DELETE = "courseDelete";
-    String SPRING_REGISTER = "courseRegisterStudent";
-    String SPRING_UN_REGISTER = "courseUnRegisterStudent";
+    // the name of factory in Spring Beans Factory
+    String FACTORY_BEAN_NAME = "courseCommandsFactory";
+
+    // spring-bean component names of the command family
+    interface Component {
+        String FIND_BY_ID = "courseFind";
+        String FIND_REGISTERED = "courseFindWithStudents";
+        String FIND_NOT_REGISTERED = "courseFindNoStudents";
+        String CREATE_OR_UPDATE = "courseUpdate";
+        String DELETE = "courseDelete";
+        String REGISTER = "courseRegisterStudent";
+        String UN_REGISTER = "courseUnRegisterStudent";
+    }
 
     /**
      * The class of commands family, the command is belonged to
      *
      * @return command family class value
+     * @see BasicCommand#self()
      */
     @Override
     @SuppressWarnings("unchecked")

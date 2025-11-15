@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
-@Component(CourseCommand.SPRING_REGISTER)
+@Component(CourseCommand.Component.REGISTER)
 public class RegisterStudentToCourseCommand extends BasicCommand<Boolean> implements CourseCommand<Boolean>, EducationLinkCommand {
     private final transient EducationPersistenceFacade persistenceFacade;
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -48,7 +48,7 @@ public class RegisterStudentToCourseCommand extends BasicCommand<Boolean> implem
      */
     @Override
     public String springName() {
-        return SPRING_REGISTER;
+        return Component.REGISTER;
     }
 
     /**
@@ -58,7 +58,7 @@ public class RegisterStudentToCourseCommand extends BasicCommand<Boolean> implem
      */
     @Override
     public String getId() {
-        return REGISTER;
+        return CommandId.REGISTER;
     }
 
     public RegisterStudentToCourseCommand(final EducationPersistenceFacade persistenceFacade,

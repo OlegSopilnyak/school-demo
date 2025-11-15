@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
@@ -18,38 +19,25 @@ import org.slf4j.Logger;
  */
 public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     /**
-     * To get reference to command's logger
+     * The class of commands family, the command is belonged to
      *
-     * @return reference to the logger
+     * @return command family class value
+     * @param <F> class of command's family
+     * @see BasicCommand#self()
      */
-    Logger getLog();
+    default <F extends RootCommand> Class<F> commandFamily() {
+        throw new UnsupportedOperationException("Please declare commands family type.");
+    }
 
     /**
      * The name of command bean in spring beans factory, should override in concrete command
      *
      * @return spring name of the command
+     * @see BasicCommand#self()
      */
     default String springName() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Please declare the name of command in spring beans factory.");
     }
-
-    /**
-     * The class of commands family, the command is belonged to
-     *
-     * @return command family class value
-     * @param <F> class of command's family
-     */
-    default <F extends RootCommand> Class<F> commandFamily() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    String getId();
 
     /**
      * To get mapper instance for business-message-payload transformation
@@ -69,7 +57,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      */
     default <I> void checkNullParameter(Input<I> parameter) {
         if (isNull(parameter) || parameter.isEmpty()) {
-            throw new NullPointerException("Wrong input parameter value null");
+            throw new NullPointerException("Wrong input parameter value (cannot be null or empty).");
         }
     }
 
@@ -194,9 +182,10 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context#setResult(Object)
      */
     default void afterExecuteDo(Context<T> context) {
+        final String commandId = getId();
         // check if command is done and has result
         if (!context.isDone()) {
-            getLog().warn("Cannot detach result data of command with id:'{}' for context:state {}", getId(), context.getState());
+            getLog().warn("Cannot detach result data of command with id:'{}' for context:state {}", commandId, context.getState());
             return;
         }
         // getting result from context
@@ -204,13 +193,25 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
         // check if result is present
         if (result.isEmpty()) {
             // command execution returned nothing, no result to detach
-            getLog().debug("Cannot detach result data of command: '{}' with context: no result", getId());
+            getLog().debug("Cannot detach result data of command: '{}' with context: no result", commandId);
         } else {
             // detach result data
-            getLog().debug("Detaching result data of command: '{}'", getId());
-            context.setResult(detachedResult(result.get()));
+            getLog().debug("Detaching result data of command: '{}'", commandId);
+            final T finalResult = detachedResult(result.get());
+            getLog().debug("Detached result data of command: '{}' is {}", commandId, finalResult);
+            context.setResult(finalResult);
         }
     }
+
+    /**
+     * To get reference to the logger uses in the command
+     *
+     * @return reference to the logger
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     * @see RootCommand#afterExecuteDo(Context)
+     */
+    Logger getLog();
 
     /**
      * To detach command result data from persistence layer

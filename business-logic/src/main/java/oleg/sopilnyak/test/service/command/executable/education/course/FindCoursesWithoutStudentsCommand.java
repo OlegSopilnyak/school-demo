@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * Command-Implementation: command to find courses without students
  */
 @Slf4j
-@Component(CourseCommand.SPRING_FIND_NOT_REGISTERED)
+@Component(CourseCommand.Component.FIND_NOT_REGISTERED)
 public class FindCoursesWithoutStudentsCommand extends BasicCommand<Set<Course>> implements CourseCommand<Set<Course>> {
     private final transient RegisterPersistenceFacade persistenceFacade;
     @Getter
@@ -33,7 +33,7 @@ public class FindCoursesWithoutStudentsCommand extends BasicCommand<Set<Course>>
      */
     @Override
     public String springName() {
-        return SPRING_FIND_NOT_REGISTERED;
+        return Component.FIND_NOT_REGISTERED;
     }
 
     /**
@@ -43,7 +43,7 @@ public class FindCoursesWithoutStudentsCommand extends BasicCommand<Set<Course>>
      */
     @Override
     public String getId() {
-        return FIND_NOT_REGISTERED;
+        return CommandId.FIND_NOT_REGISTERED;
     }
 
     public FindCoursesWithoutStudentsCommand(RegisterPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {

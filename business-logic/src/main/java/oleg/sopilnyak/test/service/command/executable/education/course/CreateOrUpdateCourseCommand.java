@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see BusinessMessagePayloadMapper
  */
 @Slf4j
-@Component(CourseCommand.SPRING_CREATE_OR_UPDATE)
+@Component(CourseCommand.Component.CREATE_OR_UPDATE)
 public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course, Optional<Course>>
         implements CourseCommand<Optional<Course>> {
     private final transient CoursesPersistenceFacade persistence;
@@ -49,7 +49,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course, Opti
      */
     @Override
     public String springName() {
-        return SPRING_CREATE_OR_UPDATE;
+        return Component.CREATE_OR_UPDATE;
     }
 
     /**
@@ -59,7 +59,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course, Opti
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE;
+        return CommandId.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,

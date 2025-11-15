@@ -3,8 +3,10 @@ package oleg.sopilnyak.test.service.command.type.organization;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -21,43 +23,33 @@ import java.util.stream.Collectors;
  * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
 public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
+    // template of error message
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
-    /**
-     * The name of commands-factory SpringBean
-     */
-    String FACTORY_BEAN_NAME = "authorityCommandsFactory";
-    /**
-     * Command-ID: for log in person by login/password
-     */
+
+    // command-ids of the command family
     String LOGIN = "organization.authority.person.login";
-    /**
-     * Command-ID: for log out person by auth token
-     */
     String LOGOUT = "organization.authority.person.logout";
-    /**
-     * Command-ID: for find all authority persons
-     */
     String FIND_ALL = "organization.authority.person.findAll";
-    /**
-     * Command-ID: for find by ID authority person
-     */
     String FIND_BY_ID = "organization.authority.person.findById";
-    /**
-     * Command-ID: for create or update authority person entity
-     */
     String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    /**
-     * Command-ID: for create authority person entity with related profile
-     */
     String CREATE_NEW = "organization.authority.person.create.macro";
-    /**
-     * Command-ID: for delete authority person entity
-     */
     String DELETE = "organization.authority.person.delete";
-    /**
-     * Command-ID: for delete authority person entity with assigned profile
-     */
     String DELETE_ALL = "organization.authority.person.delete.macro";
+
+    // the name of factory in Spring Beans Factory
+    String FACTORY_BEAN_NAME = "authorityCommandsFactory";
+
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) AuthorityPersonCommand.class;
+    }
 
     /**
      * To detach command result data from persistence layer
