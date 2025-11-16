@@ -33,7 +33,7 @@ import lombok.RequiredArgsConstructor;
  * @see CompositeCommand
  */
 @RequiredArgsConstructor
-public abstract class MacroCommand<T> extends BasicCommand<T> implements CompositeCommand<T> {
+public abstract class MacroCommand<T> implements CompositeCommand<T> {
     @Getter
     // commands executor for the commands from the nest
     private final transient ActionExecutor actionExecutor;

@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
@@ -14,13 +12,17 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to delete the faculty of the school by id
@@ -36,6 +38,26 @@ import java.util.function.UnaryOperator;
 public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> implements FacultyCommand<Boolean> {
     private final transient FacultyPersistenceFacade persistence;
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return "facultyDelete";
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return DELETE;
+    }
 
     public DeleteFacultyCommand(final FacultyPersistenceFacade persistence,
                                 final BusinessMessagePayloadMapper payloadMapper) {
@@ -58,6 +80,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
      * @see FacultyPersistenceFacade#deleteFaculty(Long)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -103,6 +126,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
      * @see FacultyPersistenceFacade#save(Faculty)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {
@@ -120,16 +144,6 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
             log.error("Cannot undo faculty deletion {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE;
     }
 
     /**

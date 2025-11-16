@@ -343,7 +343,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     }
 
     private Course findCourseById(Long id) {
-        return findEntity(CourseEntity.class, id, e -> e.getStudentSet().size());
+        return findEntity(CourseEntity.class, id, course -> course.getStudentSet().size());
     }
 
     private Student findStudentById(Long id) {
@@ -409,6 +409,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             em.close();
         }
     }
+
     private StudentPayload persistStudent() {
         return persistStudent(0);
     }

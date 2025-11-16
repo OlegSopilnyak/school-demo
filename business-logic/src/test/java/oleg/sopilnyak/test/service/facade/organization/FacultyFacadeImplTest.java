@@ -1,5 +1,17 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -9,29 +21,27 @@ import oleg.sopilnyak.test.service.command.executable.organization.faculty.Creat
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
-import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
 class FacultyFacadeImplTest {
@@ -41,16 +51,23 @@ class FacultyFacadeImplTest {
     private static final String ORGANIZATION_FACULTY_DELETE = "organization.faculty.delete";
     FacultyPersistenceFacade persistence = mock(FacultyPersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
-    @Spy
-    CommandsFactory<FacultyCommand<?>> factory = buildFactory();
-    @Spy
-    @InjectMocks
+
+    CommandsFactory<FacultyCommand<?>> factory;
     FacultyFacadeImpl facade;
+    @Mock
+    ApplicationContext applicationContext;
 
     @Mock
     Faculty mockFaculty;
     @Mock
     FacultyPayload mockFacultyPayload;
+
+    @BeforeEach
+    void setUp() {
+        factory = spy(buildFactory());
+        facade = spy(new FacultyFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
+    }
 
     @Test
     void shouldFindAllFaculties_EmptySet() {
@@ -107,6 +124,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateFaculty() {
+        String commandId = ORGANIZATION_FACULTY_CREATE_OR_UPDATE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyUpdate", FacultyCommand.class);
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
         when(payloadMapper.toPayload(mockFacultyPayload)).thenReturn(mockFacultyPayload);
         when(persistence.save(mockFacultyPayload)).thenReturn(Optional.of(mockFacultyPayload));
@@ -122,6 +143,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldNotCreateOrUpdateFaculty() {
+        String commandId = ORGANIZATION_FACULTY_CREATE_OR_UPDATE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyUpdate", FacultyCommand.class);
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
@@ -135,6 +160,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldDeleteFacultyById() throws FacultyNotFoundException, FacultyIsNotEmptyException {
+        String commandId = ORGANIZATION_FACULTY_DELETE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyDelete", FacultyCommand.class);
         Long id = 402L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
@@ -150,6 +179,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotExists() throws FacultyNotFoundException, FacultyIsNotEmptyException {
+        String commandId = ORGANIZATION_FACULTY_DELETE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyDelete", FacultyCommand.class);
         Long id = 403L;
 
         FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
@@ -164,6 +197,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotEmpty() throws FacultyNotFoundException, FacultyIsNotEmptyException {
+        String commandId = ORGANIZATION_FACULTY_DELETE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyDelete", FacultyCommand.class);
         Long id = 404L;
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
@@ -180,13 +217,18 @@ class FacultyFacadeImplTest {
     }
 
     private CommandsFactory<FacultyCommand<?>> buildFactory() {
-        return new FacultyCommandsFactory(
-                Set.of(
-                        spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),
-                        spy(new DeleteFacultyCommand(persistence, payloadMapper)),
-                        spy(new FindAllFacultiesCommand(persistence, payloadMapper)),
-                        spy(new FindFacultyCommand(persistence, payloadMapper))
-                )
+        List<FacultyCommand<?>> commands = List.of(
+                spy(new CreateOrUpdateFacultyCommand(persistence, payloadMapper)),
+                spy(new DeleteFacultyCommand(persistence, payloadMapper)),
+                spy(new FindAllFacultiesCommand(persistence, payloadMapper)),
+                spy(new FindFacultyCommand(persistence, payloadMapper))
         );
+        String acName = "applicationContext";
+        commands.forEach(command -> {
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+        });
+        return new FacultyCommandsFactory(commands);
     }
 }

@@ -10,8 +10,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,6 +58,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
 class StudentsFacadeImplTest {
@@ -99,21 +100,6 @@ class StudentsFacadeImplTest {
 
     @BeforeEach
     void setUp() {
-        createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
-        createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
-        createMacroCommand = spy(new CreateStudentMacroCommand(
-                createStudentCommand, createProfileCommand, payloadMapper, actionExecutor
-        ));
-        deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
-        deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
-                deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
-        ));
-        ReflectionTestUtils.setField(createStudentCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(deleteStudentMacroCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(deleteStudentCommand, "applicationContext", applicationContext);
-        ReflectionTestUtils.setField(deleteProfileCommand, "applicationContext", applicationContext);
         factory = buildFactory();
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
         ActionContext.setup("test-facade", "test-action");
@@ -121,6 +107,10 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotFindById() {
+        String commandId = STUDENT_FIND_BY_ID;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFind", StudentCommand.class);
         Long studentId = 100L;
 
         Optional<Student> student = facade.findById(studentId);
@@ -134,6 +124,10 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldFindById() {
+        String commandId = STUDENT_FIND_BY_ID;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFind", StudentCommand.class);
         Long studentId = 101L;
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
@@ -145,11 +139,15 @@ class StudentsFacadeImplTest {
         verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
         verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
-        verify(payloadMapper, times(2)).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedStudent);
     }
 
     @Test
     void shouldNotFindEnrolledTo() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
@@ -163,7 +161,11 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldFindEnrolledTo() {
-        Long courseId = 200L;
+        String commandId = STUDENT_FIND_ENROLLED_TO;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
+        Long courseId = 210L;
         when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findEnrolledTo(courseId);
@@ -173,11 +175,15 @@ class StudentsFacadeImplTest {
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
         verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
-        verify(payloadMapper, times(2)).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedStudent);
     }
 
     @Test
     void shouldNotFindNotEnrolled() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
 
         Set<Student> students = facade.findNotEnrolled();
 
@@ -190,6 +196,10 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldFindNotEnrolled() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
         when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
 
         Set<Student> students = facade.findNotEnrolled();
@@ -199,7 +209,7 @@ class StudentsFacadeImplTest {
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
-        verify(payloadMapper, times(2)).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedStudent);
     }
 
     @Test
@@ -348,17 +358,46 @@ class StudentsFacadeImplTest {
     }
 
     private CommandsFactory<StudentCommand<?>> buildFactory() {
-        return spy(new StudentCommandsFactory(
-                        Set.of(
-                                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
-                                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-                                createStudentCommand,
-                                createMacroCommand,
-                                deleteStudentCommand,
-                                deleteStudentMacroCommand
-                        )
-                )
+        String acName = "applicationContext";
+        createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));
+        deleteProfileCommand = spy(new DeleteStudentProfileCommand(persistenceFacade, payloadMapper));
+        ReflectionTestUtils.setField(createProfileCommand, acName, applicationContext);
+        ReflectionTestUtils.setField(deleteProfileCommand, acName, applicationContext);
+
+        createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
+        createMacroCommand = spy(new CreateStudentMacroCommand(
+                createStudentCommand, createProfileCommand, payloadMapper, actionExecutor
+        ));
+        deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
+        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
+                deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
+        ));
+        List<StudentCommand<?>> commands = List.of(
+                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
+                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
+                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
+                createStudentCommand,
+                createMacroCommand,
+                deleteStudentCommand,
+                deleteStudentMacroCommand
         );
+        commands.forEach(command -> {
+//            CourseCommand<?> command = entry.getKey();
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+        });
+        return spy(new StudentCommandsFactory(commands));
+//                        Set.of(
+//                                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
+//                                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
+//                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
+//                                createStudentCommand,
+//                                createMacroCommand,
+//                                deleteStudentCommand,
+//                                deleteStudentMacroCommand
+//                        )
+//                )
+//        );
     }
 }

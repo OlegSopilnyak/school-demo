@@ -1,7 +1,17 @@
 package oleg.sopilnyak.test.end2end.command.executable.student;
 
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
@@ -11,33 +21,28 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
-
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindEnrolledStudentsCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     EducationPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -47,10 +52,11 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(CourseEntity.class);
+        deleteEntities(StudentEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
         assertThat(command).isNotNull();
         assertThat(persistence).isNotNull();
@@ -58,7 +64,6 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentsNotFound() {
         Long id = 210L;
         Context<Set<Student>> context = command.createContext(Input.of(id));
@@ -74,29 +79,26 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentEnrolledToCourse() {
         Student student = persistStudent();
         Course course = persistCourse();
-        persistence.link(student, course);
-        assertThat(persistence.findStudentById(student.getId()).orElseThrow().getCourses())
-                .contains(persistence.findCourseById(course.getId()).orElseThrow());
-        Student saved = persistence.findStudentById(student.getId()).orElseThrow();
-        reset(persistence);
+        link(student.getId(), course.getId());
+        assertThat(findStudentById(student.getId()).getCourses()).contains(findCourseById(course.getId()));
+        Student saved = findStudentById(student.getId());
         Long id = course.getId();
         Context<Set<Student>> context = command.createContext(Input.of(id));
 
         command.doCommand(context);
 
+        unlink(student.getId(), course.getId());
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult()).isPresent();
-        assertThat(context.getResult().orElseThrow()).contains(saved);
+        assertThat(context.getResult().orElseThrow()).contains(payloadMapper.toPayload(saved));
         verify(command).executeDo(context);
         verify(persistence).findEnrolledStudentsByCourseId(id);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_StudentNotEnrolled() {
         persistStudent();
         Long id = persistCourse().getId();
@@ -113,7 +115,6 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_ExceptionThrown() {
         Long id = 212L;
         RuntimeException cannotExecute = new RuntimeException("Cannot find");
@@ -129,7 +130,6 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldExecuteCommandUndoCommand() {
         Context<Set<Student>> context = command.createContext();
         context.setState(DONE);
@@ -142,29 +142,89 @@ class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private Course findCourseById(Long id) {
+        return findEntity(CourseEntity.class, id, course -> course.getStudentSet().size());
+    }
+
+    private Student findStudentById(Long id) {
+        return findEntity(StudentEntity.class, id, student -> student.getCourseSet().size());
+    }
+
     private Student persistStudent() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
-            Student student = makeStudent(0);
-            Student entity = persistence.save(student).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            assertThat(persistence.findStudentById(id)).isPresent();
-            return payloadMapper.toPayload(entity);
+            EntityTransaction transaction = em.getTransaction();
+            Student source = makeClearStudent(0);
+            StudentEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 
     private Course persistCourse() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
-            Course course = makeCourse(0);
-            Course entity = persistence.save(course).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            assertThat(persistence.findCourseById(id)).isPresent();
-            return payloadMapper.toPayload(entity);
+            EntityTransaction transaction = em.getTransaction();
+            Course source = makeClearCourse(0);
+            CourseEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(CourseEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
+        }
+    }
+
+    private boolean link(Long studentId, Long courseId) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            StudentEntity student = em.find(StudentEntity.class, studentId);
+            CourseEntity course = em.find(CourseEntity.class, courseId);
+            if (!student.add(course)) {
+                transaction.rollback();
+                return false;
+            }
+            em.merge(student);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return true;
+        } finally {
+            em.close();
+        }
+    }
+
+    private boolean unlink(Long studentId, Long courseId) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            StudentEntity student = em.find(StudentEntity.class, studentId);
+            CourseEntity course = em.find(CourseEntity.class, courseId);
+            if (!student.remove(course)) {
+                transaction.rollback();
+                return false;
+            }
+            em.merge(student);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return true;
+        } finally {
+            em.close();
         }
     }
 }

@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -18,7 +20,10 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 
 import java.util.Deque;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -41,18 +46,37 @@ import lombok.extern.slf4j.Slf4j;
 public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
     // persistence facade for get instance of student by student-id
     private final transient StudentsPersistenceFacade persistence;
+    // beans factory to prepare the current command for transactional operations
+    protected transient BeanFactory applicationContext;
+    // reference to current command for transactional operations
+    private final AtomicReference<MacroDeleteStudent<Boolean>> self = new AtomicReference<>(null);
+
+    @Autowired
+    public final void setApplicationContext(BeanFactory applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * Reference to the current command for transactional operations
      *
      * @return reference to the current command
      * @see RootCommand#self()
-     * @see this#prepareContext(StudentProfileCommand, Input)
-     * @see MacroDeleteStudent#createStudentProfileContext(StudentProfileCommand, Long)
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
      */
     @Override
     public MacroDeleteStudent<Boolean> self() {
-        return (MacroDeleteStudent<Boolean>) super.self();
+        synchronized (RootCommand.class) {
+            if (isNull(self.get())) {
+                // getting command instance reference, which can be used for transactional operations
+                // actually it's proxy of the command with transactional executeDo/executeUndo methods
+                final String springName = springName();
+                final Class<MacroDeleteStudent<Boolean>> familyType = commandFamily();
+                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                self.getAndSet(applicationContext.getBean(springName, familyType));
+            }
+        }
+        return self.get();
     }
 
     /**

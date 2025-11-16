@@ -237,7 +237,8 @@ class CreateOrUpdateCourseCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(CourseEntity.class));
         verify(persistence, never()).deleteCourse(anyLong());
