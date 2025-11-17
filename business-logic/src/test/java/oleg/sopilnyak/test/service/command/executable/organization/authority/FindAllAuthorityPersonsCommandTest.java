@@ -5,13 +5,19 @@ import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPerso
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Set;
 
@@ -30,16 +36,27 @@ class FindAllAuthorityPersonsCommandTest {
     FindAllAuthorityPersonsCommand command;
     @Mock
     AuthorityPerson entity;
+    @Mock
+    AuthorityPersonPayload payload;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("authorityPersonFindAll", AuthorityPersonCommand.class);
+    }
 
     @Test
     void shouldDoCommand_EntityExists() {
         when(persistence.findAllAuthorityPersons()).thenReturn(Set.of(entity));
         Context<Set<AuthorityPerson>> context = command.createContext(null);
+        when(payloadMapper.toPayload(entity)).thenReturn(payload);
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(entity));
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Set.of(payload));
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();

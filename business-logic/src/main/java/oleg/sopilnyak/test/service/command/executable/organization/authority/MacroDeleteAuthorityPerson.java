@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 
@@ -12,6 +14,17 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
  * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
  */
 public interface MacroDeleteAuthorityPerson<T> extends AuthorityPersonCommand<T> {
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) MacroDeleteAuthorityPerson.class;
+    }
     /**
      * To create context for delete person profile nested command
      *

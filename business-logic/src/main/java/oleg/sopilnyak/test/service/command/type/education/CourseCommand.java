@@ -71,9 +71,9 @@ public interface CourseCommand<T> extends RootCommand<T> {
      * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Course)
      * @see RootCommand#getPayloadMapper()
      */
-    default Course adoptEntity(final Course entity) {
+    default CoursePayload adoptEntity(final Course entity) {
         getLog().debug("In course entity with id={} registered {} student(s)", entity.getId(), entity.getStudents().size());
-        return getPayloadMapper().toPayload(entity);
+        return entity instanceof CoursePayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
     }
 
     /**

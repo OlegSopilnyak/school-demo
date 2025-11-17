@@ -1,15 +1,17 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
-import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to log out authority person by authorization token
@@ -19,10 +21,27 @@ import org.springframework.stereotype.Component;
  * @see PersistenceFacade
  */
 @Slf4j
-@Component("authorityPersonLogout")
-public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Boolean> {
-    @Getter
-    private final transient BusinessMessagePayloadMapper payloadMapper = null;
+@Component(AuthorityPersonCommand.Component.LOGOUT)
+public class LogoutAuthorityPersonCommand extends BasicCommand<Boolean> implements AuthorityPersonCommand<Boolean> {
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return Component.LOGOUT;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.LOGOUT;
+    }
 
     /**
      * DO: To logout authority person by token<BR/>
@@ -36,6 +55,7 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
      * @see PersistenceFacade#findPrincipalProfileByLogin(String)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<String> parameter = context.getRedoParameter();
         try {
@@ -48,16 +68,6 @@ public class LogoutAuthorityPersonCommand implements AuthorityPersonCommand<Bool
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return LOGOUT;
     }
 
     /**

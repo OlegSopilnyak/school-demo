@@ -332,7 +332,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
         assertThat(profileContext.<PrincipalProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
-        verify(command, times(2)).self();
+        verify(command).self();
         assertThat(personContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 

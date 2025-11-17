@@ -53,12 +53,12 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * @param username the value of person's username (login)
      * @param password the value of person's password
      * @return logged in person's instance or exception will be thrown
-     * @see AuthorityPersonCommand#LOGIN
+     * @see AuthorityPersonCommand.CommandId#LOGIN
      */
     @Override
     public Optional<AuthorityPerson> login(String username, String password) {
         log.debug("Try to login using: '{}'", username);
-        final String commandId = LOGIN;
+        final String commandId = CommandId.LOGIN;
         final AuthorityPersonCommand<Optional<AuthorityPerson>> command =
                 (AuthorityPersonCommand<Optional<AuthorityPerson>>) takeValidCommand(commandId, factory);
         final Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
@@ -82,7 +82,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         } else if (nonNull(loginException)) {
             throwFor(commandId, loginException);
         } else {
-            wrongCommandExecution(LOGIN);
+            wrongCommandExecution(CommandId.LOGIN);
         }
         return Optional.empty();
     }
@@ -91,12 +91,12 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * To log out the AuthorityPerson
      *
      * @param token logged in person's authorization token (see Authorization: Bearer <token>)
-     * @see AuthorityPersonCommand#LOGIN
+     * @see AuthorityPersonCommand.CommandId#LOGIN
      */
     @Override
     public void logout(String token) {
         log.debug("Logout for token: {}", token);
-        final boolean loggedOut = doSimpleCommand(LOGOUT, Input.of(token), factory);
+        final boolean loggedOut = doSimpleCommand(CommandId.LOGOUT, Input.of(token), factory);
         log.debug("Person is logged out: {}", loggedOut);
     }
 
@@ -106,12 +106,12 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
      * @return list of persons
      * @see AuthorityPerson
      * @see AuthorityPersonPayload
-     * @see AuthorityPersonCommand#FIND_ALL
+     * @see AuthorityPersonCommand.CommandId#FIND_ALL
      */
     @Override
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
         log.debug("Find all authority persons");
-        final Collection<AuthorityPerson> result = doSimpleCommand(FIND_ALL, null, factory);
+        final Collection<AuthorityPerson> result = doSimpleCommand(CommandId.FIND_ALL, null, factory);
         log.debug("Found all authority persons {}", result);
         return result.stream().map(convert).toList();
     }
@@ -129,7 +129,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
         log.debug("Find authority person by ID:{}", id);
-        final Optional<AuthorityPerson> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CommandId.FIND_BY_ID, Input.of(id), factory);
         log.debug("Found authority person {}", result);
         return result.map(convert);
     }
@@ -147,7 +147,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
         log.debug("Create or Update authority person {}", instance);
-        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed authority person {}", result);
         return result.map(convert);
     }
@@ -164,7 +164,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public Optional<AuthorityPerson> create(AuthorityPerson instance) {
         log.debug("Create authority person with new profile {}", instance);
-        final Optional<AuthorityPerson> result = doSimpleCommand(CREATE_NEW, Input.of(convert.apply(instance)), factory);
+        final Optional<AuthorityPerson> result = doSimpleCommand(CommandId.CREATE_NEW, Input.of(convert.apply(instance)), factory);
         log.debug("Created authority person {}", result);
         return result.map(convert);
     }
@@ -179,7 +179,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         log.debug("Delete authority person with ID:{}", id);
-        final String commandId = DELETE_ALL;
+        final String commandId = CommandId.DELETE_ALL;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(Input.of(id));
 
@@ -201,7 +201,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         } else if (nonNull(deleteException)) {
             throwFor(commandId, deleteException);
         } else {
-            wrongCommandExecution(DELETE_ALL);
+            wrongCommandExecution(CommandId.DELETE_ALL);
         }
     }
 

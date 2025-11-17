@@ -1,25 +1,19 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,36 +28,31 @@ import lombok.extern.slf4j.Slf4j;
  * @see PersistenceFacade
  */
 @Slf4j
-@Component("authorityPersonLogin")
-public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+@Component(AuthorityPersonCommand.Component.LOGIN)
+public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AuthorityPerson>>
+        implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     private final transient PersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<AuthorityPersonCommand<Optional<AuthorityPerson>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public AuthorityPersonCommand<Optional<AuthorityPerson>> self() {
-        synchronized (CourseCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("authorityPersonLogin", AuthorityPersonCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.LOGIN;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.LOGIN;
     }
 
     public LoginAuthorityPersonCommand(PersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
@@ -115,16 +104,6 @@ public class LoginAuthorityPersonCommand implements AuthorityPersonCommand<Optio
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return LOGIN;
     }
 
     /**

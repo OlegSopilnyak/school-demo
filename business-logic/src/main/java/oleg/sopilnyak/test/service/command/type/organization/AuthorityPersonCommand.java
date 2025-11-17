@@ -27,17 +27,31 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
 
     // command-ids of the command family
-    String LOGIN = "organization.authority.person.login";
-    String LOGOUT = "organization.authority.person.logout";
-    String FIND_ALL = "organization.authority.person.findAll";
-    String FIND_BY_ID = "organization.authority.person.findById";
-    String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    String CREATE_NEW = "organization.authority.person.create.macro";
-    String DELETE = "organization.authority.person.delete";
-    String DELETE_ALL = "organization.authority.person.delete.macro";
+    interface CommandId {
+        String LOGIN = "organization.authority.person.login";
+        String LOGOUT = "organization.authority.person.logout";
+        String FIND_ALL = "organization.authority.person.findAll";
+        String FIND_BY_ID = "organization.authority.person.findById";
+        String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
+        String CREATE_NEW = "organization.authority.person.create.macro";
+        String DELETE = "organization.authority.person.delete";
+        String DELETE_ALL = "organization.authority.person.delete.macro";
+    }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "authorityCommandsFactory";
+
+    // spring-bean component names of the commands family
+    interface Component {
+        String LOGIN = "authorityPersonLogin";
+        String LOGOUT = "authorityPersonLogout";
+        String FIND_ALL = "authorityPersonFindAll";
+        String FIND_BY_ID = "authorityPersonFind";
+        String CREATE_OR_UPDATE = "authorityPersonUpdate";
+        String CREATE_NEW = "authorityPersonMacroCreate";
+        String DELETE = "authorityPersonDelete";
+        String DELETE_ALL = "authorityPersonMacroDelete";
+    }
 
     /**
      * The class of commands family, the command is belonged to
@@ -49,6 +63,20 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     @SuppressWarnings("unchecked")
     default <F extends RootCommand> Class<F> commandFamily() {
         return (Class<F>) AuthorityPersonCommand.class;
+    }
+
+    /**
+     * To adopt authority person entity to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param entity entity from persistence layer
+     * @return instance from business-logic data model
+     * @see AuthorityPerson#getFaculties()
+     * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(AuthorityPerson)
+     * @see RootCommand#getPayloadMapper()
+     */
+    default AuthorityPersonPayload adoptEntity(final AuthorityPerson entity) {
+        getLog().debug("In authority person entity with id={} manages {} faculties", entity.getId(), entity.getFaculties().size());
+        return entity instanceof AuthorityPersonPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
     }
 
     /**
@@ -67,19 +95,17 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
         } else if (result instanceof AuthorityPerson entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<AuthorityPerson>) optionalEntity);
-        } else if (result instanceof AuthorityPersonSet entitiesSet) {
+            // To detach AuthorityPerson optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(AuthorityPerson.class::cast).map(this::detach);
+        } else if (result instanceof Set entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
         }
-    }
-
-    /**
-     * Set of AuthorityPerson entities
-     */
-    interface AuthorityPersonSet extends Set<AuthorityPerson> {
     }
 
     /**
@@ -92,23 +118,6 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     private AuthorityPerson detach(AuthorityPerson entity) {
         getLog().info("Entity to detach:'{}'", entity);
         return entity instanceof AuthorityPersonPayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach AuthorityPerson optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<AuthorityPerson> detach(Optional<AuthorityPerson> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
     /**

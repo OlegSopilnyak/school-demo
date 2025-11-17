@@ -126,6 +126,10 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldLogoutAuthorityPerson() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGOUT;
+        AuthorityPersonCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("authorityPersonLogout", AuthorityPersonCommand.class);
         String token = "logged_in_person_token";
 
         facade.logout(token);
@@ -180,6 +184,10 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldFindAllAuthorityPersons_Empty() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_ALL;
+        AuthorityPersonCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("authorityPersonFindAll", AuthorityPersonCommand.class);
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
@@ -193,6 +201,10 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldFindAllAuthorityPersons_ExistsInstance() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_ALL;
+        AuthorityPersonCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("authorityPersonFindAll", AuthorityPersonCommand.class);
         when(persistenceFacade.findAllAuthorityPersons()).thenReturn(Set.of(mockPerson));
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
@@ -207,6 +219,10 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldNotFindAuthorityPersonById_NotFound() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID;
+        AuthorityPersonCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("authorityPersonFind", AuthorityPersonCommand.class);
         Long id = 300L;
 
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
@@ -221,6 +237,10 @@ class AuthorityPersonFacadeImplTest {
 
     @Test
     void shouldFindAuthorityPersonById() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID;
+        AuthorityPersonCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("authorityPersonFind", AuthorityPersonCommand.class);
         Long id = 301L;
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(persistenceFacade.findAuthorityPersonById(id)).thenReturn(Optional.of(mockPerson));
@@ -231,7 +251,7 @@ class AuthorityPersonFacadeImplTest {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
-        verify(payloadMapper, times(2)).toPayload(any(AuthorityPerson.class));
+        verify(payloadMapper).toPayload(any(AuthorityPerson.class));
     }
 
     @Test

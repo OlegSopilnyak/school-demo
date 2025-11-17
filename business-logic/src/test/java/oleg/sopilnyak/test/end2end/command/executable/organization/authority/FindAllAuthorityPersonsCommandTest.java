@@ -7,11 +7,10 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
-import java.util.Optional;
-import java.util.Set;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
-import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -21,50 +20,42 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindAllAuthorityPersonsCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     AuthorityPersonPersistenceFacade persistence;
     @Autowired
-    AuthorityPersonRepository authorityPersonRepository;
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
     @Autowired
     AuthorityPersonCommand command;
 
-    @BeforeEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void setUp() {
-        authorityPersonRepository.deleteAll();
-    }
 
     @AfterEach
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void tearDown() {
         reset(command, persistence, payloadMapper);
-        authorityPersonRepository.deleteAll();
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityExists() {
         AuthorityPerson entity = persist();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
@@ -73,14 +64,13 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow())
-                .contains(persistence.findAuthorityPersonById(entity.getId()).orElseThrow());
+                .contains(payloadMapper.toPayload(findAuthorityPersonById(entity.getId())));
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findAllAuthorityPersons();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         Context<Set<AuthorityPerson>> context = command.createContext(null);
 
@@ -94,7 +84,6 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         doThrow(RuntimeException.class).when(persistence).findAllAuthorityPersons();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
@@ -108,7 +97,6 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         AuthorityPerson entity = persist();
         Context<Set<AuthorityPerson>> context = command.createContext(null);
@@ -125,18 +113,25 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private AuthorityPersonEntity findAuthorityPersonById(Long id) {
+        return findEntity(AuthorityPersonEntity.class, id, entity -> entity.getFacultyEntitySet().size());
+    }
+
     private AuthorityPerson persist() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             AuthorityPerson source = makeCleanAuthorityPerson(0);
-            AuthorityPerson entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<AuthorityPerson> person = persistence.findAuthorityPersonById(id);
-            assertAuthorityPersonEquals(person.orElseThrow(), source, false);
-            assertThat(person).contains(entity);
-            return payloadMapper.toPayload(entity);
+            AuthorityPersonEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(AuthorityPersonEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

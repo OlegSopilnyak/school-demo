@@ -1,16 +1,21 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to get all authority persons of the school
@@ -18,14 +23,36 @@ import org.springframework.stereotype.Component;
  * @see AuthorityPerson
  * @see AuthorityPersonCommand
  * @see AuthorityPersonPersistenceFacade
+ * @see BasicCommand#self()
  */
 @Slf4j
 @AllArgsConstructor
-@Component("authorityPersonFindAll")
-public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Set<AuthorityPerson>> {
+@Component(AuthorityPersonCommand.Component.FIND_ALL)
+public class FindAllAuthorityPersonsCommand extends BasicCommand<Set<AuthorityPerson>>
+        implements AuthorityPersonCommand<Set<AuthorityPerson>> {
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return Component.FIND_ALL;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.FIND_ALL;
+    }
 
     /**
      * DO: To get all authority persons of the school<BR/>
@@ -37,12 +64,14 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
      * @see AuthorityPersonPersistenceFacade#findAllAuthorityPersons()
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void executeDo(Context<Set<AuthorityPerson>> context) {
         try {
             // no command do input
             log.debug("Trying to get all authority persons");
 
-            final Set<AuthorityPerson> staff = persistence.findAllAuthorityPersons();
+            final Set<AuthorityPerson> staff = persistence.findAllAuthorityPersons().stream()
+                    .map(this::adoptEntity).collect(Collectors.toSet());
 
             log.debug("Got authority persons {}", staff);
             context.setResult(staff);
@@ -50,16 +79,6 @@ public class FindAllAuthorityPersonsCommand implements AuthorityPersonCommand<Se
             log.error("Cannot find any authority person", e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return FIND_ALL;
     }
 
     /**

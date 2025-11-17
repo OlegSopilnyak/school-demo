@@ -67,10 +67,7 @@ class CoursesFacadeImplTest {
     ActionExecutor actionExecutor = mock(ActionExecutor.class);
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
-//    @Spy
     CommandsFactory<CourseCommand<?>> factory;
-//    @Spy
-//    @InjectMocks
     CoursesFacadeImpl facade;
 
     @Mock

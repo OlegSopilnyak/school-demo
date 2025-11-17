@@ -3,9 +3,9 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -41,23 +41,48 @@ import lombok.extern.slf4j.Slf4j;
  * @see AuthorityPersonCommand
  */
 @Slf4j
-@Component("authorityPersonMacroCreate")
+@Component(AuthorityPersonCommand.Component.CREATE_NEW)
 public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Optional<AuthorityPerson>>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-
     @Value("${school.mail.basic.domain:gmail.com}")
     private String emailDomain;
 
-    public CreateAuthorityPersonMacroCommand(@Qualifier("authorityPersonUpdate") AuthorityPersonCommand<?> personCommand,
-                                             @Qualifier("profilePrincipalUpdate") PrincipalProfileCommand<?> profileCommand,
-                                             final BusinessMessagePayloadMapper payloadMapper,
-                                             final ActionExecutor actionExecutor) {
+
+    /**
+     * Reference to the current command for operations with the command's entities in transaction possibility<BR/>
+     * Not needed transaction for this command
+     *
+     * @return the reference to the current command from spring beans factory (if transaction is used in the command)
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    public AuthorityPersonCommand<Optional<AuthorityPerson>> self() {
+        return this;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return AuthorityPersonCommand.CommandId.CREATE_NEW;
+    }
+
+    public CreateAuthorityPersonMacroCommand(
+            @Qualifier(Component.CREATE_OR_UPDATE) AuthorityPersonCommand<?> personCommand,
+            @Qualifier(PrincipalProfileCommand.Component.CREATE_OR_UPDATE) PrincipalProfileCommand<?> profileCommand,
+            BusinessMessagePayloadMapper payloadMapper, ActionExecutor actionExecutor
+    ) {
         super(actionExecutor);
+        this.payloadMapper = payloadMapper;
         this.putToNest(profileCommand);
         this.putToNest(personCommand);
-        this.payloadMapper = payloadMapper;
 
     }
 
@@ -73,9 +98,9 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     @Override
     public Optional<AuthorityPerson> finalCommandResult(Deque<Context<?>> contexts) {
         return contexts.stream()
-                .filter(c -> c.getCommand() instanceof PersonInSequenceCommand)
-                .map(c -> (Context<Optional<AuthorityPerson>>) c).findFirst()
-                .flatMap(c -> c.getResult().orElseGet(Optional::empty));
+                .filter(context -> context.getCommand() instanceof PersonInSequenceCommand)
+                .map(context -> (Context<Optional<AuthorityPerson>>) context).findFirst()
+                .flatMap(context -> context.getResult().orElseGet(Optional::empty));
     }
 
     /**
@@ -86,16 +111,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     @Override
     public Logger getLog() {
         return log;
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_NEW;
     }
 
     /**
@@ -113,8 +128,13 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof AuthorityPerson person && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
-                createPersonContext(command, person) : cannotCreateNestedContextFor(command);
+        return macroInputParameter.value() instanceof AuthorityPerson person
+                &&
+                AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
+                ?
+                createPersonContext(command, person)
+                :
+                cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -128,8 +148,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see AuthorityPersonPayload
      */
     public <N> Context<N> createPersonContext(final AuthorityPersonCommand<N> command, final AuthorityPerson person) {
-        final AuthorityPersonPayload payload =
-                person instanceof AuthorityPersonPayload personPayload ? personPayload : payloadMapper.toPayload(person);
+        final AuthorityPersonPayload payload = adoptEntity(person);
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
@@ -166,8 +185,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     public <N> Context<N> createProfileContext(final PrincipalProfileCommand<N> command, final AuthorityPerson person) {
         final String emailPrefix = person.getFirstName().trim().toLowerCase() + "." + person.getLastName().trim().toLowerCase();
-        final PrincipalProfilePayload payload = PrincipalProfilePayload.builder()
-                .id(null).phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
+        final PrincipalProfilePayload payload = PrincipalProfilePayload.builder().id(null)
+                .phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
                 .login(emailPrefix)
                 .build();
         try {
@@ -214,11 +233,15 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see CannotTransferCommandResultException
      */
     @Override
-    public <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand<?> command,
-                                                       @NonNull final S result,
-                                                       @NonNull final Context<T> target) {
-        if (result instanceof Optional<?> opt && opt.orElseThrow() instanceof PrincipalProfile profile
-            && AuthorityPersonCommand.CREATE_OR_UPDATE.equals(target.getCommand().getId())) {
+    public <S, T> void transferPreviousExecuteDoResult(
+            final PrincipalProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
+    ) {
+        if (result instanceof Optional<?> opt
+                &&
+                opt.orElseThrow() instanceof PrincipalProfile profile
+                &&
+                AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(target.getCommand().getId())
+        ) {
             // send create-profile result (profile-id) to create-person input (AuthorityPersonPayload#setProfileId)
             transferProfileIdToAuthorityPersonInput(profile.getId(), target);
         } else {
@@ -242,22 +265,27 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         if (target instanceof CommandContext<?> commandContext) {
             commandContext.setRedoParameter(Input.of(personPayload));
             log.debug("Transferred to student changed input parameter: {}", personPayload);
+        } else {
+            final Throwable cause = new IllegalStateException("Wrong type of command context");
+            throw new CannotTransferCommandResultException(target.getCommand().getId(), cause);
         }
     }
 
     /**
      * To prepare context for nested command using the visitor
      *
-     * @param visitor               visitor of prepared contexts
-     * @param commandInputParameter Macro-Command call's input parameter
+     * @param visitor visitor of prepared contexts
+     * @param input   Macro-Command call's input parameter
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
      * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
      */
     @Override
-    public Context<Optional<AuthorityPerson>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> commandInputParameter) {
-        return AuthorityPersonCommand.super.acceptPreparedContext(visitor, commandInputParameter);
+    public Context<Optional<AuthorityPerson>> acceptPreparedContext(
+            final PrepareNestedContextVisitor visitor, final Input<?> input
+    ) {
+        return AuthorityPersonCommand.super.acceptPreparedContext(visitor, input);
     }
 
     // private methods
@@ -278,15 +306,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
             implements AuthorityPersonCommand<Void> {
         private final AuthorityPersonCommand<?> wrappedCommand;
 
-        private PersonInSequenceCommand(AuthorityPersonCommand<?> concreteCommand) {
-            this.wrappedCommand = concreteCommand;
-        }
-
-        @Override
-        public AuthorityPersonCommand<?> unWrap() {
-            return wrappedCommand;
-        }
-
         /**
          * To transfer nested command execution result to target nested command context input<BR/>
          * Not used in the main command, used default implementation
@@ -296,11 +315,23 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @param target  nested command context for the next execution in sequence
          * @param <S>     type of source command execution result
          * @param <N>     type of target command execution result
+         * @see oleg.sopilnyak.test.service.command.type.nested.CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
          * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(AuthorityPersonCommand, Object, Context)
          */
         @Override
-        public <S, N> void transferResultTo(TransferTransitionalResultVisitor visitor, S value, Context<N> target) {
+        public <S, N> void transferResultTo(
+                final TransferTransitionalResultVisitor visitor, final S value, final Context<N> target
+        ) {
             visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
+        }
+
+        private PersonInSequenceCommand(AuthorityPersonCommand<?> personCommand) {
+            this.wrappedCommand = personCommand;
+        }
+
+        @Override
+        public AuthorityPersonCommand<?> unWrap() {
+            return wrappedCommand;
         }
 
         @Override
@@ -313,41 +344,12 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
             return wrappedCommand.getId();
         }
 
-        /**
-         * To get mapper for business-message-payload
-         *
-         * @return mapper instance
-         * @see BusinessMessagePayloadMapper
-         */
-        @Override
-        public BusinessMessagePayloadMapper getPayloadMapper() {
-            return null;
-        }
-
-        /**
-         * To execute command with correct context state
-         *
-         * @param context context of redo execution
-         * @see Context
-         * @see Context.State#WORK
-         * @see Context.State#DONE
-         * @see RootCommand#doCommand(Context)
-         */
         @Override
         @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             wrappedCommand.doCommand(context);
         }
 
-        /**
-         * To rollback command's execution according to command context
-         *
-         * @param context context of undo execution
-         * @see Context
-         * @see Context.State#WORK
-         * @see Context.State#UNDONE
-         * @see RootCommand#undoCommand(Context)
-         */
         @Override
         public void undoCommand(Context<?> context) {
             wrappedCommand.undoCommand(context);
@@ -358,15 +360,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
             implements PrincipalProfileCommand<Void> {
         private final PrincipalProfileCommand<?> wrappedCommand;
 
-        private ProfileInSequenceCommand(PrincipalProfileCommand<?> concreteCommand) {
-            this.wrappedCommand = concreteCommand;
-        }
-
-        @Override
-        public PrincipalProfileCommand<?> unWrap() {
-            return wrappedCommand;
-        }
-
         /**
          * To transfer nested command execution result to target nested command context input<BR/>
          * Used in the main command to pass profile-id to the input of create AuthorityPerson nested command
@@ -376,12 +369,22 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
          * @param target  nested command context for the next execution in sequence
          * @param <S>     type of source command execution result
          * @param <N>     type of target command execution result
+         * @see oleg.sopilnyak.test.service.command.type.nested.CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
          * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
          * @see CreateAuthorityPersonMacroCommand#transferPreviousExecuteDoResult(PrincipalProfileCommand, Object, Context)
          */
         @Override
         public <S, N> void transferResultTo(final TransferTransitionalResultVisitor visitor, final S value, final Context<N> target) {
             visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
+        }
+
+        private ProfileInSequenceCommand(PrincipalProfileCommand<?> concreteCommand) {
+            this.wrappedCommand = concreteCommand;
+        }
+
+        @Override
+        public PrincipalProfileCommand<?> unWrap() {
+            return wrappedCommand;
         }
 
         @Override
@@ -394,53 +397,17 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
             return wrappedCommand.getId();
         }
 
-        /**
-         * To detach command result data from persistence layer
-         *
-         * @param result result data to detach
-         * @return detached result data
-         * @see RootCommand#afterExecuteDo(Context)
-         */
         @Override
         public Void detachedResult(Void result) {
             return null;
         }
 
-        /**
-         * To get mapper for business-message-payload
-         *
-         * @return mapper instance
-         * @see BusinessMessagePayloadMapper
-         */
-        @Override
-        public BusinessMessagePayloadMapper getPayloadMapper() {
-            return null;
-        }
-
-        /**
-         * To execute command with correct context state
-         *
-         * @param context context of redo execution
-         * @see Context
-         * @see Context.State#WORK
-         * @see Context.State#DONE
-         * @see RootCommand#doCommand(Context)
-         */
         @Override
         @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             wrappedCommand.doCommand(context);
         }
 
-        /**
-         * To rollback command's execution according to command context
-         *
-         * @param context context of undo execution
-         * @see Context
-         * @see Context.State#WORK
-         * @see Context.State#UNDONE
-         * @see RootCommand#undoCommand(Context)
-         */
         @Override
         public void undoCommand(Context<?> context) {
             wrappedCommand.undoCommand(context);

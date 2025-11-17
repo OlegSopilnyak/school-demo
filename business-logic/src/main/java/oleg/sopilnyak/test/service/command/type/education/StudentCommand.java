@@ -62,9 +62,8 @@ public interface StudentCommand<T> extends RootCommand<T> {
         return (Class<F>) StudentCommand.class;
     }
 
-
     /**
-     * To adopt course entity to business-logic data model from persistence data model refreshing entity's relation
+     * To adopt student entity to business-logic data model from persistence data model refreshing entity's relation
      *
      * @param entity entity from persistence layer
      * @return instance from business-logic data model
@@ -72,9 +71,9 @@ public interface StudentCommand<T> extends RootCommand<T> {
      * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Student)
      * @see RootCommand#getPayloadMapper()
      */
-    default Student adoptEntity(final Student entity) {
-        getLog().debug("In course entity with id={} registered {} course(s)", entity.getId(), entity.getCourses().size());
-        return getPayloadMapper().toPayload(entity);
+    default StudentPayload adoptEntity(final Student entity) {
+        getLog().debug("In student entity with id={} registered {} course(s)", entity.getId(), entity.getCourses().size());
+        return entity instanceof StudentPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
     }
 
     /**

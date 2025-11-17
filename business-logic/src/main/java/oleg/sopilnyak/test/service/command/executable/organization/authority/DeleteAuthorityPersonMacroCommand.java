@@ -18,14 +18,15 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
+import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -43,48 +44,73 @@ import lombok.extern.slf4j.Slf4j;
  * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
-@Component("authorityPersonMacroDelete")
+@Component(AuthorityPersonCommand.Component.DELETE_ALL)
 public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
         implements MacroDeleteAuthorityPerson<Boolean> {
-    @Autowired
     // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
+    private transient BeanFactory applicationContext;
+    @Autowired
+    public final void setApplicationContext(BeanFactory applicationContext) {
+        this.applicationContext = applicationContext;
+    }
     // persistence facade for get instance of authority person by person-id (creat-context phase)
     private final transient AuthorityPersonPersistenceFacade persistence;
     // reference to current command for transactional operations
-    private final AtomicReference<MacroDeleteAuthorityPerson<Boolean>> self;
+    private final AtomicReference<MacroDeleteAuthorityPerson<Boolean>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations create context processing
+     * Reference to the current command for transactional operations
      *
-     * @return the reference to the current command from spring beans factory
-     * @see org.springframework.context.ApplicationContext
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return reference to the current command from spring beans factory
+     * @see PrepareNestedContextVisitor#prepareContext(StudentProfileCommand, Input)
      * @see this#createPrincipalProfileContext(PrincipalProfileCommand, Long)
      */
-    @Override
-    @SuppressWarnings("unchecked")
-    public MacroDeleteAuthorityPerson<Boolean> self() {
-        synchronized (AuthorityPersonCommand.class) {
+    private MacroDeleteAuthorityPerson<Boolean> transactional() {
+        synchronized (MacroDeleteAuthorityPerson.class) {
             if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
+                // getting command instance reference, which can be used for transactional operations
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
-                self.getAndSet(applicationContext.getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class));
+                final String springName = Component.DELETE_ALL;
+                final Class<MacroDeleteAuthorityPerson<Boolean>> familyType = commandFamily();
+                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                self.getAndSet(applicationContext.getBean(springName, familyType));
             }
         }
         return self.get();
     }
 
-    public DeleteAuthorityPersonMacroCommand(@Qualifier("authorityPersonDelete") AuthorityPersonCommand<?> personCommand,
-                                             @Qualifier("profilePrincipalDelete") PrincipalProfileCommand<?> profileCommand,
-                                             @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
-                                             AuthorityPersonPersistenceFacade persistence,
-                                             ActionExecutor actionExecutor) {
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.DELETE_ALL;
+    }
+
+    /**
+     * Reference to the current command for operations with the command's entities in transaction possibility<BR/>
+     * Not needed transaction for this command
+     *
+     * @return the reference to the current command from spring beans factory
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
+     */
+    @Override
+    public MacroDeleteAuthorityPerson<Boolean> self() {
+        return this;
+    }
+
+    public DeleteAuthorityPersonMacroCommand(
+            @Qualifier(Component.DELETE) AuthorityPersonCommand<?> personCommand,
+            @Qualifier(PrincipalProfileCommand.Component.DELETE_BY_ID) PrincipalProfileCommand<?> profileCommand,
+            @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
+            AuthorityPersonPersistenceFacade persistence, ActionExecutor actionExecutor
+    ) {
         super(actionExecutor, executor);
         this.persistence = persistence;
-        this.self = new AtomicReference<>(null);
         super.putToNest(personCommand);
         super.putToNest(profileCommand);
     }
@@ -115,16 +141,6 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     }
 
     /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE_ALL;
-    }
-
-    /**
      * To prepare context for particular type of the nested command
      *
      * @param command   nested command instance
@@ -139,8 +155,13 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      */
     @Override
     public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> mainInput) {
-        return mainInput.value() instanceof Long personId && PrincipalProfileCommand.DELETE_BY_ID.equals(command.getId()) ?
-                self().createPrincipalProfileContext(command, personId) : cannotCreateNestedContextFor(command);
+        return mainInput.value() instanceof Long personId
+                &&
+                PrincipalProfileCommand.DELETE_BY_ID.equals(command.getId())
+                ?
+                transactional().createPrincipalProfileContext(command, personId)
+                :
+                cannotCreateNestedContextFor(command);
     }
 
     /**

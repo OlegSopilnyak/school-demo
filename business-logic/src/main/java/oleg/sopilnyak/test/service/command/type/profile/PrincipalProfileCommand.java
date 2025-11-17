@@ -27,10 +27,15 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
      * ID of createOrUpdate principal profile command
      */
     String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
-    /**
-     * The name of commands-factory SpringBean
-     */
+
+    // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "principalProfileCommandsFactory";
+
+    // spring-bean component names of the commands family
+    interface Component {
+        String CREATE_OR_UPDATE = "profilePrincipalUpdate";
+        String DELETE_BY_ID = "profilePrincipalDelete";
+    }
 
     /**
      * To detach command result data from persistence layer

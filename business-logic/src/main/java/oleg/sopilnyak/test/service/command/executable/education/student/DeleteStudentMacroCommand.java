@@ -44,33 +44,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component(StudentCommand.Component.DELETE_ALL)
 public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
-    // persistence facade for get instance of student by student-id
-    private final transient StudentsPersistenceFacade persistence;
     // beans factory to prepare the current command for transactional operations
     protected transient BeanFactory applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<MacroDeleteStudent<Boolean>> self = new AtomicReference<>(null);
-
     @Autowired
     public final void setApplicationContext(BeanFactory applicationContext) {
         this.applicationContext = applicationContext;
     }
+    // persistence facade for get instance of student by student-id
+    private final transient StudentsPersistenceFacade persistence;
+    // reference to current command for transactional operations
+    private final AtomicReference<MacroDeleteStudent<Boolean>> self = new AtomicReference<>(null);
 
     /**
      * Reference to the current command for transactional operations
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return reference to the current command from spring beans factory
+     * @see PrepareNestedContextVisitor#prepareContext(StudentProfileCommand, Input)
+     * @see this#createStudentProfileContext(StudentProfileCommand, Long)
      */
-    @Override
-    public MacroDeleteStudent<Boolean> self() {
-        synchronized (RootCommand.class) {
+    private MacroDeleteStudent<Boolean> transactional() {
+        synchronized (MacroDeleteStudent.class) {
             if (isNull(self.get())) {
                 // getting command instance reference, which can be used for transactional operations
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
-                final String springName = springName();
+                final String springName = Component.DELETE_ALL;
                 final Class<MacroDeleteStudent<Boolean>> familyType = commandFamily();
                 getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
                 self.getAndSet(applicationContext.getBean(springName, familyType));
@@ -80,13 +77,17 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
     }
 
     /**
-     * The name of command bean in spring beans factory
+     * Reference to the current command for operations with the command's entities in transaction possibility<BR/>
+     * Not needed transaction for this command
      *
-     * @return spring name of the command
+     * @return the reference to the current command from spring beans factory
+     * @see RootCommand#self()
+     * @see RootCommand#doCommand(Context)
+     * @see RootCommand#undoCommand(Context)
      */
     @Override
-    public String springName() {
-        return Component.DELETE_ALL;
+    public MacroDeleteStudent<Boolean> self() {
+        return this;
     }
 
     /**
@@ -103,8 +104,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
             @Qualifier(StudentCommand.Component.DELETE) StudentCommand<?> personCommand,
             @Qualifier(StudentProfileCommand.Component.DELETE_BY_ID) StudentProfileCommand<?> profileCommand,
             @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
-            final StudentsPersistenceFacade persistence,
-            final ActionExecutor actionExecutor
+            StudentsPersistenceFacade persistence, ActionExecutor actionExecutor
     ) {
         super(actionExecutor, executor);
         this.persistence = persistence;
@@ -155,7 +155,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
                 &&
                 StudentProfileCommand.DELETE_BY_ID.equals(command.getId())
                 ?
-                self().createStudentProfileContext(command, studentId)
+                transactional().createStudentProfileContext(command, studentId)
                 :
                 cannotCreateNestedContextFor(command);
     }

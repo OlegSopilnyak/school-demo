@@ -1,9 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -12,24 +10,19 @@ import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCac
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serial;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-
-import static java.util.Objects.isNull;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Command-Implementation: command to delete the authority person by id
@@ -40,46 +33,37 @@ import static java.util.Objects.isNull;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component("authorityPersonDelete")
+@Component(AuthorityPersonCommand.Component.DELETE)
 public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPerson, Boolean>
         implements AuthorityPersonCommand<Boolean> {
-    @Serial
-    private static final long serialVersionUID = -6678589218747269152L;
     // facade to manipulate AuthorityPerson entities
     private final transient AuthorityPersonPersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<RootCommand<Boolean>> self;
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public RootCommand<Boolean> self() {
-        synchronized (AuthorityPersonCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("authorityPersonDelete", AuthorityPersonCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.DELETE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.DELETE;
     }
 
     public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,
                                         final BusinessMessagePayloadMapper payloadMapper) {
         super(AuthorityPerson.class);
-        self = new  AtomicReference<>(null);
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }
@@ -113,7 +97,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
             }
             // getting from the database current version of the authority person
             final AuthorityPerson entity = retrieveEntity(
-                    id, persistence::findAuthorityPersonById, payloadMapper::toPayload, () -> exceptionFor(id)
+                    id, persistence::findAuthorityPersonById, this::adoptEntity, () -> exceptionFor(id)
             );
             if (!entity.getFaculties().isEmpty()) {
                 log.warn(PERSON_WITH_ID_PREFIX + "{} is managing faculties.", id);
@@ -161,16 +145,6 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
             log.error("Cannot undo authority person deletion {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE;
     }
 
     /**

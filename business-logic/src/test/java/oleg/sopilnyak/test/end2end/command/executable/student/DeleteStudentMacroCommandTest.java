@@ -157,7 +157,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(studentContext.<Long>getRedoParameter().value()).isSameAs(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isSameAs(profileId);
 
-        verify(command).self();
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCaptor.capture(), eq(inputId));
         assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
@@ -186,7 +185,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException().getMessage()).isEqualTo("Student with ID:" + personId + " is not exists.");
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
-        verify(command).self();
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCaptor.capture(), eq(inputId));
         assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
@@ -247,7 +245,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
-        verify(command).self();
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCaptor.capture(), eq(inputId));
         assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
@@ -281,7 +278,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context.getException()).isSameAs(exception);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
-        verify(command).self();
         verify(personCommand).acceptPreparedContext(command, inputId);
         verify(command).prepareContext(personCaptor.capture(), eq(inputId));
         assertThat(personCommand.getId()).isEqualTo(personCaptor.getValue().getId());
@@ -319,7 +315,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
 
-        verify(command).self();
         assertThat(studentContext.<Long>getRedoParameter().value()).isEqualTo(personId);
         assertThat(profileContext.<Long>getRedoParameter().value()).isEqualTo(profileId);
 
@@ -376,8 +371,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
-        verify(command).self();
-
         verifyStudentDoCommand(studentContext);
         verify(persistence).findStudentById(studentId);
         verify(persistence).deleteStudent(studentId);
@@ -423,8 +416,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         StudentProfilePayload savedProfile = profileContext.<StudentProfilePayload>getUndoParameter().value();
         assertThat(savedProfile.getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-
-        verify(command).self();
 
         verifyStudentDoCommand(studentContext);
         verify(persistence).findStudentById(studentId);
@@ -473,8 +464,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().isEmpty()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
 
-        verify(command).self();
-
         verifyStudentDoCommand(studentContext);
         verify(persistence).findStudentById(studentId);
         verify(persistence).deleteStudent(studentId);
@@ -520,8 +509,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
 
-        verify(command).self();
-
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(studentContext.<Student>getUndoParameter().value());
 
@@ -562,8 +549,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.getException()).isSameAs(exception);
         assertThat(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal()).isEqualTo(profile);
         assertThat(profileContext.getResult()).isEmpty();
-
-        verify(command).self();
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));
@@ -612,8 +597,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(profileContext.isDone()).isTrue();
         assertProfilesEquals(profileContext.<StudentProfilePayload>getUndoParameter().value().getOriginal(), profile, false);
         assertThat(profileContext.getResult().orElseThrow()).isSameAs(Boolean.TRUE);
-
-        verify(command).self();
 
         verifyStudentUndoCommand(studentContext);
         verify(persistence).save(any(StudentPayload.class));

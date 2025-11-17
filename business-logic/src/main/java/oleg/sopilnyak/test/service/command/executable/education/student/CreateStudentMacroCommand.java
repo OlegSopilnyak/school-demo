@@ -143,11 +143,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see StudentPayload
      */
     public <N> Context<N> createPersonContext(final StudentCommand<N> command, final Student person) {
-        final StudentPayload payload = person instanceof StudentPayload personPayload
-                ?
-                personPayload
-                :
-                payloadMapper.toPayload(person);
+        final StudentPayload payload = adoptEntity(person);
         // prepare entity for create person sequence
         payload.setId(null);
         // create command-context with parameter by default
@@ -347,6 +343,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
          * @see RootCommand#doCommand(Context)
          */
         @Override
+        @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             command.doCommand(context);
         }
@@ -426,6 +423,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
          * @see RootCommand#doCommand(Context)
          */
         @Override
+        @SuppressWarnings("unchecked")
         public void doCommand(Context context) {
             command.doCommand(context);
         }
