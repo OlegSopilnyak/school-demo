@@ -26,28 +26,34 @@ public interface CourseCommand<T> extends RootCommand<T> {
     String COURSE_WITH_ID_PREFIX = "Course with ID:";
 
     // command-ids of the command family
-    interface CommandId {
-        String FIND_BY_ID = "course.findById";
-        String FIND_REGISTERED = "course.findRegisteredFor";
-        String FIND_NOT_REGISTERED = "course.findWithoutStudents";
-        String CREATE_OR_UPDATE = "course.createOrUpdate";
-        String DELETE = "course.delete";
-        String REGISTER = "course.register";
-        String UN_REGISTER = "course.unRegister";
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String FIND_BY_ID = "course.findById";
+        public static final String FIND_REGISTERED = "course.findRegisteredFor";
+        public static final String FIND_NOT_REGISTERED = "course.findWithoutStudents";
+        public static final String CREATE_OR_UPDATE = "course.createOrUpdate";
+        public static final String DELETE = "course.delete";
+        public static final String REGISTER = "course.register";
+        public static final String UN_REGISTER = "course.unRegister";
     }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "courseCommandsFactory";
 
     // spring-bean component names of the commands family
-    interface Component {
-        String FIND_BY_ID = "courseFind";
-        String FIND_REGISTERED = "courseFindWithStudents";
-        String FIND_NOT_REGISTERED = "courseFindNoStudents";
-        String CREATE_OR_UPDATE = "courseUpdate";
-        String DELETE = "courseDelete";
-        String REGISTER = "courseRegisterStudent";
-        String UN_REGISTER = "courseUnRegisterStudent";
+    final class Component {
+        private Component() {
+        }
+
+        public static final String FIND_BY_ID = "courseFind";
+        public static final String FIND_REGISTERED = "courseFindWithStudents";
+        public static final String FIND_NOT_REGISTERED = "courseFindNoStudents";
+        public static final String CREATE_OR_UPDATE = "courseUpdate";
+        public static final String DELETE = "courseDelete";
+        public static final String REGISTER = "courseRegisterStudent";
+        public static final String UN_REGISTER = "courseUnRegisterStudent";
     }
 
     /**

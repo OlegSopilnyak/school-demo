@@ -27,30 +27,36 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
 
     // command-ids of the command family
-    interface CommandId {
-        String LOGIN = "organization.authority.person.login";
-        String LOGOUT = "organization.authority.person.logout";
-        String FIND_ALL = "organization.authority.person.findAll";
-        String FIND_BY_ID = "organization.authority.person.findById";
-        String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-        String CREATE_NEW = "organization.authority.person.create.macro";
-        String DELETE = "organization.authority.person.delete";
-        String DELETE_ALL = "organization.authority.person.delete.macro";
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String LOGIN = "organization.authority.person.login";
+        public static final String LOGOUT = "organization.authority.person.logout";
+        public static final String FIND_ALL = "organization.authority.person.findAll";
+        public static final String FIND_BY_ID = "organization.authority.person.findById";
+        public static final String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
+        public static final String CREATE_NEW = "organization.authority.person.create.macro";
+        public static final String DELETE = "organization.authority.person.delete";
+        public static final String DELETE_ALL = "organization.authority.person.delete.macro";
     }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "authorityCommandsFactory";
 
     // spring-bean component names of the commands family
-    interface Component {
-        String LOGIN = "authorityPersonLogin";
-        String LOGOUT = "authorityPersonLogout";
-        String FIND_ALL = "authorityPersonFindAll";
-        String FIND_BY_ID = "authorityPersonFind";
-        String CREATE_OR_UPDATE = "authorityPersonUpdate";
-        String CREATE_NEW = "authorityPersonMacroCreate";
-        String DELETE = "authorityPersonDelete";
-        String DELETE_ALL = "authorityPersonMacroDelete";
+    final class Component {
+        private Component() {
+        }
+
+        public static final String LOGIN = "authorityPersonLogin";
+        public static final String LOGOUT = "authorityPersonLogout";
+        public static final String FIND_ALL = "authorityPersonFindAll";
+        public static final String FIND_BY_ID = "authorityPersonFind";
+        public static final String CREATE_OR_UPDATE = "authorityPersonUpdate";
+        public static final String CREATE_NEW = "authorityPersonMacroCreate";
+        public static final String DELETE = "authorityPersonDelete";
+        public static final String DELETE_ALL = "authorityPersonMacroDelete";
     }
 
     /**

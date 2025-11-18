@@ -26,28 +26,34 @@ public interface StudentCommand<T> extends RootCommand<T> {
     String STUDENT_WITH_ID_PREFIX = "Student with ID:";
 
     // command-ids of the command family
-    interface CommandId {
-        String FIND_BY_ID = "student.findById";
-        String FIND_ENROLLED = "student.findEnrolledTo";
-        String FIND_NOT_ENROLLED = "student.findNotEnrolled";
-        String CREATE_OR_UPDATE = "student.createOrUpdate";
-        String CREATE_NEW = "student.create.macro";
-        String DELETE = "student.delete";
-        String DELETE_ALL = "student.delete.macro";
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String FIND_BY_ID = "student.findById";
+        public static final String FIND_ENROLLED = "student.findEnrolledTo";
+        public static final String FIND_NOT_ENROLLED = "student.findNotEnrolled";
+        public static final String CREATE_OR_UPDATE = "student.createOrUpdate";
+        public static final String CREATE_NEW = "student.create.macro";
+        public static final String DELETE = "student.delete";
+        public static final String DELETE_ALL = "student.delete.macro";
     }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "studentCommandsFactory";
 
     // spring-bean component names of the commands family
-    interface Component {
-        String FIND_BY_ID = "studentFind";
-        String FIND_ENROLLED = "studentFindEnrolled";
-        String FIND_NOT_ENROLLED = "studentFindNotEnrolled";
-        String CREATE_OR_UPDATE = "studentUpdate";
-        String CREATE_NEW = "studentMacroCreate";
-        String DELETE = "studentDelete";
-        String DELETE_ALL = "studentMacroDelete";
+    final class Component {
+        private Component() {
+        }
+
+        public static final String FIND_BY_ID = "studentFind";
+        public static final String FIND_ENROLLED = "studentFindEnrolled";
+        public static final String FIND_NOT_ENROLLED = "studentFindNotEnrolled";
+        public static final String CREATE_OR_UPDATE = "studentUpdate";
+        public static final String CREATE_NEW = "studentMacroCreate";
+        public static final String DELETE = "studentDelete";
+        public static final String DELETE_ALL = "studentMacroDelete";
     }
 
     /**
