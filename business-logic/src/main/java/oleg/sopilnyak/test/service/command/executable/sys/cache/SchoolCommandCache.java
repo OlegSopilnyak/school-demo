@@ -191,7 +191,8 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
     protected Optional<T> persistRedoEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
         // process the value of input parameter
         final Object parameter = inputParameter(context.getRedoParameter());
-        if (entityType.isAssignableFrom(parameter.getClass())) {
+        final Class<?> parameterType = parameter.getClass();
+        if (entityType.isAssignableFrom(parameterType)) {
             getLog().debug("Storing changed value of {} '{}'", entityName, parameter);
             final T entity = entityType.cast(parameter);
             return facadeSave.apply(entity);

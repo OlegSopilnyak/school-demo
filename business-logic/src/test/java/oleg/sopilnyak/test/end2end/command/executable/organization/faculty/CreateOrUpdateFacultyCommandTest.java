@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -27,6 +28,8 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -34,21 +37,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateFacultyCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     FacultyPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -58,10 +62,10 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(FacultyEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -69,7 +73,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
         Faculty entity = makeCleanFacultyNoDean(1);
         Input<Faculty> input = (Input<Faculty>) Input.of(entity);
@@ -86,7 +89,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateEntity() {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -111,7 +113,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotFound() {
         Long id = 401L;
         Faculty entity = spy(makeTestFaculty(id));
@@ -129,7 +130,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -147,14 +147,14 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         Faculty entity = spy(makeCleanFacultyNoDean(1));
         Context<Optional<Faculty>> context = command.createContext(Input.of(entity));
-
         doThrow(RuntimeException.class).when(persistence).save(entity);
-        command.doCommand(context);
 
+        Exception e = assertThrows(Exception.class, () -> command.doCommand(context));
+
+        assertThat(e).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
@@ -162,7 +162,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -180,7 +179,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<Faculty>> context = command.createContext(Input.of("input"));
 
@@ -204,7 +202,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<Faculty>> context = command.createContext();
 
@@ -216,7 +213,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateEntity() {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -235,7 +231,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateEntity() {
         Faculty entity = persist();
         Context<Optional<Faculty>> context = command.createContext();
@@ -253,7 +248,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<Faculty>> context = command.createContext();
 
@@ -264,7 +258,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -279,7 +272,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<Faculty>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -297,7 +289,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileNotFoundException {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -307,10 +298,11 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
             commandContext.setUndoParameter(Input.of(id));
         }
         context.setState(Context.State.DONE);
-
         doThrow(new RuntimeException()).when(persistence).deleteFaculty(id);
-        command.undoCommand(context);
 
+        Exception e = assertThrows(Exception.class, () -> command.undoCommand(context));
+
+        assertThat(e).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
@@ -318,7 +310,6 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
         Faculty entity = persist();
         Context<Optional<Faculty>> context = command.createContext();
@@ -327,10 +318,11 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
             commandContext.setUndoParameter(Input.of(entity));
         }
         context.setState(Context.State.DONE);
-
         doThrow(new RuntimeException()).when(persistence).save(entity);
-        command.undoCommand(context);
 
+        Exception e = assertThrows(Exception.class, () -> command.undoCommand(context));
+
+        assertThat(e).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
@@ -339,17 +331,20 @@ class CreateOrUpdateFacultyCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Faculty persist() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             Faculty source = makeCleanFacultyNoDean(0);
-            Faculty entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<Faculty> faculty = persistence.findFacultyById(id);
-            assertFacultyEquals(faculty.orElseThrow(), source, false);
-            assertThat(faculty).contains(entity);
-            return payloadMapper.toPayload(entity);
+            FacultyEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(FacultyEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

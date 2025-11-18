@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component(FacultyCommand.SPRING_CREATE_OR_UPDATE)
+@Component(FacultyCommand.Component.CREATE_OR_UPDATE)
 public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Optional<Faculty>>
         implements FacultyCommand<Optional<Faculty>> {
     private final transient FacultyPersistenceFacade persistence;
@@ -44,7 +46,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
      */
     @Override
     public String springName() {
-        return SPRING_CREATE_OR_UPDATE;
+        return Component.CREATE_OR_UPDATE;
     }
 
     /**
@@ -54,7 +56,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
      */
     @Override
     public String getId() {
-        return CREATE_OR_UPDATE;
+        return CommandId.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,
@@ -81,6 +83,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
      * @see FacultyNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<Faculty>> context) {
         final Input<Faculty> parameter = context.getRedoParameter();
         try {
@@ -91,7 +94,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
             if (!isCreateEntityMode) {
                 // previous version of faculty is storing to context for further rollback (undo)
                 final var entity = retrieveEntity(
-                        id, persistence::findFacultyById, payloadMapper::toPayload,
+                        id, persistence::findFacultyById, this::adoptEntity,
                         () -> new FacultyNotFoundException(FACULTY_WITH_ID_PREFIX + id + " is not exists.")
                 );
                 if (context instanceof CommandContext<?> commandContext) {
@@ -129,6 +132,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
      * @see FacultyNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {

@@ -71,6 +71,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldFindAllFaculties_EmptySet() {
+        String commandId = ORGANIZATION_FACULTY_FIND_ALL;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFindAll", FacultyCommand.class);
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
@@ -83,6 +87,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldFindAllFaculties_NotEmptySet() {
+        String commandId = ORGANIZATION_FACULTY_FIND_ALL;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFindAll", FacultyCommand.class);
         when(persistence.findAllFaculties()).thenReturn(Set.of(mockFaculty));
 
         Collection<Faculty> faculties = facade.findAllFaculties();
@@ -96,6 +104,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldNotFindFacultyById() {
+        String commandId = ORGANIZATION_FACULTY_FIND_BY_ID;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFind", FacultyCommand.class);
         Long id = 400L;
 
         Optional<Faculty> faculty = facade.findFacultyById(id);
@@ -109,6 +121,10 @@ class FacultyFacadeImplTest {
 
     @Test
     void shouldFindFacultyById() {
+        String commandId = ORGANIZATION_FACULTY_FIND_BY_ID;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFind", FacultyCommand.class);
         Long id = 410L;
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));

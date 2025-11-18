@@ -85,7 +85,8 @@ class CreateOrUpdateFacultyCommandTest {
     @Test
     void shouldDoCommand_UpdateEntity() {
         Long id = 400L;
-        when(entity.getId()).thenReturn(id);
+        doReturn(id).when(entity).getId();
+//        when(entity.getId()).thenReturn(id);
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
@@ -98,7 +99,7 @@ class CreateOrUpdateFacultyCommandTest {
         Optional<Faculty> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, times(2)).getId();
         verify(persistence).findFacultyById(id);
         verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);
@@ -168,7 +169,7 @@ class CreateOrUpdateFacultyCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, times(2)).getId();
         verify(persistence).findFacultyById(id);
         verify(payloadMapper).toPayload(entity);
         verify(persistence).save(entity);

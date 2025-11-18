@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -22,11 +23,31 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @AllArgsConstructor
-@Getter
-@Component("facultyFind")
-public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
+@Component(FacultyCommand.Component.FIND_BY_ID)
+public class FindFacultyCommand extends BasicCommand<Optional<Faculty>> implements FacultyCommand<Optional<Faculty>> {
     private final transient FacultyPersistenceFacade persistenceFacade;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return Component.FIND_BY_ID;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.FIND_BY_ID;
+    }
 
     /**
      * DO: To find faculty by id<BR/>
@@ -47,7 +68,7 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
             final Long id = parameter.value();
             log.debug("Trying to find faculty by ID:{}", id);
 
-            final Optional<Faculty> entity = persistenceFacade.findFacultyById(id);
+            final Optional<Faculty> entity = persistenceFacade.findFacultyById(id).map(this::adoptEntity);
 
             log.debug("Got faculty {} by ID:{}", entity, id);
             context.setResult(entity);
@@ -55,16 +76,6 @@ public class FindFacultyCommand implements FacultyCommand<Optional<Faculty>> {
             log.error("Cannot find the faculty by ID:{}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return FIND_BY_ID;
     }
 
     /**

@@ -26,16 +26,29 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
     String FACULTY_WITH_ID_PREFIX = "Faculty with ID:";
 
     // command-ids of the command family
-    String FIND_ALL = "organization.faculty.findAll";
-    String FIND_BY_ID = "organization.faculty.findById";
-    String CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
-    String DELETE = "organization.faculty.delete";
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String FIND_ALL = "organization.faculty.findAll";
+        public static final String FIND_BY_ID = "organization.faculty.findById";
+        public static final String CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
+        public static final String DELETE = "organization.faculty.delete";
+    }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "facultyCommandsFactory";
 
     // spring-bean names of the command family
-    String SPRING_CREATE_OR_UPDATE = "facultyUpdate";
+    final class Component {
+        private Component() {
+        }
+
+        public static final String FIND_ALL = "facultyFindAll";
+        public static final String FIND_BY_ID = "facultyFind";
+        public static final String CREATE_OR_UPDATE = "facultyUpdate";
+        public static final String DELETE = "facultyDelete";
+    }
 
     /**
      * The class of commands family, the command is belonged to
@@ -47,6 +60,20 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
     @SuppressWarnings("unchecked")
     default <F extends RootCommand> Class<F> commandFamily() {
         return (Class<F>) FacultyCommand.class;
+    }
+
+    /**
+     * To adopt faculty entity to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param entity entity from persistence layer
+     * @return instance from business-logic data model
+     * @see Faculty#getCourses()
+     * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(Faculty)
+     * @see RootCommand#getPayloadMapper()
+     */
+    default FacultyPayload adoptEntity(final Faculty entity) {
+        getLog().debug("In authority faculty with id={} manages {} courses", entity.getId(), entity.getCourses().size());
+        return entity instanceof FacultyPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
     }
 
     /**
@@ -70,18 +97,12 @@ public interface FacultyCommand<T> extends OrganizationCommand<T> {
                     (T) Optional.empty()
                     :
                     (T) optionalEntity.map(Faculty.class::cast).map(this::detach);
-        } else if (result instanceof FacultySet entitiesSet) {
+        } else if (result instanceof Set entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
         }
-    }
-
-    /**
-     * Set of Faculty entities
-     */
-    interface FacultySet extends Set<Faculty> {
     }
 
     /**

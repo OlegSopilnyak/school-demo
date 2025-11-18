@@ -1,8 +1,18 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.faculty;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
@@ -15,32 +25,29 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteFacultyCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     FacultyPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -50,10 +57,10 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(FacultyEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -61,7 +68,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityExists() {
         Faculty entity = persist();
         Long id = entity.getId();
@@ -79,7 +85,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_EntityNotExists() {
         long id = 415L;
         Context<Boolean> context = command.createContext(Input.of(id));
@@ -96,7 +101,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Boolean> context = command.createContext(Input.of("id"));
 
@@ -109,7 +113,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Boolean> context = command.createContext(null);
 
@@ -117,21 +120,22 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeDo(context);
         verify(persistence, never()).findFacultyById(anyLong());
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_DeleteExceptionThrown() throws ProfileNotFoundException {
         Faculty entity = persist();
         Long id = entity.getId();
         doThrow(new UnsupportedOperationException()).when(persistence).deleteFaculty(id);
         Context<Boolean> context = command.createContext(Input.of(id));
 
-        command.doCommand(context);
+        Exception e = assertThrows(Exception.class, () -> command.doCommand(context));
 
+        assertThat(e).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeDo(context);
@@ -141,7 +145,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsCorrect() {
         Faculty entity = makeCleanFacultyNoDean(0);
         Input<Faculty> input = (Input<Faculty>) Input.of(entity);
@@ -160,7 +163,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterWrongType() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -178,7 +180,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UndoParameterIsNull() {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -187,13 +188,13 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(Faculty.class));
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_ExceptionThrown() {
         Faculty entity = makeCleanFacultyNoDean(0);
         Input<Faculty> input = (Input<Faculty>) Input.of(entity);
@@ -202,10 +203,11 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
         if (context instanceof CommandContext<?> commandContext) {
             commandContext.setUndoParameter(input);
         }
-
         doThrow(new UnsupportedOperationException()).when(persistence).save(input.value());
-        command.undoCommand(context);
 
+        Exception e = assertThrows(Exception.class, () -> command.undoCommand(context));
+
+        assertThat(e).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(UnsupportedOperationException.class);
         verify(command).executeUndo(context);
@@ -214,17 +216,20 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Faculty persist() {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
+            EntityTransaction transaction = em.getTransaction();
             Faculty source = makeCleanFacultyNoDean(0);
-            Faculty entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<Faculty> person = persistence.findFacultyById(id);
-            assertFacultyEquals(person.orElseThrow(), source, false);
-            assertThat(person).contains(entity);
-            return payloadMapper.toPayload(entity);
+            FacultyEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(FacultyEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

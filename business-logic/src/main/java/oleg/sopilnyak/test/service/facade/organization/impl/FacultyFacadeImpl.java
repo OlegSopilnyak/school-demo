@@ -53,7 +53,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public Collection<Faculty> findAllFaculties() {
         log.debug("Find all faculties");
-        final Collection<Faculty> result = doSimpleCommand(FIND_ALL, null, factory);
+        final Collection<Faculty> result = doSimpleCommand(CommandId.FIND_ALL, null, factory);
         log.debug("Found all faculties {}", result);
         return result.stream().map(convert).toList();
     }
@@ -70,7 +70,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public Optional<Faculty> findFacultyById(Long id) {
         log.debug("Find faculty by ID:{}", id);
-        final Optional<Faculty> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
+        final Optional<Faculty> result = doSimpleCommand(CommandId.FIND_BY_ID, Input.of(id), factory);
         log.debug("Found faculty {}", result);
         return result.map(convert);
     }
@@ -87,7 +87,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
         log.debug("Create or Update faculty {}", instance);
-        final Optional<Faculty> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
+        final Optional<Faculty> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed faculty {}", result);
         return result.map(convert);
     }
@@ -102,7 +102,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     @Override
     public void deleteFacultyById(Long id) throws FacultyNotFoundException, FacultyIsNotEmptyException {
         log.debug("Delete faculty with ID:{}", id);
-        final String commandId = DELETE;
+        final String commandId = CommandId.DELETE;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(Input.of(id));
 
@@ -130,7 +130,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
 
     // private methods
     private static void wrongCommandExecution() {
-        log.error(WRONG_COMMAND_EXECUTION, DELETE);
-        throwFor(DELETE, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+        log.error(WRONG_COMMAND_EXECUTION, CommandId.DELETE);
+        throwFor(CommandId.DELETE, new NullPointerException(EXCEPTION_IS_NOT_STORED));
     }
 }
