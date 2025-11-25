@@ -1,12 +1,16 @@
 package oleg.sopilnyak.test.end2end.facade.organization;
 
-import oleg.sopilnyak.test.end2end.facade.PersistenceFacadeDelegate;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
@@ -21,31 +25,33 @@ import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupComman
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Rollback;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class})
+@ContextConfiguration(classes = {PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "organization.students.group.findAll";
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "organization.students.group.findById";
@@ -53,25 +59,36 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "organization.students.group.delete";
 
     @Autowired
-    PersistenceFacade database;
+    ConfigurableApplicationContext context;
+    @Autowired
+    ApplicationContext applicationContext;
 
+    @SpyBean
+    @Autowired
     StudentsGroupPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
+    @Autowired
+    BusinessMessagePayloadMapper payloadMapper;
+
     CommandsFactory<StudentsGroupCommand<?>> factory;
     StudentsGroupFacadeImpl facade;
-    BusinessMessagePayloadMapper payloadMapper;
 
     @BeforeEach
     void setUp() {
-        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
-        persistence = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistence));
         facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper));
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(CourseEntity.class);
+        deleteEntities(StudentEntity.class);
+        deleteEntities(StudentsGroupEntity.class);
+    }
+
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeEverythingIsValid() {
-        assertThat(database).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(factory).isNotNull();
@@ -80,7 +97,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllStudentsGroup() {
         StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
 
@@ -94,7 +110,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindAllStudentsGroup() {
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
@@ -107,7 +122,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindStudentsGroupById() {
         StudentsGroup group = persistStudentsGroup();
         Long id = group.getId();
@@ -122,7 +136,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotFindStudentsGroupById() {
         Long id = 510L;
 
@@ -136,7 +149,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotCreateOrUpdateStudentsGroup_Create() {
         Long id = 511L;
         StudentsGroup group = payloadMapper.toPayload(makeTestStudentsGroup(id));
@@ -156,7 +168,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateStudentsGroup_Create() {
         StudentsGroup group = payloadMapper.toPayload(makeCleanStudentsGroup(3));
 
@@ -171,7 +182,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateOrUpdateStudentsGroup_Update() {
         StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
         reset(payloadMapper);
@@ -185,12 +195,11 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(group));
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
-        verify(payloadMapper, times(3)).toPayload(any(StudentsGroupEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(group);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentsGroupById() {
         StudentsGroup group = persistStudentsGroup();
         Long id = group.getId();
@@ -202,11 +211,10 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence).deleteStudentsGroup(id);
-        assertThat(persistence.findStudentsGroupById(id)).isEmpty();
+        assertThat(findStudentsGroupById(id)).isNull();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroupById_GroupNotExists() {
         Long id = 503L;
         StudentsGroupNotFoundException thrown =
@@ -221,13 +229,12 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
         StudentsGroup studentsGroup = makeCleanStudentsGroup(3);
         if (studentsGroup instanceof FakeStudentsGroup fake) {
             fake.setStudents(List.of(makeClearStudent(1)));
         }
-        StudentsGroup group = database.save(studentsGroup).orElseThrow();
+        StudentsGroup group = persist(studentsGroup);
         Long id = group.getId();
 
         StudentGroupWithStudentsException thrown =
@@ -243,28 +250,56 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     // private methods
     private CommandsFactory<StudentsGroupCommand<?>> buildFactory(StudentsGroupPersistenceFacade persistence) {
-        return new StudentsGroupCommandsFactory(
-                Set.of(
-                        spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),
-                        spy(new DeleteStudentsGroupCommand(persistence, payloadMapper)),
-                        spy(new FindAllStudentsGroupsCommand(persistence, payloadMapper)),
-                        spy(new FindStudentsGroupCommand(persistence, payloadMapper))
-                )
-
+        Map<StudentsGroupCommand<?>, String> commands = Map.of(
+                spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),"studentsGroupUpdate",
+                spy(new DeleteStudentsGroupCommand(persistence, payloadMapper)),"studentsGroupDelete",
+                spy(new FindAllStudentsGroupsCommand(persistence, payloadMapper)),"studentsGroupFindAll",
+                spy(new FindStudentsGroupCommand(persistence, payloadMapper)),"studentsGroupFind"
         );
+        String acName = "applicationContext";
+        commands.entrySet().forEach(entry -> {
+            StudentsGroupCommand<?> command = entry.getKey();
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+            String beanName = entry.getValue();
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
+            if (beanFactory.containsSingleton(beanName)) {
+                beanFactory.destroySingleton(beanName);
+            }
+            StudentsGroupCommand<?> transactionalCommand = (StudentsGroupCommand<?>) transactCommand(command);
+            context.getBeanFactory().registerSingleton(beanName, transactionalCommand);
+        });
+        return new StudentsGroupCommandsFactory(commands.keySet());
+    }
+
+    private StudentsGroup findStudentsGroupById(Long id) {
+        return findEntity(StudentsGroupEntity.class, id, entity -> entity.getStudentEntitySet().size());
     }
 
     private StudentsGroup persistStudentsGroup() {
-        StudentsGroup group = makeCleanStudentsGroup(1);
-        if (group instanceof FakeStudentsGroup fake) {
-            fake.setLeader(null);
+        StudentsGroup source = makeCleanStudentsGroup(10);
+        if (source instanceof FakeStudentsGroup fake) {
             fake.setStudents(List.of());
+            fake.setLeader(null);
         }
-        StudentsGroup entity = database.save(group).orElse(null);
-        assertThat(entity).isNotNull();
-        Optional<StudentsGroup> dbStudentsGroup = database.findStudentsGroupById(entity.getId());
-        assertStudentsGroupEquals(dbStudentsGroup.orElseThrow(), group, false);
-        assertThat(dbStudentsGroup).contains(entity);
-        return entity;
+        return persist(source);
+    }
+
+    private StudentsGroup persist(StudentsGroup source) {
+        EntityManager em = entityManagerFactory.createEntityManager();
+        try {
+            EntityTransaction transaction = em.getTransaction();
+            StudentsGroupEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentsGroupEntity.class, entity.getId()));
+        } finally {
+            reset(payloadMapper);
+            em.close();
+        }
     }
 }

@@ -1,10 +1,16 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.group;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -12,7 +18,6 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.CreateO
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
@@ -22,12 +27,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,11 +43,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentsGroupCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentsGroupPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -54,10 +58,12 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(CourseEntity.class);
+        deleteEntities(StudentEntity.class);
+        deleteEntities(StudentsGroupEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
@@ -65,7 +71,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_CreateEntity() {
         StudentsGroup entity = makeCleanStudentsGroup(1);
         Input<StudentsGroup> input = (Input<StudentsGroup>) Input.of(entity);
@@ -82,7 +87,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_UpdateEntity() {
         StudentsGroup entity = persist();
         Long id = entity.getId();
@@ -107,7 +111,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_StudentsGroupNotFound() {
         Long id = 501L;
         StudentsGroup entity = makeTestStudentsGroup(id);
@@ -125,7 +128,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindUpdatedExceptionThrown() {
         StudentsGroup entity = persist();
         Long id = entity.getId();
@@ -143,15 +145,16 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         StudentsGroup entity = makeTestStudentsGroup(null);
         Input<StudentsGroup> input = (Input<StudentsGroup>) Input.of(entity);
         Context<Optional<StudentsGroup>> context = command.createContext(input);
 
         doThrow(RuntimeException.class).when(persistence).save(input.value());
-        command.doCommand(context);
 
+        var error = assertThrows(Exception.class, () -> command.doCommand(context));
+
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
@@ -159,7 +162,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_SaveUpdatedExceptionThrown() {
         StudentsGroup entity = persist();
         Long id = entity.getId();
@@ -180,7 +182,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongParameterType() {
         Context<Optional<StudentsGroup>> context = command.createContext(Input.of("input"));
 
@@ -192,7 +193,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_NullParameter() {
         Context<Optional<StudentsGroup>> context = command.createContext(null);
 
@@ -204,7 +204,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_WrongState() {
         Context<Optional<StudentsGroup>> context = command.createContext();
 
@@ -216,14 +215,13 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_CreateEntity() {
         Long id = 500L;
         StudentsGroup entity = makeTestStudentsGroup(null);
         if (entity instanceof FakeStudentsGroup fake) {
             fake.setStudents(List.of());
             fake.setLeader(null);
-            id = persistence.save(fake).orElseThrow().getId();
+            id = persist(fake).getId();
         }
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -240,7 +238,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_UpdateEntity() {
         StudentsGroup entity = persist();
         Context<Optional<StudentsGroup>> context = command.createContext();
@@ -258,7 +255,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongState() {
         Context<Optional<StudentsGroup>> context = command.createContext();
 
@@ -269,7 +265,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_EmptyParameter() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.DONE);
@@ -278,12 +273,12 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_WrongParameterType() {
         Context<Optional<StudentsGroup>> context = command.createContext();
         context.setState(Context.State.WORK);
@@ -301,7 +296,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_DeleteEntityExceptionThrown() throws ProfileNotFoundException {
         StudentsGroup entity = persist();
         Long id = entity.getId();
@@ -313,7 +307,9 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
         context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).deleteStudentsGroup(id);
 
-        command.undoCommand(context);
+        var error = assertThrows(Exception.class, () -> command.undoCommand(context));
+
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
@@ -322,7 +318,6 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUndoCommand_SaveEntityExceptionThrown() {
         StudentsGroup entity = persist();
         Context<Optional<StudentsGroup>> context = command.createContext();
@@ -333,8 +328,9 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
         context.setState(Context.State.DONE);
         doThrow(new RuntimeException()).when(persistence).save(entity);
 
-        command.undoCommand(context);
+        var error = assertThrows(Exception.class, () -> command.undoCommand(context));
 
+        assertThat(error).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeUndo(context);
@@ -343,17 +339,23 @@ class CreateOrUpdateStudentsGroupCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private StudentsGroup persist() {
+        return persist(makeCleanStudentsGroup(0));
+    }
+
+    private StudentsGroup persist(StudentsGroup source) {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
-            StudentsGroup source = makeCleanStudentsGroup(0);
-            StudentsGroup entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<StudentsGroup> group = persistence.findStudentsGroupById(id);
-            assertStudentsGroupEquals(group.orElseThrow(), source, false);
-            assertThat(group).contains(entity);
-            return payloadMapper.toPayload(entity);
+            EntityTransaction transaction = em.getTransaction();
+            StudentsGroupEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentsGroupEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

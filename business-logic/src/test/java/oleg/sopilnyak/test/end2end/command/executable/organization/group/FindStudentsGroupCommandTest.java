@@ -1,7 +1,13 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.group;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -17,12 +23,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,11 +38,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentsGroupCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     @SpyBean
     @Autowired
     StudentsGroupPersistenceFacade persistence;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @SpyBean
@@ -49,17 +53,18 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(CourseEntity.class);
+        deleteEntities(StudentEntity.class);
+        deleteEntities(StudentsGroupEntity.class);
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityExists() {
         StudentsGroup entity = persistClear();
         Long id = entity.getId();
@@ -71,12 +76,10 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(persistence).findStudentsGroupById(id);
-        assertThat(context.getResult().orElseThrow())
-                .contains(persistence.findStudentsGroupById(id).orElseThrow());
+        assertThat(context.getResult().orElseThrow()).contains(payloadMapper.toPayload(findStudentsGroupById(id)));
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDoCommand_EntityNotExists() {
         long id = 521L;
         Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
@@ -91,7 +94,6 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDoCommand_FindThrowsException() {
         long id = 522L;
         Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
@@ -106,7 +108,6 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUndoCommand_NothingToDo() {
         long id = 523L;
         Context<Optional<StudentsGroup>> context = command.createContext(Input.of(id));
@@ -123,22 +124,33 @@ class FindStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     //private methods
+    private StudentsGroup findStudentsGroupById(Long id) {
+        return findEntity(StudentsGroupEntity.class, id, entity -> entity.getStudentEntitySet().size());
+    }
+
     private StudentsGroup persistClear() {
+        StudentsGroup source = makeCleanStudentsGroup(10);
+        if (source instanceof FakeStudentsGroup fake) {
+            fake.setStudents(List.of());
+            fake.setLeader(null);
+        }
+        return persist(source);
+    }
+
+    private StudentsGroup persist(StudentsGroup source) {
+        EntityManager em = entityManagerFactory.createEntityManager();
         try {
-            StudentsGroup source = makeCleanStudentsGroup(10);
-            if (source instanceof FakeStudentsGroup fake) {
-                fake.setStudents(List.of());
-                fake.setLeader(null);
-            }
-            StudentsGroup entity = persistence.save(source).orElse(null);
-            assertThat(entity).isNotNull();
-            long id = entity.getId();
-            Optional<StudentsGroup> group = persistence.findStudentsGroupById(id);
-            assertStudentsGroupEquals(group.orElseThrow(), source, false);
-            assertThat(group).contains(entity);
-            return payloadMapper.toPayload(entity);
+            EntityTransaction transaction = em.getTransaction();
+            StudentsGroupEntity entity = entityMapper.toEntity(source);
+            transaction.begin();
+            em.persist(entity);
+            em.flush();
+            em.clear();
+            transaction.commit();
+            return payloadMapper.toPayload(em.find(StudentsGroupEntity.class, entity.getId()));
         } finally {
-            reset(persistence, payloadMapper);
+            reset(payloadMapper);
+            em.close();
         }
     }
 }

@@ -79,8 +79,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @BeforeEach
     void setUp() {
-//        payloadMapper = spy(Mappers.getMapper(BusinessMessagePayloadMapper.class));
-//        persistence = spy(new PersistenceFacadeDelegate(database));
         factory = spy(buildFactory(persistence));
         facade = spy(new FacultyFacadeImpl(factory, payloadMapper));
     }
@@ -93,7 +91,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldBeEverythingIsValid() {
-//        assertThat(database).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(factory).isNotNull();
@@ -181,7 +178,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(facultySource));
         verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
-        verify(payloadMapper, times(3)).toPayload(any(FacultyEntity.class));
+        verify(payloadMapper, times(2)).toPayload(any(FacultyEntity.class));
         verify(persistence).save(facultySource);
     }
 

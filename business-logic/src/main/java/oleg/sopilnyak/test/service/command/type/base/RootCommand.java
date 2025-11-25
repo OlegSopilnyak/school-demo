@@ -199,6 +199,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
             getLog().debug("Detaching result data of command: '{}'", commandId);
             final T finalResult = detachedResult(result.get());
             getLog().debug("Detached result data of command: '{}' is {}", commandId, finalResult);
+            context.setState(Context.State.WORK);
             context.setResult(finalResult);
         }
     }
