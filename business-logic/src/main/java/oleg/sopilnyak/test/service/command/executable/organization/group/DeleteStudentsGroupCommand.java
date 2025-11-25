@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
@@ -15,6 +16,8 @@ import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupComman
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -30,11 +33,32 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component("studentsGroupDelete")
+@Component(StudentsGroupCommand.Component.DELETE)
 public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup, Boolean>
         implements StudentsGroupCommand<Boolean> {
     private final transient StudentsGroupPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return StudentsGroupCommand.Component.DELETE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.DELETE;
+    }
 
     public DeleteStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                       final BusinessMessagePayloadMapper payloadMapper) {
@@ -59,6 +83,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      * @see StudentsGroupNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Boolean> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {
@@ -69,8 +94,9 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
                 log.warn("Invalid id {}", id);
                 throw exceptionFor(id);
             }
-            final StudentsGroup entity = retrieveEntity(id, persistence::findStudentsGroupById,
-                    payloadMapper::toPayload, () -> exceptionFor(id));
+            final StudentsGroup entity = retrieveEntity(
+                    id, persistence::findStudentsGroupById, this::adoptEntity, () -> exceptionFor(id)
+            );
             if (!entity.getStudents().isEmpty()) {
                 log.warn(GROUP_WITH_ID_PREFIX + "{} has students.", id);
                 throw new StudentGroupWithStudentsException(GROUP_WITH_ID_PREFIX + id + " has students.");
@@ -100,6 +126,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      * @see StudentsGroupPersistenceFacade#save(StudentsGroup)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<?> parameter = context.getUndoParameter();
         try {
@@ -118,39 +145,6 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
             log.error("Cannot undo students group deletion {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return DELETE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #afterExecuteDo(Context)
-     */
-    @Override
-    public Boolean detachedResult(final Boolean result) {
-        return result;
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

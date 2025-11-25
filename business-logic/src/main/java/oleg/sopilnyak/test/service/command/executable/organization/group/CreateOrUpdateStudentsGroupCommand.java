@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
-import static java.util.Objects.isNull;
-
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -15,8 +14,9 @@ import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupComman
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serial;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
@@ -32,13 +32,32 @@ import java.util.function.UnaryOperator;
  * @see SchoolCommandCache
  */
 @Slf4j
-@Component("studentsGroupUpdate")
+@Component(StudentsGroupCommand.Component.CREATE_OR_UPDATE)
 public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<StudentsGroup, Optional<StudentsGroup>>
         implements StudentsGroupCommand<Optional<StudentsGroup>> {
-    @Serial
-    private static final long serialVersionUID = 2559618909624986644L;
     private final transient StudentsGroupPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return StudentsGroupCommand.Component.CREATE_OR_UPDATE;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.CREATE_OR_UPDATE;
+    }
 
     public CreateOrUpdateStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,
                                               final BusinessMessagePayloadMapper payloadMapper) {
@@ -64,6 +83,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      * @see StudentsGroupNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeDo(Context<Optional<StudentsGroup>> context) {
         final Input<StudentsGroup> parameter = context.getRedoParameter();
         try {
@@ -74,7 +94,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
             if (!isCreateEntityMode) {
                 // cached students group is storing to context for further rollback (undo)
                 final StudentsGroup entity = retrieveEntity(
-                        id, persistence::findStudentsGroupById, payloadMapper::toPayload,
+                        id, persistence::findStudentsGroupById, this::adoptEntity,
                         () -> new StudentsGroupNotFoundException(GROUP_WITH_ID_PREFIX + id + " is not exists.")
                 );
 
@@ -113,6 +133,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      * @see StudentsGroupNotFoundException
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void executeUndo(Context<?> context) {
         final Input<StudentsGroup> parameter = context.getUndoParameter();
         try {
@@ -126,39 +147,6 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
             log.error("Cannot undo students group change {}", parameter, e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_OR_UPDATE;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #afterExecuteDo(Context)
-     */
-    @Override
-    public Optional<StudentsGroup> detachedResult(Optional<StudentsGroup> result) {
-        return isNull(result) || result.isEmpty() ? Optional.empty() : Optional.of(payloadMapper.toPayload(result.get()));
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**

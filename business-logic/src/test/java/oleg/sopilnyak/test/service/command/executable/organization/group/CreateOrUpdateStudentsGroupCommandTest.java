@@ -1,21 +1,24 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -38,9 +41,18 @@ class CreateOrUpdateStudentsGroupCommandTest {
     @Spy
     @InjectMocks
     CreateOrUpdateStudentsGroupCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentsGroupUpdate", StudentsGroupCommand.class);
+    }
 
     @Test
     void shouldBeValidCommand() {
+        reset(applicationContext);
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
@@ -80,7 +92,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(entity);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, times(2)).getId();
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);
@@ -150,7 +162,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, times(2)).getId();
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper).toPayload(entity);
         verify(persistence).save(entity);
@@ -180,6 +192,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
 
     @Test
     void shouldNotDoCommand_WrongState() {
+        reset(applicationContext);
         Context<Optional<StudentsGroup>> context = command.createContext();
 
         command.doCommand(context);
@@ -224,6 +237,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
 
     @Test
     void shouldNotUndoCommand_WrongState() {
+        reset(applicationContext);
         Context<Optional<StudentsGroup>> context = command.createContext();
 
         command.undoCommand(context);
@@ -241,7 +255,8 @@ class CreateOrUpdateStudentsGroupCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
     }
 

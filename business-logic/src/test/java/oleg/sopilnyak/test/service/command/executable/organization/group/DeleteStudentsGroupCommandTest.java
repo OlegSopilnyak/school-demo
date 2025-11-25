@@ -8,14 +8,17 @@ import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -36,9 +39,18 @@ class DeleteStudentsGroupCommandTest {
     @Spy
     @InjectMocks
     DeleteStudentsGroupCommand command;
+    @Mock
+    ApplicationContext applicationContext;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
+        doReturn(command).when(applicationContext).getBean("studentsGroupDelete", StudentsGroupCommand.class);
+    }
 
     @Test
     void shouldBeValidCommand() {
+        reset(applicationContext);
         assertThat(command).isNotNull();
         assertThat(persistence).isEqualTo(ReflectionTestUtils.getField(command, "persistence"));
         assertThat(payloadMapper).isEqualTo(ReflectionTestUtils.getField(command, "payloadMapper"));
@@ -98,7 +110,8 @@ class DeleteStudentsGroupCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeDo(context);
         verify(persistence, never()).findStudentsGroupById(anyLong());
     }
@@ -167,7 +180,8 @@ class DeleteStudentsGroupCommandTest {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
-        assertThat(context.getException().getMessage()).startsWith("Wrong input parameter value null");
+        assertThat(context.getException().getMessage())
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

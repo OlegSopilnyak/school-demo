@@ -1,10 +1,10 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
@@ -12,6 +12,8 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 /**
  * Type for school-organization students groups management command
@@ -21,27 +23,59 @@ import java.util.stream.Collectors;
  * @see oleg.sopilnyak.test.school.common.model.StudentsGroup
  */
 public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
+    // template of error message
     String GROUP_WITH_ID_PREFIX = "Students Group with ID:";
-    /**
-     * The name of commands-factory SpringBean
-     */
+
+    // command-ids of the command family
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String FIND_ALL = "organization.students.group.findAll";
+        public static final String FIND_BY_ID = "organization.students.group.findById";
+        public static final String CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
+        public static final String DELETE = "organization.students.group.delete";
+    }
+
+    // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "groupCommandsFactory";
+
+    // spring-bean names of the command family
+    final class Component {
+        private Component() {
+        }
+
+        public static final String FIND_ALL = "studentsGroupFindAll";
+        public static final String FIND_BY_ID = "studentsGroupFind";
+        public static final String CREATE_OR_UPDATE = "studentsGroupUpdate";
+        public static final String DELETE = "studentsGroupDelete";
+    }
+
     /**
-     * Command-ID: for find all students groups
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
      */
-    String FIND_ALL = "organization.students.group.findAll";
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) StudentsGroupCommand.class;
+    }
+
     /**
-     * Command-ID: for find by ID students group
+     * To adopt faculty entity to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param entity entity from persistence layer
+     * @return instance from business-logic data model
+     * @see StudentsGroup#getStudents()
+     * @see oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper#toPayload(StudentsGroup)
+     * @see RootCommand#getPayloadMapper()
      */
-    String FIND_BY_ID = "organization.students.group.findById";
-    /**
-     * Command-ID: for create or update students group entity
-     */
-    String CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
-    /**
-     * Command-ID: for delete students group entity
-     */
-    String DELETE = "organization.students.group.delete";
+    default StudentsGroupPayload adoptEntity(final StudentsGroup entity) {
+        getLog().debug("In students group with id={} exist {} students", entity.getId(), entity.getStudents().size());
+        return entity instanceof StudentsGroupPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
+    }
 
     /**
      * To detach command result data from persistence layer
@@ -59,19 +93,17 @@ public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
         } else if (result instanceof StudentsGroup entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<StudentsGroup>) optionalEntity);
-        } else if (result instanceof StudentsGroupSet entitiesSet) {
+            // To detach Faculty optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(StudentsGroup.class::cast).map(this::detach);
+        } else if (result instanceof Set entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
         }
-    }
-
-    /**
-     * Set of StudentsGroup entities
-     */
-    interface StudentsGroupSet extends Set<StudentsGroup> {
     }
 
     /**
@@ -84,23 +116,6 @@ public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
     private StudentsGroup detach(StudentsGroup entity) {
         getLog().info("Entity to detach:'{}'", entity);
         return entity instanceof StudentsGroupPayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach StudentsGroup optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<StudentsGroup> detach(Optional<StudentsGroup> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
     /**

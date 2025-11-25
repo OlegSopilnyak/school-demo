@@ -1,7 +1,8 @@
 package oleg.sopilnyak.test.service.facade.organization;
 
-import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
@@ -17,12 +18,16 @@ import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupComman
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.ReflectionUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,18 +47,31 @@ class StudentsGroupFacadeImplTest {
     StudentsGroupPersistenceFacade persistenceFacade = mock(StudentsGroupPersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     @Spy
-    CommandsFactory<StudentsGroupCommand<?>> factory = buildFactory();
+    CommandsFactory<StudentsGroupCommand<?>> factory;
     @Spy
     @InjectMocks
     StudentsGroupFacadeImpl facade;
+    @Mock
+    ApplicationContext applicationContext;
 
     @Mock
     StudentsGroup mockGroup;
     @Mock
     StudentsGroupPayload mockGroupPayload;
 
+    @BeforeEach
+    void setUp() {
+        factory = spy(buildFactory());
+        facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper));
+        ActionContext.setup("test-facade", "test-action");
+    }
+
     @Test
     void shouldFindAllStudentsGroup() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_ALL;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupFindAll", StudentsGroupCommand.class);
         when(persistenceFacade.findAllStudentsGroups()).thenReturn(Set.of(mockGroup));
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
@@ -67,6 +85,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldNotFindAllStudentsGroup() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_ALL;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupFindAll", StudentsGroupCommand.class);
 
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
@@ -79,6 +101,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldFindStudentsGroupById() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupFind", StudentsGroupCommand.class);
         Long id = 500L;
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
@@ -94,6 +120,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldNotFindStudentsGroupById() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupFind", StudentsGroupCommand.class);
         Long id = 510L;
 
         Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
@@ -107,6 +137,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldCreateOrUpdateStudentsGroup() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupUpdate", StudentsGroupCommand.class);
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(payloadMapper.toPayload(mockGroupPayload)).thenReturn(mockGroupPayload);
         when(persistenceFacade.save(mockGroupPayload)).thenReturn(Optional.of(mockGroupPayload));
@@ -122,6 +156,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldDeleteStudentsGroupById() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupDelete", StudentsGroupCommand.class);
         Long id = 502L;
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(persistenceFacade.findStudentsGroupById(id)).thenReturn(Optional.of(mockGroup));
@@ -137,6 +175,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotExists() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupDelete", StudentsGroupCommand.class);
         Long id = 503L;
         StudentsGroupNotFoundException thrown =
                 assertThrows(StudentsGroupNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
@@ -151,6 +193,10 @@ class StudentsGroupFacadeImplTest {
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
+        StudentsGroupCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentsGroupDelete", StudentsGroupCommand.class);
         Long id = 504L;
         when(payloadMapper.toPayload(mockGroup)).thenReturn(mockGroupPayload);
         when(mockGroupPayload.getStudents()).thenReturn(List.of(mock(Student.class)));
@@ -168,14 +214,18 @@ class StudentsGroupFacadeImplTest {
     }
 
     private CommandsFactory<StudentsGroupCommand<?>> buildFactory() {
-        return new StudentsGroupCommandsFactory(
-                Set.of(
-                        spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade, payloadMapper)),
-                        spy(new DeleteStudentsGroupCommand(persistenceFacade, payloadMapper)),
-                        spy(new FindAllStudentsGroupsCommand(persistenceFacade, payloadMapper)),
-                        spy(new FindStudentsGroupCommand(persistenceFacade, payloadMapper))
-                )
-
+        List<StudentsGroupCommand<?>> commands = List.of(
+                spy(new CreateOrUpdateStudentsGroupCommand(persistenceFacade, payloadMapper)),
+                spy(new DeleteStudentsGroupCommand(persistenceFacade, payloadMapper)),
+                spy(new FindAllStudentsGroupsCommand(persistenceFacade, payloadMapper)),
+                spy(new FindStudentsGroupCommand(persistenceFacade, payloadMapper))
         );
+        String acName = "applicationContext";
+        commands.forEach(command -> {
+            if (ReflectionUtils.findField(command.getClass(), acName) != null) {
+                ReflectionTestUtils.setField(command, acName, applicationContext);
+            }
+        });
+        return new StudentsGroupCommandsFactory(commands);
     }
 }

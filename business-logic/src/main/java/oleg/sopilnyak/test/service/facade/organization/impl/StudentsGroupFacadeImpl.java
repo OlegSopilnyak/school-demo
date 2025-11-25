@@ -51,7 +51,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Collection<StudentsGroup> findAllStudentsGroups() {
         log.debug("Find all students groups");
-        final Collection<StudentsGroup> result = doSimpleCommand(FIND_ALL, null, factory);
+        final Collection<StudentsGroup> result = doSimpleCommand(CommandId.FIND_ALL, null, factory);
         log.debug("Found all students groups {}", result);
         return result.stream().map(convert).toList();
     }
@@ -68,7 +68,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
         log.debug("Find students group by ID:{}", id);
-        final Optional<StudentsGroup> result = doSimpleCommand(FIND_BY_ID, Input.of(id), factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(CommandId.FIND_BY_ID, Input.of(id), factory);
         log.debug("Found students group {}", result);
         return result.map(convert);
     }
@@ -85,7 +85,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
         log.debug("Create or Update students group {}", instance);
-        final Optional<StudentsGroup> result = doSimpleCommand(CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
         log.debug("Changed students group {}", result);
         return result.map(convert);
     }
@@ -100,7 +100,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotFoundException, StudentGroupWithStudentsException {
         log.debug("Delete students group with ID:{}", id);
-        final String commandId = DELETE;
+        final String commandId = CommandId.DELETE;
         final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
         final Context<Boolean> context = command.createContext(Input.of(id));
 
@@ -128,7 +128,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
 
     // private methods
     private static void wrongCommandExecution() {
-        log.error(WRONG_COMMAND_EXECUTION, DELETE);
-        throwFor(DELETE, new NullPointerException(EXCEPTION_IS_NOT_STORED));
+        log.error(WRONG_COMMAND_EXECUTION, CommandId.DELETE);
+        throwFor(CommandId.DELETE, new NullPointerException(EXCEPTION_IS_NOT_STORED));
     }
 }

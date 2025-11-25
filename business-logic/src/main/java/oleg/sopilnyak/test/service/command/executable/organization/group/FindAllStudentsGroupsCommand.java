@@ -1,17 +1,21 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Command-Implementation: command to get all students groups of the school
@@ -22,10 +26,32 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-@Component("studentsGroupFindAll")
-public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<StudentsGroup>> {
+@Component(StudentsGroupCommand.Component.FIND_ALL)
+public class FindAllStudentsGroupsCommand extends BasicCommand<Set<StudentsGroup>>
+        implements StudentsGroupCommand<Set<StudentsGroup>> {
     private final transient StudentsGroupPersistenceFacade persistence;
+    @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    /**
+     * The name of command bean in spring beans factory
+     *
+     * @return spring name of the command
+     */
+    @Override
+    public String springName() {
+        return StudentsGroupCommand.Component.FIND_ALL;
+    }
+
+    /**
+     * To get unique command-id for the command
+     *
+     * @return value of command-id
+     */
+    @Override
+    public String getId() {
+        return CommandId.FIND_ALL;
+    }
 
     /**
      * DO: To get all students groups of the school<BR/>
@@ -37,11 +63,13 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
      * @see StudentsGroupPersistenceFacade#findAllStudentsGroups()
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void executeDo(Context<Set<StudentsGroup>> context) {
         try {
             log.debug("Trying to get all students groups");
 
-            final Set<StudentsGroup> groups = persistence.findAllStudentsGroups();
+            final Set<StudentsGroup> groups = persistence.findAllStudentsGroups().stream()
+                    .map(this::adoptEntity).collect(Collectors.toSet());
 
             log.debug("Got students groups {}", groups);
             context.setResult(groups);
@@ -49,39 +77,6 @@ public class FindAllStudentsGroupsCommand implements StudentsGroupCommand<Set<St
             log.error("Cannot find any students groups", e);
             context.failed(e);
         }
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return FIND_ALL;
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see #afterExecuteDo(Context)
-     */
-    @Override
-    public Set<StudentsGroup> detachedResult(Set<StudentsGroup> result) {
-        return result.stream().map(payloadMapper::toPayload).collect(Collectors.toSet());
-    }
-
-    /**
-     * To get mapper for business-message-payload
-     *
-     * @return mapper instance
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    public BusinessMessagePayloadMapper getPayloadMapper() {
-        return payloadMapper;
     }
 
     /**
