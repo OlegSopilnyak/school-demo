@@ -139,10 +139,15 @@ public class CommandContext<T> implements Context<T> {
      */
     @Override
     public void setResult(final T result) {
+        // set result after work or after detach result
         if (isWorking()) {
+            // after work result before done
             this.resultData = result;
             // null result is going from command undo
             setState(isNull(result) ? WORK : DONE);
+        } else if (isDone()) {
+            // after detach result after done
+            this.resultData = result;
         }
     }
 
