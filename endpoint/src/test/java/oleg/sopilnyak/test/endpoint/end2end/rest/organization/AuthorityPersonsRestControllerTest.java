@@ -425,9 +425,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     @Test
     void shouldDeleteAuthorityPerson() throws Exception {
         AuthorityPerson person = create(makeCleanAuthorityPerson(202));
-        if (person instanceof AuthorityPersonEntity entity) {
-            entity.setFaculties(List.of());
-            merge(entity);
+        if (person instanceof AuthorityPersonEntity) {
+            deleteEntities(FacultyEntity.class);
         }
         Long id = person.getId();
         assertThat(findAuthorityPersonById(id)).isNotNull();

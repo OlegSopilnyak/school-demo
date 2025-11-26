@@ -29,7 +29,7 @@ public class StudentsGroupEntity implements StudentsGroup {
     private String name;
     private int leaderIndex;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "group")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "group")
     private Set<StudentEntity> studentEntitySet;
 
     /**

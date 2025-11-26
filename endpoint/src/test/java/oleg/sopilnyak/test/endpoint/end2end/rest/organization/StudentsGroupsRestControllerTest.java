@@ -57,7 +57,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/student-groups";
 
-
     @Autowired
     EntityManagerFactory emf;
     @Autowired
@@ -251,9 +250,8 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     @Test
     void shouldDeleteStudentsGroup() throws Exception {
         StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
-        if (studentsGroup instanceof StudentsGroupEntity sge) {
-            sge.setStudents(List.of());
-            merge(sge);
+        if (studentsGroup instanceof StudentsGroupEntity) {
+            deleteEntities(StudentEntity.class);
         }
         Long id = studentsGroup.getId();
         String requestPath = ROOT + "/" + id;
@@ -354,18 +352,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
-        }
-    }
-
-    private void merge(StudentsGroup instance) {
-        StudentsGroupEntity entity = instance instanceof StudentsGroupEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            em.merge(entity);
-            em.getTransaction().commit();
         } finally {
             em.close();
         }
