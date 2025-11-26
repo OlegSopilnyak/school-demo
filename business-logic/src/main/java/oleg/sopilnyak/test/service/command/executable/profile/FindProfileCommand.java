@@ -23,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @see ProfilePersistenceFacade
  */
 @Getter
-public abstract class FindProfileCommand<E extends PersonProfile> extends BasicCommand<Optional<E>> implements ProfileCommand<Optional<E>> {
+public abstract class FindProfileCommand<E extends PersonProfile> extends BasicCommand<Optional<E>>
+        implements ProfileCommand<Optional<E>> {
     protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;
 
@@ -58,7 +59,7 @@ public abstract class FindProfileCommand<E extends PersonProfile> extends BasicC
             getLog().debug("Trying to find profile by ID:{}", parameter);
             final Long id = parameter.value();
 
-            final Optional<E> profile = functionFindById().apply(id);
+            final Optional<E> profile = functionFindById().apply(id).map(this::adoptEntity);
 
             getLog().debug("Got profile {} by ID:{}", profile, id);
             context.setResult(profile);

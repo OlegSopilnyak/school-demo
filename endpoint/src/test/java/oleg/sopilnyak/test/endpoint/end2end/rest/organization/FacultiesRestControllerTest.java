@@ -1,14 +1,9 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
@@ -16,26 +11,24 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.organization.FacultiesRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-
-import java.util.List;
-import java.util.Optional;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -45,20 +38,28 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class FacultiesRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/faculties";
 
     @Autowired
-    PersistenceFacade database;
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     CommandsFactory<FacultyCommand<?>> factory;
     @SpyBean
@@ -82,12 +83,16 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(CourseEntity.class);
+        deleteEntities(FacultyEntity.class);
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
-        assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
@@ -99,7 +104,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllFaculties() throws Exception {
         int personsAmount = 10;
         List<Faculty> faculties = makeCleanFaculties(personsAmount).stream().map(this::getPersistent).toList();
@@ -125,7 +129,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindFacultyById() throws Exception {
         Faculty faculty = getPersistent(makeCleanFaculty(0));
         Long id = faculty.getId();
@@ -148,7 +151,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateFaculty() throws Exception {
         Faculty faculty = makeCleanFaculty(1);
         String jsonContent = MAPPER.writeValueAsString(faculty);
@@ -172,7 +174,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateFaculty() throws Exception {
         Faculty faculty = getPersistent(makeCleanFaculty(2));
         String jsonContent = MAPPER.writeValueAsString(faculty);
@@ -195,7 +196,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateFaculty_WrongId_Null() throws Exception {
         Faculty faculty = makeTestFaculty(null);
         String jsonContent = MAPPER.writeValueAsString(faculty);
@@ -220,7 +220,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateFaculty_WrongId_Negative() throws Exception {
         Long id = -403L;
         Faculty faculty = makeTestFaculty(id);
@@ -246,12 +245,11 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteFaculty() throws Exception {
         Faculty faculty = getPersistent(makeCleanFaculty(2));
         if (faculty instanceof FacultyEntity fe) {
             fe.setCourses(List.of());
-            database.save(fe);
+            merge(fe);
         }
         Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
@@ -263,11 +261,10 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                 .andDo(print());
 
         verify(controller).delete(id.toString());
-        assertThat(database.findFacultyById(id)).isEmpty();
+        assertThat(findFacultyById(id)).isNull();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteFaculty_WrongId_Null() throws Exception {
         String requestPath = ROOT + "/" + null;
 
@@ -288,7 +285,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteFaculty_WrongId_Negative() throws Exception {
         long id = -411L;
         String requestPath = ROOT + "/" + id;
@@ -310,7 +306,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteFaculty_NotEmptyFaculty() throws Exception {
         Faculty source = makeCleanFaculty(2);
         if (source instanceof FakeFaculty fake) {
@@ -345,9 +340,32 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(FacultiesRestController.class);
     }
 
+    private Faculty findFacultyById(Long id) {
+        return findEntity(FacultyEntity.class, id, e -> e.getCourseEntitySet().size());
+    }
+
     private Faculty getPersistent(Faculty newInstance) {
-        Optional<Faculty> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+        FacultyEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private void merge(Faculty instance) {
+        FacultyEntity entity = instance instanceof FacultyEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 }

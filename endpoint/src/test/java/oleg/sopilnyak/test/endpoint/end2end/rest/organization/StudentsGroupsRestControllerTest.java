@@ -1,14 +1,9 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
@@ -16,27 +11,24 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.organization.StudentsGroupsRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
+import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.IntStream;
 import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -46,20 +38,30 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
-@Rollback
 class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/student-groups";
 
+
     @Autowired
-    PersistenceFacade database;
+    EntityManagerFactory emf;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     CommandsFactory<StudentsGroupCommand<?>> factory;
     @SpyBean
@@ -83,12 +85,16 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        deleteEntities(StudentEntity.class);
+        deleteEntities(StudentsGroupEntity.class);
+    }
+
     @Test
-    @Transactional
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(payloadMapper).isNotNull();
-        assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
@@ -100,7 +106,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindAllStudentsGroups() throws Exception {
         int groupsAmount = 5;
         List<StudentsGroup> studentsGroups = IntStream.range(0, groupsAmount)
@@ -126,7 +131,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldFindStudentsGroupById() throws Exception {
         StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(0));
         Long id = studentsGroup.getId();
@@ -150,7 +154,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateStudentsGroup() throws Exception {
         StudentsGroup studentsGroup = makeCleanStudentsGroup(1);
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
@@ -174,7 +177,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateStudentsGroup() throws Exception {
         StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
@@ -198,7 +200,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateStudentsGroup_WrongId_Null() throws Exception {
         StudentsGroup studentsGroup = makeTestStudentsGroup(null);
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
@@ -223,7 +224,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotUpdateStudentsGroup_WrongId_Negative() throws Exception {
         Long id = -502L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
@@ -249,12 +249,11 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentsGroup() throws Exception {
         StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
         if (studentsGroup instanceof StudentsGroupEntity sge) {
             sge.setStudents(List.of());
-            database.save(sge);
+            merge(sge);
         }
         Long id = studentsGroup.getId();
         String requestPath = ROOT + "/" + id;
@@ -266,12 +265,11 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
                 .andDo(print());
 
         verify(controller).delete(id.toString());
-        assertThat(database.findStudentsGroupById(id)).isEmpty();
+        assertThat(findStudentsGroupById(id)).isNull();
         checkControllerAspect();
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroup_WrongId_Null() throws Exception {
         String requestPath = ROOT + "/" + null;
 
@@ -293,7 +291,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroup_WrongId_Negative() throws Exception {
         long id = -511L;
         String requestPath = ROOT + "/" + id;
@@ -315,7 +312,6 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldNotDeleteStudentsGroup_GroupHasStudents() throws Exception {
         StudentsGroup studentsGroup = getPersistent(makeCleanStudentsGroup(2));
         Long id = studentsGroup.getId();
@@ -346,9 +342,32 @@ class StudentsGroupsRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
     }
 
+    private StudentsGroup findStudentsGroupById(Long id) {
+        return findEntity(StudentsGroupEntity.class, id, e -> e.getStudentEntitySet().size());
+    }
+
     private StudentsGroup getPersistent(StudentsGroup newInstance) {
-        Optional<StudentsGroup> saved = database.save(newInstance);
-        assertThat(saved).isNotEmpty();
-        return saved.get();
+        StudentsGroupEntity entity = entityMapper.toEntity(newInstance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        } finally {
+            em.close();
+        }
+    }
+
+    private void merge(StudentsGroup instance) {
+        StudentsGroupEntity entity = instance instanceof StudentsGroupEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
     }
 }

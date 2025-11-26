@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -7,6 +8,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import java.util.Optional;
@@ -50,6 +52,34 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
     @SuppressWarnings("unchecked")
     default <F extends RootCommand> Class<F> commandFamily() {
         return (Class<F>) PrincipalProfileCommand.class;
+    }
+
+    /**
+     * To adopt principal person profile to business-logic data model from persistence data model refreshing entity's relation
+     *
+     * @param entity entity from persistence layer
+     * @param <E>    type of person profile to adopt
+     * @return instance from business-logic data model
+     * @see PrincipalProfile#getExtraKeys()
+     * @see BusinessMessagePayloadMapper#toPayload(PrincipalProfile)
+     * @see RootCommand#getPayloadMapper()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <E extends PersonProfile> E adoptEntity(final E entity) {
+        if (entity instanceof PrincipalProfile profile) {
+            final String [] extraKeys = profile.getExtraKeys();
+            final int extraLength = isNull(extraKeys) ? 0 : extraKeys.length;
+            getLog().debug("In principal person profile entity with id={} has {} extra keys", entity.getId(), extraLength);
+            final var payload = profile instanceof PrincipalProfilePayload entityPayload
+                    ?
+                    entityPayload
+                    :
+                    getPayloadMapper().toPayload(profile);
+            return (E) payload;
+        } else {
+            throw new UnsupportedOperationException("Entity to adopt is not principal-profile");
+        }
     }
 
     /**
