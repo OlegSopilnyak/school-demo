@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.*;
+import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
 
 /**
  * Service: To process commands for school's student profiles facade
@@ -23,16 +23,16 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
 
     @Override
     protected final String findByIdCommandId() {
-        return FIND_BY_ID;
+        return CommandId.FIND_BY_ID;
     }
 
     @Override
     protected final String createOrUpdateCommandId() {
-        return CREATE_OR_UPDATE;
+        return CommandId.CREATE_OR_UPDATE;
     }
 
     @Override
     protected final String deleteByIdCommandId() {
-        return DELETE_BY_ID;
+        return CommandId.DELETE_BY_ID;
     }
 }

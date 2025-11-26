@@ -157,7 +157,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> mainInput) {
         return mainInput.value() instanceof Long personId
                 &&
-                PrincipalProfileCommand.DELETE_BY_ID.equals(command.getId())
+                PrincipalProfileCommand.CommandId.DELETE_BY_ID.equals(command.getId())
                 ?
                 transactional().createPrincipalProfileContext(command, personId)
                 :

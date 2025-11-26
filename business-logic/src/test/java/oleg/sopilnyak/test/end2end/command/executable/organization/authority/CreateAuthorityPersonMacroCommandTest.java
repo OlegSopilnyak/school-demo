@@ -169,7 +169,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CREATE_OR_UPDATE);
+        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CommandId.CREATE_OR_UPDATE);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInputParameter);

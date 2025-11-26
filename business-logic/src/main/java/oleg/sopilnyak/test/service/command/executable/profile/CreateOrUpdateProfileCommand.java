@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
+import lombok.Getter;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
@@ -10,16 +11,14 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serial;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.Getter;
 
 /**
  * Command-Base-Implementation: command to update person profile instance
@@ -33,8 +32,6 @@ import lombok.Getter;
 @Getter
 public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> extends SchoolCommandCache<E, Optional<E>>
         implements ProfileCommand<Optional<E>> {
-    @Serial
-    private static final long serialVersionUID = 7633483084007364540L;
     protected final transient ProfilePersistenceFacade persistence;
     protected final transient BusinessMessagePayloadMapper payloadMapper;
 

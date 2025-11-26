@@ -76,7 +76,7 @@ class FindPrincipalProfileCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult()).contains(Optional.of(profile));
+        assertThat(context.getResult()).contains(Optional.of(payload));
 
         verify(command).executeDo(context);
         verify(persistence).findPrincipalProfileById(id);

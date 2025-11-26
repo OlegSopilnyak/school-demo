@@ -1,23 +1,16 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
-import static java.util.Objects.isNull;
-
+import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongFunction;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -28,45 +21,19 @@ import lombok.extern.slf4j.Slf4j;
  * @see ProfilePersistenceFacade
  */
 @Slf4j
-@Component("profileStudentFind")
+@Component(StudentProfileCommand.Component.FIND_BY_ID)
 public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile>
         implements StudentProfileCommand<Optional<StudentProfile>> {
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<StudentProfileCommand<Optional<StudentProfile>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public StudentProfileCommand<Optional<StudentProfile>> self() {
-        synchronized (StudentProfileCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("profileStudentFind", StudentProfileCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.FIND_BY_ID;
     }
-
-    /**
-     * Constructor
-     *
-     * @param persistence persistence facade instance
-     */
-    public FindStudentProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
-        super(persistence, payloadMapper);
-    }
-
 
     /**
      * To get unique command-id for the command
@@ -75,7 +42,11 @@ public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile
      */
     @Override
     public String getId() {
-        return FIND_BY_ID;
+        return CommandId.FIND_BY_ID;
+    }
+
+    public FindStudentProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
+        super(persistence, payloadMapper);
     }
 
     /**

@@ -1,40 +1,55 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
+
 /**
  * Type for school-principal-profile commands
  */
 public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
-    /**
-     * ID of findById principal profile command
-     */
-    String FIND_BY_ID = "profile.principal.findById";
-    /**
-     * ID of deleteById principal profile command
-     */
-    String DELETE_BY_ID = "profile.principal.deleteById";
-    /**
-     * ID of createOrUpdate principal profile command
-     */
-    String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
+    // command-ids of the command family
+    final class CommandId {
+        private CommandId() {
+        }
+
+        public static final String FIND_BY_ID = "profile.principal.findById";
+        public static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
+        public static final String DELETE_BY_ID = "profile.principal.deleteById";
+    }
 
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "principalProfileCommandsFactory";
 
     // spring-bean component names of the commands family
-    interface Component {
-        String CREATE_OR_UPDATE = "profilePrincipalUpdate";
-        String DELETE_BY_ID = "profilePrincipalDelete";
+    final class Component {
+        private Component() {
+        }
+
+        public static final String FIND_BY_ID = "profilePrincipalFind";
+        public static final String CREATE_OR_UPDATE = "profilePrincipalUpdate";
+        public static final String DELETE_BY_ID = "profilePrincipalDelete";
+    }
+
+    /**
+     * The class of commands family, the command is belonged to
+     *
+     * @return command family class value
+     * @see BasicCommand#self()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) PrincipalProfileCommand.class;
     }
 
     /**
@@ -53,7 +68,11 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
         } else if (result instanceof PrincipalProfile entity) {
             return (T) detach(entity);
         } else if (result instanceof Optional<?> optionalEntity) {
-            return (T) detach((Optional<PrincipalProfile>) optionalEntity);
+            // To detach PrincipalProfile optional result entity from persistence layer
+            return  optionalEntity.isEmpty() ?
+                    (T) Optional.empty()
+                    :
+                    (T) optionalEntity.map(PrincipalProfile.class::cast).map(this::detach);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
             return result;
@@ -70,23 +89,6 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
     private PrincipalProfile detach(PrincipalProfile entity) {
         getLog().info("Entity to detach:'{}'", entity);
         return entity instanceof PrincipalProfilePayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach PrincipalProfile optional entity from persistence layer
-     *
-     * @param optionalEntity optional entity to detach
-     * @return detached optional entity
-     * @see #detachedResult(Object)
-     */
-    private Optional<PrincipalProfile> detach(Optional<PrincipalProfile> optionalEntity) {
-        if (isNull(optionalEntity) || optionalEntity.isEmpty()) {
-            getLog().info("Result is null or empty");
-            return Optional.empty();
-        } else {
-            getLog().info("Optional entity to detach:'{}'", optionalEntity);
-            return optionalEntity.map(this::detach);
-        }
     }
 
 // For commands playing Nested Command Role

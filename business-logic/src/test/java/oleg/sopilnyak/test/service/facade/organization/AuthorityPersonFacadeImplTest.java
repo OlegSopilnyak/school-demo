@@ -274,7 +274,7 @@ class AuthorityPersonFacadeImplTest {
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(Input.of(mockPersonPayload));
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
-        verify(payloadMapper,times(4)).toPayload(mockPerson);
+        verify(payloadMapper,times(2)).toPayload(mockPerson);
         verify(payloadMapper).toPayload(mockProfile);
         verify(payloadMapper, never()).toPayload(any(AuthorityPersonPayload.class));
     }

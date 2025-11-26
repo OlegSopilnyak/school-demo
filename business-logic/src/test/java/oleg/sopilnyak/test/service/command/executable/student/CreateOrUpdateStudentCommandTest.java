@@ -76,7 +76,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.getUndoParameter().value()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Student> result = context.getResult().orElseThrow();
-        assertThat(result).isPresent().contains(entity);
+        assertThat(result).isPresent().contains(payload);
         verify(command).executeDo(context);
         verify(persistence).save(entity);
     }
@@ -95,7 +95,7 @@ class CreateOrUpdateStudentCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         assertThat(context.getResult()).isPresent();
-        assertThat(context.getResult().orElseThrow()).isPresent().contains(entity);
+        assertThat(context.getResult().orElseThrow()).isPresent().contains(payload);
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(payloadMapper, times(2)).toPayload(entity);

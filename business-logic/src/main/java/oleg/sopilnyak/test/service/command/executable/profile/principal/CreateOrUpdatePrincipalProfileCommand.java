@@ -1,25 +1,18 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
-import static java.util.Objects.isNull;
-
+import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.UnaryOperator;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -31,41 +24,30 @@ import lombok.extern.slf4j.Slf4j;
  * @see CreateOrUpdateProfileCommand
  */
 @Slf4j
-@Component("profilePrincipalUpdate")
+@Component(CreateOrUpdatePrincipalProfileCommand.Component.CREATE_OR_UPDATE)
 public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfileCommand<PrincipalProfile>
         implements PrincipalProfileCommand<Optional<PrincipalProfile>> {
-    @Autowired
-    // beans factory to prepare the current command for transactional operations
-    private transient ApplicationContext applicationContext;
-    // reference to current command for transactional operations
-    private final AtomicReference<PrincipalProfileCommand<Optional<PrincipalProfile>>> self = new AtomicReference<>(null);
 
     /**
-     * Reference to the current command for transactional operations
+     * The name of command bean in spring beans factory
      *
-     * @return reference to the current command
-     * @see RootCommand#self()
-     * @see RootCommand#doCommand(Context)
-     * @see RootCommand#undoCommand(Context)
+     * @return spring name of the command
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public PrincipalProfileCommand<Optional<PrincipalProfile>> self() {
-        synchronized (PrincipalProfileCommand.class) {
-            if (isNull(self.get())) {
-                // getting command reference which can be used for transactional operations
-                // actually it's proxy of the command with transactional executeDo method
-                self.getAndSet(applicationContext.getBean("profilePrincipalUpdate", PrincipalProfileCommand.class));
-            }
-        }
-        return self.get();
+    public String springName() {
+        return Component.CREATE_OR_UPDATE;
     }
 
     /**
-     * Constructor
+     * To get unique command-id for the command
      *
-     * @param persistence facade of persistence layer
+     * @return value of command-id
      */
+    @Override
+    public String getId() {
+        return CommandId.CREATE_OR_UPDATE;
+    }
+
     public CreateOrUpdatePrincipalProfileCommand(final ProfilePersistenceFacade persistence,
                                                  final BusinessMessagePayloadMapper payloadMapper) {
         super(PrincipalProfile.class, persistence, payloadMapper);
@@ -79,16 +61,6 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
     @Override
     public Logger getLog() {
         return log;
-    }
-
-    /**
-     * To get unique command-id for the command
-     *
-     * @return value of command-id
-     */
-    @Override
-    public String getId() {
-        return CREATE_OR_UPDATE;
     }
 
     /**

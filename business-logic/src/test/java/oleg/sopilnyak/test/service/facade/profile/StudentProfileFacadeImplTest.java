@@ -71,7 +71,7 @@ class StudentProfileFacadeImplTest {
     void shouldFindProfileById() {
         doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 700L;
-        when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
 
@@ -84,7 +84,7 @@ class StudentProfileFacadeImplTest {
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
-        verify(payloadMapper).toPayload(any(PersonProfile.class));
+        verify(payloadMapper).toPayload(profile);
     }
 
     @Test

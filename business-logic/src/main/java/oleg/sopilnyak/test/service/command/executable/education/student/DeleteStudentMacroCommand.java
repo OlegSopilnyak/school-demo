@@ -153,7 +153,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
     public <N> Context<N> prepareContext(final StudentProfileCommand<N> command, final Input<?> mainInput) {
         return mainInput.value() instanceof Long studentId
                 &&
-                StudentProfileCommand.DELETE_BY_ID.equals(command.getId())
+                StudentProfileCommand.CommandId.DELETE_BY_ID.equals(command.getId())
                 ?
                 transactional().createStudentProfileContext(command, studentId)
                 :

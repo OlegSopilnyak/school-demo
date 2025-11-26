@@ -71,7 +71,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter().value()).isEqualTo(id);
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        assertThat(doResult.orElseThrow()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(persistence).save(entity);
     }
@@ -90,7 +90,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         assertThat(context.isDone()).isTrue();
         assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
-        assertThat(doResult.orElseThrow()).isEqualTo(entity);
+        assertThat(doResult.orElseThrow()).isEqualTo(payload);
         verify(command).executeDo(context);
         verify(entity).getId();
         verify(persistence).findAuthorityPersonById(id);

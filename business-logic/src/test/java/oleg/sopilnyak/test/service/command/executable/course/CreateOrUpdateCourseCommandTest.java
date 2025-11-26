@@ -79,7 +79,7 @@ class CreateOrUpdateCourseCommandTest {
         assertThat(context.getUndoParameter().value()).isEqualTo(id);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
-        assertThat(result).contains(mockedCourse);
+        assertThat(result).contains(mockedCoursePayload);
         verify(command).executeDo(context);
         verify(persistence).save(mockedCourse);
     }
@@ -99,7 +99,7 @@ class CreateOrUpdateCourseCommandTest {
         assertThat(context.getUndoParameter().value()).isEqualTo(mockedCoursePayload);
         assertThat(context.getResult()).isPresent();
         Optional<Course> result = context.getResult().orElseThrow();
-        assertThat(result).contains(mockedCourse);
+        assertThat(result).contains(mockedCoursePayload);
         verify(command).executeDo(context);
         verify(persistence).findCourseById(id);
         verify(payloadMapper, times(2)).toPayload(mockedCourse);

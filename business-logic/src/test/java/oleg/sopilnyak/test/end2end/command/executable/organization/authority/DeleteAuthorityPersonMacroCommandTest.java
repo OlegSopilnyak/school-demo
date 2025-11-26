@@ -221,7 +221,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.DELETE_BY_ID);
+        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CommandId.DELETE_BY_ID);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, inputId);

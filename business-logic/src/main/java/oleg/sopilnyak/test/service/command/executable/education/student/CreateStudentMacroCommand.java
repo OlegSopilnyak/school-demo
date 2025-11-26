@@ -164,8 +164,13 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public <N> Context<N> prepareContext(@NonNull final StudentProfileCommand<N> command, final Input<?> mainInput) {
-        return mainInput.value() instanceof Student person && StudentProfileCommand.CREATE_OR_UPDATE.equals(command.getId()) ?
-                createProfileContext(command, person) : cannotCreateNestedContextFor(command);
+        return mainInput.value() instanceof Student person
+                &&
+                StudentProfileCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
+                ?
+                createProfileContext(command, person)
+                :
+                cannotCreateNestedContextFor(command);
     }
 
     /**

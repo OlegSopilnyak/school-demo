@@ -175,7 +175,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CREATE_OR_UPDATE);
+        assertThat(context.getException().getMessage()).contains(PrincipalProfileCommand.CommandId.CREATE_OR_UPDATE);
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);
