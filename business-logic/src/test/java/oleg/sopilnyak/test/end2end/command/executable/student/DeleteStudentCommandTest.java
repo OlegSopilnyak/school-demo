@@ -160,12 +160,13 @@ class DeleteStudentCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldUndoCommand_RestoreStudent() {
-        Student student = persistStudent();
+        StudentPayload student = persistStudent();
         Long id = student.getId();
         Context<Boolean> context = command.createContext();
         context.setState(WORK);
         context.setState(DONE);
         if (context instanceof CommandContext<?> commandContext) {
+            student.setId(null);
             commandContext.setUndoParameter(Input.of(student));
         }
         assertThat(deleteEntity(StudentEntity.class, id)).isNull();
