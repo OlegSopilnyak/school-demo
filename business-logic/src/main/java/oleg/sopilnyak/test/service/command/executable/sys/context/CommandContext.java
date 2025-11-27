@@ -9,7 +9,11 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -18,6 +22,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
+import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,12 +35,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
-import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import org.mockito.Mockito;
-import org.mockito.internal.util.MockUtil;
 
 @Slf4j
 @Data

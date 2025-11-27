@@ -3,8 +3,6 @@ package oleg.sopilnyak.test.service.facade;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -13,6 +11,9 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.CommandNotRegisteredInFactoryException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 
 /**

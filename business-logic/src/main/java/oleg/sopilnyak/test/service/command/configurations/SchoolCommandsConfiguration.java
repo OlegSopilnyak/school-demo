@@ -1,9 +1,5 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
-import com.fasterxml.jackson.databind.Module;
-import java.util.Collection;
-import java.util.Deque;
-import lombok.RequiredArgsConstructor;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
@@ -29,6 +25,9 @@ import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
+
+import java.util.Collection;
+import java.util.Deque;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +36,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import com.fasterxml.jackson.databind.Module;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Configuration for courses-subsystem commands

@@ -4,13 +4,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import lombok.ToString;
 import org.slf4j.Logger;
+import lombok.ToString;
 
 /**
  * To execute commands in one transaction through the actions queue
  * @deprecated
  */
+@Deprecated
 abstract class ParallelCommandsInRootTransaction<T> {
     private final BlockingQueue<ActionInRootTransaction<T>> actionsQueue;
 

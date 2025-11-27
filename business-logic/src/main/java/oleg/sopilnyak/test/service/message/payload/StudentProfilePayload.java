@@ -1,10 +1,11 @@
 package oleg.sopilnyak.test.service.message.payload;
 
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
+
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 /**
  * BusinessMessage Payload Type: POJO for StudentProfile type

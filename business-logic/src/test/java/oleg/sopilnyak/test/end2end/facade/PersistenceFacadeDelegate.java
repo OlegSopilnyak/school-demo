@@ -1,9 +1,18 @@
 package oleg.sopilnyak.test.end2end.facade;
 
-import oleg.sopilnyak.test.school.common.exception.organization.*;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.school.common.model.*;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
+import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
+import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
+import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 
 import java.util.Optional;
 import java.util.Set;

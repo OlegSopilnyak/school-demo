@@ -2,13 +2,6 @@ package oleg.sopilnyak.test.service.command.io;
 
 import static java.util.Objects.isNull;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import java.io.IOException;
-import java.util.Set;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
@@ -17,6 +10,14 @@ import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
+
+import java.io.IOException;
+import java.util.Set;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 
 /**

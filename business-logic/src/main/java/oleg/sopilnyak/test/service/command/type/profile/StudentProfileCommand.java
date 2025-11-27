@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.profile;
 
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
@@ -12,8 +14,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
 import java.util.Optional;
-
-import static java.util.Objects.isNull;
 
 /**
  * Type for school-student-profile commands

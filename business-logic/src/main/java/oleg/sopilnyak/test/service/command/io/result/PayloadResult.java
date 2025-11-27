@@ -1,5 +1,15 @@
 package oleg.sopilnyak.test.service.command.io.result;
 
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.NESTED_TYPE_FIELD_NAME;
+import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
+
+import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.service.command.io.IOFieldNames;
+import oleg.sopilnyak.test.service.command.io.Output;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.message.payload.BasePayload;
+
+import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -11,16 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import oleg.sopilnyak.test.school.common.model.BaseType;
-import oleg.sopilnyak.test.service.command.io.IOFieldNames;
-import oleg.sopilnyak.test.service.command.io.Output;
-import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
-import oleg.sopilnyak.test.service.message.payload.BasePayload;
-
-import java.io.IOException;
-
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.NESTED_TYPE_FIELD_NAME;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 /**
  * Type: I/O school-command Model type command execution result

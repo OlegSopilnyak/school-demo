@@ -5,6 +5,16 @@ import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.message.CommandMessage;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.Instant;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -14,15 +24,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.time.Duration;
-import java.time.Instant;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.message.CommandMessage;
 
 /**
  * Type: I/O school-command input-output base type

@@ -2,10 +2,11 @@ package oleg.sopilnyak.test.service.command.factory.base;
 
 import static java.util.Objects.isNull;
 
-import java.util.Collection;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+
+import java.util.Collection;
 
 /**
  * Type Container: the factory of commands

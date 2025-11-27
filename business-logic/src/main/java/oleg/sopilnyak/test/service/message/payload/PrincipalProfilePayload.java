@@ -1,14 +1,14 @@
 package oleg.sopilnyak.test.service.message.payload;
 
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+
+import java.security.NoSuchAlgorithmException;
+import org.springframework.util.ObjectUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import org.springframework.util.ObjectUtils;
-
-import java.security.NoSuchAlgorithmException;
 
 
 /**

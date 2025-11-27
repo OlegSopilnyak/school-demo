@@ -1,5 +1,9 @@
 package oleg.sopilnyak.test.service.command.io.result;
 
+import oleg.sopilnyak.test.service.command.io.IOFieldNames;
+import oleg.sopilnyak.test.service.command.io.Output;
+
+import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -8,10 +12,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import oleg.sopilnyak.test.service.command.io.IOFieldNames;
-import oleg.sopilnyak.test.service.command.io.Output;
-
-import java.io.IOException;
 
 /**
  * Type: I/O school-command empty command execution result (no results)

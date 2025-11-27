@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
+import static java.util.Objects.isNull;
+
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -12,8 +14,6 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.isNull;
 
 /**
  * Type for school-organization students groups management command

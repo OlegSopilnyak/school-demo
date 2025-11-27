@@ -1,6 +1,10 @@
 package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
+
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
@@ -15,9 +19,7 @@ import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
 
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process commands for school's person profiles facade

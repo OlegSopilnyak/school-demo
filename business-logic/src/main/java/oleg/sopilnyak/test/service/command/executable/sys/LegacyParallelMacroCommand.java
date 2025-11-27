@@ -1,5 +1,10 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
+
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -10,14 +15,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.SneakyThrows;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import org.slf4j.Logger;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
+import lombok.SneakyThrows;
 
 /**
  * Parallel MacroCommand: macro-command the command with nested commands inside.
@@ -28,6 +29,7 @@ import org.springframework.util.ObjectUtils;
  * @see CompletableFuture
  * @deprecated
  */
+@Deprecated
 public abstract class LegacyParallelMacroCommand<T> extends MacroCommand<T> {
     protected LegacyParallelMacroCommand(ActionExecutor actionExecutor) {
         super(actionExecutor);

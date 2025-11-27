@@ -1,6 +1,11 @@
 package oleg.sopilnyak.test.service.command.executable.sys;
 
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -10,10 +15,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
 

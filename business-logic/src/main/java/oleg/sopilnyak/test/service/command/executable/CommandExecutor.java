@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.service.command.executable;
 
 
+import static java.util.Objects.nonNull;
+
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -10,8 +12,6 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import static java.util.Objects.nonNull;
 
 /**
  * The main engine for execute school commands

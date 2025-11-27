@@ -1,8 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.profile;
 
-import java.util.Optional;
-import java.util.function.LongFunction;
-import lombok.Getter;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
@@ -11,8 +8,11 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import java.util.Optional;
+import java.util.function.LongFunction;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
 
 /**
  * Command-Base-Implementation: command to get profile by id

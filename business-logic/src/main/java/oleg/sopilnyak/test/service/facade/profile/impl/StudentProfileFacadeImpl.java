@@ -1,13 +1,14 @@
 package oleg.sopilnyak.test.service.facade.profile.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
+
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process commands for school's student profiles facade

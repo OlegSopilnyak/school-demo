@@ -1,6 +1,12 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.createThrowFor;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
+import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand.CommandId;
+
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
@@ -20,10 +26,7 @@ import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand.*;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**

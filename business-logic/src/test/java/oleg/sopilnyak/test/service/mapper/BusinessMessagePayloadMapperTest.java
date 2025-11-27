@@ -1,17 +1,29 @@
 package oleg.sopilnyak.test.service.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import oleg.sopilnyak.test.school.common.model.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
-import oleg.sopilnyak.test.service.message.payload.*;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mapstruct.factory.Mappers;
 
 class BusinessMessagePayloadMapperTest extends TestModelFactory {
     private final BusinessMessagePayloadMapper mapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);

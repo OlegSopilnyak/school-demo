@@ -1,24 +1,23 @@
 package oleg.sopilnyak.test.service.message;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
-import oleg.sopilnyak.test.service.command.io.parameter.*;
+import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -26,8 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 class CommandMessageJsonSerializationTest {

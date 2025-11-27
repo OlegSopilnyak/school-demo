@@ -1,15 +1,19 @@
 package oleg.sopilnyak.test.service.message.payload;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 
 import java.util.List;
-
-import static org.springframework.util.ObjectUtils.isEmpty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * BusinessMessage Payload Type: POJO for Student type

@@ -2,6 +2,15 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.nested.CommandInSequence;
+import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
+import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -13,14 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.CommandInSequence;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
-import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 import org.springframework.util.ObjectUtils;
 
 /**

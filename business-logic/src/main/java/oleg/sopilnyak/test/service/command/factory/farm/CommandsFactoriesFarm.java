@@ -2,15 +2,16 @@ package oleg.sopilnyak.test.service.command.factory.farm;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 /**
  * Container: all commands factories farm

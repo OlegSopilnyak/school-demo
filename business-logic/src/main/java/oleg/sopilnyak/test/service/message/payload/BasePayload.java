@@ -1,10 +1,16 @@
 package oleg.sopilnyak.test.service.message.payload;
 
+import oleg.sopilnyak.test.school.common.model.BaseType;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.BaseType;
 
 /**
  * BusinessMessage Payload Type: POJO as parent of any payload

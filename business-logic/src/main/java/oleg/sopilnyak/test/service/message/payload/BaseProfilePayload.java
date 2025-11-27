@@ -1,5 +1,13 @@
 package oleg.sopilnyak.test.service.message.payload;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonParser;
@@ -7,16 +15,13 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static org.springframework.util.ObjectUtils.isEmpty;
 
 /**
  * BusinessMessage Payload Type: POJO for PersonProfile type (the parent of any type of profiles)

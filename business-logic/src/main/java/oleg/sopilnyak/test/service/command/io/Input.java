@@ -3,13 +3,6 @@ package oleg.sopilnyak.test.service.command.io;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import java.io.IOException;
-import java.util.Deque;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -42,8 +35,16 @@ import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
-import org.mapstruct.factory.Mappers;
+
+import java.io.IOException;
+import java.util.Deque;
 import org.mockito.internal.util.MockUtil;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.mapstruct.factory.Mappers;
 
 /**
  * Type: I/O school-command input parameter

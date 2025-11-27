@@ -1,5 +1,11 @@
 package oleg.sopilnyak.test.service.message;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.io.IOBase;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.io.IOException;
+import java.util.Arrays;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -11,13 +17,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.util.Arrays;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.io.IOBase;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 
 
 /**

@@ -1,15 +1,20 @@
 package oleg.sopilnyak.test.service.facade.education.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
+import static oleg.sopilnyak.test.service.command.type.education.StudentCommand.CommandId;
+
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
@@ -17,10 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.type.education.StudentCommand.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process command for school's student-facade

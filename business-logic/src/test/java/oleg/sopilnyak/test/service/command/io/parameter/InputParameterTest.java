@@ -3,13 +3,6 @@ package oleg.sopilnyak.test.service.command.io.parameter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
-import java.util.List;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -20,9 +13,17 @@ import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
+
+import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {

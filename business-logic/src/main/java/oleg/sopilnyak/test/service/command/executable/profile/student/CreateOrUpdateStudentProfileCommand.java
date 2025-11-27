@@ -1,18 +1,18 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.UnaryOperator;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**

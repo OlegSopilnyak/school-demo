@@ -3,6 +3,13 @@ package oleg.sopilnyak.test.service.command.io.parameter;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
+import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
+import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.io.IOException;
+import java.util.Deque;
+import java.util.LinkedList;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -16,12 +23,6 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import java.util.Deque;
-import java.util.LinkedList;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
-import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
 
 
 /**

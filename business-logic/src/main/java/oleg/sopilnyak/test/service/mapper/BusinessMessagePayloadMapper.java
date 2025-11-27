@@ -1,21 +1,38 @@
 package oleg.sopilnyak.test.service.mapper;
 
-import oleg.sopilnyak.test.school.common.model.*;
+import static java.util.Objects.nonNull;
+import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
+import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
+import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.service.message.payload.*;
-import org.mapstruct.*;
-import org.springframework.util.ReflectionUtils;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static java.util.Objects.nonNull;
-import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
-import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
-import static org.springframework.util.ObjectUtils.isEmpty;
+import org.springframework.util.ReflectionUtils;
+import org.mapstruct.Builder;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 
 /**
  * MapStruct Mapper: To convert model types to Payloads

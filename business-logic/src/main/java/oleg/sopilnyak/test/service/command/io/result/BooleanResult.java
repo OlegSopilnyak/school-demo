@@ -1,5 +1,11 @@
 package oleg.sopilnyak.test.service.command.io.result;
 
+import static java.util.Objects.isNull;
+
+import oleg.sopilnyak.test.service.command.io.IOFieldNames;
+import oleg.sopilnyak.test.service.command.io.Output;
+
+import java.io.IOException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -10,12 +16,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import oleg.sopilnyak.test.service.command.io.IOFieldNames;
-import oleg.sopilnyak.test.service.command.io.Output;
-
-import java.io.IOException;
-
-import static java.util.Objects.isNull;
 
 /**
  * Type: I/O school-command Boolean command execution result

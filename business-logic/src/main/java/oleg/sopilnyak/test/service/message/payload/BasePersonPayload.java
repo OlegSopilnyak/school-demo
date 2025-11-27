@@ -1,9 +1,14 @@
 package oleg.sopilnyak.test.service.message.payload;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.Person;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * BusinessMessage Payload Type: POJO for School Person (students | authority)

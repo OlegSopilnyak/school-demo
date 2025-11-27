@@ -2,13 +2,14 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import static java.util.Objects.isNull;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
+
 import org.slf4j.Logger;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor

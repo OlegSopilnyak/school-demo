@@ -1,16 +1,16 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.function.LongFunction;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -21,7 +21,7 @@ import java.util.function.LongFunction;
  * @see ProfilePersistenceFacade
  */
 @Slf4j
-@Component(CreateOrUpdatePrincipalProfileCommand.Component.FIND_BY_ID)
+@Component(PrincipalProfileCommand.Component.FIND_BY_ID)
 public class FindPrincipalProfileCommand extends FindProfileCommand<PrincipalProfile>
         implements PrincipalProfileCommand<Optional<PrincipalProfile>> {
 

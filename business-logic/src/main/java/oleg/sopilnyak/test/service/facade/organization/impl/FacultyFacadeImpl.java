@@ -1,6 +1,11 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.util.Objects.nonNull;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
+import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
+import static oleg.sopilnyak.test.service.command.type.organization.FacultyCommand.CommandId;
+
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
@@ -18,10 +23,7 @@ import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-
-import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.*;
-import static oleg.sopilnyak.test.service.command.type.organization.FacultyCommand.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service-Facade: Service for manage organization in the school (groups of courses)

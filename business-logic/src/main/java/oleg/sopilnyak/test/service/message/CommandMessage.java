@@ -1,8 +1,9 @@
 package oleg.sopilnyak.test.service.message;
 
-import java.io.Serializable;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import java.io.Serializable;
 
 public interface CommandMessage<T> extends Serializable {
     /**

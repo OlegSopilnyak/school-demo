@@ -1,8 +1,9 @@
 package oleg.sopilnyak.test.service.message;
 
-import lombok.Builder;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+
+import lombok.Builder;
 
 /**
  * Message: message to commands subsystem (to execute doCommand)
