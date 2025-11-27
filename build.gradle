@@ -11,7 +11,6 @@ subprojects {
     apply plugin: 'java'
 
 
-//    targetCompatibility = JavaVersion.VERSION_17
     java {
         targetCompatibility = JavaVersion.VERSION_21
         sourceCompatibility = JavaVersion.VERSION_21
@@ -25,4 +24,7 @@ subprojects {
         enabled = true
     }
 
+    test {
+        useJUnitPlatform()
+    }
 }

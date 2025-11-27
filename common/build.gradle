@@ -1,8 +1,12 @@
 plugins {
+    // to export java test helper/data "fixture" classes
+    // for other projects to re-use in their tests...
+    id 'java-test-fixtures'
+    // Java plugins
     id 'java-library'
-    id 'java-test-fixtures' // to export java test helper/data "fixture" classes for other projects to re-use in their tests...
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
+
 dependencies {
     testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "${springBootVersion}"
     testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"

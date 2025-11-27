@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'io.spring.dependency-management' version "${springDependencyVersion}"
     id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 
@@ -25,15 +25,8 @@ dependencies {
     testImplementation testFixtures(project(":common"))
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-}
-
 bootJar {
     enabled = false
 }
 
-test {
-    useJUnitPlatform()
-}
 description = 'REST Endpoints for students and courses of the school'

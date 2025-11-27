@@ -1,17 +1,13 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version "${springBootVersion}"
-    id 'io.spring.dependency-management' version '1.1.7'
+    id 'io.spring.dependency-management' version "${springDependencyVersion}"
     id "io.freefair.lombok" version "${lombokPluginVersion}"
+    // Docker plugins declaration
     id 'pl.allegro.tech.build.axion-release' version '1.13.6'
 //    id 'com.palantir.docker' version "${dockerPluginVersion}"
 //    id 'com.palantir.docker-run' version "${dockerPluginVersion}"
 //    id 'com.avast.gradle.docker-compose' version "${dockerComposePluginVersion}"
-}
-
-java {
-    targetCompatibility = JavaVersion.VERSION_21
-    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
@@ -25,12 +21,6 @@ dependencies {
     implementation project(":persistence")
 
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-}
-
-bootRun {
-    jvmArgs = [
-            "-javaagent:${classpath.find { it.name.contains("spring-instrument") }}"
-    ]
 }
 
 clean.doLast {
