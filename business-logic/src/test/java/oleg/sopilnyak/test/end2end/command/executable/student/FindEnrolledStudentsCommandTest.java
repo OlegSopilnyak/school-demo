@@ -30,22 +30,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindEnrolledStudentsCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class FindEnrolledStudentsCommandTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     EducationPersistenceFacade persistence;
     @Autowired
     EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentCommand command;
 

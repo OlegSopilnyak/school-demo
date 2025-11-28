@@ -49,11 +49,11 @@ import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,25 +68,25 @@ import org.springframework.test.util.ReflectionTestUtils;
 class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     ApplicationContext applicationContext;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired
     StudentsFacade facade;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("profileStudentDelete")
     StudentProfileCommand profileCommand;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("studentDelete")
     StudentCommand personCommand;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     ActionExecutor actionExecutor;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired

@@ -11,8 +11,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
@@ -24,23 +22,26 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+
+import java.util.Optional;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mapstruct.factory.Mappers;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -49,15 +50,15 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
-    @MockBean
+    @MockitoBean
     PersistenceFacade persistenceFacade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PrincipalProfileFacade facade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PrincipalProfileRestController controller;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 

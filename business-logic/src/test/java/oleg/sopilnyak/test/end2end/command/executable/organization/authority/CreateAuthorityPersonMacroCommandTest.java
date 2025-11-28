@@ -47,9 +47,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,20 +58,20 @@ import org.springframework.test.util.ReflectionTestUtils;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("profilePrincipalUpdate")
     PrincipalProfileCommand profileCommand;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("authorityPersonUpdate")
     AuthorityPersonCommand personCommand;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     ActionExecutor actionExecutor;
     @Autowired

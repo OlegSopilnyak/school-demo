@@ -40,9 +40,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.UnexpectedRollbackException;
 
@@ -53,7 +53,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
         "school.courses.maximum.rooms=2", "school.students.maximum.courses=2"
 })
 class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired
@@ -62,7 +62,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("courseRegisterStudent")
     CourseCommand command;

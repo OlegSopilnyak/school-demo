@@ -23,7 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,6 +31,7 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +46,7 @@ class CourseCommandsFactoryTest extends MysqlTestModelFactory {
     private static final String FACTORY_NAME = "Courses";
     private static final String SPRING_NAME = "courseCommandsFactory";
     private Collection<String> commandsId;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired

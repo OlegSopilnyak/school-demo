@@ -38,9 +38,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +49,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
         "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
 })
 class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     EducationPersistenceFacade persistence;
     @Autowired
@@ -58,7 +58,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     EntityMapper entityMapper;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("courseUnRegisterStudent")
     CourseCommand command;

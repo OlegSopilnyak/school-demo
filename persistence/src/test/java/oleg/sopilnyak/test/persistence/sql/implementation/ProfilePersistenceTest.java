@@ -1,45 +1,48 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class ProfilePersistenceTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     ProfilePersistenceFacade persistence;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersonProfileRepository<PersonProfileEntity> repository;
 

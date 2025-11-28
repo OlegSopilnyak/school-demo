@@ -47,11 +47,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -69,7 +69,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     ApplicationContext applicationContext;
 
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsGroupPersistenceFacade persistence;
     @Autowired

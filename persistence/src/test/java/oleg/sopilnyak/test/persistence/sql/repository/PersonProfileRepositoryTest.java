@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.persistence.sql.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
@@ -11,8 +10,6 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,22 +48,6 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Deprecated(since = "No needs to test for high version of Hibernate")
-    @Disabled("The version of Hibernate (6.6) throws ObjectOptimisticLockingFailureException")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotCreateStudentProfileEntity() {
-        Long id = 100L;
-        StudentProfileEntity profile = StudentProfileEntity.builder()
-                .id(id).photoUrl("photo-url").email("e-mail").phone("phone").location("location")
-                .extras(Map.of("key-1", "1", "key-2", "2"))
-                .build();
-
-        repository.saveAndFlush(profile);
-
-        assertThat(repository.findById(id)).isEmpty();
-    }
-
-    @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentProfileEntity() {
         StudentProfileEntity profile = StudentProfileEntity.builder()
@@ -80,31 +61,6 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         repository.deleteById(id);
 
         assertThat(repository.findById(id)).isEmpty();
-    }
-
-    @Test
-    @Deprecated(since = "No needs to test for high version of Hibernate")
-    @Disabled("The version of Hibernate (6.6) throws ObjectOptimisticLockingFailureException")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeleteStudentProfileEntity() {
-        Long id = 101L;
-        StudentProfileEntity profile = StudentProfileEntity.builder().id(id)
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
-                .extras(Map.of("key-1", "1", "key-2", "2"))
-                .build();
-        Object saved = repository.saveAndFlush(profile);
-        if (saved instanceof StudentProfileEntity entity) {
-            assertThat(entity.getId()).isNotEqualTo(id);
-        } else {
-            fail("Unexpected result type " + saved);
-        }
-        assertThat(repository.findById(id)).isEmpty();
-
-        try {
-            repository.deleteById(id);
-        } catch (Exception e) {
-            fail("Exception should not have been thrown instead of deleted data not found", e);
-        }
     }
 
     @Test
@@ -157,23 +113,6 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @Deprecated(since = "No needs to test for high version of Hibernate")
-    @Disabled("The version of Hibernate (6.6) throws ObjectOptimisticLockingFailureException")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotCreatePrincipalProfileEntity() {
-        Long id = 200L;
-        PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
-                .id(id).login("login")
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
-                .extras(Map.of("key1", "1", "key2", "2"))
-                .build();
-
-        repository.saveAndFlush(profile);
-
-        assertThat(repository.findById(id)).isEmpty();
-    }
-
-    @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeletePrincipalProfileEntity() {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
@@ -188,30 +127,5 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         repository.deleteById(id);
 
         assertThat(repository.findById(id)).isEmpty();
-    }
-
-    @Test
-    @Deprecated(since = "No needs to test for high version of Hibernate")
-    @Disabled("The version of Hibernate (6.6) throws ObjectOptimisticLockingFailureException")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotDeletePrincipalProfileEntity() {
-        Long id = 201L;
-        PrincipalProfileEntity profile = PrincipalProfileEntity.builder().id(id)
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
-                .extras(Map.of("key-1", "1", "key-2", "2"))
-                .build();
-        Object saved = repository.saveAndFlush(profile);
-        if (saved instanceof PrincipalProfileEntity entity) {
-            assertThat(entity.getId()).isNotEqualTo(id);
-        } else {
-            fail("Unexpected result type " + saved);
-        }
-        assertThat(repository.findById(id)).isEmpty();
-
-        try {
-            repository.deleteById(id);
-        } catch (Exception e) {
-            fail("Exception should not have been thrown instead of deleted data not found", e);
-        }
     }
 }

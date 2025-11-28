@@ -10,7 +10,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
@@ -38,12 +37,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -51,10 +49,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mapstruct.factory.Mappers;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {
+        StudentProfileRestController.class, AspectForRestConfiguration.class,
+        BusinessLogicConfiguration.class, PersistenceConfiguration.class
+})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/profiles/students";
@@ -67,18 +70,18 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     EntityMapper entityMapper;
     @Autowired
     PersistenceFacade database;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     CommandsFactory<StudentProfileCommand<?>> factory;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentProfileFacade facade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentProfileRestController controller;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 

@@ -53,11 +53,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
@@ -83,10 +83,10 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     ApplicationContext applicationContext;
     @Autowired
-    @SpyBean
+    @MockitoSpyBean
     ActionExecutor actionExecutor;
     @Autowired
-    @SpyBean
+    @MockitoSpyBean
     PersistenceFacade persistenceFacade;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;

@@ -52,11 +52,11 @@ import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,7 +72,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     ApplicationContext applicationContext;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
     @Autowired
@@ -85,16 +85,16 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     ActionExecutor actionExecutor;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Autowired
     CommandThroughMessageService messagesExchangeService;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("profilePrincipalDelete")
     PrincipalProfileCommand profileCommand;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     @Qualifier("authorityPersonDelete")
     AuthorityPersonCommand personCommand;

@@ -1,5 +1,8 @@
 package oleg.sopilnyak.test.persistence.sql.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
@@ -7,7 +10,10 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import org.junit.jupiter.api.Disabled;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,13 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
@@ -94,21 +93,6 @@ class AuthorityPersonRepositoryTest extends MysqlTestModelFactory {
         AuthorityPersonEntity saved = repository.saveAndFlush(person);
 
         assertThat(repository.findById(person.getId())).isNotEmpty();
-        assertAuthorityPersonEquals(saved, person, false);
-    }
-
-    @Test
-    @Deprecated(since = "No needs to test for high version of Hibernate")
-    @Disabled("The version of Hibernate (6.6) throws ObjectOptimisticLockingFailureException")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    void shouldNotSave() {
-        AuthorityPersonEntity person = createAuthorityPersonEntity(1);
-        person.setId(100L);
-
-        AuthorityPersonEntity saved = repository.saveAndFlush(person);
-
-        assertThat(person.getId()).isNotEqualTo(saved.getId());
-        assertThat(repository.findById(person.getId())).isEmpty();
         assertAuthorityPersonEquals(saved, person, false);
     }
 

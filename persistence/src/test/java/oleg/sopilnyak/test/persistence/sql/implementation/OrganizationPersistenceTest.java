@@ -1,5 +1,11 @@
 package oleg.sopilnyak.test.persistence.sql.implementation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
@@ -12,44 +18,38 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.joint.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class OrganizationPersistenceTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     OrganizationPersistenceFacade persistence;
 
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AuthorityPersonRepository authorityPersonRepository;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     FacultyRepository facultyRepository;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsGroupRepository studentsGroupRepository;
 

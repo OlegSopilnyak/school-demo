@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
@@ -25,9 +25,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
 class RegisterCourseCommandConfigurationTest {
     static final String REGISTER_COMMAND_ID = "course.register";
-    @MockBean
+    @MockitoBean
     PersistenceFacade persistence;
-    @MockBean
+    @MockitoBean
     BusinessMessagePayloadMapper payloadMapper;
 
     @Autowired(required = false)

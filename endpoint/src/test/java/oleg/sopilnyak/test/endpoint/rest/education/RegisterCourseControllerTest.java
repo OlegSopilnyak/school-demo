@@ -8,8 +8,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Optional;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
@@ -21,6 +19,8 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+
+import java.util.Optional;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,15 +29,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -54,15 +55,15 @@ class RegisterCourseControllerTest {
     @Captor
     ArgumentCaptor<Course> courseCapture;
 
-    @MockBean
+    @MockitoBean
     PersistenceFacade persistenceFacade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     CoursesFacade coursesFacade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     RegisterCourseController controller;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 

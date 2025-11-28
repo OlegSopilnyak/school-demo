@@ -12,14 +12,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
@@ -34,21 +26,30 @@ import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -57,15 +58,15 @@ class StudentsRestControllerTest extends TestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/students";
 
-    @MockBean
+    @MockitoBean
     PersistenceFacade persistenceFacade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsFacade facade;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsRestController controller;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 

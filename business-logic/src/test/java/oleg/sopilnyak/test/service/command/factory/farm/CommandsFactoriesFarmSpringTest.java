@@ -20,26 +20,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = CommandsFactoriesFarmSpringTest.FactoryConfiguration.class)
 class CommandsFactoriesFarmSpringTest {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
-    @MockBean
+    @MockitoBean
     ActionExecutor actionExecutor;
-    @MockBean(name = "parallelCommandNestedCommandsExecutor")
+    @MockitoBean(name = "parallelCommandNestedCommandsExecutor")
     SchedulingTaskExecutor executor;
-    @MockBean
+    @MockitoBean
     PersistenceFacade persistenceFacade;
-    @MockBean
+    @MockitoBean
     BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @Autowired

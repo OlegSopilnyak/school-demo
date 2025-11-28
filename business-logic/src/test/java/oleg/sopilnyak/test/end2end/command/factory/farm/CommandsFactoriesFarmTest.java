@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -34,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,13 +48,13 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     CommandsFactory<CourseCommand<?>> factory1;
-    @SpyBean
+    @MockitoSpyBean
     CommandsFactory<StudentCommand<?>> factory2;
-    @SpyBean
+    @MockitoSpyBean
     CommandsFactory<FacultyCommand<?>> factory3;
-    @SpyBean
+    @MockitoSpyBean
     CommandsFactoriesFarm<RootCommand<?>> farm;
     @Autowired
     ApplicationContext context;

@@ -9,8 +9,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
@@ -48,9 +46,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -58,10 +56,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {AspectForRestConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {
+        StudentsRestController.class, AspectForRestConfiguration.class,
+        BusinessLogicConfiguration.class, PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class StudentsRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -75,17 +77,17 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
     PersistenceFacade database;
     @Autowired
     CommandsFactory<StudentCommand<?>> factory;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     BusinessMessagePayloadMapper mapper;
     @Autowired
     StudentsFacade facade;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsRestController controller;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 

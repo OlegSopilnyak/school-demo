@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,9 +41,9 @@ class UndoCommandMessageTest {
     private static final String CORRELATION_ID = "correlation-id";
     private static final String TEST_ACTION = "test-action";
     private static final String TEST_FACADE = "test-facade";
-    @MockBean
+    @MockitoBean
     PlatformTransactionManager platformTransactionManager;
-    @MockBean
+    @MockitoBean
     private PersistenceFacade persistenceFacade;
     @Autowired
     @Qualifier("jsonContextModule")
@@ -250,6 +250,7 @@ class UndoCommandMessageTest {
     interface VoidCommand extends RootCommand<Void> {
         // This interface is just a marker for commands that return Boolean
     }
+
     // private methods
     private UndoCommandMessage createMessage(String correlationId, String commandId, Input<?> input) {
         CommandContext<Void> context = CommandContext.<Void>builder()

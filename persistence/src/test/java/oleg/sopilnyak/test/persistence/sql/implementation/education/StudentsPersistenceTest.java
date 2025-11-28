@@ -1,39 +1,39 @@
 package oleg.sopilnyak.test.persistence.sql.implementation.education;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepository;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class StudentsPersistenceTest extends MysqlTestModelFactory {
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentsPersistenceFacade persistence;
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     StudentRepository repository;
 

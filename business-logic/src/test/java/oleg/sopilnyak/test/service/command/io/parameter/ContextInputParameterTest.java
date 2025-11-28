@@ -28,9 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,12 +46,12 @@ class ContextInputParameterTest {
     private static final String STUDENT_FIND_ENROLLED = "student.findEnrolledTo";
     private static final String COURSE_FIND_BY_ID = "course.findById";
     private static final String COURSE_FIND_REGISTERED = "course.findRegisteredFor";
-    @MockBean
+    @MockitoBean
     private PersistenceFacade persistenceFacade;
-    @MockBean
+    @MockitoBean
     private BusinessMessagePayloadMapper mapper;
 
-    @SpyBean
+    @MockitoSpyBean
     @Autowired
     private CommandsFactoriesFarm<? extends RootCommand<?>> farm;
     @Autowired
