@@ -6,20 +6,19 @@ plugins {
 }
 
 dependencies {
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-    // this version of mockito-core works properly with doCallRealMethod().when(
-    implementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
-
     implementation project(":common")
 
-    implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-jdk8', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
-    annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    // this version of mockito-core works properly with doCallRealMethod().when(
+    implementation 'org.mockito:mockito-core:4.5.1'
 
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-    testImplementation("org.mockito:mockito-inline:5.2.0")
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-jdk8:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    testCompileOnly 'org.mockito:mockito-inline:5.2.0'
     testImplementation project(":persistence")
     testImplementation project(":business-logic")
     testImplementation testFixtures(project(":common"))

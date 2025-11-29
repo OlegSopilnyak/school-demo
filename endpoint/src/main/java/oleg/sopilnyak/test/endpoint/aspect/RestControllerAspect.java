@@ -14,7 +14,9 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Slf4j
 @Aspect
-public record RestControllerAspect(Collection<AdviseDelegate> delegates) {
+public class RestControllerAspect {
+    private final Collection<AdviseDelegate> delegates;
+
     public RestControllerAspect(Collection<AdviseDelegate> delegates) {
         this.delegates = List.copyOf(delegates);
     }

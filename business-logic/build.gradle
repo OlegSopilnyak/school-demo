@@ -8,21 +8,21 @@ plugins {
 dependencies {
     implementation project(":common")
 
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    compileOnly 'org.springframework.boot:spring-boot-starter-data-jpa'
     // this version of mockito-core works properly with doCallRealMethod().when(
-    implementation group: 'org.mockito', name: 'mockito-core', version: '4.5.1'
+    implementation 'org.mockito:mockito-core:4.5.1'
 
-    implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-jdk8', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
-    compileOnly group: 'org.springframework', name: 'spring-tx'
-    annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-jdk8:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
     testImplementation project(":persistence")
     testImplementation testFixtures(project(":common"))
-    testImplementation group: 'org.awaitility', name: 'awaitility', version: '4.3.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.awaitility:awaitility:4.3.0'
 
 }
 

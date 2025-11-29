@@ -7,18 +7,20 @@ plugins {
 
 dependencies {
     implementation project(":common")
-    implementation group: 'org.mapstruct', name: 'mapstruct', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-jdk8', version: "${mapstructVersion}"
-    compileOnly group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
-    annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: "${mapstructVersion}"
 
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "${jacksonAnnotationsVersion}"
-    runtimeOnly group: 'mysql', name: 'mysql-connector-java', version: "${connectorMySqlVersion}"
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // MySQL java-connector
+    runtimeOnly "mysql:mysql-connector-java:${connectorMySqlVersion}"
+    // Json annotations support library
+    // instead of implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'
+    compileOnly 'org.springframework.boot:spring-boot-starter-json'
+    // MapStruct dependencies
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-jdk8:${mapstructVersion}"
+    compileOnly "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     testImplementation testFixtures(project(":common"))
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-
 }
 
 bootJar {

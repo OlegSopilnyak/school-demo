@@ -1,16 +1,17 @@
 plugins {
+    // Java plugins
+    id 'java-library'
+    // Lombok plugin
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
     // to export java test helper/data "fixture" classes
     // for other projects to re-use in their tests...
     id 'java-test-fixtures'
-    // Java plugins
-    id 'java-library'
-    id "io.freefair.lombok" version "${lombokPluginVersion}"
 }
 
 dependencies {
-    testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: "${springBootVersion}"
-    testFixturesApi group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "${springBootVersion}"
-    testFixturesApi group: 'org.testcontainers', name: 'testcontainers', version: "${testcontainersVersion}"
-    testFixturesApi group: 'org.testcontainers', name: 'junit-jupiter', version: "${testcontainersVersion}"
-    testFixturesApi group: 'org.testcontainers', name: 'mysql', version: "${testcontainersVersion}"
+    testFixturesApi "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    testFixturesApi "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testFixturesApi "org.testcontainers:testcontainers:${testcontainersVersion}"
+    testFixturesApi "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testFixturesApi "org.testcontainers:mysql:${testcontainersVersion}"
 }

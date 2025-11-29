@@ -11,16 +11,16 @@ plugins {
 }
 
 dependencies {
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation project(":common")
     implementation project(":endpoint")
     implementation project(":business-logic")
     implementation project(":persistence")
 
-    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 clean.doLast {
