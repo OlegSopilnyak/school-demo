@@ -1,5 +1,11 @@
 # -- School Application --
 
+### Environment:
+
+* Java 25
+* SpringBoot 3.5
+* Gradle 9.2
+
 ### Used modules.
 
 * **common** - module with declared abstract service model and facades.
@@ -7,6 +13,7 @@
 * **[business-logic](./business-logic/README.md)** - module to process requests from REST-Controllers.
 * **persistence** - the module is providing support for persistence layer of the system.
 * **[application](./application/README.md)** - module to run system as a SpringBoot application, in docker container as well.
+
 
 To run application in:
 

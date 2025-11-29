@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
@@ -23,7 +24,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +54,7 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     @AfterEach
     void tearDown() {
         reset(command, persistence, payloadMapper);
+        deleteEntities(StudentProfileEntity.class);
         deleteEntities(StudentEntity.class);
     }
 
@@ -126,20 +127,16 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Student persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (var em = entityManagerFactory.createEntityManager()) {
+            StudentEntity entity = entityMapper.toEntity(makeClearStudent(0));
             EntityTransaction transaction = em.getTransaction();
-            Student source = makeClearStudent(0);
-            StudentEntity entity = entityMapper.toEntity(source);
             transaction.begin();
             em.persist(entity);
             em.flush();
-            em.clear();
             transaction.commit();
             return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }
