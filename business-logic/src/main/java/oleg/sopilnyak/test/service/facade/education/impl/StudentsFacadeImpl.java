@@ -1,43 +1,48 @@
 package oleg.sopilnyak.test.service.facade.education.impl;
 
 import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
 import static oleg.sopilnyak.test.service.command.type.education.StudentCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
+import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process command for school's student-facade
  */
 @Slf4j
-public class StudentsFacadeImpl implements StudentsFacade {
+public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     private final CommandsFactory<StudentCommand<?>> factory;
-    private final BusinessMessagePayloadMapper mapper;
+    @Getter
+    private final ActionExecutor actionExecutor;
     // semantic data to payload converter
-    private final UnaryOperator<Student> convert;
+    private final UnaryOperator<Student> toPayload;
 
-    public StudentsFacadeImpl(CommandsFactory<StudentCommand<?>> factory, BusinessMessagePayloadMapper mapper) {
+    public StudentsFacadeImpl(
+            CommandsFactory<StudentCommand<?>> factory,
+            BusinessMessagePayloadMapper mapper,
+            ActionExecutor actionExecutor
+    ) {
         this.factory = factory;
-        this.mapper = mapper;
-        this.convert = student -> student instanceof StudentPayload ? student : this.mapper.toPayload(student);
+        this.actionExecutor = actionExecutor;
+        this.toPayload = student -> student instanceof StudentPayload ? student : mapper.toPayload(student);
     }
 
 
@@ -51,10 +56,15 @@ public class StudentsFacadeImpl implements StudentsFacade {
      */
     @Override
     public Optional<Student> findById(Long id) {
-        log.debug("Find student by ID:{}", id);
-        final Optional<Student> result = doSimpleCommand(CommandId.FIND_BY_ID, Input.of(id), factory);
-        log.debug("Found the student {}", result);
-        return result.map(convert);
+        log.debug("Finding student by ID:{}", id);
+        final Optional<Optional<Student>> result;
+        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        if (result.isPresent()) {
+            final Optional<Student> student = result.get();
+            log.debug("Found the student {}", student);
+            return student.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -65,10 +75,15 @@ public class StudentsFacadeImpl implements StudentsFacade {
      */
     @Override
     public Set<Student> findEnrolledTo(Long id) {
-        log.debug("Find students enrolled to the course with ID:{}", id);
-        final Set<Student> result = doSimpleCommand(CommandId.FIND_ENROLLED, Input.of(id), factory);
-        log.debug("Found students enrolled to the course {}", result);
-        return result.stream().map(convert).collect(Collectors.toSet());
+        log.debug("Finding students enrolled to the course with ID:{}", id);
+        final Optional<Set<Student>> result;
+        result = actCommand(CommandId.FIND_ENROLLED, factory, Input.of(id));
+        if (result.isPresent()) {
+            final Set<Student> students = result.get();
+            log.debug("Found students enrolled to the course {} ", students);
+            return students.stream().map(toPayload).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     /**
@@ -78,10 +93,15 @@ public class StudentsFacadeImpl implements StudentsFacade {
      */
     @Override
     public Set<Student> findNotEnrolled() {
-        log.debug("Find students not enrolled to any course");
-        final Set<Student> result = doSimpleCommand(CommandId.FIND_NOT_ENROLLED, null, factory);
-        log.debug("Found students not enrolled to any course {}", result);
-        return result.stream().map(convert).collect(Collectors.toSet());
+        log.debug("Finding students not enrolled to any course");
+        final Optional<Set<Student>> result;
+        result = actCommand(CommandId.FIND_NOT_ENROLLED, factory, Input.empty());
+        if (result.isPresent()) {
+            final Set<Student> students = result.get();
+            log.debug("Found students not enrolled to any course {}", students);
+            return students.stream().map(toPayload).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     /**
@@ -94,14 +114,20 @@ public class StudentsFacadeImpl implements StudentsFacade {
      */
     @Override
     public Optional<Student> createOrUpdate(Student instance) {
-        log.debug("Create or Update student {}", instance);
-        final Optional<Student> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
-        log.debug("Changed student {}", result);
-        return result.map(convert);
+        log.debug("Creating or Updating student {}", instance);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<Student>> result;
+        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        if (result.isPresent()) {
+            final Optional<Student> student = result.get();
+            log.debug("Changed student {}", student);
+            return student.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
-     * To create student instance + it's profile
+     * To create student instance + it's profile at once
      *
      * @param instance student should be created
      * @return student instance or empty() if not exists
@@ -112,9 +138,15 @@ public class StudentsFacadeImpl implements StudentsFacade {
     @Override
     public Optional<Student> create(Student instance) {
         log.debug("Creating student {}", instance);
-        final Optional<Student> result = doSimpleCommand(CommandId.CREATE_NEW, Input.of(convert.apply(instance)), factory);
-        log.debug("Created student {}", result);
-        return result.map(convert);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<Student>> result;
+        result = actCommand(CommandId.CREATE_NEW, factory, input);
+        if (result.isPresent()) {
+            final Optional<Student> student = result.get();
+            log.debug("Created student {}", student);
+            return student.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -127,31 +159,34 @@ public class StudentsFacadeImpl implements StudentsFacade {
      */
     @Override
     public boolean delete(Long id) throws StudentNotFoundException, StudentWithCoursesException {
-        log.debug("Delete student with ID:{}", id);
         final String commandId = CommandId.DELETE_ALL;
-        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(Input.of(id));
+        final Consumer<Exception> doThisOnError = exception -> {
+            logSomethingWentWrong(exception, commandId);
+            if (exception instanceof StudentNotFoundException noStudentException) {
+                throw noStudentException;
+            } else if (exception instanceof StudentWithCoursesException studentWithCoursesException) {
+                throw studentWithCoursesException;
+            } else if (nonNull(exception)) {
+                ActionFacade.throwFor(commandId, exception);
+            } else {
+                failedButNoExceptionStored(commandId);
+            }
+        };
+        log.debug("Deleting student with ID:{}", id);
+        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        result.ifPresent(executionResult ->
+                log.debug("Deleted student with ID:{} successfully:{} .", id, executionResult)
+        );
+        return result.orElse(false);
+    }
 
-        command.doCommand(context);
-
-        if (context.isDone()) {
-            // success processing
-            log.debug("Deleted student with ID:{} successfully.", id);
-            return true;
-        }
-
-        // fail processing
-        final Exception deleteException = context.getException();
-        log.warn("Something went wrong", deleteException);
-        if (deleteException instanceof StudentNotFoundException noStudentException) {
-            throw noStudentException;
-        } else if (deleteException instanceof StudentWithCoursesException studentWithCoursesException) {
-            throw studentWithCoursesException;
-        } else if (nonNull(deleteException)) {
-            return throwFor(commandId, deleteException);
-        } else {
-            log.error("For command-id:'{}' there is not exception after command execution.", commandId);
-            return throwFor(commandId, new NullPointerException("Exception is not stored!!!"));
-        }
+    /**
+     * To get the logger of the facade
+     *
+     * @return logger instance
+     */
+    @Override
+    public Logger getLogger() {
+        return log;
     }
 }

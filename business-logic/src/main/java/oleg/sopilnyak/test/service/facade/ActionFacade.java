@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.CommandNotRegisteredInFactoryException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -51,10 +52,11 @@ public interface ActionFacade {
      * @see Input
      * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> T actCommand(final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
-                             final Input<?> input) throws UnableExecuteCommandException {
+    default <T> Optional<T> actCommand(
+            final String commandId, final CommandsFactory<? extends RootCommand<?>> factory, final Input<?> input
+    ) throws UnableExecuteCommandException {
         // To do action command with the given command-id, input parameter and default error processor
-        return actCommand(commandId, factory, input, defaultOnErrorFor(commandId));
+        return actCommand(commandId, factory, input, defaultDoOnError(commandId));
     }
 
     /**
@@ -63,7 +65,7 @@ public interface ActionFacade {
      * @param commandId the command id
      * @param factory   the commands factory to find command by id
      * @param input     the input parameter for the command execution
-     * @param onError   consumer to handle command execution errors
+     * @param doThisOnError   consumer to handle command execution errors
      * @param <T>       type of command result
      * @return result of command execution or throws exception if command is not registered
      * @throws UnableExecuteCommandException if command cannot be executed
@@ -75,12 +77,14 @@ public interface ActionFacade {
      * @see Input
      * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> T actCommand(final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
-                             final Input<?> input, final Consumer<Exception> onError) throws UnableExecuteCommandException {
+    default <T> Optional<T> actCommand(
+            final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
+            final Input<?> input, final Consumer<Exception> doThisOnError
+    ) throws UnableExecuteCommandException {
         final Context<T> requestContext = factory.makeCommandContext(commandId, input);
         if (isNull(requestContext)) {
             // command is not registered in the factory
-            getLogger().warn("Command with ID:{} is not registered in the factory:{}", commandId, factory.getName());
+            getLogger().error("Command with ID:{} is not registered in the factory:{}", commandId, factory.getName());
             return throwFor(commandId, new CommandNotRegisteredInFactoryException(commandId, factory));
         }
 
@@ -89,12 +93,12 @@ public interface ActionFacade {
             // success processing
             getLogger().debug("Success execution of command:{} with parameter:{}", commandId, input.value());
             // returns result of command execution
-            return responseContext.getResult().orElseThrow(createThrowFor(commandId));
+            return Optional.of(responseContext.getResult().orElseThrow(createThrowFor(commandId)));
         } else {
             // fail processing
-            onError.accept(responseContext.getException());
+            doThisOnError.accept(responseContext.getException());
             // returns null if command execution failed
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -150,7 +154,7 @@ public interface ActionFacade {
      * @see ActionFacade#logSomethingWentWrong(Exception, String)
      * @see ActionFacade#throwFor(String, Exception)
      */
-    private Consumer<Exception> defaultOnErrorFor(final String commandId) {
+    private Consumer<Exception> defaultDoOnError(final String commandId) {
         return exception -> {
             if (nonNull(exception)) {
                 logSomethingWentWrong(exception, commandId);

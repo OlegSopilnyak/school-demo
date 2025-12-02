@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
+import oleg.sopilnyak.test.service.command.type.education.CourseCommand.CommandId;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
@@ -38,7 +39,11 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     // semantic data to payload converter
     private final UnaryOperator<Course> toPayload;
 
-    public CoursesFacadeImpl(CommandsFactory<CourseCommand<?>> factory, BusinessMessagePayloadMapper mapper, ActionExecutor actionExecutor) {
+    public CoursesFacadeImpl(
+            CommandsFactory<CourseCommand<?>> factory,
+            BusinessMessagePayloadMapper mapper,
+            ActionExecutor actionExecutor
+    ) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;
         this.toPayload = course -> course instanceof CoursePayload payload ? payload : mapper.toPayload(course);
@@ -56,9 +61,14 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     @Override
     public Optional<Course> findById(final Long id) {
         log.debug("Finding course by ID: {}", id);
-        final Optional<Course> result = actCommand(CourseCommand.CommandId.FIND_BY_ID, factory, Input.of(id));
-        log.debug("Found the course {}", result);
-        return result.map(toPayload);
+        final Optional<Optional<Course>> result;
+        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        if (result.isPresent()) {
+            final Optional<Course> course = result.get();
+            log.debug("Found the course {}", course);
+            return course.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -69,10 +79,15 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      */
     @Override
     public Set<Course> findRegisteredFor(final Long id) {
-        log.debug("Find courses registered to student with ID:{}", id);
-        final Set<Course> result = actCommand(CourseCommand.CommandId.FIND_REGISTERED, factory, Input.of(id));
-        log.debug("Found courses registered to student {}", result);
-        return result.stream().map(toPayload).collect(Collectors.toSet());
+        log.debug("Finding courses registered to student with ID:{}", id);
+        final Optional<Set<Course>> result;
+        result = actCommand(CommandId.FIND_REGISTERED, factory, Input.of(id));
+        if (result.isPresent()) {
+            final Set<Course> courses = result.get();
+            log.debug("Found courses registered to student {}", courses);
+            return courses.stream().map(toPayload).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     /**
@@ -82,10 +97,15 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      */
     @Override
     public Set<Course> findWithoutStudents() {
-        log.debug("Find no-students courses");
-        final Set<Course> result = actCommand(CourseCommand.CommandId.FIND_NOT_REGISTERED, factory, Input.empty());
-        log.debug("Found no-students courses {}", result);
-        return result.stream().map(toPayload).collect(Collectors.toSet());
+        log.debug("Finding no-students courses");
+        final Optional<Set<Course>> result;
+        result = actCommand(CommandId.FIND_NOT_REGISTERED, factory, Input.empty());
+        if (result.isPresent()) {
+            final Set<Course> courses = result.get();
+            log.debug("Found no-students courses {}", courses);
+            return courses.stream().map(toPayload).collect(Collectors.toSet());
+        }
+        return Set.of();
     }
 
     /**
@@ -98,10 +118,16 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      */
     @Override
     public Optional<Course> createOrUpdate(final Course instance) {
-        log.debug("Create or Update course {}", instance);
-        final Optional<Course> result = actCommand(CourseCommand.CommandId.CREATE_OR_UPDATE, factory, Input.of(toPayload.apply(instance)));
-        log.debug("Changed course {}", result);
-        return result.map(toPayload);
+        log.debug("Creating or Updating course {}", instance);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<Course>> result;
+        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        if (result.isPresent()) {
+            final Optional<Course> course = result.get();
+            log.debug("Changed course {}", course);
+            return course.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -113,8 +139,8 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      */
     @Override
     public void delete(Long id) throws CourseNotFoundException, CourseWithStudentsException {
-        final String commandId = CourseCommand.CommandId.DELETE;
-        final Consumer<Exception> onError = exception -> {
+        final String commandId = CommandId.DELETE;
+        final Consumer<Exception> doThisOnError = exception -> {
             logSomethingWentWrong(exception, commandId);
             if (exception instanceof CourseNotFoundException noCourseException) {
                 throw noCourseException;
@@ -126,9 +152,11 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
                 failedButNoExceptionStored(commandId);
             }
         };
-        log.debug("Delete course with ID:{}", id);
-        final Boolean result = actCommand(commandId, factory, Input.of(id), onError);
-        log.debug("Deleted course with ID:{} successfully:{} .", id, result);
+        log.debug("Deleting course with ID:{}", id);
+        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        result.ifPresent(executionResult ->
+                log.debug("Deleted course with ID:{} successfully:{} .", id, executionResult)
+        );
     }
 
     /**
@@ -145,8 +173,8 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public void register(Long studentId, Long courseId)
             throws StudentNotFoundException, CourseNotFoundException,
             CourseHasNoRoomException, StudentCoursesExceedException {
-        final String commandId = CourseCommand.CommandId.REGISTER;
-        final Consumer<Exception> onError = exception -> {
+        final String commandId = CommandId.REGISTER;
+        final Consumer<Exception> doThisOnError = exception -> {
             logSomethingWentWrong(exception, commandId);
             if (exception instanceof StudentNotFoundException noStudentException) {
                 throw noStudentException;
@@ -162,10 +190,12 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
                 failedButNoExceptionStored(commandId);
             }
         };
-
-        log.debug("Register the student with ID:{} to the course with ID:{}", studentId, courseId);
-        final Boolean result = actCommand(commandId, factory, Input.of(studentId, courseId), onError);
-        log.debug("Linked course:{} to student:{} successfully:{}.", courseId, studentId, result);
+        log.debug("Registering the student with ID:{} to the course with ID:{}", studentId, courseId);
+        final var input = Input.of(studentId, courseId);
+        final Optional<Boolean> result = actCommand(commandId, factory, input, doThisOnError);
+        result.ifPresent(executionResult ->
+                log.debug("Linked course:{} with student:{} successfully:{}.", courseId, studentId, executionResult)
+        );
     }
 
     /**
@@ -178,8 +208,8 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException {
-        final String commandId = CourseCommand.CommandId.UN_REGISTER;
-        final Consumer<Exception> onError = exception -> {
+        final String commandId = CommandId.UN_REGISTER;
+        final Consumer<Exception> doThisOnError = exception -> {
             logSomethingWentWrong(exception, commandId);
             if (exception instanceof StudentNotFoundException noStudentException) {
                 throw noStudentException;
@@ -192,16 +222,21 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
             }
         };
 
-        log.debug("UnRegister the student with ID:{} from the course with ID:{}", studentId, courseId);
-        final Boolean result = actCommand(commandId, factory, Input.of(studentId, courseId), onError);
-        log.debug("Unlinked course:{} from student:{} successfully:{} .", courseId, studentId, result);
+        log.debug("UnRegistering the student with ID:{} from the course with ID:{}", studentId, courseId);
+        final var input = Input.of(studentId, courseId);
+        final Optional<Boolean> result = actCommand(commandId, factory, input, doThisOnError);
+        result.ifPresent(executionResult ->
+                log.debug("Unlinked course:{} from student:{} successfully:{} .", courseId, studentId, executionResult)
+        );
     }
 
-
+    /**
+     * To get the logger of the facade
+     *
+     * @return logger instance
+     */
     @Override
     public Logger getLogger() {
         return log;
     }
-
-    // private methods
 }

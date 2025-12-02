@@ -70,9 +70,10 @@ class ActionFacadeTest {
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
 
-        Boolean result = actionFacade.actCommand(commandId, commandsFactory, input);
+        Optional<Boolean> result = actionFacade.actCommand(commandId, commandsFactory, input);
 
-        assertThat(result).isNotNull().isTrue();
+        assertThat(result).isNotNull();
+        assertThat(result.get()).isTrue();
         verify(actionFacade).actCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
         verify(actionExecutor).commitAction(currentActionContext, context);
     }
@@ -118,9 +119,10 @@ class ActionFacadeTest {
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
 
-        Boolean result = actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException);
+        Optional<Boolean> result = actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException);
 
-        assertThat(result).isNotNull().isTrue();
+        assertThat(result).isNotNull();
+        assertThat(result.get()).isNotNull().isTrue();
         verify(actionExecutor).commitAction(currentActionContext, context);
         verify(log, never()).error(anyString());
     }
