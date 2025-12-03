@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,7 +82,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldFindStudent() throws Exception {
         Long id = 100L;
         Student student = makeTestStudent(id);
-        when(facade.findById(id)).thenReturn(Optional.of(student));
+        doReturn(Optional.of(student)).when(facade).findById(id);
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -114,7 +113,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 40L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         List<Student> selectedStudentsList = students.stream().sorted(Comparator.comparing(Student::getId)).toList();
-        when(facade.findEnrolledTo(courseId)).thenReturn(students);
+        doReturn(students).when(facade).findEnrolledTo(courseId);
         String requestPath = ROOT + "/enrolled/" + courseId;
 
         MvcResult result =
@@ -141,7 +140,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 5L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         List<Student> selectedStudentsList = students.stream().sorted(Comparator.comparing(Student::getId)).toList();
-        when(facade.findNotEnrolled()).thenReturn(students);
+        doReturn(students).when(facade).findNotEnrolled();
         String requestPath = ROOT + "/empty";
 
         MvcResult result =

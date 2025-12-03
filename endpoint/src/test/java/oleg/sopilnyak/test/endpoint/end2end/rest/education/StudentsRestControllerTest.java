@@ -115,7 +115,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();
@@ -380,10 +379,6 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         return payloadMapper.toPayload(persist(newStudent));
     }
 
-    private Course getPersistent(Course newCourse) {
-        return payloadMapper.toPayload(persist(newCourse));
-    }
-
     private StudentPayload createStudent(Student newStudent) {
         try {
             StudentProfile profile = persist(makeStudentProfile(null));
@@ -400,41 +395,32 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
 
     private Student persist(Student newInstance) {
         Student entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private Course persist(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             entity.getStudentSet().forEach(em::persist);
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private StudentProfile persist(StudentProfile newInstance) {
         StudentProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 

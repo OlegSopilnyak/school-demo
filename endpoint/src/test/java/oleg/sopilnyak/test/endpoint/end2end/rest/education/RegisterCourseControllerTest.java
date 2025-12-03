@@ -114,7 +114,6 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
 
         assertThat(studentsFacade).isNotNull();
         assertThat(studentFactory).isEqualTo(ReflectionTestUtils.getField(studentsFacade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(studentsFacade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();
@@ -254,55 +253,43 @@ class RegisterCourseControllerTest extends MysqlTestModelFactory {
 
     private Student getPersistent(Student newInstance) {
         StudentEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getCourses().forEach(em::persist);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private Optional<Student> findStudentById(Long id) {
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             StudentEntity entity = em.find(StudentEntity.class, id);
             if (entity != null) {
-                entity.getCourseSet().forEach(course -> course.getStudents().size());
+                entity.getCourseSet().forEach(course -> course.getStudentSet().size());
             }
             return Optional.ofNullable(entity);
-        } finally {
-            em.close();
         }
     }
 
     private Course getPersistent(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getStudents().forEach(em::persist);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private Optional<Course> findCourseById(Long id) {
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             CourseEntity entity = em.find(CourseEntity.class, id);
             if (entity != null) {
                 entity.getStudents().forEach(student -> student.getCourses().size());
             }
             return Optional.ofNullable(entity);
-        } finally {
-            em.close();
         }
     }
 }

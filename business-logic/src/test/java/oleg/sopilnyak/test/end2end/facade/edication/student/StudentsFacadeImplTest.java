@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.end2end.facade.student;
+package oleg.sopilnyak.test.end2end.facade.edication.student;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -106,7 +106,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         factory = buildFactory(persistenceFacade);
-        facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentsFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 
@@ -208,7 +208,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
@@ -220,7 +220,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
@@ -233,7 +233,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
@@ -362,40 +362,31 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     private Student persist(Student newInstance) {
         Student entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private Course persist(Course newInstance) {
         Course entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private StudentProfile persist(StudentProfile newInstance) {
         StudentProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 

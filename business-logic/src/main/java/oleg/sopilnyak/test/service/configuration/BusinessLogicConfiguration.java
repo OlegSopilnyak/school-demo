@@ -48,7 +48,7 @@ public class BusinessLogicConfiguration {
     public StudentsFacade studentsFacade(
             @Qualifier(StudentCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentCommand<?>> factory
     ) {
-        return new StudentsFacadeImpl(factory, messagePayloadMapper());
+        return new StudentsFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean

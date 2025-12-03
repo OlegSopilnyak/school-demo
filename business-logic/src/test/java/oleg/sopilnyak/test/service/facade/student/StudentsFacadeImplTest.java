@@ -7,7 +7,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -101,7 +100,9 @@ class StudentsFacadeImplTest {
     @BeforeEach
     void setUp() {
         factory = buildFactory();
-        facade = spy(new StudentsFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentsFacadeImpl(factory, payloadMapper, actionExecutor));
+        doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
     }
 
@@ -189,7 +190,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).isEmpty();
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
@@ -206,7 +207,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).hasSize(1);
         verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(null);
+        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
         verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
         verify(payloadMapper).toPayload(mockedStudent);
@@ -238,8 +239,6 @@ class StudentsFacadeImplTest {
         when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
         when(persistenceFacade.save(any(StudentProfilePayload.class))).thenReturn(Optional.of(mockedStudentProfilePayload));
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         Optional<Student> result = facade.create(mockedStudent);
 
@@ -289,8 +288,6 @@ class StudentsFacadeImplTest {
         when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         facade.delete(studentId);
         threadPoolTaskExecutor.shutdown();
@@ -342,8 +339,6 @@ class StudentsFacadeImplTest {
         when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
         threadPoolTaskExecutor.shutdown();
@@ -382,22 +377,10 @@ class StudentsFacadeImplTest {
                 deleteStudentMacroCommand
         );
         commands.forEach(command -> {
-//            CourseCommand<?> command = entry.getKey();
             if (ReflectionUtils.findField(command.getClass(), acName) != null) {
                 ReflectionTestUtils.setField(command, acName, applicationContext);
             }
         });
         return spy(new StudentCommandsFactory(commands));
-//                        Set.of(
-//                                spy(new FindStudentCommand(persistenceFacade, payloadMapper)),
-//                                spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-//                                spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)),
-//                                createStudentCommand,
-//                                createMacroCommand,
-//                                deleteStudentCommand,
-//                                deleteStudentMacroCommand
-//                        )
-//                )
-//        );
     }
 }
