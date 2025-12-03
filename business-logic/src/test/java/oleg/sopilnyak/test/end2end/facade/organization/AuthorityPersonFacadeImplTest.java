@@ -185,7 +185,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(persons).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllAuthorityPersons();
     }
@@ -199,7 +199,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(persons).contains(payloadMapper.toPayload(person));
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllAuthorityPersons();
     }
@@ -432,39 +432,30 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     private void merge(PrincipalProfile instance) {
         PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.merge(entity);
             em.getTransaction().commit();
-        } finally {
-            em.close();
         }
     }
 
     private AuthorityPerson persist(AuthorityPerson newInstance) {
         AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private PrincipalProfile persist(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 }

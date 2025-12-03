@@ -10,6 +10,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -78,6 +79,7 @@ class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
 
+    ActionExecutor actionExecutor = mock(ActionExecutor.class);
     @Mock
     ApplicationContext applicationContext;
     @Mock
@@ -97,8 +99,6 @@ class AuthorityPersonFacadeImplTest {
     CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
     @Mock
-    ActionExecutor actionExecutor;
-    @Mock
     SchedulingTaskExecutor schedulingTaskExecutor;
 
     @Mock
@@ -116,9 +116,9 @@ class AuthorityPersonFacadeImplTest {
     void setUp() {
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach
@@ -195,7 +195,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(persons).isEmpty();
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
@@ -213,7 +213,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(persons).hasSize(1);
         verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper).toPayload(mockPerson);
