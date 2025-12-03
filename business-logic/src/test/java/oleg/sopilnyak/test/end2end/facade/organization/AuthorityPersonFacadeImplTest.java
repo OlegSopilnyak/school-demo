@@ -108,7 +108,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory(persistence));
-        facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
+        facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 

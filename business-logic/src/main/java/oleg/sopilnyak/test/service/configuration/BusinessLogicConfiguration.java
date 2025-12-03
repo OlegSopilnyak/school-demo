@@ -62,21 +62,21 @@ public class BusinessLogicConfiguration {
     public AuthorityPersonFacade authorityPersonFacade(
             @Qualifier(AuthorityPersonCommand.FACTORY_BEAN_NAME) CommandsFactory<AuthorityPersonCommand<?>> factory
     ) {
-        return new AuthorityPersonFacadeImpl(factory, messagePayloadMapper());
+        return new AuthorityPersonFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean
     public FacultyFacade facultyFacade(
             @Qualifier(FacultyCommand.FACTORY_BEAN_NAME) CommandsFactory<FacultyCommand<?>> factory
     ) {
-        return new FacultyFacadeImpl(factory, messagePayloadMapper());
+        return new FacultyFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean
     public StudentsGroupFacade studentsGroupFacade(
             @Qualifier(StudentsGroupCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentsGroupCommand<?>> factory
     ) {
-        return new StudentsGroupFacadeImpl(factory, messagePayloadMapper());
+        return new StudentsGroupFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean

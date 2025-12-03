@@ -115,7 +115,9 @@ class AuthorityPersonFacadeImplTest {
     @BeforeEach
     void setUp() {
         factory = buildFactory();
-        facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper));
+        facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-action");
     }
 
@@ -264,8 +266,6 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPerson));
         when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfile));
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         Optional<AuthorityPerson> result = facade.create(mockPerson);
 
@@ -330,8 +330,6 @@ class AuthorityPersonFacadeImplTest {
         when(persistenceFacade.toEntity(mockProfile)).thenReturn(mockProfile);
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         facade.deleteAuthorityPersonById(id);
         threadPoolTaskExecutor.shutdown();
@@ -384,8 +382,6 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(mockPersonPayload.getFaculties()).thenReturn(List.of(mockFaculty));
-        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
-        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
 
         AuthorityPersonManagesFacultyException thrown =
                 assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));

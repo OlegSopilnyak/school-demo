@@ -21,6 +21,8 @@ import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNot
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
@@ -56,7 +58,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "organization.students.group.findAll";
@@ -64,6 +66,9 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
     private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "organization.students.group.delete";
 
+    @MockitoSpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
     @Autowired
     ConfigurableApplicationContext context;
     @Autowired
@@ -83,7 +88,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory(persistence));
-        facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper, actionExecutor));
     }
 
     @AfterEach

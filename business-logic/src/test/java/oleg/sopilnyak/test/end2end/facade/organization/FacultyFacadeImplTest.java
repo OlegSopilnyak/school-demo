@@ -19,6 +19,8 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
+import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
@@ -54,7 +56,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {PersistenceConfiguration.class, TestConfig.class})
+@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class FacultyFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_FACULTY_FIND_ALL = "organization.faculty.findAll";
@@ -62,6 +64,9 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_FACULTY_CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
     private static final String ORGANIZATION_FACULTY_DELETE = "organization.faculty.delete";
 
+    @MockitoSpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
     @Autowired
     ConfigurableApplicationContext context;
     @Autowired
@@ -80,7 +85,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory(persistence));
-        facade = spy(new FacultyFacadeImpl(factory, payloadMapper));
+        facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
     }
 
     @AfterEach

@@ -17,6 +17,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNot
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
@@ -60,6 +61,8 @@ class StudentsGroupFacadeImplTest {
     StudentsGroupFacadeImpl facade;
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @Mock
     StudentsGroup mockGroup;
@@ -69,7 +72,7 @@ class StudentsGroupFacadeImplTest {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory());
-        facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 

@@ -17,6 +17,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
@@ -55,6 +56,8 @@ class FacultyFacadeImplTest {
     CommandsFactory<FacultyCommand<?>> factory;
     FacultyFacadeImpl facade;
     @Mock
+    ActionExecutor actionExecutor;
+    @Mock
     ApplicationContext applicationContext;
 
     @Mock
@@ -65,7 +68,7 @@ class FacultyFacadeImplTest {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory());
-        facade = spy(new FacultyFacadeImpl(factory, payloadMapper));
+        facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 

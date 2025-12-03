@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.base.Organ
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -23,6 +24,7 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import org.slf4j.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,15 +35,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand<?>> implements StudentsGroupFacade {
-    private final BusinessMessagePayloadMapper mapper;
     // semantic data to payload converter
-    private final UnaryOperator<StudentsGroup> convert;
+    private final UnaryOperator<StudentsGroup> toPayload;
 
-    public StudentsGroupFacadeImpl(final CommandsFactory<StudentsGroupCommand<?>> factory,
-                                   final BusinessMessagePayloadMapper mapper) {
-        super(factory);
-        this.mapper = mapper;
-        this.convert = group -> group instanceof StudentsGroupPayload ? group : this.mapper.toPayload(group);
+    public StudentsGroupFacadeImpl(
+            CommandsFactory<StudentsGroupCommand<?>> factory,
+            BusinessMessagePayloadMapper mapper,
+            ActionExecutor actionExecutor
+    ) {
+        super(factory, actionExecutor);
+        this.toPayload = group -> group instanceof StudentsGroupPayload ? group : mapper.toPayload(group);
     }
 
     /**
@@ -55,7 +58,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         log.debug("Find all students groups");
         final Collection<StudentsGroup> result = doSimpleCommand(CommandId.FIND_ALL, null, factory);
         log.debug("Found all students groups {}", result);
-        return result.stream().map(convert).toList();
+        return result.stream().map(toPayload).toList();
     }
 
     /**
@@ -72,7 +75,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         log.debug("Find students group by ID:{}", id);
         final Optional<StudentsGroup> result = doSimpleCommand(CommandId.FIND_BY_ID, Input.of(id), factory);
         log.debug("Found students group {}", result);
-        return result.map(convert);
+        return result.map(toPayload);
     }
 
     /**
@@ -87,9 +90,9 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
         log.debug("Create or Update students group {}", instance);
-        final Optional<StudentsGroup> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(convert.apply(instance)), factory);
+        final Optional<StudentsGroup> result = doSimpleCommand(CommandId.CREATE_OR_UPDATE, Input.of(toPayload.apply(instance)), factory);
         log.debug("Changed students group {}", result);
-        return result.map(convert);
+        return result.map(toPayload);
     }
 
     /**
@@ -126,6 +129,16 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         } else {
             wrongCommandExecution();
         }
+    }
+
+    /**
+     * To get the logger of the facade
+     *
+     * @return logger instance
+     */
+    @Override
+    public Logger getLogger() {
+        return log;
     }
 
     // private methods
