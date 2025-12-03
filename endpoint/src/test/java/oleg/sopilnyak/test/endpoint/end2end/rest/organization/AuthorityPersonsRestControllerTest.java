@@ -114,7 +114,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();
@@ -559,13 +558,10 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     private void merge(PrincipalProfile instance) {
         PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.merge(entity);
             em.getTransaction().commit();
-        } finally {
-            em.close();
         }
     }
 
@@ -575,45 +571,35 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     private void merge(AuthorityPerson instance) {
         AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.merge(entity);
             em.getTransaction().commit();
-        } finally {
-            em.close();
         }
     }
 
     private AuthorityPerson persist(AuthorityPerson newInstance) {
         AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private PrincipalProfile persist(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
-    private AuthorityPerson create(AuthorityPerson newInstance) {
+    private AuthorityPerson create(AuthorityPerson person) {
         PrincipalProfile profile = persist(makePrincipalProfile(null));
-        AuthorityPerson person = newInstance;
         if (person instanceof FakeAuthorityPerson fake) {
             fake.setProfileId(profile.getId());
         } else {

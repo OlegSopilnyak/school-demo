@@ -11,6 +11,8 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,7 @@ public class FindFacultyCommand extends BasicCommand<Optional<Faculty>> implemen
      * @see FacultyPersistenceFacade#findFacultyById(Long)
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public  void executeDo(Context<Optional<Faculty>> context) {
         final Input<Long> parameter = context.getRedoParameter();
         try {

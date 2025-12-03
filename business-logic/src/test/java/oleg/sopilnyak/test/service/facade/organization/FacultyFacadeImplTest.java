@@ -2,7 +2,9 @@ package oleg.sopilnyak.test.service.facade.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -29,6 +31,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 
 import java.util.Collection;
@@ -70,6 +73,8 @@ class FacultyFacadeImplTest {
         factory = spy(buildFactory());
         facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }
 
     @Test
@@ -83,7 +88,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculties).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }
@@ -100,7 +105,7 @@ class FacultyFacadeImplTest {
 
         assertThat(faculties).hasSize(1);
         verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }

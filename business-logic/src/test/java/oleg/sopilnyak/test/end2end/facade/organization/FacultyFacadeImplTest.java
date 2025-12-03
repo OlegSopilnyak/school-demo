@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
@@ -86,6 +87,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach
@@ -109,7 +111,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculties).isEmpty();
         verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }
@@ -122,7 +124,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculties).contains(faculty);
         verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }
@@ -290,8 +292,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private Faculty persist(Faculty source) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             FacultyEntity entity = entityMapper.toEntity(source);
             transaction.begin();
@@ -302,8 +303,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
             entity.getCourseEntitySet().size();
             transaction.commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 }
