@@ -54,6 +54,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param id system-id of the course
      * @return course instance or empty() if not exists
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
      * @see Course
      * @see Optional
      * @see Optional#empty()
@@ -76,6 +77,11 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param id system-id of the student
      * @return set of courses
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see Course
+     * @see Set
+     * @see Optional
+     * @see Optional#empty()
      */
     @Override
     public Set<Course> findRegisteredFor(final Long id) {
@@ -94,6 +100,11 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * To get courses without registered students
      *
      * @return set of courses
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see Course
+     * @see Set
+     * @see Optional
+     * @see Optional#empty()
      */
     @Override
     public Set<Course> findWithoutStudents() {
@@ -113,6 +124,8 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param instance course should be created or updated
      * @return student instance or empty() if not exists
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see Course
      * @see Optional
      * @see Optional#empty()
      */
@@ -136,6 +149,9 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @param id system-id of the course to delete
      * @throws CourseNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see Consumer
+     * @see Optional
      */
     @Override
     public void delete(Long id) throws CourseNotFoundException, CourseWithStudentsException {
@@ -152,6 +168,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
                 failedButNoExceptionStored(commandId);
             }
         };
+
         log.debug("Deleting course with ID:{}", id);
         final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
@@ -168,6 +185,9 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @throws CourseNotFoundException       throws if course is not exists
      * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see Consumer
+     * @see Optional
      */
     @Override
     public void register(Long studentId, Long courseId)
@@ -190,6 +210,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
                 failedButNoExceptionStored(commandId);
             }
         };
+
         log.debug("Registering the student with ID:{} to the course with ID:{}", studentId, courseId);
         final var input = Input.of(studentId, courseId);
         final Optional<Boolean> result = actCommand(commandId, factory, input, doThisOnError);
@@ -205,6 +226,9 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @param courseId  system-id of the course
      * @throws StudentNotFoundException throws when student is not exists
      * @throws CourseNotFoundException  throws if course is not exists
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see Consumer
+     * @see Optional
      */
     @Override
     public void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException {

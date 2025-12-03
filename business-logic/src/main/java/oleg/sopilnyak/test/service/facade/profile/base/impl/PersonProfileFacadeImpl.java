@@ -53,7 +53,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id system-id of the profile
      * @return profile instance or empty() if not exists
      * @see PersonProfileFacadeImpl#findByIdCommandId()
-     * @see CommandExecutor#doSimpleCommand(String, Object, CommandsFactory)
+     * @see CommandExecutor#doSimpleCommand(String, Input, CommandsFactory)
      * @see PersonProfile
      * @see PersonProfile#getId()
      * @see Optional
