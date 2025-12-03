@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
@@ -89,6 +90,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach
@@ -115,7 +117,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(groups).contains(group);
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllStudentsGroups();
     }
@@ -127,7 +129,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(groups).isEmpty();
         verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(null);
+        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(Input.empty());
         verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
         verify(persistence).findAllStudentsGroups();
     }
@@ -298,8 +300,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     }
 
     private StudentsGroup persist(StudentsGroup source) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try(EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             StudentsGroupEntity entity = entityMapper.toEntity(source);
             transaction.begin();
@@ -310,7 +311,6 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentsGroupEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }
