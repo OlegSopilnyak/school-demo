@@ -2,21 +2,25 @@ package oleg.sopilnyak.test.service.facade.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
@@ -27,6 +31,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
 import java.util.Optional;
@@ -55,6 +60,8 @@ class StudentProfileFacadeImplTest {
     DeleteStudentProfileCommand deleteCommand;
     CommandsFactory<StudentProfileCommand<?>> factory;
     StudentProfileFacadeImpl facade;
+    @Mock
+    ActionExecutor actionExecutor;
 
     @Mock
     StudentProfile profile;
@@ -64,7 +71,10 @@ class StudentProfileFacadeImplTest {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory());
-        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
+        doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
+        doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }
 
     @Test
@@ -258,6 +268,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileInstance_NegativeId() {
+        reset(actionExecutor);
         Long id = -716L;
         when(profile.getId()).thenReturn(id);
 
@@ -270,6 +281,7 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileInstance_NullId() {
+        reset(actionExecutor);
         when(profile.getId()).thenReturn(null);
 
         ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));

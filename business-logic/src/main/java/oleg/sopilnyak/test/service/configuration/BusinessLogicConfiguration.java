@@ -83,14 +83,14 @@ public class BusinessLogicConfiguration {
     public StudentProfileFacade studentProfileFacade(
             @Qualifier(StudentProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<StudentProfileCommand<?>> factory
     ) {
-        return new StudentProfileFacadeImpl(factory, messagePayloadMapper());
+        return new StudentProfileFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
     @Bean
     public PrincipalProfileFacade principalProfileFacade(
             @Qualifier(PrincipalProfileCommand.FACTORY_BEAN_NAME) CommandsFactory<PrincipalProfileCommand<?>> factory
     ) {
-        return new PrincipalProfileFacadeImpl(factory, messagePayloadMapper());
+        return new PrincipalProfileFacadeImpl(factory, messagePayloadMapper(), actionExecutor);
     }
 
 }

@@ -14,12 +14,14 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
@@ -60,6 +62,9 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String PROFILE_DELETE = "profile.student.deleteById";
 
+    @MockitoSpyBean
+    @Autowired
+    ActionExecutor actionExecutor;
     @Autowired
     ConfigurableApplicationContext context;
     @Autowired
@@ -82,7 +87,8 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         factory = spy(buildFactory(persistence));
-        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper));
+        facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper, actionExecutor));
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @Test
@@ -292,12 +298,10 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
                 spy(new DeleteStudentProfileCommand(persistence, payloadMapper)), "profileStudentDelete"
         );
         String acName = "applicationContext";
-        commands.entrySet().forEach(entry -> {
-            StudentProfileCommand<?> command = entry.getKey();
+        commands.forEach((command, beanName) -> {
             if (ReflectionUtils.findField(command.getClass(), acName) != null) {
                 ReflectionTestUtils.setField(command, acName, applicationContext);
             }
-            String beanName = entry.getValue();
             DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
             if (beanFactory.containsSingleton(beanName)) {
                 beanFactory.destroySingleton(beanName);
@@ -311,27 +315,21 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     private StudentProfile persist(StudentProfile newInstance) {
         StudentProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
     private PrincipalProfile persist(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 

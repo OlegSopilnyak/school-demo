@@ -1,44 +1,46 @@
 package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
 import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.doSimpleCommand;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.takeValidCommand;
-import static oleg.sopilnyak.test.service.command.executable.CommandExecutor.throwFor;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.service.command.executable.CommandExecutor;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
+import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
 /**
- * Service: To process commands for school's person profiles facade
+ * Service: To process commands for school's person profiles facades
+ *
+ * @see oleg.sopilnyak.test.service.facade.profile.impl.PrincipalProfileFacadeImpl
+ * @see oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl
  */
-@Slf4j
-public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> implements PersonProfileFacade {
-    protected static final String WRONG_COMMAND_EXECUTION = "For command-id:'{}' there is not exception after wrong command execution.";
-    protected static final String EXCEPTION_IS_NOT_STORED = "Exception is not stored!!!";
-    protected static final String SOMETHING_WENT_WRONG = "Something went wrong";
-    private final CommandsFactory<P> factory;
-    private final BusinessMessagePayloadMapper mapper;
-    // semantic data to payload converter
-    private final UnaryOperator<PersonProfile> convert;
+public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> implements PersonProfileFacade, ActionFacade {
 
-    protected PersonProfileFacadeImpl(final CommandsFactory<P> factory,
-                                      final BusinessMessagePayloadMapper mapper) {
+    private final CommandsFactory<P> factory;
+    // semantic data to payload converter
+    private final UnaryOperator<PersonProfile> toPayload;
+    @Getter
+    private final ActionExecutor actionExecutor;
+
+    protected PersonProfileFacadeImpl(
+            CommandsFactory<P> factory,
+            BusinessMessagePayloadMapper mapper,
+            ActionExecutor actionExecutor
+    ) {
         this.factory = factory;
-        this.mapper = mapper;
-        this.convert = profile -> profile instanceof BaseProfilePayload ? profile : this.mapper.toPayload(profile);
+        this.actionExecutor = actionExecutor;
+        this.toPayload = profile -> profile instanceof BaseProfilePayload ? profile : mapper.toPayload(profile);
     }
 
     protected abstract String findByIdCommandId();
@@ -53,7 +55,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id system-id of the profile
      * @return profile instance or empty() if not exists
      * @see PersonProfileFacadeImpl#findByIdCommandId()
-     * @see CommandExecutor#doSimpleCommand(String, Input, CommandsFactory)
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
      * @see PersonProfile
      * @see PersonProfile#getId()
      * @see Optional
@@ -61,10 +63,15 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      */
     @Override
     public Optional<PersonProfile> findById(Long id) {
-        log.debug("Find profile by ID:{}", id);
-        final Optional<PersonProfile> result = doSimpleCommand(findByIdCommandId(), Input.of(id), factory);
-        log.debug("Found profile {}", result);
-        return result.map(convert);
+        getLogger().debug("Finding profile by ID:{}", id);
+        final Optional<Optional<PersonProfile>> result;
+        result = actCommand(findByIdCommandId(), factory, Input.of(id));
+        if (result.isPresent()) {
+            final Optional<PersonProfile> profile = result.get();
+            getLogger().debug("Found profile {}", profile);
+            return profile.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -73,17 +80,23 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param instance instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfileFacadeImpl#createOrUpdateCommandId()
-     * @see CommandExecutor#doSimpleCommand(String, Input, CommandsFactory)
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
      * @see PersonProfile
      * @see Optional
      * @see Optional#empty()
      */
     @Override
     public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
-        log.debug("Create or Update profile {}", instance);
-        final Optional<PersonProfile> result = doSimpleCommand(createOrUpdateCommandId(), Input.of(convert.apply(instance)), factory);
-        log.debug("Changed profile {}", result);
-        return result.map(convert);
+        getLogger().debug("Creating or Updating profile {}", instance);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<PersonProfile>> result;
+        result = actCommand(createOrUpdateCommandId(), factory, input);
+        if (result.isPresent()) {
+            final Optional<PersonProfile> profile = result.get();
+            getLogger().debug("Changed profile {}", profile);
+            return profile.map(toPayload);
+        }
+        return Optional.empty();
     }
 
     /**
@@ -92,6 +105,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id value of system-id
      * @throws ProfileNotFoundException throws if the profile with system-id does not exist in the database
      * @see PersonProfileFacadeImpl#deleteByIdCommandId()
+     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
      * @see ProfileCommand#createContext(Input)
      * @see ProfileCommand#doCommand(Context)
      * @see Context
@@ -99,34 +113,24 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      */
     @Override
     public void deleteById(Long id) throws ProfileNotFoundException {
-        log.debug("Delete profile with ID:{}", id);
         final String commandId = deleteByIdCommandId();
-        final RootCommand<Boolean> command = (RootCommand<Boolean>) takeValidCommand(commandId, factory);
-        final Context<Boolean> context = command.createContext(Input.of(id));
+        final Consumer<Exception> doThisOnError = exception -> {
+            logSomethingWentWrong(exception, commandId);
+            if (exception instanceof ProfileNotFoundException profileNotFoundException) {
+                throw profileNotFoundException;
+            } else if (nonNull(exception)) {
+                ActionFacade.throwFor(commandId, exception);
+            } else {
+                failedButNoExceptionStored(commandId);
+            }
+        };
 
-        command.doCommand(context);
-
-        if (context.isDone()) {
-            // success processing
-            log.debug("Deleted profile with ID:{} successfully.", id);
-            return;
-        }
-
-        // fail processing
-        final Exception deleteException = context.getException();
-        log.warn(SOMETHING_WENT_WRONG + " with profile deletion", deleteException);
-        if (deleteException instanceof ProfileNotFoundException profileNotFoundException) {
-            throw profileNotFoundException;
-        } else if (nonNull(deleteException)) {
-            throwFor(commandId, deleteException);
-        } else {
-            wrongCommandExecution(commandId);
-        }
+        getLogger().debug("Deleting profile with ID:{}", id);
+        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        result.ifPresent(executionResult ->
+                getLogger().debug("Deleted profile with ID:{} successfully:{} .", id, executionResult)
+        );
     }
 
     // private methods
-    private static void wrongCommandExecution(String commandId) {
-        log.error(WRONG_COMMAND_EXECUTION, commandId);
-        throwFor(commandId, new NullPointerException(EXCEPTION_IS_NOT_STORED));
-    }
 }

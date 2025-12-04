@@ -3,11 +3,13 @@ package oleg.sopilnyak.test.service.facade.profile.impl;
 import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
+import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import org.slf4j.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,8 +20,9 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
         implements StudentProfileFacade {
 
     public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
-                                    final BusinessMessagePayloadMapper payloadMapper) {
-        super(factory, payloadMapper);
+                                    final BusinessMessagePayloadMapper payloadMapper,
+                                    ActionExecutor actionExecutor) {
+        super(factory, payloadMapper, actionExecutor);
     }
 
     @Override
@@ -35,5 +38,15 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
     @Override
     protected final String deleteByIdCommandId() {
         return CommandId.DELETE_BY_ID;
+    }
+
+    /**
+     * To get the logger of the facade
+     *
+     * @return logger instance
+     */
+    @Override
+    public Logger getLogger() {
+        return log;
     }
 }

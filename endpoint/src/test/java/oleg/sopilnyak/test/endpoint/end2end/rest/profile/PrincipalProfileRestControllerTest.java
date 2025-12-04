@@ -110,7 +110,6 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
-        assertThat(mapper).isEqualTo(ReflectionTestUtils.getField(facade, "mapper"));
 
         assertThat(controller).isNotNull();
         assertThat(delegate).isNotNull();
@@ -287,14 +286,11 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
 
     private PrincipalProfile getPersistent(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 }
