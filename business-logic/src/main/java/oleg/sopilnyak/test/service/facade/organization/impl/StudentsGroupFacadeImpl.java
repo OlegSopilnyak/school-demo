@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
@@ -12,7 +11,6 @@ import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
-import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
@@ -56,7 +54,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     public Collection<StudentsGroup> findAllStudentsGroups() {
         log.debug("Finding all students groups");
         final Optional<Set<StudentsGroup>> result;
-        result = actCommand(CommandId.FIND_ALL, factory, Input.empty());
+        result = executeCommand(CommandId.FIND_ALL, factory, Input.empty());
         if (result.isPresent()) {
             final Set<StudentsGroup> studentsGroupSet = result.get();
             log.debug("Found all students groups {}", studentsGroupSet);
@@ -78,7 +76,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     public Optional<StudentsGroup> findStudentsGroupById(Long id) {
         log.debug("Finding students group by ID:{}", id);
         final Optional<Optional<StudentsGroup>> result;
-        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<StudentsGroup> faculty = result.get();
             log.debug("Found students group {}", faculty);
@@ -101,7 +99,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
         log.debug("Creating or Updating students group {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<StudentsGroup>> result;
-        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
         if (result.isPresent()) {
             final Optional<StudentsGroup> studentsGroup = result.get();
             log.debug("Changed students group {}", studentsGroup);
@@ -121,19 +119,21 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     public void deleteStudentsGroupById(Long id) throws StudentsGroupNotFoundException, StudentGroupWithStudentsException {
         final String commandId = CommandId.DELETE;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof StudentsGroupNotFoundException noGroupException) {
-                throw noGroupException;
-            } else if (exception instanceof StudentGroupWithStudentsException groupWithStudentsException) {
-                throw groupWithStudentsException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case StudentsGroupNotFoundException noGroupException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noGroupException;
+                }
+                case StudentGroupWithStudentsException groupWithStudentsException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw groupWithStudentsException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
-        log.debug("Delete students group with ID:{}", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+
+        log.debug("Deleting students group with ID:{}", id);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Deleted faculty with ID:{} successfully:{} .", id, executionResult)
         );

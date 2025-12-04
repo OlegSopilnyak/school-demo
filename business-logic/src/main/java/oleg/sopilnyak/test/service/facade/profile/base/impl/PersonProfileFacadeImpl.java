@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.facade.profile.base.impl;
 
-import static java.util.Objects.nonNull;
-
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
@@ -55,7 +53,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id system-id of the profile
      * @return profile instance or empty() if not exists
      * @see PersonProfileFacadeImpl#findByIdCommandId()
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see PersonProfile
      * @see PersonProfile#getId()
      * @see Optional
@@ -65,7 +63,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     public Optional<PersonProfile> findById(Long id) {
         getLogger().debug("Finding profile by ID:{}", id);
         final Optional<Optional<PersonProfile>> result;
-        result = actCommand(findByIdCommandId(), factory, Input.of(id));
+        result = executeCommand(findByIdCommandId(), factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<PersonProfile> profile = result.get();
             getLogger().debug("Found profile {}", profile);
@@ -80,7 +78,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param instance instance to create or update
      * @return created instance or Optional#empty()
      * @see PersonProfileFacadeImpl#createOrUpdateCommandId()
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see PersonProfile
      * @see Optional
      * @see Optional#empty()
@@ -90,7 +88,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         getLogger().debug("Creating or Updating profile {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<PersonProfile>> result;
-        result = actCommand(createOrUpdateCommandId(), factory, input);
+        result = executeCommand(createOrUpdateCommandId(), factory, input);
         if (result.isPresent()) {
             final Optional<PersonProfile> profile = result.get();
             getLogger().debug("Changed profile {}", profile);
@@ -105,7 +103,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * @param id value of system-id
      * @throws ProfileNotFoundException throws if the profile with system-id does not exist in the database
      * @see PersonProfileFacadeImpl#deleteByIdCommandId()
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
      * @see ProfileCommand#createContext(Input)
      * @see ProfileCommand#doCommand(Context)
      * @see Context
@@ -115,18 +113,17 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     public void deleteById(Long id) throws ProfileNotFoundException {
         final String commandId = deleteByIdCommandId();
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof ProfileNotFoundException profileNotFoundException) {
-                throw profileNotFoundException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case ProfileNotFoundException profileNotFoundException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw profileNotFoundException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
 
         getLogger().debug("Deleting profile with ID:{}", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 getLogger().debug("Deleted profile with ID:{} successfully:{} .", id, executionResult)
         );

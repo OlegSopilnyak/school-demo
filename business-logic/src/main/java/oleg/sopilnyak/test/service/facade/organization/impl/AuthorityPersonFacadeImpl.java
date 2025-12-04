@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
@@ -14,7 +13,6 @@ import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
-import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -63,20 +61,22 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public Optional<AuthorityPerson> login(String username, String password) {
         final String commandId = CommandId.LOGIN;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof ProfileNotFoundException notFoundException) {
-                throw notFoundException;
-            } else if (exception instanceof SchoolAccessDeniedException accessIsDeniedException) {
-                throw accessIsDeniedException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case ProfileNotFoundException notFoundException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw notFoundException;
+                }
+                case SchoolAccessDeniedException accessIsDeniedException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw accessIsDeniedException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
+
         log.debug("Trying to log in using: '{}'", username);
         final var input = Input.of(username, password);
-        final Optional<Optional<AuthorityPerson>> result = actCommand(commandId, factory, input, doThisOnError);
+        final Optional<Optional<AuthorityPerson>> result = executeCommand(commandId, factory, input, doThisOnError);
         if (result.isPresent()) {
             final Optional<AuthorityPerson> loggedIn = result.get();
             log.debug("Person is logged in: {}", loggedIn);
@@ -94,7 +94,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @Override
     public void logout(String token) {
         log.debug("Logging out person using token: {}", token);
-        final Optional<Boolean> result = actCommand(CommandId.LOGOUT, factory, Input.of(token));
+        final Optional<Boolean> result = executeCommand(CommandId.LOGOUT, factory, Input.of(token));
         result.ifPresent(executionResult ->
                 log.debug("Person is logged out: {}", executionResult)
         );
@@ -112,7 +112,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public Collection<AuthorityPerson> findAllAuthorityPersons() {
         log.debug("Finding all authority persons");
         final Optional<Set<AuthorityPerson>> result;
-        result = actCommand(CommandId.FIND_ALL, factory, Input.empty());
+        result = executeCommand(CommandId.FIND_ALL, factory, Input.empty());
         if (result.isPresent()) {
             final Set<AuthorityPerson> personSet = result.get();
             log.debug("Found all authority persons {}", personSet);
@@ -135,7 +135,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
         log.debug("Finding authority person by ID:{}", id);
         final Optional<Optional<AuthorityPerson>> result;
-        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<AuthorityPerson> person = result.get();
             log.debug("Found authority person {}", person);
@@ -159,7 +159,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         log.debug("Creating or Updating authority person {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<AuthorityPerson>> result;
-        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
         if (result.isPresent()) {
             final Optional<AuthorityPerson> person = result.get();
             log.debug("Changed authority person {}", person);
@@ -182,7 +182,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         log.debug("Creating authority person with new profile {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<AuthorityPerson>> result;
-        result = actCommand(CommandId.CREATE_NEW, factory, input);
+        result = executeCommand(CommandId.CREATE_NEW, factory, input);
         if (result.isPresent()) {
             final Optional<AuthorityPerson> person = result.get();
             log.debug("Created authority person {}", person);
@@ -202,19 +202,21 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public void deleteAuthorityPersonById(Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         final String commandId = CommandId.DELETE_ALL;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof AuthorityPersonNotFoundException noPersonException) {
-                throw noPersonException;
-            } else if (exception instanceof AuthorityPersonManagesFacultyException managesFacultyException) {
-                throw managesFacultyException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case AuthorityPersonNotFoundException noPersonException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noPersonException;
+                }
+                case AuthorityPersonManagesFacultyException managesFacultyException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw managesFacultyException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
+
         log.debug("Deleting authority person with ID:{} and it's profile", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Deleted authority person with ID:{} successfully:{} .", id, executionResult)
         );

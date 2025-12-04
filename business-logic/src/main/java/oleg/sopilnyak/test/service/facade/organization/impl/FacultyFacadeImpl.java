@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.type.organization.FacultyCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
@@ -12,7 +11,6 @@ import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
-import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.organization.base.impl.OrganizationFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
@@ -58,7 +56,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     public Collection<Faculty> findAllFaculties() {
         log.debug("Finding all faculties");
         final Optional<Set<Faculty>> result;
-        result = actCommand(CommandId.FIND_ALL, factory, Input.empty());
+        result = executeCommand(CommandId.FIND_ALL, factory, Input.empty());
         if (result.isPresent()) {
             final Set<Faculty> facultySet = result.get();
             log.debug("Found all faculties {}", facultySet);
@@ -80,7 +78,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     public Optional<Faculty> findFacultyById(Long id) {
         log.debug("Finding faculty by ID:{}", id);
         final Optional<Optional<Faculty>> result;
-        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<Faculty> faculty = result.get();
             log.debug("Found faculty {}", faculty);
@@ -103,7 +101,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
         log.debug("Creating or Updating faculty {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<Faculty>> result;
-        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
         if (result.isPresent()) {
             final Optional<Faculty> faculty = result.get();
             log.debug("Changed faculty {}", faculty);
@@ -123,19 +121,21 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     public void deleteFacultyById(Long id) throws FacultyNotFoundException, FacultyIsNotEmptyException {
         final String commandId = CommandId.DELETE;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof FacultyNotFoundException noFacultyException) {
-                throw noFacultyException;
-            } else if (exception instanceof FacultyIsNotEmptyException notEmptyException) {
-                throw notEmptyException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case FacultyNotFoundException noFacultyException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noFacultyException;
+                }
+                case FacultyIsNotEmptyException notEmptyException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw notEmptyException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
+
         log.debug("Deleting faculty with ID:{}", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Deleted faculty with ID:{} successfully:{} .", id, executionResult)
         );

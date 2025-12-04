@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.facade.education.impl;
 
-import static java.util.Objects.nonNull;
-
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
@@ -54,7 +52,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param id system-id of the course
      * @return course instance or empty() if not exists
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see Course
      * @see Optional
      * @see Optional#empty()
@@ -63,7 +61,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public Optional<Course> findById(final Long id) {
         log.debug("Finding course by ID: {}", id);
         final Optional<Optional<Course>> result;
-        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<Course> course = result.get();
             log.debug("Found the course {}", course);
@@ -77,7 +75,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param id system-id of the student
      * @return set of courses
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see Course
      * @see Set
      * @see Optional
@@ -87,7 +85,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public Set<Course> findRegisteredFor(final Long id) {
         log.debug("Finding courses registered to student with ID:{}", id);
         final Optional<Set<Course>> result;
-        result = actCommand(CommandId.FIND_REGISTERED, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_REGISTERED, factory, Input.of(id));
         if (result.isPresent()) {
             final Set<Course> courses = result.get();
             log.debug("Found courses registered to student {}", courses);
@@ -100,7 +98,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * To get courses without registered students
      *
      * @return set of courses
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see Course
      * @see Set
      * @see Optional
@@ -110,7 +108,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public Set<Course> findWithoutStudents() {
         log.debug("Finding no-students courses");
         final Optional<Set<Course>> result;
-        result = actCommand(CommandId.FIND_NOT_REGISTERED, factory, Input.empty());
+        result = executeCommand(CommandId.FIND_NOT_REGISTERED, factory, Input.empty());
         if (result.isPresent()) {
             final Set<Course> courses = result.get();
             log.debug("Found no-students courses {}", courses);
@@ -124,7 +122,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      *
      * @param instance course should be created or updated
      * @return student instance or empty() if not exists
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
      * @see Course
      * @see Optional
      * @see Optional#empty()
@@ -134,7 +132,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
         log.debug("Creating or Updating course {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<Course>> result;
-        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
         if (result.isPresent()) {
             final Optional<Course> course = result.get();
             log.debug("Changed course {}", course);
@@ -149,7 +147,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @param id system-id of the course to delete
      * @throws CourseNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
      * @see Consumer
      * @see Optional
      */
@@ -157,20 +155,21 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public void delete(Long id) throws CourseNotFoundException, CourseWithStudentsException {
         final String commandId = CommandId.DELETE;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof CourseNotFoundException noCourseException) {
-                throw noCourseException;
-            } else if (exception instanceof CourseWithStudentsException notEmptyCourse) {
-                throw notEmptyCourse;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case CourseNotFoundException noCourseException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noCourseException;
+                }
+                case CourseWithStudentsException notEmptyCourse -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw notEmptyCourse;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
 
         log.debug("Deleting course with ID:{}", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Deleted course with ID:{} successfully:{} .", id, executionResult)
         );
@@ -185,7 +184,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @throws CourseNotFoundException       throws if course is not exists
      * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
      * @see Consumer
      * @see Optional
      */
@@ -195,25 +194,30 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
             CourseHasNoRoomException, StudentCoursesExceedException {
         final String commandId = CommandId.REGISTER;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof StudentNotFoundException noStudentException) {
-                throw noStudentException;
-            } else if (exception instanceof CourseNotFoundException noCourseException) {
-                throw noCourseException;
-            } else if (exception instanceof CourseHasNoRoomException noRoomException) {
-                throw noRoomException;
-            } else if (exception instanceof StudentCoursesExceedException coursesExceedException) {
-                throw coursesExceedException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case StudentNotFoundException noStudentException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noStudentException;
+                }
+                case CourseNotFoundException noCourseException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noCourseException;
+                }
+                case CourseHasNoRoomException noRoomException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noRoomException;
+                }
+                case StudentCoursesExceedException coursesExceedException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw coursesExceedException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
 
         log.debug("Registering the student with ID:{} to the course with ID:{}", studentId, courseId);
         final var input = Input.of(studentId, courseId);
-        final Optional<Boolean> result = actCommand(commandId, factory, input, doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, input, doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Linked course:{} with student:{} successfully:{}.", courseId, studentId, executionResult)
         );
@@ -226,7 +230,7 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
      * @param courseId  system-id of the course
      * @throws StudentNotFoundException throws when student is not exists
      * @throws CourseNotFoundException  throws if course is not exists
-     * @see ActionFacade#actCommand(String, CommandsFactory, Input, Consumer)
+     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
      * @see Consumer
      * @see Optional
      */
@@ -234,21 +238,22 @@ public class CoursesFacadeImpl implements CoursesFacade, ActionFacade {
     public void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException {
         final String commandId = CommandId.UN_REGISTER;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof StudentNotFoundException noStudentException) {
-                throw noStudentException;
-            } else if (exception instanceof CourseNotFoundException noCourseException) {
-                throw noCourseException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case StudentNotFoundException noStudentException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noStudentException;
+                }
+                case CourseNotFoundException noCourseException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noCourseException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
 
         log.debug("UnRegistering the student with ID:{} from the course with ID:{}", studentId, courseId);
         final var input = Input.of(studentId, courseId);
-        final Optional<Boolean> result = actCommand(commandId, factory, input, doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, input, doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Unlinked course:{} from student:{} successfully:{} .", courseId, studentId, executionResult)
         );

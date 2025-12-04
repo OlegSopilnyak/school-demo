@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.facade.education.impl;
 
-import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.type.education.StudentCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
@@ -58,7 +57,7 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     public Optional<Student> findById(Long id) {
         log.debug("Finding student by ID:{}", id);
         final Optional<Optional<Student>> result;
-        result = actCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
         if (result.isPresent()) {
             final Optional<Student> student = result.get();
             log.debug("Found the student {}", student);
@@ -77,7 +76,7 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     public Set<Student> findEnrolledTo(Long id) {
         log.debug("Finding students enrolled to the course with ID:{}", id);
         final Optional<Set<Student>> result;
-        result = actCommand(CommandId.FIND_ENROLLED, factory, Input.of(id));
+        result = executeCommand(CommandId.FIND_ENROLLED, factory, Input.of(id));
         if (result.isPresent()) {
             final Set<Student> students = result.get();
             log.debug("Found students enrolled to the course {} ", students);
@@ -95,7 +94,7 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     public Set<Student> findNotEnrolled() {
         log.debug("Finding students not enrolled to any course");
         final Optional<Set<Student>> result;
-        result = actCommand(CommandId.FIND_NOT_ENROLLED, factory, Input.empty());
+        result = executeCommand(CommandId.FIND_NOT_ENROLLED, factory, Input.empty());
         if (result.isPresent()) {
             final Set<Student> students = result.get();
             log.debug("Found students not enrolled to any course {}", students);
@@ -117,7 +116,7 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
         log.debug("Creating or Updating student {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<Student>> result;
-        result = actCommand(CommandId.CREATE_OR_UPDATE, factory, input);
+        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
         if (result.isPresent()) {
             final Optional<Student> student = result.get();
             log.debug("Changed student {}", student);
@@ -140,7 +139,7 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
         log.debug("Creating student {}", instance);
         final var input = Input.of(toPayload.apply(instance));
         final Optional<Optional<Student>> result;
-        result = actCommand(CommandId.CREATE_NEW, factory, input);
+        result = executeCommand(CommandId.CREATE_NEW, factory, input);
         if (result.isPresent()) {
             final Optional<Student> student = result.get();
             log.debug("Created student {}", student);
@@ -161,19 +160,21 @@ public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     public boolean delete(Long id) throws StudentNotFoundException, StudentWithCoursesException {
         final String commandId = CommandId.DELETE_ALL;
         final Consumer<Exception> doThisOnError = exception -> {
-            logSomethingWentWrong(exception, commandId);
-            if (exception instanceof StudentNotFoundException noStudentException) {
-                throw noStudentException;
-            } else if (exception instanceof StudentWithCoursesException studentWithCoursesException) {
-                throw studentWithCoursesException;
-            } else if (nonNull(exception)) {
-                ActionFacade.throwFor(commandId, exception);
-            } else {
-                failedButNoExceptionStored(commandId);
+            switch (exception) {
+                case StudentNotFoundException noStudentException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noStudentException;
+                }
+                case StudentWithCoursesException studentWithCoursesException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw studentWithCoursesException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
+
         log.debug("Deleting student with ID:{}", id);
-        final Optional<Boolean> result = actCommand(commandId, factory, Input.of(id), doThisOnError);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
         result.ifPresent(executionResult ->
                 log.debug("Deleted student with ID:{} successfully:{} .", id, executionResult)
         );

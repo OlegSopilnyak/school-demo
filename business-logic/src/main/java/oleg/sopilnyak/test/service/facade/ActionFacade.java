@@ -52,11 +52,10 @@ public interface ActionFacade {
      * @see Input
      * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> Optional<T> actCommand(
-            final String commandId, final CommandsFactory<? extends RootCommand<?>> factory, final Input<?> input
-    ) throws UnableExecuteCommandException {
+    default <T> Optional<T> executeCommand(String commandId, CommandsFactory<? extends RootCommand<?>> factory,
+                                           Input<?> input) throws UnableExecuteCommandException {
         // To do action command with the given command-id, input parameter and default error processor
-        return actCommand(commandId, factory, input, defaultDoOnError(commandId));
+        return executeCommand(commandId, factory, input, defaultDoOnError(commandId));
     }
 
     /**
@@ -77,10 +76,9 @@ public interface ActionFacade {
      * @see Input
      * @see ActionFacade#throwFor(String, Exception)
      */
-    default <T> Optional<T> actCommand(
-            final String commandId, final CommandsFactory<? extends RootCommand<?>> factory,
-            final Input<?> input, final Consumer<Exception> doThisOnError
-    ) throws UnableExecuteCommandException {
+    default <T> Optional<T> executeCommand(String commandId, CommandsFactory<? extends RootCommand<?>> factory,
+                                           Input<?> input,
+                                           Consumer<Exception> doThisOnError) throws UnableExecuteCommandException {
         final Context<T> requestContext = factory.makeCommandContext(commandId, input);
         if (isNull(requestContext)) {
             // command is not registered in the factory
@@ -90,10 +88,13 @@ public interface ActionFacade {
 
         final Context<T> responseContext = getActionExecutor().commitAction(ActionContext.current(), requestContext);
         if (responseContext.isDone()) {
-            // success processing
+            // command execution is successful
             getLogger().debug("Success execution of command:{} with parameter:{}", commandId, input.value());
+            // get the value of result of command execution response-context
+            final T result = responseContext.getResult().orElseThrow(createThrowFor(commandId));
+            getLogger().debug("Execution result of command:{} with parameter:{} is :{}", commandId, input.value(), result);
             // returns result of command execution
-            return Optional.of(responseContext.getResult().orElseThrow(createThrowFor(commandId)));
+            return Optional.of(result);
         } else {
             // fail processing
             doThisOnError.accept(responseContext.getException());
@@ -145,7 +146,6 @@ public interface ActionFacade {
         throwFor(commandId, new NullPointerException("Command failed, but Exception wasn't stored!!!"));
     }
 
-    // private methods
     /**
      * To get default error consumer for command execution
      *
@@ -154,7 +154,7 @@ public interface ActionFacade {
      * @see ActionFacade#logSomethingWentWrong(Exception, String)
      * @see ActionFacade#throwFor(String, Exception)
      */
-    private Consumer<Exception> defaultDoOnError(final String commandId) {
+    default Consumer<Exception> defaultDoOnError(final String commandId) {
         return exception -> {
             if (nonNull(exception)) {
                 logSomethingWentWrong(exception, commandId);
@@ -164,4 +164,5 @@ public interface ActionFacade {
             }
         };
     }
+    // private methods
 }

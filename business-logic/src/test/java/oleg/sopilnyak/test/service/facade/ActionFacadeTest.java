@@ -62,7 +62,7 @@ class ActionFacadeTest {
     }
 
     @Test
-    void shouldActCommandWithDefaultErrorHandler() {
+    void shouldExecuteCommandWithDefaultErrorHandler() {
         String commandId = "1";
         ActionContext currentActionContext = ActionContext.current();
         doReturn(true).when(context).isDone();
@@ -70,30 +70,30 @@ class ActionFacadeTest {
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
 
-        Optional<Boolean> result = actionFacade.actCommand(commandId, commandsFactory, input);
+        Optional<Boolean> result = actionFacade.executeCommand(commandId, commandsFactory, input);
 
         assertThat(result).isNotNull();
         assertThat(result.get()).isTrue();
-        verify(actionFacade).actCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
+        verify(actionFacade).executeCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
         verify(actionExecutor).commitAction(currentActionContext, context);
     }
 
     @Test
-    void shouldNotActCommandWithDefaultErrorHandler_CannotMakeContext() {
+    void shouldNotExecuteCommandWithDefaultErrorHandler_CannotMakeContext() {
         String commandId = "2";
 
-        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input));
+        var result = assertThrows(Exception.class, () -> actionFacade.executeCommand(commandId, commandsFactory, input));
 
         assertThat(result).isNotNull().isInstanceOf(UnableExecuteCommandException.class);
         assertThat(result.getMessage()).startsWith("Cannot execute command '" + commandId);
         assertThat(result.getCause()).isInstanceOf(CommandNotRegisteredInFactoryException.class);
         assertThat(result.getCause().getMessage()).startsWith("Command '" + commandId + "' is not registered in factory :");
-        verify(actionFacade).actCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
+        verify(actionFacade).executeCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
         verify(actionExecutor, never()).commitAction(any(ActionContext.class), any(Context.class));
     }
 
     @Test
-    void shouldNotActCommandWithDefaultErrorHandler_CommandExecutionFailed() {
+    void shouldNotExecuteCommandWithDefaultErrorHandler_CommandExecutionFailed() {
         String commandId = "3";
         ActionContext currentActionContext = ActionContext.current();
         doReturn(false).when(context).isDone();
@@ -101,17 +101,17 @@ class ActionFacadeTest {
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
 
-        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input));
+        var result = assertThrows(Exception.class, () -> actionFacade.executeCommand(commandId, commandsFactory, input));
 
         assertThat(result).isNotNull().isInstanceOf(UnableExecuteCommandException.class);
         assertThat(result.getMessage()).startsWith("Cannot execute command '" + commandId);
         assertThat(result.getCause()).isInstanceOf(RuntimeException.class);
-        verify(actionFacade).actCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
+        verify(actionFacade).executeCommand(eq(commandId), eq(commandsFactory), eq(input), any(Consumer.class));
         verify(actionExecutor).commitAction(currentActionContext, context);
     }
 
     @Test
-    void shouldActCommandWithCustomErrorHandler() {
+    void shouldExecuteCommandWithCustomErrorHandler() {
         String commandId = "4";
         ActionContext currentActionContext = ActionContext.current();
         doReturn(true).when(context).isDone();
@@ -119,7 +119,7 @@ class ActionFacadeTest {
         doReturn(context).when(commandsFactory).makeCommandContext(commandId, input);
         doReturn(context).when(actionExecutor).commitAction(ActionContext.current(), context);
 
-        Optional<Boolean> result = actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException);
+        Optional<Boolean> result = actionFacade.executeCommand(commandId, commandsFactory, input, this::justLogException);
 
         assertThat(result).isNotNull();
         assertThat(result.get()).isNotNull().isTrue();
@@ -128,10 +128,10 @@ class ActionFacadeTest {
     }
 
     @Test
-    void shouldNotActCommandWithCustomErrorHandler_CannotMakeContext() {
+    void shouldNotExecuteCommandWithCustomErrorHandler_CannotMakeContext() {
         String commandId = "5";
 
-        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input, this::justLogException));
+        var result = assertThrows(Exception.class, () -> actionFacade.executeCommand(commandId, commandsFactory, input, this::justLogException));
 
         assertThat(result).isNotNull().isInstanceOf(UnableExecuteCommandException.class);
         assertThat(result.getMessage()).startsWith("Cannot execute command '" + commandId);
@@ -142,7 +142,7 @@ class ActionFacadeTest {
     }
 
     @Test
-    void shouldNotActCommandWithCustomErrorHandler_CommandExecutionFailed() {
+    void shouldNotExecuteCommandWithCustomErrorHandler_CommandExecutionFailed() {
         String commandId = "6";
         ActionContext currentActionContext = ActionContext.current();
         doReturn(false).when(context).isDone();
@@ -154,7 +154,7 @@ class ActionFacadeTest {
             throwFor(commandId, exception);
         };
 
-        var result = assertThrows(Exception.class, () -> actionFacade.actCommand(commandId, commandsFactory, input, customErrorHandler));
+        var result = assertThrows(Exception.class, () -> actionFacade.executeCommand(commandId, commandsFactory, input, customErrorHandler));
 
         assertThat(result).isNotNull().isInstanceOf(UnableExecuteCommandException.class);
         assertThat(result.getMessage()).startsWith("Cannot execute command '" + commandId);
