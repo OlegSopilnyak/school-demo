@@ -128,7 +128,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
             final E entity = rollbackCachedEntity(context, functionSave()).orElseThrow();
 
             getLog().debug("Updated in database: '{}'", entity);
-            // change profile-id value for further do command action
+            // change profile-id value for further do command processing
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

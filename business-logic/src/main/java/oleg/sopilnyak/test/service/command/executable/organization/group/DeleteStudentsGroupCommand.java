@@ -136,7 +136,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
             final StudentsGroup entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
             log.debug("Updated in database: '{}'", entity);
-            // change students-group-id value for further do command action
+            // change students-group-id value for further do command processing
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

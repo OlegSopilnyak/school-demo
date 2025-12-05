@@ -6,23 +6,28 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
+import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,19 +51,21 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     // @see ActionExecutor#processActionCommand(BaseCommandMessage)
     private static final ActionExecutor basicActionExecutor = () -> log;
     // Executor services for background processing
-    private ThreadPoolTaskExecutor controlExecutorService;
-    private ThreadPoolTaskExecutor operationalExecutorService;
+    private ExecutorService controlExecutorService;
+    private ExecutorService operationalExecutorService;
     // Flag to control the current state of the service
     private final AtomicBoolean serviceActive = new AtomicBoolean(false);
     // Flags to control the current state of the processors
     private final AtomicBoolean requestsProcessorActive = new AtomicBoolean(false);
     private final AtomicBoolean responsesProcessorActive = new AtomicBoolean(false);
     // The map of messages in progress, key is correlationId
-    private final ConcurrentMap<String, MessageInProgress<?>> messageInProgress = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, MessageProgressWatchdog<?>> messageInProgress = new ConcurrentHashMap<>();
     // Create income message queue
     private final BlockingQueue<BaseCommandMessage<?>> requests = new LinkedBlockingQueue<>();
     // Create outcome message queue
     private final BlockingQueue<BaseCommandMessage<?>> responses = new LinkedBlockingQueue<>();
+    private MessagesProcessorAdapter inputProcessor = null;
+    private MessagesProcessorAdapter outputProcessor = null;
 
     /**
      * Start background processors for requests
@@ -66,60 +73,50 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     @PostConstruct
     @Override
     public void initialize() {
-        if (!serviceActive.get()) {
-            // adjust background processors
-            // control executor for request/response processors
-            controlExecutorService = new ThreadPoolTaskExecutor();
-            final int controlPoolSize = 2;
-            controlExecutorService.setCorePoolSize(controlPoolSize);
-            controlExecutorService.setMaxPoolSize(controlPoolSize);
-            controlExecutorService.setThreadNamePrefix("ProcessorControl-");
-            controlExecutorService.initialize();
-
-            // operational executor for processing command messages
-            operationalExecutorService = new ThreadPoolTaskExecutor();
-            final int operationalPoolSize = Math.max(maximumPoolSize, Runtime.getRuntime().availableProcessors());
-            operationalExecutorService.setCorePoolSize(operationalPoolSize);
-            operationalExecutorService.setMaxPoolSize(operationalPoolSize);
-            operationalExecutorService.setThreadNamePrefix("QueueMessageProcessor-");
-            operationalExecutorService.initialize();
-
-            // starting background processors
-            serviceActive.getAndSet(true);
-
-            // launch command messages processors
-            final CountDownLatch processorStarted = new CountDownLatch(2);
-            //
-            // launching command context requests processor
-            CompletableFuture.runAsync(() -> {
-                // requests processor is going to start
-                processorStarted.countDown();
-                // running requests processor
-                new RequestProcessor(serviceActive, operationalExecutorService).action();
-            }, controlExecutorService);
-            //
-            // launching command context responses processor
-            CompletableFuture.runAsync(() -> {
-                // responses processor is going to start
-                processorStarted.countDown();
-                // running responses processor
-                new ResponseProcessor(serviceActive, operationalExecutorService).action();
-            }, controlExecutorService);
-            //
-            // waiting processors' starting
-            try {
-                processorStarted.await();
-            } catch (InterruptedException e) {
-                /* Clean up whatever needs to be handled before interrupting  */
-                Thread.currentThread().interrupt();
-                throw new CountDownLatchInterruptedException(2, e);
-            }
-            //
-            // the command through messages service is started
-            log.info("MessageProcessingService Local Version is started.");
-        } else {
+        if (serviceActive.get()) {
             log.warn("MessageProcessingService Local Version is already started.");
+            return;
         }
+        // adjust background processors
+        // control executor for request/response processors
+        controlExecutorService = createExecutorService(2, "ProcessorControl-");
+        // operational executor for processing command messages
+        final int operationalPoolSize = Math.max(maximumPoolSize, Runtime.getRuntime().availableProcessors());
+        operationalExecutorService = createExecutorService(operationalPoolSize, "QueueMessageProcessor-");
+
+        // starting background processors
+        serviceActive.getAndSet(true);
+
+        // launch command messages processors
+        final CountDownLatch latchOfProcessors = new CountDownLatch(2);
+        //
+        // preparing launch command context requests processor
+        inputProcessor = new RequestsProcessor(serviceActive, operationalExecutorService, log);
+        final Runnable requestsProcessor = () -> {
+            // requests processor is going to start
+            latchOfProcessors.countDown();
+            // running requests processor
+            inputProcessor.processing();
+        };
+        //
+        // preparing launch command context responses processor
+        outputProcessor = new ResponsesProcessor(serviceActive, operationalExecutorService, log);
+        final Runnable responsesProcessor = () -> {
+            // responses processor is going to start
+            latchOfProcessors.countDown();
+            // running responses processor
+            outputProcessor.processing();
+        };
+        //
+        // launching messages processors
+        CompletableFuture.runAsync(requestsProcessor, controlExecutorService);
+        CompletableFuture.runAsync(responsesProcessor, controlExecutorService);
+        //
+        // waiting for processors' start
+        waitFor(latchOfProcessors);
+        //
+        // the command through messages service is started
+        log.info("MessageProcessingService Local Version is started.");
     }
 
     /**
@@ -128,26 +125,58 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     @PreDestroy
     @Override
     public void shutdown() {
-        if (serviceActive.get()) {
-            // clear main flag of the service
-            serviceActive.getAndSet(false);
-            // send to queues final messages
-            shutdownQueuesProcessing();
-            // wait for processors services are active
-            while (requestsProcessorActive.get() || responsesProcessorActive.get()) {
-                Thread.yield();
-            }
-            // shutdown processors executors
-            controlExecutorService.shutdown();
-            operationalExecutorService.shutdown();
-            controlExecutorService = null;
-            operationalExecutorService = null;
-            log.info("MessageProcessingService Local Version is stopped.");
-        } else {
+        if (!serviceActive.get()) {
             log.warn("MessageProcessingService Local Version is already stopped.");
+            return;
+        }
+        // clear main flag of the service
+        serviceActive.getAndSet(false);
+        // send to queues final messages
+        shutdownQueuesProcessing();
+        // wait for processors services are active
+        while (requestsProcessorActive.get() || responsesProcessorActive.get()) {
+            Thread.yield();
+        }
+        // shutdown processors executors
+        shutdown(operationalExecutorService);
+        shutdown(controlExecutorService);
+        controlExecutorService = null;
+        operationalExecutorService = null;
+        log.info("MessageProcessingService Local Version is stopped.");
+    }
+
+    // create and configure execution service
+    private static ExecutorService createExecutorService(final int maxPoolSize, final String threadNamePrefix) {
+        final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
+        threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
+        return Executors.newScheduledThreadPool(maxPoolSize, threadsFactory);
+    }
+
+    // shut down execution service properly
+    private static void shutdown(final ExecutorService executor) {
+        executor.shutdown(); // Stop accepting new tasks
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // Force stop if not finished
+            }
+        } catch (InterruptedException _) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
+            executor.close();
         }
     }
 
+    // waiting for processors' start
+    private static void waitFor(final CountDownLatch processorsStarting) {
+        try {
+            processorsStarting.await();
+        } catch (InterruptedException e) {
+            /* Clean up whatever needs to be handled before interrupting  */
+            Thread.currentThread().interrupt();
+            throw new CountDownLatchInterruptedException(2, e);
+        }
+    }
 
     /**
      * To send command context message for processing
@@ -166,7 +195,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             ActionFacade.throwFor(commandId, new IllegalStateException("RequestMessagesProcessor is NOT active."));
         }
         // put message-watcher to in-progress map by correlation-id
-        if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageInProgress<>()) != null) {
+        if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageProgressWatchdog<>()) != null) {
             log.warn("Message with correlationId='{}' is already in progress", messageCorrelationId);
         } else {
             if (sendToRequestsQueue(message)) {
@@ -178,7 +207,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     /**
-     * To process the request message's action command in new transaction (strong isolation)<BR/>
+     * To process the request message's processing command in new transaction (strong isolation)<BR/>
      * and send the response to the responses queue
      *
      * @param message message to process
@@ -212,9 +241,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
      * @param commandId            the command id of the command in the message
      * @param messageCorrelationId the correlation id to find processed command message
      * @return the processed command message
-     * @see RequestProcessor#processActionCommandAndProceed(BaseCommandMessage)
+     * @see RequestsProcessor#processActionCommandAndProceed(BaseCommandMessage)
      * @see BaseCommandMessage
-     * @see MessageInProgress
+     * @see MessageProgressWatchdog
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -224,7 +253,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
             return ActionFacade.throwFor(commandId, new IllegalStateException("ResponseMessagesProcessor is NOT active."));
         }
         // getting message-watcher from in-progress map by correlation-id
-        final MessageInProgress<T> messageWatcher = (MessageInProgress<T>) messageInProgress.get(messageCorrelationId);
+        final MessageProgressWatchdog<T> messageWatcher = (MessageProgressWatchdog<T>) messageInProgress.get(messageCorrelationId);
         if (isNull(messageWatcher)) {
             logMessageIsNotInProgress(messageCorrelationId);
             return null;
@@ -234,8 +263,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         // remove message-watcher from in-progress map by correlation-id
         messageInProgress.remove(messageCorrelationId);
         // return the result
-        log.info("The result of command '{}' is {}", commandId, messageWatcher.result);
-        return messageWatcher.result;
+        final BaseCommandMessage<T> result = messageWatcher.getResult();
+        log.info("The result of command '{}' is {}", commandId, result);
+        return result;
     }
 
     /**
@@ -306,123 +336,11 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     // inner classes
-    // State of message processing
-    enum State {IN_PROGRESS, COMPLETED}
-
-    // wrapper for processing the message
-    protected static class MessageInProgress<T> {
-        @Getter
-        private BaseCommandMessage<T> result;
-        @Getter
-        private volatile State state = State.IN_PROGRESS;
-        private final Object getResultMonitor = new Object();
-
-        void waitForMessageComplete() {
-            synchronized (getResultMonitor) {
-                while (state == State.IN_PROGRESS) {
-                    try {
-                        getResultMonitor.wait(100);
-                    } catch (InterruptedException e) {
-                        log.warn("Interrupted while waiting for state to complete.", e);
-                        /* Clean up whatever needs to be handled before interrupting  */
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-        }
-
-        void messageProcessingIsDone() {
-            synchronized (getResultMonitor) {
-                if (state == State.COMPLETED) {
-                    getResultMonitor.notifyAll();
-                }
-            }
-        }
-    }
-
-    // Abstract messages processor for background processing of command-execution  messages
-    private abstract static class MessagesProcessor {
-        private final AtomicBoolean active;
-        private final ThreadPoolTaskExecutor executor;
-
-        private MessagesProcessor(AtomicBoolean active, ThreadPoolTaskExecutor executor) {
-            this.active = active;
-            this.executor = executor;
-        }
-
-        /**
-         * To run messages processor execution
-         */
-        void action() {
-            if (isProcessorActive()) {
-                log.warn("{} is already running.", getProcessorName());
-                return;
-            }
-            // mark as active
-            activateProcessor();
-            log.info("{} is started. Main service active = '{}'", getProcessorName(), active);
-            while (active.get()) {
-                try {
-                    final BaseCommandMessage<?> message = takeFromQueue();
-                    if (active.get() && !Objects.equals(message, BaseCommandMessage.EMPTY)) {
-                        // process the message asynchronously if not empty
-                        CompletableFuture.runAsync(() -> processTakenMessage(message), executor);
-                    }
-                } catch (InterruptedException e) {
-                    log.warn("{} getting command requests is interrupted", getProcessorName(), e);
-                    /* Clean up whatever needs to be handled before interrupting  */
-                    Thread.currentThread().interrupt();
-                }
-            }
-            // mark as inactive
-            deActivateProcessor();
-        }
-
-        /**
-         * Get the name of the processor for logging purposes.
-         *
-         * @return the name of the processor
-         */
-        protected abstract String getProcessorName();
-
-        /**
-         * To take command message from the appropriate queue for further processing
-         *
-         * @return the command message taken from the appropriate queue
-         * @throws InterruptedException if interrupted while waiting
-         * @see BaseCommandMessage
-         */
-        protected abstract <T> BaseCommandMessage<T> takeFromQueue() throws InterruptedException;
-
-        /**
-         * To process the taken message.
-         *
-         * @param message the command message to be processed
-         */
-        protected abstract void processTakenMessage(BaseCommandMessage<?> message);
-
-        /**
-         * To check if the processor is active
-         *
-         * @return true if the processor is active
-         */
-        protected abstract boolean isProcessorActive();
-
-        /**
-         * To activate the processor
-         */
-        protected abstract void activateProcessor();
-
-        /**
-         * To deactivate the processor
-         */
-        protected abstract void deActivateProcessor();
-    }
 
     // Messages processor for background processing of requests
-    private class RequestProcessor extends MessagesProcessor {
-        private RequestProcessor(AtomicBoolean active, ThreadPoolTaskExecutor executor) {
-            super(active, executor);
+    private class RequestsProcessor extends MessagesProcessorAdapter {
+        private RequestsProcessor(AtomicBoolean active, Executor executor, Logger logger) {
+            super(active, executor, logger);
         }
 
         @Override
@@ -438,11 +356,11 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
 
         @Override
         protected void processTakenMessage(final BaseCommandMessage<?> message) {
-            // set up action context for current thread
+            // setting up processing context for current thread
             ActionContext.install(message.getActionContext());
             try {
                 log.info("Start processing request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
-                // process action in the transaction
+                // process processing in the transaction
                 CommandThroughMessageServiceLocalImpl.this.processActionCommandAndProceed(message);
                 log.info(" ++ Successfully processed request with direction:{} correlation-id:{}", message.getDirection(), message.getCorrelationId());
             } catch (Throwable e) {
@@ -458,7 +376,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
                 log.error("== Sending failed context of message {}", message.getCorrelationId());
                 CommandThroughMessageServiceLocalImpl.this.sendToResponsesQueue(message);
             } finally {
-                // release current action context
+                // release current processing context
                 ActionContext.release();
             }
         }
@@ -480,9 +398,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     // Messages processor for background processing of responses
-    private class ResponseProcessor extends MessagesProcessor {
-        private ResponseProcessor(AtomicBoolean active, ThreadPoolTaskExecutor executor) {
-            super(active, executor);
+    private class ResponsesProcessor extends MessagesProcessorAdapter {
+        private ResponsesProcessor(AtomicBoolean active, Executor executor, Logger logger) {
+            super(active, executor, logger);
         }
 
         @Override
@@ -522,14 +440,13 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         private void completeMessageProcessing(final BaseCommandMessage response) {
             final String correlationId = response.getCorrelationId();
             // check if the message in progress map by correlation-id
-            final MessageInProgress<?> messageWatcher = messageInProgress.get(correlationId);
+            final MessageProgressWatchdog<?> messageWatcher = messageInProgress.get(correlationId);
             if (isNull(messageWatcher)) {
                 logMessageIsNotInProgress(correlationId);
                 return;
             }
             // set up the result and mark as completed
-            messageWatcher.result = response;
-            messageWatcher.state = State.COMPLETED;
+            messageWatcher.setResult(response);
             // notify thread waiting for this message-watcher result
             messageWatcher.messageProcessingIsDone();
             log.info("Successfully processed response with correlationId='{}'", correlationId);

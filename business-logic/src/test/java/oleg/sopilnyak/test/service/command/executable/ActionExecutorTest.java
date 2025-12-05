@@ -30,7 +30,7 @@ class ActionExecutorTest<T> {
     @Mock
     Logger logger;
 
-    ActionContext actionContext = ActionContext.builder().actionName("base-test-action").facadeName("base-test-facade").build();
+    ActionContext actionContext = ActionContext.builder().actionName("base-test-processing").facadeName("base-test-facade").build();
     @Mock
     Context<T> commandContext;
     @Mock
@@ -83,7 +83,7 @@ class ActionExecutorTest<T> {
     @Test
     void shouldProcessUndoActionCommand() {
         UndoCommandMessage message = UndoCommandMessage.builder()
-                .actionContext(actionContext).context((Context<Void>) commandContext)
+                .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 

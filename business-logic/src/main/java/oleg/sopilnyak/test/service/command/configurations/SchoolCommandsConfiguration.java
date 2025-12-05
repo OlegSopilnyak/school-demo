@@ -57,7 +57,7 @@ public class SchoolCommandsConfiguration {
     }
 
     /**
-     * Local implementation of command messages deliverer for action-executor
+     * Local implementation of command messages deliverer for processing-executor
      *
      * @return implementation based on local queues
      * @see ActionExecutorImpl#processActionCommand(BaseCommandMessage)

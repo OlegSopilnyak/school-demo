@@ -28,7 +28,7 @@ public interface CommandThroughMessageService {
     <T> void send(BaseCommandMessage<T> message);
 
     /**
-     * To process the request message's action command in new transaction
+     * To process the request message's processing command in new transaction
      * and send the response to responses queue
      *
      * @param requestMessage message to process

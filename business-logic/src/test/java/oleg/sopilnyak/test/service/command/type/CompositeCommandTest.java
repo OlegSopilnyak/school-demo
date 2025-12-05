@@ -41,7 +41,7 @@ class CompositeCommandTest {
 
     @BeforeEach
     void setUp() {
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @Test

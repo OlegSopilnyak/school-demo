@@ -87,7 +87,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
                 return spy(super.wrap(command));
             }
         });
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
         messagesExchangeService.initialize();
         deleteEntities(AuthorityPersonEntity.class);
         deleteEntities(PrincipalProfileEntity.class);

@@ -81,7 +81,7 @@ class MacroCommandTest {
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @Test
@@ -703,7 +703,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow action-executor activity
+        // allow processing-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -748,7 +748,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand<?>[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow action-executor activity
+        // allow processing-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -865,7 +865,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow action-executor activity
+        // allow processing-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));

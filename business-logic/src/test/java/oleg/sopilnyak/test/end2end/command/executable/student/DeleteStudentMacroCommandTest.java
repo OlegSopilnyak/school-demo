@@ -106,7 +106,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
         messagesExchangeService.initialize();
         deleteEntities(StudentEntity.class);
         deleteEntities(StudentProfileEntity.class);

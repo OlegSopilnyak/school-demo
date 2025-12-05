@@ -68,7 +68,7 @@ public interface IOBase<P> extends Serializable {
             final String ioTypeClassName = typeTextNode.asText();
             try {
                 return (Class<T>) Class.forName(ioTypeClassName).asSubclass(shouldBeType);
-            } catch (ClassNotFoundException | ClassCastException e) {
+            } catch (ClassNotFoundException | ClassCastException _) {
                 // class not found or class is not ioClass
                 throw new IOException("Wrong class name in node-type: " + ioTypeClassName);
             }
@@ -224,7 +224,7 @@ public interface IOBase<P> extends Serializable {
             if (typeNode instanceof TextNode typeTextNode) {
                 try {
                     return Class.forName(typeTextNode.asText()).asSubclass(Throwable.class);
-                } catch (ClassNotFoundException | ClassCastException e) {
+                } catch (ClassNotFoundException | ClassCastException _) {
                     // class not found or class is not Throwable
                 }
                 // default exception class in case class building is failed
@@ -236,7 +236,7 @@ public interface IOBase<P> extends Serializable {
     }
 
     /**
-     * JSON: Deserializer for action-context field
+     * JSON: Deserializer for processing-context field
      *
      * @see StdDeserializer
      * @see CommandMessage#getActionContext()

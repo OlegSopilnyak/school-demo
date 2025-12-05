@@ -79,7 +79,7 @@ class SequentialMacroCommandTest {
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
         wrapBaseCommands();
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @Test

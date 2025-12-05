@@ -89,7 +89,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new PrincipalProfileFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @AfterEach

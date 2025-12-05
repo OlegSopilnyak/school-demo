@@ -88,7 +88,7 @@ class CommandMessageJsonSerializationTest {
         String message = "Embedded IO exception message";
         IOException ex = new IOException(message);
         ex.fillInStackTrace();
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
         CannotProcessActionException exception = new CannotProcessActionException(ex);
         String exceptionMessage = exception.getMessage();
         int stackTraceDepth = ex.getStackTrace().length;
@@ -147,7 +147,7 @@ class CommandMessageJsonSerializationTest {
         ex.fillInStackTrace();
         int stackTraceDepth = ex.getStackTrace().length;
         StringWriter writer = new StringWriter();
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
         CannotProcessActionException exception = new CannotProcessActionException(ex);
         String exceptionMessage = exception.getMessage();
         JsonGenerator generator = objectMapper.createGenerator(writer);

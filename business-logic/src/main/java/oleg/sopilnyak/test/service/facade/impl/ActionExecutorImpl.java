@@ -27,10 +27,10 @@ public class ActionExecutorImpl implements ActionExecutor {
     }
 
     /**
-     * To process action command message,
+     * To process processing command message,
      * using message-processing-service
      *
-     * @param commandMessage the action command message
+     * @param commandMessage the processing command message
      * @return processed command message
      * @see BaseCommandMessage
      */

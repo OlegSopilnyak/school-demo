@@ -93,7 +93,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         doReturn(command).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @Test

@@ -137,7 +137,7 @@ public class DeleteStudentCommand extends SchoolCommandCache<Student, Boolean> i
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
             log.debug("Updated in database: '{}'", entity);
 
-            // change redo parameter value of student-id for further do command action
+            // change redo parameter value of student-id for further do command processing
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             } else {

@@ -28,7 +28,7 @@ import org.springframework.util.ObjectUtils;
  * @see CompletableFuture
  */
 public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
-    protected final SchedulingTaskExecutor executor;
+    protected final transient SchedulingTaskExecutor executor;
     protected ParallelMacroCommand(final ActionExecutor actionExecutor, final SchedulingTaskExecutor executor) {
         super(actionExecutor);
         this.executor = executor;
@@ -120,11 +120,11 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
 
     // run nested command execution in the separate thread
     private CompletableFuture<Context<?>> launchNestedCommandWith(final Supplier<Context<?>> commandExecution) {
-        // prepare action context for execute command execution of the nested command
+        // prepare processing context for execute command execution of the nested command
         final ActionContext actionContext = ActionContext.current();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // setup action context for the thread of threads pool
+                // setup processing context for the thread of threads pool
                 ActionContext.install(actionContext);
                 return commandExecution.get();
             } finally {
@@ -140,6 +140,8 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
             return future.get();
         } catch (InterruptedException | ExecutionException e) {
             getLog().error("Cannot get context from completable future.", e);
+            /* Clean up whatever needs to be handled before interrupting  */
+            Thread.currentThread().interrupt();
             return null;
         }
     }

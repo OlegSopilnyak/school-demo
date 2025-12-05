@@ -13,7 +13,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 
 /**
- * Type: School Command to execute the business-logic action
+ * Type: School Command to execute the business-logic processing
  *
  * @param <T> the type of command execution result
  */

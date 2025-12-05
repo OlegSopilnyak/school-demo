@@ -42,7 +42,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 class DoCommandMessageTest {
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
-    private static final String TEST_ACTION = "test-action";
+    private static final String TEST_ACTION = "test-processing";
     private static final String TEST_FACADE = "test-facade";
     @MockitoBean
     PlatformTransactionManager platformTransactionManager;
@@ -159,7 +159,7 @@ class DoCommandMessageTest {
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
 
         // Create a DoCommandMessage instance
-        // Set the command ID, action context and command context
+        // Set the command ID, processing context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
@@ -195,7 +195,7 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a DoCommandMessage instance
-        // Set the command ID, action context and command context
+        // Set the command ID, processing context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
@@ -222,12 +222,12 @@ class DoCommandMessageTest {
         boolean resultValue = false;
         Context.State state = Context.State.DONE;
         CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().command(farm.command(commandId)).build();
-        ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
+        ActionContext actionContext = ActionContext.builder().actionName("test-processing").facadeName("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
         // Create a DoCommandMessage instance
-        // Set the command ID, action context and command context
+        // Set the command ID, processing context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();

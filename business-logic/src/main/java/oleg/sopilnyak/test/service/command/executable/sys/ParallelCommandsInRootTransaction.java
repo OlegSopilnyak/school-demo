@@ -34,7 +34,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             }
             return inRootTransaction.result.get();
         } else {
-            getLog().warn("Cannot add action to the queue");
+            getLog().warn("Cannot add processing to the queue");
             return null;
         }
     }
@@ -63,7 +63,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             try {
                 result.getAndSet(calculateResult.get());
             } catch (Exception e) {
-                logger.error("Cannot execute action.", e);
+                logger.error("Cannot execute processing.", e);
             } finally {
                 actionIsFinished();
             }

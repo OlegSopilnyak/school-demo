@@ -25,9 +25,9 @@ public interface ActionExecutor {
     Logger getLogger();
 
     /**
-     * To do (commit) action with the action context and command context
+     * To do (commit) processing with the processing context and command context
      *
-     * @param actionContext  the action context
+     * @param actionContext  the processing context
      * @param commandContext the command context
      * @param <T>            type of do command execution result
      * @return command-context after undo command execution
@@ -43,9 +43,9 @@ public interface ActionExecutor {
     }
 
     /**
-     * To undo (rollback) action with the action context and command context
+     * To undo (rollback) processing with the processing context and command context
      *
-     * @param actionContext  the action context
+     * @param actionContext  the processing context
      * @param commandContext the command context
      * @return command-context after undo command execution
      * @see ActionContext
@@ -60,9 +60,9 @@ public interface ActionExecutor {
     }
 
     /**
-     * To process action command message
+     * To process processing command message
      *
-     * @param message the action command message
+     * @param message the processing command message
      * @param <T>     type of command result
      * @return processed command message
      * @see BaseCommandMessage

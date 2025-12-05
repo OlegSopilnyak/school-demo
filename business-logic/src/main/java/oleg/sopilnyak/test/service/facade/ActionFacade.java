@@ -34,13 +34,13 @@ public interface ActionFacade {
     /**
      * To get the actions executor instance
      *
-     * @return action executor instance
+     * @return processing executor instance
      * @see ActionExecutor
      */
     ActionExecutor getActionExecutor();
 
     /**
-     * To act action command with given command ID, command factory, and input parameter.
+     * To act processing command with given command ID, command factory, and input parameter.
      *
      * @param commandId the command id
      * @param factory   the commands factory to find command by id
@@ -54,12 +54,12 @@ public interface ActionFacade {
      */
     default <T> Optional<T> executeCommand(String commandId, CommandsFactory<? extends RootCommand<?>> factory,
                                            Input<?> input) throws UnableExecuteCommandException {
-        // To do action command with the given command-id, input parameter and default error processor
+        // To do processing command with the given command-id, input parameter and default error processor
         return executeCommand(commandId, factory, input, defaultDoOnError(commandId));
     }
 
     /**
-     * To act action command with given command-id, commands factory, input parameter and command error processor.
+     * To act processing command with given command-id, commands factory, input parameter and command error processor.
      *
      * @param commandId the command id
      * @param factory   the commands factory to find command by id

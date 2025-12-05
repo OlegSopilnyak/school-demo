@@ -103,7 +103,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistenceFacade));
         facade = spy(new CoursesFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @AfterEach
@@ -123,7 +123,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     void shouldNotFindById() {
         Long courseId = 100L;
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -138,7 +138,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldFindById() {
         Course newCourse = makeClearTestCourse();
         Long courseId = persist(newCourse).getId();
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
 
         Optional<Course> course = facade.findById(courseId);
 

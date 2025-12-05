@@ -21,7 +21,6 @@ import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import org.slf4j.Logger;
 
 /**
  *  Type: CommandCache for the delete or update entities commands
@@ -45,13 +44,6 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
         this.entityType = entityType;
         this.entityName = entityType.getSimpleName();
     }
-
-    /**
-     * To get reference to command's logger
-     *
-     * @return reference to the logger
-     */
-    public abstract Logger getLog();
 
     /**
      * To cache into context old value of the student instance for possible rollback
@@ -207,7 +199,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
      * @param context             command's do context
      * @param rollbackProcess     process to run after persistence fail
      * @param persistedEntityCopy persisted entity instance copy
-     * @param isCreateEntityMode  if true there was new entity creation action
+     * @param isCreateEntityMode  if true there was new entity creation processing
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)

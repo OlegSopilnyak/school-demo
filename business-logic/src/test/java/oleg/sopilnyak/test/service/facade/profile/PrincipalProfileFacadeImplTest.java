@@ -72,7 +72,7 @@ class PrincipalProfileFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new PrincipalProfileFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

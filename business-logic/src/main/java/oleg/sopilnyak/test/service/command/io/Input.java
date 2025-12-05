@@ -174,7 +174,7 @@ public interface Input<P> extends IOBase<P> {
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
      *
-     * @param contexts sequence context for undo action in CompositeCommand
+     * @param contexts sequence context for undo processing in CompositeCommand
      * @return new instance of the input
      * @see DequeContextsParameter
      * @see Deque
@@ -284,11 +284,12 @@ public interface Input<P> extends IOBase<P> {
     }
 
     private static <T extends BaseType> Input<? extends BasePayload<? extends BaseType>> educationType(T type) {
-        if (type instanceof Student base)
-            return type instanceof StudentPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        else if (type instanceof Course base)
-            return type instanceof CoursePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        else return null;
+        return switch (type) {
+            case Student base ->
+                    type instanceof StudentPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+            case Course base -> type instanceof CoursePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
+            case null, default -> null;
+        };
     }
 
 }

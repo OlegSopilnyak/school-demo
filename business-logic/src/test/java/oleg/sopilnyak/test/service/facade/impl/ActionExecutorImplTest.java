@@ -39,7 +39,7 @@ class ActionExecutorImplTest<T> {
     @InjectMocks
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
 
-    ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
+    ActionContext actionContext = ActionContext.builder().actionName("test-processing").facadeName("test-facade").build();
     @Mock
     Context<T> commandContext;
     @Mock
@@ -75,7 +75,7 @@ class ActionExecutorImplTest<T> {
         reset(applicationContext);
         doReturn(command).when(commandContext).getCommand();
 
-        Context<?> context = actionExecutor.rollbackAction(actionContext, (Context<Void>) commandContext);
+        Context<?> context = actionExecutor.rollbackAction(actionContext, commandContext);
 
         assertThat(context).isNotNull();
         verify(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -101,7 +101,7 @@ class ActionExecutorImplTest<T> {
     void shouldProcessUndoActionCommand() {
         reset(applicationContext);
         UndoCommandMessage message = UndoCommandMessage.builder()
-                .actionContext(actionContext).context((Context<Void>) commandContext)
+                .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();

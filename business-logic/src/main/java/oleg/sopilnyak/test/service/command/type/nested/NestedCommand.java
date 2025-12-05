@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import java.io.Serializable;
 
 /**
- * Type: Command to execute the business-logic action as a nested-command of CompositeCommand
+ * Type: Command to execute the business-logic processing as a nested-command of CompositeCommand
  *
  * @param <T> the type of command execution (do) result
  * @see CompositeCommand
@@ -21,7 +21,6 @@ public interface NestedCommand<T> extends Serializable {
     default String getId() {
         throw new UnsupportedOperationException("Please declare command-id");
     }
-//    String getId();
 
     /**
      * To prepare context for nested command using the visitor

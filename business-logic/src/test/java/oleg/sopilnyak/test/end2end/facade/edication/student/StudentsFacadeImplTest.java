@@ -107,7 +107,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = buildFactory(persistenceFacade);
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-action");
+        ActionContext.setup("test-facade", "test-processing");
     }
 
     @AfterEach

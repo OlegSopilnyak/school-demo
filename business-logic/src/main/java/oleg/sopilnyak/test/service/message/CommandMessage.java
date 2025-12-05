@@ -14,7 +14,7 @@ public interface CommandMessage<T> extends Serializable {
     String getCorrelationId();
 
     /**
-     * the action context of command's execution
+     * the processing context of command's execution
      *
      * @return the value
      * @see ActionContext#getFacadeName()
