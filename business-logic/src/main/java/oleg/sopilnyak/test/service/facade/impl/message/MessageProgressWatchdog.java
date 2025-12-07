@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.facade.impl.message;
 
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -11,12 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MessageProgressWatchdog<T> {
     @Getter
-    private BaseCommandMessage<T> result = null;
+    private CommandMessage<T> result = null;
     @Getter
     private volatile State state = State.IN_PROGRESS;
     private final Object getResultMonitor = new Object();
 
-    public void setResult(BaseCommandMessage<T> result) {
+    public void setResult(CommandMessage<T> result) {
         if (result != null) {
             this.result = result;
             this.state = State.COMPLETED;

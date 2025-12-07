@@ -32,7 +32,7 @@ import lombok.Data;
 @JsonSerialize(using = BaseCommandMessage.Serializer.class)
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
-    public static final BaseCommandMessage<?> EMPTY = new BaseCommandMessage<>(null, null, null) {
+    public static final CommandMessage<?> EMPTY = new BaseCommandMessage<>(null, null, null) {
         @Override
         public Direction getDirection() {
             return null;

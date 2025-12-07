@@ -12,6 +12,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
@@ -91,7 +92,7 @@ class ActionExecutorImplTest<T> {
                 .build();
         doReturn(command).when(commandContext).getCommand();
 
-        BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
+        CommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
         assertThat(processed).isNotNull().isEqualTo(message);
         verify(command).doCommand(commandContext);
@@ -106,7 +107,7 @@ class ActionExecutorImplTest<T> {
                 .build();
         doReturn(command).when(commandContext).getCommand();
 
-        BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
+        CommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 
         assertThat(processed).isNotNull().isEqualTo(message);
         verify(command).undoCommand(commandContext);

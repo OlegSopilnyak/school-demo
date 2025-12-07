@@ -35,7 +35,7 @@ public class ActionExecutorImpl implements ActionExecutor {
      * @see BaseCommandMessage
      */
     @Override
-    public <T> BaseCommandMessage<T> processActionCommand(final BaseCommandMessage<T> commandMessage) {
+    public <T> CommandMessage<T> processActionCommand(final CommandMessage<T> commandMessage) {
         log.debug("Validating message before processing...");
         validate(commandMessage);
         // send and receive message for processing
@@ -50,7 +50,7 @@ public class ActionExecutorImpl implements ActionExecutor {
         return messagesExchangeService.receive(commandId, correlationId);
     }
 
-    private <T> void validate(BaseCommandMessage<T> message) {
+    private <T> void validate(CommandMessage<T> message) {
         if (isNull(message.getDirection())) {
             throw new IllegalArgumentException("Message direction is not defined.");
         }

@@ -15,12 +15,12 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.awaitility.Durations;
@@ -109,20 +109,16 @@ class CommandThroughMessageServiceLocalImplTest {
                 (Map<String, MessageProgressWatchdog<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
         assertThat(messageInProgress).isNotNull().isEmpty();
 
-        BlockingQueue<BaseCommandMessage<?>> requests =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "requests");
-        assertThat(requests).isNotNull().isEmpty();
-        BlockingQueue<BaseCommandMessage<?>> responses =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "responses");
-        assertThat(responses).isNotNull().isEmpty();
+        MessagesProcessorAdapter requests = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "inputProcessor");
+        assertThat(requests).isNotNull();
+        MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
+        assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
 
         service.send(message);
 
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(requests::isEmpty);
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(responses::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(requests::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
 
         // check request message processing
         verify(message, atLeastOnce()).getContext();
@@ -179,7 +175,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(e).isInstanceOf(UnableExecuteCommandException.class);
         assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
         assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor is NOT active.");
+        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor isn't in active state.");
         // check request message processing
         verify(message, atLeastOnce()).getContext();
     }
@@ -193,20 +189,16 @@ class CommandThroughMessageServiceLocalImplTest {
                 (Map<String, MessageProgressWatchdog<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
         assertThat(messageInProgress).isNotNull().isEmpty();
 
-        BlockingQueue<BaseCommandMessage<?>> requests =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "requests");
-        assertThat(requests).isNotNull().isEmpty();
-        BlockingQueue<BaseCommandMessage<?>> responses =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "responses");
-        assertThat(responses).isNotNull().isEmpty();
+        MessagesProcessorAdapter requests = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "inputProcessor");
+        assertThat(requests).isNotNull();
+        MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
+        assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
 
         service.send(message);
 
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(requests::isEmpty);
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(responses::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(requests::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
 
         // check request message processing
         verify(message, atLeastOnce()).getContext();
@@ -218,8 +210,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
         // check response message processing
-        MessageProgressWatchdog<?> messageWatchDog =
-                messageInProgress.get(message.getCorrelationId());
+        MessageProgressWatchdog<?> messageWatchDog = messageInProgress.get(message.getCorrelationId());
         assertThat(messageWatchDog).isNotNull();
         assertThat(messageWatchDog.getState()).isEqualTo(MessageProgressWatchdog.State.COMPLETED);
         assertThat(messageWatchDog.getResult()).isEqualTo(message);
@@ -238,7 +229,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(e).isInstanceOf(UnableExecuteCommandException.class);
         assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
         assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
-        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor is NOT active.");
+        assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor isn't in active state.");
         // check request message processing
         verify(message, atLeastOnce()).getContext();
     }
@@ -251,13 +242,11 @@ class CommandThroughMessageServiceLocalImplTest {
         Map<String, MessageProgressWatchdog<?>> messageInProgress =
                 (Map<String, MessageProgressWatchdog<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
         assertThat(messageInProgress).isNotNull().isEmpty();
-        BlockingQueue<BaseCommandMessage<?>> responses =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "responses");
-        assertThat(responses).isNotNull().isEmpty();
+        MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
+        assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
         service.send(message);
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(responses::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
         assertThat(messageInProgress).containsKey(message.getCorrelationId());
         assertThat(messageInProgress.get(message.getCorrelationId()).getResult()).isEqualTo(message);
         // check command execution
@@ -267,7 +256,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
 
-        BaseCommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
+        CommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
         // check message processing is finished
@@ -282,13 +271,11 @@ class CommandThroughMessageServiceLocalImplTest {
         Map<String, MessageProgressWatchdog<?>> messageInProgress =
                 (Map<String, MessageProgressWatchdog<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
         assertThat(messageInProgress).isNotNull().isEmpty();
-        BlockingQueue<BaseCommandMessage<?>> responses =
-                (BlockingQueue<BaseCommandMessage<?>>) ReflectionTestUtils.getField(service, "responses");
-        assertThat(responses).isNotNull().isEmpty();
+        MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
+        assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
         service.send(message);
-        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS)
-                .until(responses::isEmpty);
+        await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
         assertThat(messageInProgress).containsKey(message.getCorrelationId());
         assertThat(messageInProgress.get(message.getCorrelationId()).getResult()).isEqualTo(message);
         // check command execution
@@ -298,7 +285,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
 
-        BaseCommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
+        CommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
         // check message processing is finished
@@ -311,7 +298,7 @@ class CommandThroughMessageServiceLocalImplTest {
                 .actionContext(actionContext).context(commandContext)
                 .build());
 
-        BaseCommandMessage<?> result = service.receive(command.getId(), message.getCorrelationId());
+        CommandMessage<?> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNull();
     }

@@ -28,7 +28,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
-import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 
 import java.util.Deque;
@@ -478,11 +477,6 @@ class ParallelMacroCommandTest {
         @Override
         public Double detachedResult(Double result) {
             return result;
-        }
-
-        @Override
-        public BusinessMessagePayloadMapper getPayloadMapper() {
-            return null;
         }
     }
 

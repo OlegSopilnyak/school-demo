@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 
@@ -74,7 +75,7 @@ class ActionExecutorTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        BaseCommandMessage<T> processed = actionExecutor.processActionCommand(message);
+        CommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
         assertThat(processed).isNotNull().isEqualTo(message);
         verify(command).doCommand(commandContext);
@@ -87,7 +88,7 @@ class ActionExecutorTest<T> {
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        BaseCommandMessage<Void> processed = actionExecutor.processActionCommand(message);
+        CommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 
         assertThat(processed).isNotNull().isEqualTo(message);
         verify(command).undoCommand(commandContext);
