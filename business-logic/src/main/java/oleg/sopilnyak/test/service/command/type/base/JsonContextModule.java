@@ -62,7 +62,7 @@ public class JsonContextModule<T> extends SimpleModule {
         // add serializer/deserializer for command context
         serializers.addSerializer(Context.class, new CommandContextSerializer());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
-        // apply modified serializer/deserializer
+        // accept modified serializer/deserializer
         setupContext.addSerializers(serializers);
         setupContext.addDeserializers(deserializers);
 
@@ -215,7 +215,7 @@ public class JsonContextModule<T> extends SimpleModule {
                     } else {
                         throw new IOException("Command Type is missing :" + commandClass);
                     }
-                } catch (ClassNotFoundException e) {
+                } catch (ClassNotFoundException _) {
                     throw new IOException("Command Type is missing :" + commandType);
                 }
             } else {

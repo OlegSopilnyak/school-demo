@@ -51,6 +51,7 @@ class ActionExecutorImplTest<T> {
         messagesExchangeService.initialize();
         ReflectionTestUtils.setField(actionExecutor, "messagesExchangeService", messagesExchangeService);
         doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
+        doReturn("mocked-command-id").when(command).getId();
     }
 
     @AfterEach
@@ -135,7 +136,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_NullDirection() {
-        reset(applicationContext);
+        reset(applicationContext, command);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {

@@ -17,7 +17,7 @@ public abstract class AbstractCommandFactory<T extends RootCommand<?>> implement
     private final Map<String, T> commandMap = new HashMap<>();
 
     /**
-     * To apply commands collection to the factory
+     * To accept commands collection to the factory
      *
      * @param commands commands collection
      */

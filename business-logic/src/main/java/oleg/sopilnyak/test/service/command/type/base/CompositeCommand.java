@@ -163,7 +163,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
             // notifying by new states state-change listener instances
             // iterating after DO execution context states
             statesAfter.forEach(current -> {
-                // apply new state changes to the state-change-listener instance
+                // accept new state changes to the state-change-listener instance
                 listener.stateChanged(contextAfterCommandDo, previous.get(), current);
                 // set up previous state to current one
                 previous.getAndSet(current);

@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,12 @@ public class ActionExecutorImpl implements ActionExecutor {
         return messagesExchangeService.receive(commandId, correlationId);
     }
 
+    @PreDestroy
+    public void shutdownMessagesExchangeService() {
+        log.info("Shutting down Messages Exchange Service");
+        messagesExchangeService.shutdown();
+    }
+    // private methods
     private <T> void validate(CommandMessage<T> message) {
         if (isNull(message.getDirection())) {
             throw new IllegalArgumentException("Message direction is not defined.");

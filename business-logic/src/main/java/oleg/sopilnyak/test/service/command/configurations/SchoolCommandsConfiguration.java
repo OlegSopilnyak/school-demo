@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
 import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
+import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import java.util.Collection;
@@ -60,7 +60,7 @@ public class SchoolCommandsConfiguration {
      * Local implementation of command messages deliverer for processing-executor
      *
      * @return implementation based on local queues
-     * @see ActionExecutorImpl#processActionCommand(BaseCommandMessage)
+     * @see ActionExecutorImpl#processActionCommand(CommandMessage)
      */
     @Bean
     @Profile("!AMQP")

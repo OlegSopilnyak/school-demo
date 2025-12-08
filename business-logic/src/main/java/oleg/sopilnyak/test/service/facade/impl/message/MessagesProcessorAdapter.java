@@ -1,10 +1,8 @@
 package oleg.sopilnyak.test.service.facade.impl.message;
 
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
@@ -12,7 +10,7 @@ import org.slf4j.Logger;
 /**
  * Processor: parent of messages processor for requests and response messages
  */
-public abstract class MessagesProcessorAdapter {
+public abstract class MessagesProcessorAdapter implements MessagesProcessor {
     protected final Logger log;
     private final AtomicBoolean processorActive;
     private final AtomicBoolean serviceActive;
@@ -29,71 +27,26 @@ public abstract class MessagesProcessorAdapter {
     }
 
     /**
-     * To execute messages processor business-logic
+     * To check if the processor's owner (service) is active
+     *
+     * @return true if the processor's owner is active
+     * @see CommandThroughMessageService
      */
-    public void processing() {
-        if (isProcessorActive()) {
-            log.warn("{} is already running.", getProcessorName());
-            return;
-        }
-        // making it active
-        activateProcessor();
-        log.info("{} is started. Main service active = '{}'", getProcessorName(), serviceActive);
-        while (serviceActive.get()) {
-            try {
-                final CommandMessage<?> message = takeFromQueue();
-                if (serviceActive.get() && !Objects.equals(message, BaseCommandMessage.EMPTY)) {
-                    // process the message asynchronously if not empty
-                    CompletableFuture.runAsync(() -> processTakenMessage(message), executor);
-                }
-            } catch (InterruptedException e) {
-                log.warn("{} getting command requests is interrupted", getProcessorName(), e);
-                /* Clean up whatever needs to be handled before interrupting  */
-                Thread.currentThread().interrupt();
-            }
-        }
-        // mark as inactive
-        deActivateProcessor();
+    @Override
+    public boolean isOwnerActive() {
+        return serviceActive.get();
     }
 
     /**
-     * Get the name of the processor for logging purposes.
+     * To get the executor for taken messages
      *
-     * @return the name of the processor
+     * @return executor reference
+     * @see this#onTakenMessage(CommandMessage)
      */
-    public abstract String getProcessorName();
-
-    /**
-     * To apply for processing command-message
-     *
-     * @return true, if message is accepted for the processing, false otherwise
-     * @param message command-message to process
-     * @param <T> command execution result type
-     */
-    public abstract <T> boolean apply(CommandMessage<T> message);
-
-    /**
-     * To check are there are active messages to process
-     *
-     * @return true if processor is waiting for the message
-     */
-    public abstract boolean isEmpty();
-
-    /**
-     * To take command message from the appropriate queue for further processing
-     *
-     * @return the command message taken from the appropriate queue
-     * @throws InterruptedException if interrupted while waiting
-     * @see BaseCommandMessage
-     */
-    protected abstract <T> CommandMessage<T> takeFromQueue() throws InterruptedException;
-
-    /**
-     * To process the taken message.
-     *
-     * @param message the command message to be processed
-     */
-    protected abstract void processTakenMessage(CommandMessage<?> message);
+    @Override
+    public Executor takenMessageExecutor() {
+        return executor;
+    }
 
     /**
      * To check if the processor is active
@@ -105,16 +58,23 @@ public abstract class MessagesProcessorAdapter {
     }
 
     /**
-     * To activate the processor
+     * To change processor's state
+     *
+     * @param state new state value
      */
-    private void activateProcessor(){
-        processorActive.getAndSet(true);
+    @Override
+    public void setProcessorActive(boolean state) {
+        processorActive.getAndSet(state);
     }
 
     /**
-     * To deactivate the processor
+     * To get access to the logger of the processor
+     *
+     * @return logger's reference
      */
-    private void deActivateProcessor(){
-        processorActive.getAndSet(false);
+    @Override
+    public Logger getLogger() {
+        return log;
     }
+
 }

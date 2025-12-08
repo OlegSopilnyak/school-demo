@@ -9,12 +9,15 @@ import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -23,6 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class})
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
+@DirtiesContext
 class RegisterCourseCommandConfigurationTest {
     static final String REGISTER_COMMAND_ID = "course.register";
     @MockitoBean
@@ -32,6 +36,13 @@ class RegisterCourseCommandConfigurationTest {
 
     @Autowired(required = false)
     CommandsFactory<CourseCommand<?>> factory;
+//    @Autowired
+//    CommandThroughMessageService messagesExchangeService;
+//
+//    @AfterEach
+//    void tearDown() {
+//        messagesExchangeService.shutdown();
+//    }
 
     @Test
     void shouldBuildCourseCommandsFactory() {
