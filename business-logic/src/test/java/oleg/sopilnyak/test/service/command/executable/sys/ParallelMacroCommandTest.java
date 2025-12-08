@@ -66,6 +66,7 @@ class ParallelMacroCommandTest {
     @BeforeEach
     void setUp() {
         executor.initialize();
+        executor.setThreadNamePrefix("ParallelMacroCommand-");
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
@@ -74,6 +75,7 @@ class ParallelMacroCommandTest {
 
     @AfterEach
     void tearDown() {
+        executor.shutdown();
         reset(executor);
     }
 

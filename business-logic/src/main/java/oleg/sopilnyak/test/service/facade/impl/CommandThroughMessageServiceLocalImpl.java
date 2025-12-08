@@ -9,7 +9,6 @@ import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessor;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
-import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
@@ -22,14 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,9 +54,9 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     // Create executor for processing message commands by default
     // @see ActionExecutor#processActionCommand(CommandMessage)
     private static final ActionExecutor basicActionExecutor = () -> log;
-    // Executor services for background processing
-    private ExecutorService controlExecutorService;
-    private ExecutorService operationalExecutorService;
+    // Executors for background processing
+    private ThreadPoolTaskExecutor controlExecutorService;
+    private ThreadPoolTaskExecutor messagesExecutorService;
     // Flag to control the current state of the service
     private final AtomicBoolean serviceActive = new AtomicBoolean(false);
     // The map of messages in progress, key is correlationId
@@ -84,7 +80,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         controlExecutorService = createExecutorService(2, "ProcessorControl-");
         // operational executor for processing command messages
         final int operationalPoolSize = Math.max(maximumPoolSize, Runtime.getRuntime().availableProcessors());
-        operationalExecutorService = createExecutorService(operationalPoolSize, "QueueMessageProcessor-");
+        messagesExecutorService = createExecutorService(operationalPoolSize, "QueueMessageProcessor-");
 
         // starting background processors
         serviceActive.getAndSet(true);
@@ -105,18 +101,18 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         log.info("MessageProcessingService Local Version is started.");
     }
 
-    protected MessagesProcessorAdapter prepareInputProcessor(final AtomicBoolean serviceActive,
-                                                             final ExecutorService executorService,
-                                                             final Logger log) {
+    protected MessagesProcessorAdapter prepareInputProcessor(
+            final AtomicBoolean serviceActive, final Executor executor, final Logger logger
+    ) {
         final AtomicBoolean requestsProcessorState = processorStates.get(RequestsProcessor.class);
-        return new RequestsProcessor(requestsProcessorState, serviceActive, executorService, log);
+        return new RequestsProcessor(requestsProcessorState, serviceActive, executor, logger);
     }
 
-    protected MessagesProcessorAdapter prepareOutputProcessor(final AtomicBoolean serviceActive,
-                                                              final ExecutorService executorService,
-                                                              final Logger log) {
+    protected MessagesProcessorAdapter prepareOutputProcessor(
+            final AtomicBoolean serviceActive, final Executor executor, final Logger logger
+    ) {
         final AtomicBoolean responsesProcessorState = processorStates.get(ResponsesProcessor.class);
-        return new ResponsesProcessor(responsesProcessorState, serviceActive, executorService, log);
+        return new ResponsesProcessor(responsesProcessorState, serviceActive, executor, logger);
     }
 
     /**
@@ -132,16 +128,16 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         // clear main flag of the service
         serviceActive.getAndSet(false);
         // send to processors final messages
-        inputProcessor.accept(BaseCommandMessage.EMPTY);
-        outputProcessor.accept(BaseCommandMessage.EMPTY);
+        inputProcessor.accept(CommandMessage.EMPTY);
+        outputProcessor.accept(CommandMessage.EMPTY);
         // wait for messages processors are active
         waitForProcessorsAreActive();
         // shutdown messages executors
-        shutdown(operationalExecutorService);
-        shutdown(controlExecutorService);
+        messagesExecutorService.shutdown();
+        controlExecutorService.shutdown();
         // clear messages executors references
         controlExecutorService = null;
-        operationalExecutorService = null;
+        messagesExecutorService = null;
         log.info("MessageProcessingService Local Version is stopped.");
     }
 
@@ -278,38 +274,26 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     // create and configure execution service
-    private static ExecutorService createExecutorService(final int maxPoolSize, final String threadNamePrefix) {
-        final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
-        threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
-        return Executors.newScheduledThreadPool(maxPoolSize, threadsFactory);
-    }
-
-    // shut down execution service properly
-    private static void shutdown(final ExecutorService executor) {
-        executor.shutdown(); // Stop accepting new tasks
-        try {
-            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                executor.shutdownNow(); // Force stop if not finished
-            }
-        } catch (InterruptedException _) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        } finally {
-            executor.close();
-        }
+    private static ThreadPoolTaskExecutor createExecutorService(final int maxPoolSize, final String threadNamePrefix) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(maxPoolSize);
+        executor.setMaxPoolSize(maxPoolSize);
+        executor.setThreadNamePrefix(threadNamePrefix);
+        executor.initialize();
+        return executor;
     }
 
     // launching command context requests processor
     private void launchInputProcessor(CountDownLatch latchOfProcessors) {
         // preparing launch command context requests processor
-        inputProcessor = prepareInputProcessor(serviceActive, operationalExecutorService, log);
+        inputProcessor = prepareInputProcessor(serviceActive, messagesExecutorService, log);
         launchMessagesProcessor(inputProcessor, latchOfProcessors, controlExecutorService);
     }
 
     // launching command context responses processor
     private void launchOutputProcessor(CountDownLatch latchOfProcessors) {
         // preparing launch command context responses processor
-        outputProcessor = prepareOutputProcessor(serviceActive, operationalExecutorService, log);
+        outputProcessor = prepareOutputProcessor(serviceActive, messagesExecutorService, log);
         launchMessagesProcessor(outputProcessor, latchOfProcessors, controlExecutorService);
     }
 
@@ -480,8 +464,8 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         void completeMessageProcessing(final CommandMessage response) {
             final String correlationId = response.getCorrelationId();
             // check if the message in progress map by correlation-id
-            final MessageProgressWatchdog<?> messageWatcher;
-            if (isNull(messageWatcher = messageInProgress.get(correlationId))) {
+            final MessageProgressWatchdog<?> messageWatcher = messageInProgress.get(correlationId);
+            if (isNull(messageWatcher)) {
                 logMessageIsNotInProgress(correlationId);
                 return;
             }

@@ -37,6 +37,7 @@ import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +76,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     AuthorityPerson person;
     @Mock
     PrincipalProfile profile;
+    ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @BeforeEach
     void setUp() {
@@ -84,7 +86,8 @@ class DeleteAuthorityPersonMacroCommandTest {
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
-        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setThreadNamePrefix("DeleteAuthorityPersonMacroCommand-");
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
@@ -94,6 +97,12 @@ class DeleteAuthorityPersonMacroCommandTest {
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-processing");
+    }
+
+    @AfterEach
+    void tearDown() {
+        threadPoolTaskExecutor.shutdown();
+        threadPoolTaskExecutor = null;
     }
 
     @Test

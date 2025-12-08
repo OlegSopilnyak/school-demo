@@ -31,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -46,6 +47,7 @@ import org.mapstruct.factory.Mappers;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
+@DirtiesContext
 class PrincipalProfileRestControllerTest extends TestModelFactory {
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();

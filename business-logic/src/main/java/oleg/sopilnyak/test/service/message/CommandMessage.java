@@ -6,6 +6,13 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import java.io.Serializable;
 
 public interface CommandMessage<T> extends Serializable {
+    CommandMessage<?> EMPTY = new BaseCommandMessage<>(null, null, null) {
+        @Override
+        public Direction getDirection() {
+            return null;
+        }
+    };
+
     /**
      * correlation ID of the message
      *

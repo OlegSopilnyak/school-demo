@@ -32,12 +32,6 @@ import lombok.Data;
 @JsonSerialize(using = BaseCommandMessage.Serializer.class)
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
-    public static final CommandMessage<?> EMPTY = new BaseCommandMessage<>(null, null, null) {
-        @Override
-        public Direction getDirection() {
-            return null;
-        }
-    };
     private static final String CORRELATION_ID_FIELD_NAME = "correlation-id";
     private static final String ACTION_CONTEXT_FIELD_NAME = "processing-context";
     private static final String COMMAND_CONTEXT_FIELD_NAME = "command-context";

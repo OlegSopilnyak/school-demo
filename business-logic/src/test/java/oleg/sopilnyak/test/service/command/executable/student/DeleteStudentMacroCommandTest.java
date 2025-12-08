@@ -73,7 +73,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     ActionExecutor actionExecutor;
     @Mock
     SchedulingTaskExecutor schedulingTaskExecutor;
-    ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+    ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     DeleteStudentMacroCommand command;
     @Mock
@@ -89,6 +89,9 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         command = spy(new DeleteStudentMacroCommand(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
+        threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setThreadNamePrefix("DeleteStudentMacroCommand-");
+        threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
             return null;
@@ -99,7 +102,6 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
         ActionContext.setup("test-facade", "test-processing");
-        threadPoolTaskExecutor.initialize();
     }
 
     // setup nested commands
