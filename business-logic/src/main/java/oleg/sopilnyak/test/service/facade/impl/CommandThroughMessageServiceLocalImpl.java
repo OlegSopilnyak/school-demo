@@ -153,7 +153,7 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
                 log.debug(" ++ Successfully processed request with direction:{} correlation-id:{}",
                         message.getDirection(), message.getCorrelationId());
             } catch (Throwable e) {
-                // process message after error thrown
+                // process message after error has thrown
                 log.error("== Couldn't process message request with correlation-id:{}", message.getCorrelationId(), e);
                 processUnprocessedRequestCommandMessage(message, e);
             } finally {

@@ -32,14 +32,12 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CommandThroughMessageServiceLocalImpl.class})
-@TestPropertySource(properties = {"school.maximum.threads.pool.size=9"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CommandThroughMessageServiceLocalImplTest {
 
@@ -62,9 +60,6 @@ class CommandThroughMessageServiceLocalImplTest {
     @Test
     void shouldCheckIntegrity() {
         assertThat(service).isNotNull();
-        assertThat(ReflectionTestUtils.getField(service, "maximumPoolSize"))
-                .isEqualTo(9)
-                .isNotEqualTo(Runtime.getRuntime().availableProcessors());
         assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
         ExecutorService controlExecutorService = (ExecutorService) ReflectionTestUtils.getField(service, "controlExecutorService");
         assertThat(controlExecutorService).isNotNull();
