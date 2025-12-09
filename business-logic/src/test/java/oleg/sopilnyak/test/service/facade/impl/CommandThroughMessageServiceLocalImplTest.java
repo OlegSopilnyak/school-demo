@@ -21,6 +21,7 @@ import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.awaitility.Durations;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -66,34 +66,34 @@ class CommandThroughMessageServiceLocalImplTest {
                 .isEqualTo(9)
                 .isNotEqualTo(Runtime.getRuntime().availableProcessors());
         assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
-        ThreadPoolTaskExecutor controlExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "controlExecutorService");
+        ExecutorService controlExecutorService = (ExecutorService) ReflectionTestUtils.getField(service, "controlExecutorService");
         assertThat(controlExecutorService).isNotNull();
-        assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
-        assertThat(controlExecutorService.getThreadPoolExecutor().isTerminated()).isFalse();
-        ThreadPoolTaskExecutor operationalExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "messagesExecutorService");
+        assertThat(controlExecutorService.isShutdown()).isFalse();
+        assertThat(controlExecutorService.isTerminated()).isFalse();
+        ExecutorService operationalExecutorService = (ExecutorService) ReflectionTestUtils.getField(service, "messagesExecutorService");
         assertThat(operationalExecutorService).isNotNull();
-        assertThat(operationalExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
-        assertThat(operationalExecutorService.getThreadPoolExecutor().isTerminated()).isFalse();
+        assertThat(operationalExecutorService.isShutdown()).isFalse();
+        assertThat(operationalExecutorService.isTerminated()).isFalse();
         assertThat((Map) ReflectionTestUtils.getField(service, "messageInProgress")).isEmpty();
     }
 
     @Test
     void shouldStopService() {
         assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isTrue();
-        ThreadPoolTaskExecutor controlExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "controlExecutorService");
-        ThreadPoolTaskExecutor operationalExecutorService = (ThreadPoolTaskExecutor) ReflectionTestUtils.getField(service, "messagesExecutorService");
+        ExecutorService controlExecutorService = (ExecutorService) ReflectionTestUtils.getField(service, "controlExecutorService");
+        ExecutorService operationalExecutorService = (ExecutorService) ReflectionTestUtils.getField(service, "messagesExecutorService");
         assertThat(controlExecutorService).isNotNull();
-        assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
-        assertThat(controlExecutorService.getThreadPoolExecutor().isTerminated()).isFalse();
+        assertThat(controlExecutorService.isShutdown()).isFalse();
+        assertThat(controlExecutorService.isTerminated()).isFalse();
         assertThat(operationalExecutorService).isNotNull();
-        assertThat(operationalExecutorService.getThreadPoolExecutor().isShutdown()).isFalse();
-        assertThat(operationalExecutorService.getThreadPoolExecutor().isTerminated()).isFalse();
+        assertThat(operationalExecutorService.isShutdown()).isFalse();
+        assertThat(operationalExecutorService.isTerminated()).isFalse();
 
         service.shutdown();
 
         assertThat(((AtomicBoolean) ReflectionTestUtils.getField(service, "serviceActive")).get()).isFalse();
-        assertThat(controlExecutorService.getThreadPoolExecutor().isShutdown()).isTrue();
-        assertThat(operationalExecutorService.getThreadPoolExecutor().isShutdown()).isTrue();
+        assertThat(controlExecutorService.isShutdown()).isTrue();
+        assertThat(operationalExecutorService.isShutdown()).isTrue();
     }
 
     @Test

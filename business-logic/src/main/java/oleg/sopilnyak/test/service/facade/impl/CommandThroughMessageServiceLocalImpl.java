@@ -21,11 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +58,8 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     // @see ActionExecutor#processActionCommand(CommandMessage)
     private static final ActionExecutor basicActionExecutor = () -> log;
     // Executors for background processing
-    private ThreadPoolTaskExecutor controlExecutorService;
-    private ThreadPoolTaskExecutor messagesExecutorService;
+    private ExecutorService controlExecutorService;
+    private ExecutorService messagesExecutorService;
     // Flag to control the current state of the service
     private final AtomicBoolean serviceActive = new AtomicBoolean(false);
     // The map of messages in progress, key is correlationId
@@ -133,8 +136,8 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
         // wait for messages processors are active
         waitForProcessorsAreActive();
         // shutdown messages executors
-        messagesExecutorService.shutdown();
-        controlExecutorService.shutdown();
+        shutdown(messagesExecutorService);
+        shutdown(controlExecutorService);
         // clear messages executors references
         controlExecutorService = null;
         messagesExecutorService = null;
@@ -256,6 +259,27 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
     }
 
     // private methods
+    // create and configure execution service
+    private static ExecutorService createExecutorService(final int maxPoolSize, final String threadNamePrefix) {
+        final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
+        threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    // shut down execution service properly
+    private static void shutdown(final ExecutorService executor) {
+        executor.shutdown(); // Stop accepting new tasks
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // Force stop if not finished
+            }
+        } catch (InterruptedException _) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        } finally {
+            executor.close();
+        }
+    }
     // log that message with correlationId is not found in progress map
     private static void logMessageIsNotInProgress(final String correlationId) {
         log.warn("= Message with correlationId='{}' is NOT found in progress map", correlationId);
@@ -271,16 +295,6 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
                 Thread.currentThread().interrupt();
             }
         }
-    }
-
-    // create and configure execution service
-    private static ThreadPoolTaskExecutor createExecutorService(final int maxPoolSize, final String threadNamePrefix) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(maxPoolSize);
-        executor.setMaxPoolSize(maxPoolSize);
-        executor.setThreadNamePrefix(threadNamePrefix);
-        executor.initialize();
-        return executor;
     }
 
     // launching command context requests processor
@@ -383,6 +397,7 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
          * @throws InterruptedException if interrupted while waiting
          * @see CommandMessage
          */
+        @SuppressWarnings("unchecked")
         @Override
         public <T> CommandMessage<T> takeMessage() throws InterruptedException {
             return (CommandMessage<T>) messages.take();
@@ -461,10 +476,10 @@ public class CommandThroughMessageServiceLocalImpl implements CommandThroughMess
 
         @SuppressWarnings("unchecked")
         // complete the message processing
-        void completeMessageProcessing(final CommandMessage response) {
+        <T> void completeMessageProcessing(final CommandMessage<T> response) {
             final String correlationId = response.getCorrelationId();
             // check if the message in progress map by correlation-id
-            final MessageProgressWatchdog<?> messageWatcher = messageInProgress.get(correlationId);
+            final MessageProgressWatchdog<T> messageWatcher = (MessageProgressWatchdog<T>) messageInProgress.get(correlationId);
             if (isNull(messageWatcher)) {
                 logMessageIsNotInProgress(correlationId);
                 return;
