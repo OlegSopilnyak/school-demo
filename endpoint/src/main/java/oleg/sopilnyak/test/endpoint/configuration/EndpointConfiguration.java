@@ -31,9 +31,9 @@ public class EndpointConfiguration  implements WebMvcConfigurer {
     @Primary
     public ObjectMapper objectMapper() {
         return new ObjectMapper()
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-//                .enable(SerializationFeature.INDENT_OUTPUT)
                 .registerModule(new JavaTimeModule())
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 }

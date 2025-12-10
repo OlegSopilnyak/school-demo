@@ -2,8 +2,10 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.impl.message.CommandThroughMessageServiceAdapter;
 import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessor;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
@@ -14,7 +16,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,12 +35,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessageServiceAdapter {
     // Flags to control the current state of the processors
-    private static final Map<Class<? extends MessagesProcessorAdapter>, AtomicBoolean> processorStates = Map.of(
+    private static final Map<Class<? extends MessagesProcessor>, AtomicBoolean> processorStates = Map.of(
             RequestsProcessor.class, new AtomicBoolean(false),
             ResponsesProcessor.class, new AtomicBoolean(false)
     );
     // monitor to shut down message-processors properly
     private final Object processorStatesMonitor = new Object();
+    private transient ObjectMapper objectMapper;
+
+    @Autowired
+    @Qualifier("commandsTroughMessageObjectMapper")
+    public final void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * To get access to service's logger
@@ -48,15 +61,13 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
 
     @Override
     protected MessagesProcessorAdapter prepareInputProcessor(final AtomicBoolean serviceActive, final Executor executor) {
-        final AtomicBoolean requestsProcessorState = processorStates.get(RequestsProcessor.class);
-        return new RequestsProcessor(requestsProcessorState, serviceActive, executor, log);
+        return new RequestsProcessor(processorStates.get(RequestsProcessor.class), serviceActive, executor, log);
     }
 
 
     @Override
     protected MessagesProcessorAdapter prepareOutputProcessor(final AtomicBoolean serviceActive, final Executor executor) {
-        final AtomicBoolean responsesProcessorState = processorStates.get(ResponsesProcessor.class);
-        return new ResponsesProcessor(responsesProcessorState, serviceActive, executor, log);
+        return new ResponsesProcessor(processorStates.get(ResponsesProcessor.class), serviceActive, executor, log);
     }
 
     /**
@@ -78,7 +89,7 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
 
     // inner classes
     // Parent class of messages processing processor, using local blocking-queue
-    private abstract static class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAdapter {
+    private abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAdapter {
         private final BlockingQueue<CommandMessage<?>> messages = new LinkedBlockingQueue<>();
 
         protected MessagesProcessorOnLocalBlockingQueue(
@@ -95,6 +106,12 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
         @Override
         public <T> boolean accept(CommandMessage<T> message) {
             log.debug("Put to the queue command message {}", message);
+            try {
+                final String json = objectMapper.writeValueAsString(message);
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to serialize message to json", e);
+//                throw ActionFacade.throwFor(message.getContext().getCommand().getId(), e);
+            }
             return messages.add(message);
         }
 
@@ -109,7 +126,14 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
         @Override
         public <T> CommandMessage<T> takeMessage() throws InterruptedException {
             log.debug("Taking available command message from the queue.");
-            return (CommandMessage<T>) messages.take();
+            final CommandMessage<T> takenMessage = (CommandMessage<T>) messages.take();
+            final String json;
+            try {
+                json = objectMapper.writeValueAsString(takenMessage);
+                return objectMapper.readValue(json, CommandMessage.class);
+            } catch (JsonProcessingException e) {
+                return (CommandMessage<T>) CommandMessage.EMPTY;
+            }
         }
 
         /**

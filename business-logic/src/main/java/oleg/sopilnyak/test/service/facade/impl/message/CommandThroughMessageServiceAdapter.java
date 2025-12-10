@@ -181,14 +181,11 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         //
         // put message-watcher to in-progress map by correlation-id
         if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageProgressWatchdog<>()) != null) {
+            // message with correlation-id already in progress
             getLogger().warn("Send: message with correlationId='{}' is already in progress", messageCorrelationId);
         } else {
             // passing the message to the requests processor
-            if (inputProcessor.accept(message)) {
-                getLogger().info("Send: message with correlationId='{}' is accepted for processing.", messageCorrelationId);
-            } else {
-                getLogger().error("Send: message with correlationId='{}' is NOT accepted for processing", messageCorrelationId);
-            }
+            startProcessingMessage(message, messageCorrelationId);
         }
     }
 
@@ -339,9 +336,21 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
     }
 
+    // initialize request message processing
+    private void startProcessingMessage(final CommandMessage<?> message, final String messageCorrelationId) {
+        // try to send the request to the requests processor
+        if (inputProcessor.accept(message)) {
+            // successfully sent
+            getLogger().info("Send: message with correlationId='{}' is accepted for processing.", messageCorrelationId);
+        } else {
+            // something went wrong
+            getLogger().error("Send: message with correlationId='{}' is NOT accepted for processing", messageCorrelationId);
+        }
+    }
+
     // finalize processed message
     private void finalizeProcessedMessage(final CommandMessage<?> processedMessage, final String correlationId) {
-        // try to send result to the responses queue
+        // try to send the result to the responses processor
         if (outputProcessor.accept(processedMessage)) {
             // successfully sent
             getLogger().debug("Message with correlationId='{}' is processed and put to responses processor", correlationId);

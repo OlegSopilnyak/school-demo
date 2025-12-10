@@ -33,10 +33,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -187,6 +192,16 @@ public class SchoolCommandsConfiguration {
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
     public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
+    }
+
+    @Bean(name = "commandsTroughMessageObjectMapper")
+    public <T extends RootCommand<?>> ObjectMapper commandsTroughMessageObjectMapper(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .registerModule(createConetxtModule(context,farm))
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     /**

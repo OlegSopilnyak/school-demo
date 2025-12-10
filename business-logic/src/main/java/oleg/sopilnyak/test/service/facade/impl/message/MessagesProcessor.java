@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Processor: to process command-message in command-though-message service
@@ -38,15 +39,17 @@ public interface MessagesProcessor {
         while (isOwnerActive()) {
             try {
                 final CommandMessage<?> message = takeMessage();
-                if (isOwnerActive()) {
-                    if (!lastMessage.test(message)) {
-                        // process the message asynchronously if service is active and message isn't empty
-                        CompletableFuture.runAsync(() -> onTakenMessage(message), takenMessageExecutor());
-                    } else {
-                        // last message is received
-                        getLogger().info("Received last message, the processor {} is stopping.", getProcessorName());
-                        break;
-                    }
+                if (!isOwnerActive()) {
+                    getLogger().debug("{} is going to stop.", getProcessorName());
+                    continue;
+                }
+                if (!lastMessage.test(message)) {
+                    // process the message asynchronously if service is active and message isn't empty
+                    CompletableFuture.runAsync(() -> onTakenMessage(message), takenMessageExecutor());
+                } else {
+                    // last message is received
+                    getLogger().info("Received last message, the processor {} is going to stop.", getProcessorName());
+                    break;
                 }
             } catch (InterruptedException e) {
                 getLogger().warn("{} getting command requests is interrupted", getProcessorName(), e);
@@ -67,10 +70,10 @@ public interface MessagesProcessor {
     boolean isOwnerActive();
 
     /**
-     * To take command message from the appropriate messages queue for further processing
+     * To take command message from the appropriate messages processor's source for further processing
      *
      * @param <T> command execution result type
-     * @return the command message taken from the appropriate queue
+     * @return the command message taken from the appropriate processor's source
      * @throws InterruptedException if interrupted while waiting
      * @see CommandMessage
      */
