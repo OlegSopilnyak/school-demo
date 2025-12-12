@@ -188,6 +188,7 @@ class UndoCommandMessageTest {
         Context.State state = Context.State.DONE;
         RootCommand<Void> command = mock(VoidCommand.class);
         doReturn(COMMAND_ID).when(command).getId();
+        doReturn(VoidCommand.class).when(command).commandFamily();
         CommandContext<Void> commandContext = CommandContext.<Void>builder().build();
         commandContext.setCommand(command);
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();

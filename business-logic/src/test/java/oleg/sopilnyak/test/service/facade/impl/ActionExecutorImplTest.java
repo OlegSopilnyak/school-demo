@@ -3,7 +3,10 @@ package oleg.sopilnyak.test.service.facade.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -28,6 +31,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 class ActionExecutorImplTest<T> {
@@ -36,6 +41,8 @@ class ActionExecutorImplTest<T> {
     ActionExecutorImpl actionExecutor;
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    ObjectMapper objectMapper;
     @Spy
     @InjectMocks
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
@@ -45,13 +52,16 @@ class ActionExecutorImplTest<T> {
     Context<T> commandContext;
     @Mock
     RootCommand<T> command;
+    static final String MOCKED_COMMAND_ID = "mocked-command-id";
+    static final String MESSAGE_JSON = "base-message-json";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws JsonProcessingException {
         messagesExchangeService.initialize();
         ReflectionTestUtils.setField(actionExecutor, "messagesExchangeService", messagesExchangeService);
         doReturn(messagesExchangeService).when(applicationContext).getBean(CommandThroughMessageService.class);
-        doReturn("mocked-command-id").when(command).getId();
+        doReturn(MOCKED_COMMAND_ID).when(command).getId();
+        doReturn(MESSAGE_JSON).when(objectMapper).writeValueAsString(any(CommandMessage.class));
     }
 
     @AfterEach
@@ -60,9 +70,19 @@ class ActionExecutorImplTest<T> {
     }
 
     @Test
-    void shouldCommitAction() {
+    void shouldCommitAction() throws JsonProcessingException {
         reset(applicationContext);
         doReturn(command).when(commandContext).getCommand();
+        CommandMessage response = mock(CommandMessage.class);
+        doReturn(commandContext).when(response).getContext();
+        doAnswer(invocationOnMock -> {
+            final CommandMessage message = invocationOnMock.getArgument(0, CommandMessage.class);
+            doReturn(message.getDirection()).when(response).getDirection();
+            doReturn(message.getCorrelationId()).when(response).getCorrelationId();
+            return invocationOnMock.callRealMethod();
+        }).when(messagesExchangeService).send(any(CommandMessage.class));
+        // prepare message-response
+        doReturn(response).when(objectMapper).readValue(eq(MESSAGE_JSON), any(Class.class));
 
         Context<?> context = actionExecutor.commitAction(actionContext, commandContext);
 
@@ -73,9 +93,19 @@ class ActionExecutorImplTest<T> {
     }
 
     @Test
-    void shouldRollbackAction() {
+    void shouldRollbackAction() throws JsonProcessingException {
         reset(applicationContext);
         doReturn(command).when(commandContext).getCommand();
+        CommandMessage response = mock(CommandMessage.class);
+        doReturn(commandContext).when(response).getContext();
+        doAnswer(invocationOnMock -> {
+            final CommandMessage commandMessage = invocationOnMock.getArgument(0, CommandMessage.class);
+            doReturn(commandMessage.getDirection()).when(response).getDirection();
+            doReturn(commandMessage.getCorrelationId()).when(response).getCorrelationId();
+            return invocationOnMock.callRealMethod();
+        }).when(messagesExchangeService).send(any(CommandMessage.class));
+        // prepare message-response
+        doReturn(response).when(objectMapper).readValue(eq(MESSAGE_JSON), any(Class.class));
 
         Context<?> context = actionExecutor.rollbackAction(actionContext, commandContext);
 
@@ -85,28 +115,35 @@ class ActionExecutorImplTest<T> {
     }
 
     @Test
-    void shouldProcessDoActionCommand() {
+    void shouldProcessDoActionCommand() throws JsonProcessingException {
         reset(applicationContext);
         DoCommandMessage<T> message = DoCommandMessage.<T>builder()
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
+        CommandMessage response = mock(CommandMessage.class);
+        doReturn(message.getDirection()).when(response).getDirection();
+        doReturn(message.getCorrelationId()).when(response).getCorrelationId();
+        doReturn(commandContext).when(response).getContext();
+        // prepare message-response
+        doReturn(response).when(objectMapper).readValue(eq(MESSAGE_JSON), any(Class.class));
 
         CommandMessage<T> processed = actionExecutor.processActionCommand(message);
 
-        assertThat(processed).isNotNull().isEqualTo(message);
+        assertThat(processed).isNotNull().isEqualTo(response);
         verify(command).doCommand(commandContext);
     }
 
     @Test
-    void shouldProcessUndoActionCommand() {
+    void shouldProcessUndoActionCommand() throws JsonProcessingException {
         reset(applicationContext);
         UndoCommandMessage message = UndoCommandMessage.builder()
                 .actionContext(actionContext).context(commandContext)
                 .correlationId(UUID.randomUUID().toString())
                 .build();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(message).when(objectMapper).readValue(eq(MESSAGE_JSON), any(Class.class));
 
         CommandMessage<Void> processed = actionExecutor.processActionCommand(message);
 

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -11,16 +12,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
 import oleg.sopilnyak.test.service.message.CommandMessage;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
 import oleg.sopilnyak.test.service.message.UndoCommandMessage;
 
@@ -34,26 +31,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CommandThroughMessageServiceLocalImpl.class})
-//@ContextConfiguration(classes = {TestConfig.class, CommandThroughMessageServiceLocalImpl.class})
-//@ContextConfiguration(classes = {SchoolCommandsConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CommandThroughMessageServiceLocalImplTest {
+    @MockitoBean("commandsTroughMessageObjectMapper")
+    private ObjectMapper objectMapper;
     @MockitoSpyBean
     @Autowired
     private CommandThroughMessageServiceLocalImpl service;
@@ -64,10 +56,12 @@ class CommandThroughMessageServiceLocalImplTest {
     @Mock
     RootCommand<?> command;
     final String mockedCommandId = "test-command-id";
+    final String messageJson = "spyied-base-message-json";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws JsonProcessingException {
         doReturn(mockedCommandId).when(command).getId();
+        doReturn(messageJson).when(objectMapper).writeValueAsString(any(CommandMessage.class));
     }
 
     @Test
@@ -105,7 +99,7 @@ class CommandThroughMessageServiceLocalImplTest {
     }
 
     @Test
-    <T> void shouldSendDoCommandMessage() {
+    <T> void shouldSendDoCommandMessage() throws JsonProcessingException {
         DoCommandMessage<T> message = spy(DoCommandMessage.<T>builder().correlationId("12345")
                 .actionContext(actionContext).context((Context<T>) commandContext)
                 .build());
@@ -118,6 +112,7 @@ class CommandThroughMessageServiceLocalImplTest {
         MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
         assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(message).when(objectMapper).readValue(eq(messageJson), any(Class.class));
 
         service.send(message);
 
@@ -185,7 +180,7 @@ class CommandThroughMessageServiceLocalImplTest {
     }
 
     @Test
-    <T> void shouldSendUndoCommandMessage() {
+    <T> void shouldSendUndoCommandMessage() throws JsonProcessingException {
         UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("54321")
                 .actionContext(actionContext).context(commandContext)
                 .build());
@@ -198,6 +193,7 @@ class CommandThroughMessageServiceLocalImplTest {
         MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
         assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(message).when(objectMapper).readValue(eq(messageJson), any(Class.class));
 
         service.send(message);
 
@@ -239,7 +235,7 @@ class CommandThroughMessageServiceLocalImplTest {
     }
 
     @Test
-    <T> void shouldReceiveDoCommandMessage() {
+    <T> void shouldReceiveDoCommandMessage() throws JsonProcessingException {
         DoCommandMessage<T> message = spy(DoCommandMessage.<T>builder().correlationId("12345-12345")
                 .actionContext(actionContext).context((Context<T>) commandContext)
                 .build());
@@ -249,6 +245,7 @@ class CommandThroughMessageServiceLocalImplTest {
         MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
         assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(message).when(objectMapper).readValue(eq(messageJson), any(Class.class));
         service.send(message);
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
         assertThat(messageInProgress).containsKey(message.getCorrelationId());
@@ -268,7 +265,7 @@ class CommandThroughMessageServiceLocalImplTest {
     }
 
     @Test
-    <T> void shouldReceiveUndoCommandMessage() {
+    <T> void shouldReceiveUndoCommandMessage() throws JsonProcessingException {
         UndoCommandMessage message = spy(UndoCommandMessage.builder().correlationId("54321-12345")
                 .actionContext(actionContext).context(commandContext)
                 .build());
@@ -278,6 +275,7 @@ class CommandThroughMessageServiceLocalImplTest {
         MessagesProcessorAdapter responses = (MessagesProcessorAdapter) ReflectionTestUtils.getField(service, "outputProcessor");
         assertThat(responses).isNotNull();
         doReturn(command).when(commandContext).getCommand();
+        doReturn(message).when(objectMapper).readValue(eq(messageJson), any(Class.class));
         service.send(message);
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
         assertThat(messageInProgress).containsKey(message.getCorrelationId());

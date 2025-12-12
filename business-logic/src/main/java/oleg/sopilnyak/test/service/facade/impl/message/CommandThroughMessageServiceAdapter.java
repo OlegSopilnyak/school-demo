@@ -61,7 +61,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
         // adjust background processors
         // control executor for request/response processors
-        controlExecutorService = createExecutorService("ProcessorControl-");
+        controlExecutorService = createExecutorService(2,"ProcessorControl-");
         // operational executor for processing command messages
         messagesExecutorService = createExecutorService("QueueMessageProcessor-");
 
@@ -271,11 +271,19 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
     }
 
     // private methods
-    // create and configure execution service
+    // create and configure execution messages service
     private static ExecutorService createExecutorService(final String threadNamePrefix) {
         final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
         threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
-        return Executors.newVirtualThreadPerTaskExecutor();
+        final int corePoolSize = Runtime.getRuntime().availableProcessors();
+        return Executors.newScheduledThreadPool(corePoolSize, threadsFactory);
+    }
+
+    // create and configure messages processor execution service
+    private static ExecutorService createExecutorService(int corePoolSize, final String threadNamePrefix) {
+        final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
+        threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
+        return Executors.newFixedThreadPool(corePoolSize, threadsFactory);
     }
 
     // shut down execution service properly

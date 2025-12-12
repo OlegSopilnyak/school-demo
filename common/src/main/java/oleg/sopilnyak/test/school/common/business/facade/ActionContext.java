@@ -17,7 +17,8 @@ public class ActionContext implements Serializable {
     private String actionName;
     @Builder.Default
     private Instant startedAt = Instant.now();
-    private Duration lasts;
+    @Builder.Default
+    private Duration lasts = Duration.ZERO;
 
     /**
      * To install new value of action context for current thread (replace not allowed)

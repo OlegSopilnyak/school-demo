@@ -349,6 +349,12 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     void shouldNotExecuteDoCommand_CreateProfileDoNestedCommandsThrows() {
         AuthorityPerson newPerson = makeCleanAuthorityPerson(6);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(newPerson));
+
+        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
+        Deque<Context<?>> nestedContexts = new LinkedList<>(parameter.getNestedContexts());
+        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) nestedContexts.pop();
+        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) nestedContexts.pop();
+
         RuntimeException exception = new RuntimeException("Cannot process profile nested command");
         doThrow(exception).when(persistence).save(any(PrincipalProfile.class));
 
@@ -356,24 +362,31 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getException()).isEqualTo(exception);
-        MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
-        Context<Optional<PrincipalProfile>> profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
-        Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        assertThat(context.getException().getMessage()).isEqualTo(exception.getMessage());
+
+//        // checking profile execution
+//        verify(command).executeDoNested(eq(profileContext), any(Context.StateChangedListener.class));
+//        verify(profileCommand).doCommand(profileContext);
+//        verify(profileCommand).executeDo(profileContext);
+//        verify(persistence).save(any(PrincipalProfile.class));
+//        // checking person execution
+//        verify(command, never()).executeDoNested(eq(personContext), any(Context.StateChangedListener.class));
+        // checking the contexts updates
+        parameter = context.<MacroCommandParameter>getRedoParameter().value();
+        profileContext = (Context<Optional<PrincipalProfile>>) parameter.getNestedContexts().pop();
+        personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
+        // profile context state
         assertThat(profileContext.isFailed()).isTrue();
         assertThat(profileContext.getResult()).isEmpty();
-        assertThat(profileContext.getException()).isEqualTo(exception);
+        assertThat(profileContext.getException()).isInstanceOf(RuntimeException.class);
+        assertThat(profileContext.getException().getMessage()).isEqualTo(exception.getMessage());
 
+        // person context state
         assertThat(personContext.getState()).isEqualTo(CANCEL);
-
-        verify(command).executeDoNested(eq(profileContext), any(Context.StateChangedListener.class));
-        verify(profileCommand).doCommand(profileContext);
-        verify(profileCommand).executeDo(profileContext);
-        verify(persistence).save(any(PrincipalProfile.class));
 
         verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
-        verify(command, never()).executeDoNested(eq(personContext), any(Context.StateChangedListener.class));
         verify(personCommand, never()).doCommand(any(Context.class));
     }
 

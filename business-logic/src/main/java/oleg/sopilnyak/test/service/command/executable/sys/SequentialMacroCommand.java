@@ -86,12 +86,10 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> implemen
         final AtomicReference<Context<?>> previous = new AtomicReference<>(null);
         // sequential walking through contexts set
         return contexts.stream().map(context -> isPreviousFailed.get()
-                ?
-                // previous nested command's context.state has value FAIL, cancel it
-                cancelSequentialNestedCommandContext(context, listener)
-                :
+                // previous nested command's context.state has value FAIL? Cancel it
+                ? cancelSequentialNestedCommandContext(context, listener)
                 // try to execute nested command
-                doSequentialNestedCommand(context, previous, listener, isPreviousFailed)
+                : doSequentialNestedCommand(context, previous, listener, isPreviousFailed)
         ).collect(Collectors.toCollection(LinkedList::new));
     }
 

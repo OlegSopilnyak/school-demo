@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 
 import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
@@ -37,6 +36,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 public class JsonContextModule<T> extends SimpleModule {
     private static final String COMMAND_FIELD_NAME = "command";
     private static final String COMMAND_ID_FIELD_NAME = "id";
+    private static final String COMMAND_FAMILY_FIELD_NAME = "family";
     private static final String STARTED_AT_FIELD_NAME = "started-at";
     private static final String DURATION_FIELD_NAME = "duration";
     private static final String STATE_FIELD_NAME = "state";
@@ -107,7 +107,7 @@ public class JsonContextModule<T> extends SimpleModule {
             generator.writeFieldName(COMMAND_FIELD_NAME);
             generator.writeStartObject();
             generator.writeStringField(COMMAND_ID_FIELD_NAME, command.getId());
-            generator.writeStringField(TYPE_FIELD_NAME, command.getClass().getName());
+            generator.writeStringField(COMMAND_FAMILY_FIELD_NAME, command.commandFamily().getName());
             generator.writeEndObject();
         }
 
@@ -180,7 +180,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                       final DeserializationContext deserializationContext) throws IOException {
             final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final TreeNode treeNode = jsonParser.readValueAsTree();
-            final CommandContext.CommandContextBuilder<T> contextBuilder = CommandContext.builder();
+            final CommandContext.CommandContextBuilder<T> contextBuilder = CommandContext.<T>builder();
             deserializeCommand(treeNode.get(COMMAND_FIELD_NAME), contextBuilder);
             deserializeRedoParameter(treeNode.get(REDO_INPUT_FIELD_NAME), contextBuilder, mapper);
             deserializeUndoParameter(treeNode.get(UNDO_INPUT_FIELD_NAME), contextBuilder, mapper);
@@ -194,32 +194,43 @@ public class JsonContextModule<T> extends SimpleModule {
         }
 
         private void deserializeCommand(TreeNode treeNode, CommandContext.CommandContextBuilder<T> contextBuilder) throws IOException {
+            // restore command instance from factories farm by command-id
+            final RootCommand<T> command = restoreCommandFromFactoriesFarm(treeNode.get(COMMAND_ID_FIELD_NAME));
+            // check command-family-type and setup context though context builder
+            deserializeCommandFamily(contextBuilder, treeNode.get(COMMAND_FAMILY_FIELD_NAME), command);
+        }
+
+        // restore command instance from factories farm by command-id
+        private RootCommand<T> restoreCommandFromFactoriesFarm(TreeNode commandIdNode) throws IOException {
             final RootCommand<T> command;
-            final TreeNode commandIdNode = treeNode.get(COMMAND_ID_FIELD_NAME);
-            // deserialize command by command-id
             if (nonNull(commandIdNode) && commandIdNode instanceof TextNode textIdNode) {
-                final String commandId = textIdNode.textValue();
-                command = factoriesFarm.command(commandId);
+                // getting command instance from commands factories Farm by command-id
+                command = factoriesFarm.command(textIdNode.textValue());
             } else {
                 throw new IOException("Command ID Node is missing :" + commandIdNode);
             }
-            // check command-type
-            final TreeNode commandTypeNode = treeNode.get(TYPE_FIELD_NAME);
+            return command;
+        }
+
+        // check command-family-type and setup context though context builder
+        private void deserializeCommandFamily(
+                CommandContext.CommandContextBuilder<T> contextBuilder, TreeNode commandTypeNode, RootCommand<T> command
+        ) throws IOException {
             if (nonNull(commandTypeNode) && commandTypeNode instanceof TextNode textTypeNode) {
-                final String commandType = textTypeNode.textValue();
+                final String commandFamilyTypeName = textTypeNode.textValue();
                 try {
-                    final Class<?> commandClass = Class.forName(commandType).asSubclass(RootCommand.class);
-                    if (commandClass.equals(command.getClass())) {
+                    final Class<?> commandFamilyType = Class.forName(commandFamilyTypeName).asSubclass(RootCommand.class);
+                    if (commandFamilyType.equals(command.commandFamily())) {
                         // add valid command to context builder
                         contextBuilder.command(command);
                     } else {
-                        throw new IOException("Command Type is missing :" + commandClass);
+                        throw new IOException("Command Family Type is missing :" + commandFamilyType);
                     }
                 } catch (ClassNotFoundException _) {
-                    throw new IOException("Command Type is missing :" + commandType);
+                    throw new IOException("Command Family Type is missing :" + commandFamilyTypeName);
                 }
             } else {
-                throw new IOException("Command Type Node is missing :" + commandTypeNode);
+                throw new IOException("Command Family Type Node is missing :" + commandTypeNode);
             }
         }
 

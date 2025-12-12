@@ -28,12 +28,12 @@ import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import java.util.Collection;
 import java.util.Deque;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -194,11 +194,16 @@ public class SchoolCommandsConfiguration {
         return new CommandsFactoriesFarm<>(factories);
     }
 
+    /**
+     * Object mapper for module's data-model. Helps transform model to JSON and back
+     *
+     * @return built instance
+     */
     @Bean(name = "commandsTroughMessageObjectMapper")
-    public <T extends RootCommand<?>> ObjectMapper commandsTroughMessageObjectMapper(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
+    public ObjectMapper commandsTroughMessageObjectMapper(@Qualifier("jsonContextModule") Module jsonContextModule) {
         return new ObjectMapper()
                 .registerModule(new JavaTimeModule())
-                .registerModule(createConetxtModule(context,farm))
+                .registerModule(jsonContextModule)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -214,7 +219,7 @@ public class SchoolCommandsConfiguration {
      */
     @SuppressWarnings("unchecked")
     @Bean(name = "jsonContextModule")
-    public <T extends RootCommand<?>> Module createConetxtModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
+    public <T extends RootCommand<?>> Module jsonContextModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
         return new JsonContextModule(context, farm);
     }
 }

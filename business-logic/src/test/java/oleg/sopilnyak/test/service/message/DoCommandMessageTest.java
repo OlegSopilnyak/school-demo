@@ -189,6 +189,7 @@ class DoCommandMessageTest {
         Context.State state = Context.State.DONE;
         RootCommand<Boolean> command = mock(BooleanCommand.class);
         doReturn(DoCommandMessageTest.COMMAND_ID).when(command).getId();
+        doReturn(BooleanCommand.class).when(command).commandFamily();
         CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().build();
         commandContext.setCommand(command);
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();

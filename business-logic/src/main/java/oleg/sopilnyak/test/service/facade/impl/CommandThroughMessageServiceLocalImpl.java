@@ -2,11 +2,11 @@ package oleg.sopilnyak.test.service.facade.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.impl.message.CommandThroughMessageServiceAdapter;
 import oleg.sopilnyak.test.service.facade.impl.message.MessageProgressWatchdog;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessor;
 import oleg.sopilnyak.test.service.facade.impl.message.MessagesProcessorAdapter;
+import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,9 +44,13 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
     private final Object processorStatesMonitor = new Object();
     private transient ObjectMapper objectMapper;
 
+    /**
+     * Inject customized objects mapper to/from JSON
+     *
+     * @param objectMapper mapper for transformations
+     */
     @Autowired
-    @Qualifier("commandsTroughMessageObjectMapper")
-    public final void setObjectMapper(ObjectMapper objectMapper) {
+    public final void setObjectMapper(@Lazy @Qualifier("commandsTroughMessageObjectMapper") ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -106,11 +111,13 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
         @Override
         public <T> boolean accept(CommandMessage<T> message) {
             log.debug("Put to the queue command message {}", message);
-            try {
-                final String json = objectMapper.writeValueAsString(message);
-            } catch (JsonProcessingException e) {
-                log.warn("Failed to serialize message to json", e);
-//                throw ActionFacade.throwFor(message.getContext().getCommand().getId(), e);
+            if (!CommandMessage.EMPTY.equals(message)) {
+                try {
+                    final String json = objectMapper.writeValueAsString(message);
+                    log.debug("Put to the queue command message {}", json);
+                } catch (JsonProcessingException e) {
+                    log.warn("Failed to serialize message to json", e);
+                }
             }
             return messages.add(message);
         }
@@ -127,11 +134,15 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
         public <T> CommandMessage<T> takeMessage() throws InterruptedException {
             log.debug("Taking available command message from the queue.");
             final CommandMessage<T> takenMessage = (CommandMessage<T>) messages.take();
-            final String json;
+            if (CommandMessage.EMPTY.equals(takenMessage)) {
+                return takenMessage;
+            }
             try {
-                json = objectMapper.writeValueAsString(takenMessage);
-                return objectMapper.readValue(json, CommandMessage.class);
-            } catch (JsonProcessingException e) {
+                final String json = objectMapper.writeValueAsString(takenMessage);
+                CommandMessage<T> restoredMessage = objectMapper.readValue(json, BaseCommandMessage.class);
+                return restoredMessage;
+            } catch (Exception e) {
+                log.error("Failed to serialize message to json", e);
                 return (CommandMessage<T>) CommandMessage.EMPTY;
             }
         }
