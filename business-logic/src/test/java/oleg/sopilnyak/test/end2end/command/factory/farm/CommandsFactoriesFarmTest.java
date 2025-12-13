@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
+import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 

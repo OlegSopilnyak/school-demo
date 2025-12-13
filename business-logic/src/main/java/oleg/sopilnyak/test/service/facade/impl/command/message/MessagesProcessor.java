@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.facade.impl.message;
+package oleg.sopilnyak.test.service.facade.impl.command.message;
 
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Processor: to process command-message in command-though-message service
@@ -41,15 +40,17 @@ public interface MessagesProcessor {
                 final CommandMessage<?> message = takeMessage();
                 if (!isOwnerActive()) {
                     getLogger().debug("{} is going to stop.", getProcessorName());
-                    continue;
+                    break;
                 }
-                if (!lastMessage.test(message)) {
+                // testing taken message
+                if (lastMessage.test(message)) {
+                    // last message is received
+                    getLogger().info("Received the last message, the processor {} is going to stop.", getProcessorName());
+                    break;
+                } else {
                     // process the message asynchronously if service is active and message isn't empty
                     CompletableFuture.runAsync(() -> onTakenMessage(message), takenMessageExecutor());
-                } else {
-                    // last message is received
-                    getLogger().info("Received last message, the processor {} is going to stop.", getProcessorName());
-                    break;
+                    getLogger().info("The processor {} launches received message processing in separate thread.", getProcessorName());
                 }
             } catch (InterruptedException e) {
                 getLogger().warn("{} getting command requests is interrupted", getProcessorName(), e);

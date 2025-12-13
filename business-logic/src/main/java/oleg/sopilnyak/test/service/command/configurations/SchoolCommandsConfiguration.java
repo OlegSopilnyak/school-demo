@@ -22,7 +22,7 @@ import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupComman
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.CommandThroughMessageServiceLocalImpl;
+import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 

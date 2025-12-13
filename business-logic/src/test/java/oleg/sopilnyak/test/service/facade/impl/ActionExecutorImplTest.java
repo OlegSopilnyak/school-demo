@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
@@ -153,7 +154,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_UnknownDirection() {
-        reset(applicationContext);
+        reset(applicationContext, objectMapper);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {
@@ -173,7 +174,7 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_NullDirection() {
-        reset(applicationContext, command);
+        reset(applicationContext, objectMapper, command);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {

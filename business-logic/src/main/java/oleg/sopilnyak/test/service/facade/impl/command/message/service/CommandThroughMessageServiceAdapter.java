@@ -1,10 +1,12 @@
-package oleg.sopilnyak.test.service.facade.impl.message;
+package oleg.sopilnyak.test.service.facade.impl.command.message.service;
 
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
+import oleg.sopilnyak.test.service.facade.impl.command.message.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.facade.impl.command.message.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
@@ -18,22 +20,27 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Service Implementation (Basic): execute command using request/response model (Local version through blocking queues)
+ * Service Implementation (Basic): execute command using request/response model
  *
  * @see CommandThroughMessageService
  * @see ActionExecutor#processActionCommand(CommandMessage)
  */
 
-//@Slf4j
-//@RequiredArgsConstructor
 public abstract class CommandThroughMessageServiceAdapter implements CommandThroughMessageService {
+    // object mapper for the command-messages and other stuff
+    protected ObjectMapper objectMapper;
     //
     // @see ActionExecutor#processActionCommand(CommandMessage)
     private static final Logger log = LoggerFactory.getLogger("Low Level Command Action Executor");
@@ -50,6 +57,16 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
     private MessagesProcessor outputProcessor = null;
 
     /**
+     * Inject customized objects mapper to/from JSON
+     *
+     * @param objectMapper mapper for transformations
+     */
+    @Autowired
+    public final void setObjectMapper(@Lazy @Qualifier("commandsTroughMessageObjectMapper") ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    /**
      * Start background processors for requests
      */
     @Override
@@ -61,9 +78,9 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
         // adjust background processors
         // control executor for request/response processors
-        controlExecutorService = createExecutorService(2,"ProcessorControl-");
+        controlExecutorService = createControlExecutorService();
         // operational executor for processing command messages
-        messagesExecutorService = createExecutorService("QueueMessageProcessor-");
+        messagesExecutorService = createMessagesExecutorService();
 
         // starting background processors
         serviceActive.getAndSet(true);
@@ -215,7 +232,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
             messageInProgress.remove(messageCorrelationId);
             // return the result
             final CommandMessage<T> result = messageWatcher.getResult();
-            getLogger().info("Receive: the result of command '{}' is {}", commandId, result);
+            getLogger().debug("Receive: the result of command '{}' is {}", commandId, result);
             return result;
         } else {
             getLogger().warn("{} is NOT active. Message with correlationId='{}' is won't receive",
@@ -272,18 +289,20 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
 
     // private methods
     // create and configure execution messages service
-    private static ExecutorService createExecutorService(final String threadNamePrefix) {
-        final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
-        threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
+    private static ExecutorService createMessagesExecutorService() {
         final int corePoolSize = Runtime.getRuntime().availableProcessors();
-        return Executors.newScheduledThreadPool(corePoolSize, threadsFactory);
+        return Executors.newScheduledThreadPool(corePoolSize, serviceThreadFactory("QueueMessageProcessor-"));
     }
 
     // create and configure messages processor execution service
-    private static ExecutorService createExecutorService(int corePoolSize, final String threadNamePrefix) {
+    private static ExecutorService createControlExecutorService() {
+        return Executors.newFixedThreadPool(2, serviceThreadFactory("ProcessorControl-"));
+    }
+
+    private static ThreadFactory serviceThreadFactory(final String threadNamePrefix) {
         final var threadsFactory = new CustomizableThreadFactory(threadNamePrefix);
         threadsFactory.setThreadGroupName("Command-Through-Message-Threads");
-        return Executors.newFixedThreadPool(corePoolSize, threadsFactory);
+        return threadsFactory;
     }
 
     // shut down execution service properly

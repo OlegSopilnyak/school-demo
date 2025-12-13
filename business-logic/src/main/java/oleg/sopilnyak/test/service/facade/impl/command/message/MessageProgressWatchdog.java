@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.facade.impl.message;
+package oleg.sopilnyak.test.service.facade.impl.command.message;
 
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
