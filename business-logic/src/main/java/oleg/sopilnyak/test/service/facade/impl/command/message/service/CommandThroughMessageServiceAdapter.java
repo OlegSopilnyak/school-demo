@@ -228,7 +228,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
             getLogger().info("Receive: waiting for sent message of command id: '{}' complete in message {}", commandId, messageCorrelationId);
             // wait until processing is completed
             messageWatcher.waitForMessageComplete();
-            // remove message-watcher from in-progress map by correlation-id
+            // removing message-watcher from in-progress-messages map using correlation-id
             messageInProgress.remove(messageCorrelationId);
             // return the result
             final CommandMessage<T> result = messageWatcher.getResult();
@@ -371,7 +371,10 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
             getLogger().info("Send: message with correlationId='{}' is accepted for processing.", messageCorrelationId);
         } else {
             // something went wrong
-            getLogger().error("Send: message with correlationId='{}' is NOT accepted for processing", messageCorrelationId);
+            getLogger().error("Send: message with correlationId='{}' is NOT accepted for processing.", messageCorrelationId);
+            // removing message-watcher from in-progress-messages map using correlation-id
+            messageInProgress.remove(messageCorrelationId);
+            getLogger().error("Send: removed message-watcher for correlationId='{}' from in-progress-messages map.", messageCorrelationId);
         }
     }
 
@@ -380,10 +383,12 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         // try to send the result to the responses processor
         if (outputProcessor.accept(processedMessage)) {
             // successfully sent
-            getLogger().debug("Message with correlationId='{}' is processed and put to responses processor", correlationId);
+            getLogger().debug("Result: message with correlationId='{}' is processed and put to responses processor", correlationId);
         } else {
             // something went wrong
-            getLogger().error("Message with correlationId='{}' is processed but is NOT sent to responses processor", correlationId);
+            getLogger().error("Result: message with correlationId='{}' is processed but is NOT sent to responses processor", correlationId);
+            // simulate successful finalize result message processing
+            outputProcessor.onTakenMessage(processedMessage);
         }
     }
 }

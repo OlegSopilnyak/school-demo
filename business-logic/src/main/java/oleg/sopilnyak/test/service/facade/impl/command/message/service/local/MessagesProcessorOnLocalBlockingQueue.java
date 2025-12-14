@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
+import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Setter;
 
@@ -48,6 +49,7 @@ abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAd
             return messages.add(stringMessage);
         } catch (IOException e) {
             log.warn("Failed to serialize message to json", e);
+            message.getContext().failed(e);
         }
         return false;
     }
@@ -62,11 +64,11 @@ abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAd
     @SuppressWarnings("unchecked")
     @Override
     public <T> CommandMessage<T> takeMessage() throws InterruptedException {
-        final Predicate<String> isLast = msg -> msg.isBlank() || LAST_MESSAGE.equals(msg);
+        final Predicate<String> isEmpty = msg -> ObjectUtils.isEmpty(msg) || msg.isBlank();
         log.debug("Taking available command message from the queue.");
         final String takenMessage = messages.take();
         log.debug("Took from the queue command message {}", takenMessage);
-        if (isLast.test(takenMessage)) {
+        if (isEmpty.or(LAST_MESSAGE::equals).test(takenMessage)) {
             return (CommandMessage<T>) CommandMessage.EMPTY;
         }
         // try to deserialize command-message from JSON
