@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Type: I/O school-command String-id input parameter
+ * Type: I/O school-command String-ID input parameter
  *
  * @see Input
  */

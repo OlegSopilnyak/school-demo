@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -192,13 +191,15 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      */
     static Input<?> of(final Object parameter) {
-        if (isNull(parameter)) return empty();
-        if (MockUtil.isMock(parameter)) return mock(parameter);
-        else if (parameter instanceof Input<?> input) return input;
-        else if (parameter instanceof Number numberId) return of(numberId);
-        else if (parameter instanceof String stringId) return of(stringId);
-
-        throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
+        return MockUtil.isMock(parameter)
+                ? mock(parameter)
+                : switch (parameter) {
+            case null -> empty();
+            case Input<?> input -> of(input);
+            case Number numberId -> of(numberId);
+            case String stringId -> of(stringId);
+            default -> throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
+        };
     }
 
 
@@ -227,7 +228,7 @@ public interface Input<P> extends IOBase<P> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof MockedInput<?> that && value.equals(that.value);
+            return o instanceof MockedInput(Object val) && value.equals(val);
         }
 
     }
@@ -254,11 +255,12 @@ public interface Input<P> extends IOBase<P> {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Input<I> deserialize(final JsonParser jsonParser,
                                     final DeserializationContext deserializationContext) throws IOException {
             final TreeNode parameterNode = jsonParser.readValueAsTree();
             final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-            final Class<? extends Input> inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
+            final var inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
             return mapper.readValue(parameterNode.toString(), inputParameterClass);
         }
 

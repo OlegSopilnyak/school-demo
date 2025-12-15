@@ -36,6 +36,28 @@ class OutputResultTest {
     }
 
     @Test
+    void shouldCreateEmptyResult() {
+        Output<Void> result = Output.empty();
+
+        assertThat(result).isNotNull();
+        assertThat(result.value()).isNull();
+        assertThat(result.isEmpty()).isTrue();
+        assertThat(result).isInstanceOf(EmptyResult.class);
+    }
+
+    @Test
+    void shouldRestoreEmptyResult() throws JsonProcessingException {
+        Output<Void> result = Output.empty();
+        String json = objectMapper.writeValueAsString(result);
+        var restored = objectMapper.readValue(json, EmptyResult.class);
+
+        assertThat(restored).isNotNull();
+        assertThat(restored.value()).isNull();
+        assertThat(restored.isEmpty()).isTrue();
+        assertThat(restored).isInstanceOf(Output.class);
+    }
+
+    @Test
     void shouldCreateBooleanResult() {
         Output<Boolean> result = Output.of(true);
 
@@ -58,25 +80,84 @@ class OutputResultTest {
     }
 
     @Test
-    void shouldCreateEmptyResult() {
-        Output<Void> result = Output.empty();
+    void shouldCreateStringResult() {
+        String value = "string-value";
+        Output<String> result = Output.of(value);
 
         assertThat(result).isNotNull();
-        assertThat(result.value()).isNull();
-        assertThat(result.isEmpty()).isTrue();
-        assertThat(result).isInstanceOf(EmptyResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isEqualTo(value);
+        assertThat(result).isInstanceOf(StringIdResult.class);
     }
 
     @Test
-    void shouldRestoreEmptyResult() throws JsonProcessingException {
-        Output<Void> result = Output.empty();
+    void shouldRestoreStringResult() throws JsonProcessingException {
+        String value = "string-value";
+        Output<String> result = Output.of(value);
         String json = objectMapper.writeValueAsString(result);
-        EmptyResult restored = objectMapper.readValue(json, EmptyResult.class);
+        StringIdResult restored = objectMapper.readValue(json, StringIdResult.class);
 
         assertThat(restored).isNotNull();
-        assertThat(restored.value()).isNull();
-        assertThat(restored.isEmpty()).isTrue();
-        assertThat(restored).isInstanceOf(Output.class);
+        assertThat(restored.isEmpty()).isFalse();
+        assertThat(restored.value()).isEqualTo(value);
+        assertThat(restored).isInstanceOf(StringIdResult.class);
+    }
+
+    @Test
+    void shouldCreateIntegerResult() {
+        Output<Number> result = Output.of(1);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Integer.class).isEqualTo(1);
+    }
+
+    @Test
+    void shouldRestoreIntegerResult() throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(Output.of(1));
+        var result = objectMapper.readValue(json, NumberIdResult.class);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Integer.class).isEqualTo(1);
+    }
+
+    @Test
+    void shouldCreateLongResult() {
+        Output<Number> result = Output.of(1L);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Long.class).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldRestoreLongResult() throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(Output.of(1L));
+        var result = objectMapper.readValue(json, NumberIdResult.class);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Long.class).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldCreateDoubleResult() {
+        Output<Number> result = Output.of(1.0);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Double.class).isEqualTo(1.0);
+    }
+
+    @Test
+    void shouldRestoreDoubleResult() throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(Output.of(1.0));
+        var result = objectMapper.readValue(json, NumberIdResult.class);
+
+        assertThat(result).isInstanceOf(NumberIdResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Double.class).isEqualTo(1.0);
     }
 
     @Test
@@ -357,11 +438,11 @@ class OutputResultTest {
             return entity;
         }).collect(Collectors.toSet());
         entitySet.add(createCourse(id + 100));
-
         PayloadSetResult<? extends BasePayload<?>> result = new PayloadSetResult<>(entitySet);
-        IOException exception = assertThrows(IOException.class, () -> objectMapper.writeValueAsString(result));
 
-        assertThat(exception.getMessage()).contains("Payload Set parameter class mismatch");
+        var e = assertThrows(IOException.class, () -> objectMapper.writeValueAsString(result));
+
+        assertThat(e.getMessage()).contains("Payload Set parameter elements types mismatch");
     }
 
     @Test

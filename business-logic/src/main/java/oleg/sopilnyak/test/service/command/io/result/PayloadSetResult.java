@@ -60,21 +60,28 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
         public void serialize(final PayloadSetResult<T> parameter,
                               final JsonGenerator generator,
                               final SerializerProvider serializerProvider) throws IOException {
-            final Class<?> firstParameterClass = parameter.value.iterator().next().getClass();
             // checking the types of the set
-            for (final T basePayload : parameter.value) {
-                if (!Objects.equals(firstParameterClass, basePayload.getClass())) {
-                    throw new IOException("Payload Set parameter class mismatch");
-                }
-            }
-            // serialize to JSON
+            final String elementInSetTypeName = checkElementTypes(parameter.value).getName();
+            // checking the types of the set
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadSetResult.class.getName());
-            generator.writeStringField(NESTED_TYPE_FIELD_NAME, firstParameterClass.getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, elementInSetTypeName);
             generator.writeFieldName(VALUE_FIELD_NAME);
             generator.writeRawValue(mapper.writeValueAsString(parameter.value));
             generator.writeEndObject();
+        }
+
+        // private methods
+        private Class<?> checkElementTypes(final Set<T> set) throws IOException {
+            final Class<?> firstElementInSetType = set.iterator().next().getClass();
+            // checking the types of the elements in set
+            for (final T elementInSet : set) {
+                if (!Objects.equals(firstElementInSetType, elementInSet.getClass())) {
+                    throw new IOException("Payload Set parameter elements types mismatch");
+                }
+            }
+            return firstElementInSetType;
         }
     }
 
@@ -92,40 +99,41 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
             this(PayloadSetResult.class);
         }
 
-        protected Deserializer(Class<PayloadSetResult> vc) {
+        protected Deserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public PayloadSetResult<T> deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
-                throws IOException {
+        public PayloadSetResult<T> deserialize(
+                final JsonParser jsonParser, final DeserializationContext ignored
+        ) throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
-                return new PayloadSetResult<>(deserializeNodesArray(
-                        restoreNestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME)),
-                        treeNode.get(VALUE_FIELD_NAME),
-                        (ObjectMapper) jsonParser.getCodec()
-                ));
+                final Class<?> elementInSetType = restoreElementInSetType(treeNode.get(NESTED_TYPE_FIELD_NAME));
+                final TreeNode valueTreeNode = treeNode.get(VALUE_FIELD_NAME);
+                final ObjectMapper mapper  = (ObjectMapper) jsonParser.getCodec();
+                final Set<T> restoredSet = restoreSetFromNodesArray(elementInSetType, valueTreeNode, mapper);
+                return new PayloadSetResult<>(restoredSet);
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);
             }
         }
 
         // private methods
-        private Class<?> restoreNestedClass(final TreeNode nestedTypeNode) throws ClassNotFoundException {
-            if (nestedTypeNode instanceof TextNode textNode) {
+        private Class<?> restoreElementInSetType(final TreeNode elementTypeNode) throws ClassNotFoundException {
+            if (elementTypeNode instanceof TextNode textNode) {
                 return Class.forName(textNode.asText());
             } else {
-                throw new ClassNotFoundException(WRONG_NESTED_TYPE_TREE_NODE + nestedTypeNode.getClass().getName());
+                throw new ClassNotFoundException(WRONG_NESTED_TYPE_TREE_NODE + elementTypeNode.getClass().getName());
             }
         }
 
-        private Set<T> deserializeNodesArray(final Class<?> nestedPayloadType,
-                                             final TreeNode valueTreeNode,
-                                             final ObjectMapper mapper) throws IOException {
+        private Set<T> restoreSetFromNodesArray(
+                final Class<?> elementInSetType, final TreeNode valueTreeNode, final ObjectMapper mapper
+        ) throws IOException {
             if (valueTreeNode instanceof ArrayNode arrayNode) {
                 final Set<T> payloadsSet = new HashSet<>();
-                final JavaType payloadType = mapper.getTypeFactory().constructType(nestedPayloadType);
+                final JavaType payloadType = mapper.getTypeFactory().constructType(elementInSetType);
                 for (final JsonNode valueNode : arrayNode) {
                     if (valueNode instanceof ObjectNode payloadNode) {
                         payloadsSet.add(mapper.readValue(payloadNode.toString(), payloadType));
@@ -134,8 +142,9 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
                     }
                 }
                 return payloadsSet;
+            } else {
+                throw new IOException(WRONG_NESTED_TYPE_TREE_NODE + valueTreeNode.getClass().getName());
             }
-            throw new IOException(WRONG_NESTED_TYPE_TREE_NODE + valueTreeNode.getClass().getName());
         }
     }
 }

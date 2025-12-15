@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -49,9 +50,9 @@ public record PayloadResult<P extends BasePayload<? extends BaseType>>(P value) 
         }
 
         @Override
-        public void serialize(final PayloadResult<T> parameter,
-                              final JsonGenerator generator,
-                              final SerializerProvider serializerProvider) throws IOException {
+        public void serialize(
+                final PayloadResult<T> parameter, final JsonGenerator generator, final SerializerProvider ignored
+        ) throws IOException {
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadResult.class.getName());
@@ -74,21 +75,21 @@ public record PayloadResult<P extends BasePayload<? extends BaseType>>(P value) 
             this(PayloadResult.class);
         }
 
-        protected Deserializer(Class<PayloadResult> vc) {
+        protected Deserializer(Class<?> vc) {
             super(vc);
         }
 
         @Override
-        public PayloadResult<T> deserialize(final JsonParser jsonParser,
-                                            final DeserializationContext deserializationContext) throws IOException {
+        public PayloadResult<T> deserialize(
+                final JsonParser jsonParser, final DeserializationContext ignored
+        ) throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
                 final Class<?> nestedClass = restoreNestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));
                 final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-                return new PayloadResult<>(mapper.readValue(
-                        treeNode.get(VALUE_FIELD_NAME).toString(),
-                        mapper.getTypeFactory().constructType(nestedClass)
-                ));
+                final String payloadJson = treeNode.get(VALUE_FIELD_NAME).toString();
+                final JavaType payloadType = mapper.getTypeFactory().constructType(nestedClass);
+                return new PayloadResult<>(mapper.readValue(payloadJson, payloadType));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);
             }

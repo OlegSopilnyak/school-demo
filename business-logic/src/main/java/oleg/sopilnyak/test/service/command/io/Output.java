@@ -1,12 +1,12 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
+import oleg.sopilnyak.test.service.command.io.result.NumberIdResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
+import oleg.sopilnyak.test.service.command.io.result.StringIdResult;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
@@ -50,6 +50,26 @@ public interface Output<O> extends IOBase<O> {
     }
 
     /**
+     * To create string result output
+     *
+     * @return new instance of the output
+     * @see StringIdResult
+     */
+    static Output<String> of(final String result) {
+        return new StringIdResult(result);
+    }
+
+    /**
+     * To create number result output
+     *
+     * @return new instance of the output
+     * @see NumberIdResult
+     */
+    static Output<Number> of(final Number result) {
+        return new NumberIdResult<>(result);
+    }
+
+    /**
      * To create payload result output
      *
      * @return new instance of the output
@@ -85,11 +105,15 @@ public interface Output<O> extends IOBase<O> {
      * @see Output#empty()
      */
     static Output<?> of(final Object result) {
-        if (isNull(result)) return empty();
-        if (result instanceof Boolean booleanResult) return of(booleanResult);
-        if (result instanceof BasePayload<?> payloadResult) return of(payloadResult);
-        if (result instanceof Set<?> payloadSetResult) return of(payloadSetResult);
-        throw new IllegalArgumentException("Result type is not supported: " + result.getClass());
+        return switch (result) {
+            case null -> empty();
+            case Boolean booleanResult -> of(booleanResult);
+            case String stringResult -> of(stringResult);
+            case Number numberResult -> of(numberResult);
+            case BasePayload<?> payloadResult -> of(payloadResult);
+            case Set<?> payloadSetResult -> of(payloadSetResult);
+            default -> throw new IllegalArgumentException("Output result type isn't supported: " + result.getClass());
+        };
     }
 
     // inner classes for JSON serializing/deserializing
@@ -117,7 +141,7 @@ public interface Output<O> extends IOBase<O> {
         public Output<R> deserialize(final JsonParser jsonParser,
                                      final DeserializationContext deserializationContext) throws IOException {
             final TreeNode resultNode = jsonParser.readValueAsTree();
-            final Class<? extends Output> inputParameterClass = IOBase.restoreIoBaseClass(resultNode, Output.class);
+            final var inputParameterClass = IOBase.restoreIoBaseClass(resultNode, Output.class);
             return ((ObjectMapper) jsonParser.getCodec()).readValue(resultNode.toString(), inputParameterClass);
         }
 

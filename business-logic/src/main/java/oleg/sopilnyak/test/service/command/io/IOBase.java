@@ -61,16 +61,17 @@ public interface IOBase<P> extends Serializable {
      * @throws IOException throws if it cannot restore the class
      */
     @SuppressWarnings("unchecked")
-    static <T extends IOBase<?>> Class<T> restoreIoBaseClass(final TreeNode ioTreeNode,
-                                                             final Class<T> shouldBeType) throws IOException {
+    static <T extends IOBase<?>> Class<T> restoreIoBaseClass(
+            final TreeNode ioTreeNode, final Class<T> shouldBeType
+    ) throws IOException {
         final TreeNode ioClassNameNode = ioTreeNode.get(TYPE_FIELD_NAME);
-        if (ioClassNameNode instanceof TextNode typeTextNode) {
-            final String ioTypeClassName = typeTextNode.asText();
+        if (ioClassNameNode instanceof TextNode node) {
+            final String ioTypeClassName = node.asText();
             try {
                 return (Class<T>) Class.forName(ioTypeClassName).asSubclass(shouldBeType);
-            } catch (ClassNotFoundException | ClassCastException _) {
+            } catch (ClassNotFoundException | ClassCastException e) {
                 // class not found or class is not ioClass
-                throw new IOException("Wrong class name in node-type: " + ioTypeClassName);
+                throw new IOException("Wrong class name in node-type: " + ioTypeClassName, e);
             }
         } else {
             throw new IOException("Wrong node-type of ioTreeNode: " + ioClassNameNode.getClass().getName());
