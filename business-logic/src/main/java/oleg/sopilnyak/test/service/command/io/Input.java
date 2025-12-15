@@ -1,12 +1,9 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import static java.util.Objects.nonNull;
-
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -27,7 +24,6 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
-import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
@@ -195,7 +191,7 @@ public interface Input<P> extends IOBase<P> {
                 ? mock(parameter)
                 : switch (parameter) {
             case null -> empty();
-            case Input<?> input -> of(input);
+            case Input<?> input -> input;
             case Number numberId -> of(numberId);
             case String stringId -> of(stringId);
             default -> throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
@@ -204,18 +200,28 @@ public interface Input<P> extends IOBase<P> {
 
 
     static <T extends BaseType> Input<?> of(final T type) {
-        if (MockUtil.isMock(type)) return mock(type);
-
-        final var educationInput = educationType(type);
-        if (nonNull(educationInput)) return educationInput;
-
-        final var organizationInput = organizationType(type);
-        if (nonNull(organizationInput)) return organizationInput;
-
-        final var profileInput = profileType(type);
-        if (nonNull(profileInput)) return profileInput;
-
-        throw new IllegalArgumentException("Parameter type not supported: " + type);
+        return switch (type){
+            case null -> empty();
+            case T base when MockUtil.isMock(base) -> mock(base);
+            // education types
+            case StudentPayload payload -> of(payload);
+            case Student base -> of(payloadMapper.toPayload(base));
+            case CoursePayload payload -> of(payload);
+            case Course base -> of(payloadMapper.toPayload(base));
+            // organization types
+            case AuthorityPersonPayload payload -> of(payload);
+            case AuthorityPerson base -> of(payloadMapper.toPayload(base));
+            case FacultyPayload payload -> of(payload);
+            case Faculty base -> of(payloadMapper.toPayload(base));
+            case StudentsGroupPayload payload -> of(payload);
+            case StudentsGroup base -> of(payloadMapper.toPayload(base));
+            // profile types
+            case PrincipalProfilePayload payload -> of(payload);
+            case PrincipalProfile base -> of(payloadMapper.toPayload(base));
+            case StudentProfilePayload payload -> of(payload);
+            case StudentProfile base -> of(payloadMapper.toPayload(base));
+            default -> throw new IllegalArgumentException("Parameter type not supported: " + type.getClass());
+        };
     }
 
     /**
@@ -267,31 +273,4 @@ public interface Input<P> extends IOBase<P> {
     }
 
     // private methods
-    private static <T extends BaseType> Input<? extends BaseProfilePayload<? extends PersonProfile>> profileType(T type) {
-        if (type instanceof PrincipalProfile base)
-            return type instanceof PrincipalProfilePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        if (type instanceof StudentProfile base)
-            return type instanceof StudentProfilePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        return null;
-    }
-
-    private static <T extends BaseType> Input<? extends BasePayload<? extends BaseType>> organizationType(T type) {
-        if (type instanceof AuthorityPerson base)
-            return type instanceof AuthorityPersonPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        if (type instanceof Faculty base)
-            return type instanceof FacultyPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        if (type instanceof StudentsGroup base)
-            return type instanceof StudentsGroupPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-        return null;
-    }
-
-    private static <T extends BaseType> Input<? extends BasePayload<? extends BaseType>> educationType(T type) {
-        return switch (type) {
-            case Student base ->
-                    type instanceof StudentPayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-            case Course base -> type instanceof CoursePayload payload ? of(payload) : of(payloadMapper.toPayload(base));
-            case null, default -> null;
-        };
-    }
-
 }

@@ -12,7 +12,6 @@ import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -23,22 +22,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
@@ -56,26 +49,14 @@ class ContextInputParameterTest {
     @MockitoSpyBean
     @Autowired
     private CommandsFactoriesFarm<? extends RootCommand<?>> farm;
-    @Autowired
-    @Qualifier("jsonContextModule")
-    private Module jsonContextModule;
     // json mapper
+    @Autowired
     private ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .registerModule(jsonContextModule)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    }
 
     @Test
-    void scheckTestIntegrity() {
+    void checkTestIntegrity() {
         assertThat(farm).isNotNull();
-        assertThat(jsonContextModule).isNotNull().isInstanceOf(JsonContextModule.class);
-        assertThat(ReflectionTestUtils.getField(jsonContextModule, "farm")).isSameAs(farm);
     }
 
     @Test

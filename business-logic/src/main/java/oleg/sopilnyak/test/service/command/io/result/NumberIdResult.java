@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.io.result;
 
-
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.NESTED_TYPE_FIELD_NAME;
