@@ -41,11 +41,11 @@ public record StringIdResult(String value) implements Output<String> {
 
         @Override
         public void serialize(
-                final StringIdResult parameter, final JsonGenerator generator, final SerializerProvider ignored
+                final StringIdResult result, final JsonGenerator generator, final SerializerProvider ignored
         ) throws IOException {
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, StringIdResult.class.getName());
-            generator.writeStringField(IOFieldNames.VALUE_FIELD_NAME, parameter.value());
+            generator.writeStringField(IOFieldNames.VALUE_FIELD_NAME, result.value());
             generator.writeEndObject();
         }
     }
@@ -68,7 +68,7 @@ public record StringIdResult(String value) implements Output<String> {
 
         @Override
         public StringIdResult deserialize(
-                final JsonParser jsonParser, final DeserializationContext deserializationContext
+                final JsonParser jsonParser, final DeserializationContext ignored
         ) throws IOException {
             final TreeNode valueNode = jsonParser.readValueAsTree().get(IOFieldNames.VALUE_FIELD_NAME);
             return new StringIdResult(valueNode instanceof TextNode textNode ? textNode.asText() : "");

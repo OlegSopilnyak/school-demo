@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
  */
 @JsonSerialize(using = EmptyResult.Serializer.class)
 @JsonDeserialize(using = EmptyResult.Deserializer.class)
-public class EmptyResult<T> implements Output<T> {
+public record EmptyResult<T>() implements Output<T> {
     /**
      * To get the value of command execution result
      *
@@ -58,9 +58,9 @@ public class EmptyResult<T> implements Output<T> {
         }
 
         @Override
-        public void serialize(final EmptyResult parameter,
-                              final JsonGenerator generator,
-                              final SerializerProvider serializerProvider) throws IOException {
+        public void serialize(
+                final EmptyResult result, final JsonGenerator generator, final SerializerProvider ignored
+        ) throws IOException {
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, EmptyResult.class.getName());
             generator.writeStringField(IOFieldNames.VALUE_FIELD_NAME, "none");
@@ -85,8 +85,9 @@ public class EmptyResult<T> implements Output<T> {
         }
 
         @Override
-        public EmptyResult<?> deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext)
-                throws IOException {
+        public EmptyResult<?> deserialize(
+                final JsonParser jsonParser, final DeserializationContext ignored
+        ) throws IOException {
             return new EmptyResult<>();
         }
     }

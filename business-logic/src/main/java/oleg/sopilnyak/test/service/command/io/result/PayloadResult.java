@@ -51,14 +51,14 @@ public record PayloadResult<P extends BasePayload<? extends BaseType>>(P value) 
 
         @Override
         public void serialize(
-                final PayloadResult<T> parameter, final JsonGenerator generator, final SerializerProvider ignored
+                final PayloadResult<T> result, final JsonGenerator generator, final SerializerProvider ignored
         ) throws IOException {
-            final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadResult.class.getName());
-            generator.writeStringField(NESTED_TYPE_FIELD_NAME, parameter.value.getClass().getName());
+            generator.writeStringField(NESTED_TYPE_FIELD_NAME, result.value.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
-            generator.writeRawValue(mapper.writeValueAsString(parameter.value));
+            final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
+            generator.writeRawValue(mapper.writeValueAsString(result.value));
             generator.writeEndObject();
         }
     }
@@ -83,24 +83,21 @@ public record PayloadResult<P extends BasePayload<? extends BaseType>>(P value) 
         public PayloadResult<T> deserialize(
                 final JsonParser jsonParser, final DeserializationContext ignored
         ) throws IOException {
-            final TreeNode treeNode = jsonParser.readValueAsTree();
+            final TreeNode rootNode = jsonParser.readValueAsTree();
             try {
-                final Class<?> nestedClass = restoreNestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));
+                final TreeNode node = rootNode.get(NESTED_TYPE_FIELD_NAME);
+                final Class<?> nestedClass;
+                if (node instanceof TextNode textNode) {
+                    nestedClass = Class.forName(textNode.asText());
+                } else {
+                    throw new ClassNotFoundException("Wrong nested type tree-node: " + node.getClass().getName());
+                }
                 final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
-                final String payloadJson = treeNode.get(VALUE_FIELD_NAME).toString();
+                final String payloadJson = rootNode.get(VALUE_FIELD_NAME).toString();
                 final JavaType payloadType = mapper.getTypeFactory().constructType(nestedClass);
                 return new PayloadResult<>(mapper.readValue(payloadJson, payloadType));
             } catch (ClassNotFoundException e) {
                 throw new IOException("Wrong parameter nested type", e);
-            }
-        }
-
-        // private methods
-        private Class<?> restoreNestedClass(final TreeNode node) throws ClassNotFoundException {
-            if (node instanceof TextNode textNode) {
-                return Class.forName(textNode.asText());
-            } else {
-                throw new ClassNotFoundException("Wrong nested type tree-node: " + node.getClass().getName());
             }
         }
     }

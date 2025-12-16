@@ -48,12 +48,12 @@ public record NumberIdResult<T extends Number>(T value) implements Output<T> {
 
         @Override
         public void serialize(
-                final NumberIdResult<T> parameter, final JsonGenerator generator, final SerializerProvider ignored
+                final NumberIdResult<T> result, final JsonGenerator generator, final SerializerProvider ignored
         ) throws IOException {
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, NumberIdResult.class.getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
-            serializeParameterValue(parameter.value(), generator);
+            serializeParameterValue(result.value, generator);
             generator.writeEndObject();
         }
 
@@ -89,9 +89,9 @@ public record NumberIdResult<T extends Number>(T value) implements Output<T> {
                 final JsonParser jsonParser, final DeserializationContext deserializationContext
         ) throws IOException {
             // preparing root-node
-            final TreeNode resultTreeNode = jsonParser.readValueAsTree();
+            final TreeNode rootNode = jsonParser.readValueAsTree();
             // restore number-id-result instance
-            final TreeNode resultTypeNode = resultTreeNode.get(TYPE_FIELD_NAME);
+            final TreeNode resultTypeNode = rootNode.get(TYPE_FIELD_NAME);
             if (nonNull(resultTypeNode) && resultTypeNode instanceof TextNode node) {
                 final String valueTypeName = node.textValue();
                 try {
@@ -100,10 +100,11 @@ public record NumberIdResult<T extends Number>(T value) implements Output<T> {
                     final var valueTypeClass = Class.forName(valueTypeName).asSubclass(NumberIdResult.class);
                     //
                     // restore value of the number-id-result
-                    final TreeNode parameterValueNode = resultTreeNode.get(VALUE_FIELD_NAME);
+                    final TreeNode parameterValueNode = rootNode.get(VALUE_FIELD_NAME);
+                    // restore the value of number-id-result
                     final T restoredValue = deserializeValue(parameterValueNode);
                     //
-                    // construct number-id-result instance from class
+                    // construct number-id-result instance from restored class constructor
                     return valueTypeClass.getConstructor(Number.class).newInstance(restoredValue);
                 } catch (ClassNotFoundException | NoSuchMethodException |
                          InvocationTargetException | InstantiationException |
@@ -111,20 +112,20 @@ public record NumberIdResult<T extends Number>(T value) implements Output<T> {
                     throw new IOException("Result Number Value Type is missing :" + valueTypeName, e);
                 }
             } else {
-                throw new IOException("Result Number Value Type is missing :" + resultTreeNode);
+                throw new IOException("Result Number Value Type is missing :" + rootNode);
             }
         }
 
         // private methods
         @SuppressWarnings("unchecked")
-        private T deserializeValue(final TreeNode treeNode) throws IOException {
-            if (isNull(treeNode)) {
+        private T deserializeValue(final TreeNode parameterValueNode) throws IOException {
+            if (isNull(parameterValueNode)) {
                 throw new IOException("Result Number Value Node is missing (null)");
             }
             //
             // getting value as string
             final String stringValue;
-            final TreeNode valueNode = treeNode.get(VALUE_FIELD_NAME);
+            final TreeNode valueNode = parameterValueNode.get(VALUE_FIELD_NAME);
             if (nonNull(valueNode) && valueNode instanceof TextNode textNode) {
                 stringValue = textNode.textValue();
             } else {
@@ -132,7 +133,7 @@ public record NumberIdResult<T extends Number>(T value) implements Output<T> {
             }
             //
             // deserialize value type
-            final TreeNode valueTypeNode = treeNode.get(NESTED_TYPE_FIELD_NAME);
+            final TreeNode valueTypeNode = parameterValueNode.get(NESTED_TYPE_FIELD_NAME);
             if (nonNull(valueTypeNode) && valueTypeNode instanceof TextNode textTypeNode) {
                 final String valueTypeName = textTypeNode.textValue();
                 try {

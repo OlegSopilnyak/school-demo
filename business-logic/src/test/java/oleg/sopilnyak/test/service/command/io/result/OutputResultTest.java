@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -158,6 +159,74 @@ class OutputResultTest {
         assertThat(result).isInstanceOf(NumberIdResult.class);
         assertThat(result.isEmpty()).isFalse();
         assertThat(result.value()).isInstanceOf(Double.class).isEqualTo(1.0);
+    }
+
+    @Test
+    void shouldCreateOptionalIntegerResult() {
+        Output<Optional<Integer>> result = Output.of(Optional.of(1));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1);
+    }
+
+    @Test
+    void shouldRestoreOptionalIntegerResult() throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(Output.of(Optional.of(1)));
+        Output<Optional<Integer>> result = objectMapper.readValue(json, OptionalValueResult.class);
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1);
+    }
+
+    @Test
+    void shouldCreateOptionalLongResult() {
+        Output<Optional<Long>> result = Output.of(Optional.of(1L));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1L);
+    }
+
+    @Test
+    void shouldCreateOptionalDoubleResult() {
+        Output<Optional<Double>> result = Output.of(Optional.of(1.0));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1.0);
+    }
+
+    @Test
+    void shouldCreateOptionalEmptyResult() {
+        Output<Optional<Object>> result = Output.of(Optional.empty());
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).isEmpty();
+    }
+
+    @Test
+    void shouldCreateDoubleOptionalLongResult() {
+        Output<Optional<Object>> result = Output.of(Optional.of(Optional.of(1L)));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(Optional.of(1L));
+    }
+
+    @Test
+    void shouldCreateOptionalStudentResult() {
+        long id = 21L;
+        StudentPayload entity = createStudent(id);
+        CoursePayload extra = createCourse(id + 1);
+        entity.setCourses(List.of(extra));
+        Output<Optional<StudentPayload>> result = Output.of(Optional.of(entity));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(entity);
     }
 
     @Test
