@@ -30,12 +30,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class})
@@ -45,24 +42,17 @@ class DoCommandMessageTest {
     private static final String TEST_ACTION = "test-processing";
     private static final String TEST_FACADE = "test-facade";
     @MockitoBean
-    PlatformTransactionManager platformTransactionManager;
-    @MockitoBean
     private PersistenceFacade persistenceFacade;
-    @Autowired
-    @Qualifier("jsonContextModule")
-    private Module jsonContextModule;
     // json mapper
+    @Autowired
+    @Qualifier("commandsTroughMessageObjectMapper")
     private ObjectMapper objectMapper;
     @Autowired
     private CommandsFactoriesFarm farm;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .registerModule(jsonContextModule)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     @Test

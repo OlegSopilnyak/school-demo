@@ -22,12 +22,12 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 
 import java.util.Deque;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,7 +106,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     public DeleteAuthorityPersonMacroCommand(
             @Qualifier(Component.DELETE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.DELETE_BY_ID) PrincipalProfileCommand<?> profileCommand,
-            @Qualifier("parallelCommandNestedCommandsExecutor") SchedulingTaskExecutor executor,
+            @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
             AuthorityPersonPersistenceFacade persistence, ActionExecutor actionExecutor
     ) {
         super(actionExecutor, executor);
