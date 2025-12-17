@@ -8,6 +8,8 @@ import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
  * @see ActionExecutorImpl
  */
 public interface CommandThroughMessageService {
+    String JSON_CONTEXT_MODULE_BEAN_NAME = "jsonContextModule";
+    String COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME = "commandsTroughMessageObjectMapper";
     /**
      * To start background processors for requests to process
      */

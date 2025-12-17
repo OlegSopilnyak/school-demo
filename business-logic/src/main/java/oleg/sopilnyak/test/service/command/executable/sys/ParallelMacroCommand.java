@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.ObjectUtils;
 
@@ -28,8 +29,10 @@ import org.springframework.util.ObjectUtils;
  * @see CompletableFuture
  */
 public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
-    protected final transient SchedulingTaskExecutor executor;
-    protected ParallelMacroCommand(final ActionExecutor actionExecutor, final SchedulingTaskExecutor executor) {
+    public static final String EXECUTOR_BEAN_NAME = "parallelCommandNestedCommandsExecutor";
+    protected final transient Executor executor;
+
+    protected ParallelMacroCommand(ActionExecutor actionExecutor, @Qualifier(EXECUTOR_BEAN_NAME) Executor executor) {
         super(actionExecutor);
         this.executor = executor;
     }

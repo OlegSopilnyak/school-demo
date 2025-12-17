@@ -1,5 +1,9 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
+import static oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
+import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.JSON_CONTEXT_MODULE_BEAN_NAME;
+import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
+
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
@@ -28,6 +32,7 @@ import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import java.util.Collection;
 import java.util.Deque;
+import java.util.concurrent.Executor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -35,7 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.Module;
@@ -74,16 +78,45 @@ public class SchoolCommandsConfiguration {
     }
 
     /**
+     * Object mapper for module's data-model. Helps transform model to JSON and back
+     *
+     * @return built instance
+     */
+    @Bean(name = COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME)
+    public ObjectMapper commandsTroughMessageObjectMapper(@Qualifier(JSON_CONTEXT_MODULE_BEAN_NAME) Module jsonContextModule) {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .registerModule(jsonContextModule)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
+    /**
+     * Module for ObjectMapper
+     *
+     * @param context Spring Application Context
+     * @return the module
+     * @see com.fasterxml.jackson.databind.ObjectMapper
+     * @see Module
+     */
+    @SuppressWarnings("unchecked")
+    @Bean(name = JSON_CONTEXT_MODULE_BEAN_NAME)
+    public <T extends RootCommand<?>> Module jsonContextModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
+        return new JsonContextModule(context, farm);
+    }
+
+    /**
      * TaskExecutor for all parallel commands
      *
      * @param maxPoolSize maximum size of threads-pool
      * @return ready to use executor
-     * @see SchedulingTaskExecutor
+     * @see Executor
      * @see ParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
      * @see ParallelMacroCommand#rollbackNested(Deque)
      */
-    @Bean
-    public SchedulingTaskExecutor parallelCommandNestedCommandsExecutor(
+    @Bean(name = EXECUTOR_BEAN_NAME)
+    public Executor parallelCommandNestedCommandsExecutor(
             @Value("${school.parallel.max.pool.size:100}") final int maxPoolSize
     ) {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -94,6 +127,7 @@ public class SchoolCommandsConfiguration {
         executor.initialize();
         return executor;
     }
+
 // ----------------- Commands factories ----------------
 
     /**
@@ -192,34 +226,5 @@ public class SchoolCommandsConfiguration {
     @Bean(name = CommandsFactoriesFarm.FARM_BEAN_NAME)
     public <T extends RootCommand<?>> CommandsFactoriesFarm<T> commandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
         return new CommandsFactoriesFarm<>(factories);
-    }
-
-    /**
-     * Object mapper for module's data-model. Helps transform model to JSON and back
-     *
-     * @return built instance
-     */
-    @Bean(name = "commandsTroughMessageObjectMapper")
-    public ObjectMapper commandsTroughMessageObjectMapper(@Qualifier("jsonContextModule") Module jsonContextModule) {
-        return new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .registerModule(jsonContextModule)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                .disable(SerializationFeature.INDENT_OUTPUT)
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    }
-
-    /**
-     * Module for ObjectMapper
-     *
-     * @param context Spring Application Context
-     * @return the module
-     * @see com.fasterxml.jackson.databind.ObjectMapper
-     * @see Module
-     */
-    @SuppressWarnings("unchecked")
-    @Bean(name = "jsonContextModule")
-    public <T extends RootCommand<?>> Module jsonContextModule(ApplicationContext context, CommandsFactoriesFarm<T> farm) {
-        return new JsonContextModule(context, farm);
     }
 }

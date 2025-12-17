@@ -172,7 +172,9 @@ class OutputResultTest {
 
     @Test
     void shouldRestoreOptionalIntegerResult() throws JsonProcessingException {
-        String json = objectMapper.writeValueAsString(Output.of(Optional.of(1)));
+        Output<Optional<Integer>> output = Output.of(Optional.of(1));
+
+        String json = objectMapper.writeValueAsString(output);
         Output<Optional<Integer>> result = objectMapper.readValue(json, OptionalValueResult.class);
 
         assertThat(result).isInstanceOf(OptionalValueResult.class);
@@ -190,8 +192,32 @@ class OutputResultTest {
     }
 
     @Test
+    void shouldRestoreOptionalLongResult() throws JsonProcessingException {
+        Output<Optional<Long>> output = Output.of(Optional.of(1L));
+
+        String json = objectMapper.writeValueAsString(output);
+        Output<Optional<Long>> result = objectMapper.readValue(json, OptionalValueResult.class);
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1L);
+    }
+
+    @Test
     void shouldCreateOptionalDoubleResult() {
         Output<Optional<Double>> result = Output.of(Optional.of(1.0));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(1.0);
+    }
+
+    @Test
+    void shouldRestoreOptionalDoubleResult() throws JsonProcessingException {
+        Output<Optional<Double>> output = Output.of(Optional.of(1.0));
+
+        String json = objectMapper.writeValueAsString(output);
+        Output<Optional<Double>> result = objectMapper.readValue(json, OptionalValueResult.class);
 
         assertThat(result).isInstanceOf(OptionalValueResult.class);
         assertThat(result.isEmpty()).isFalse();
@@ -208,6 +234,18 @@ class OutputResultTest {
     }
 
     @Test
+    void shouldRestoreOptionalEmptyResult() throws JsonProcessingException {
+        Output<Optional<Object>> output = Output.of(Optional.empty());
+
+        String json = objectMapper.writeValueAsString(output);
+        Output<Optional<Double>> result = objectMapper.readValue(json, OptionalValueResult.class);
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).isEmpty();
+    }
+
+    @Test
     void shouldCreateDoubleOptionalLongResult() {
         Output<Optional<Object>> result = Output.of(Optional.of(Optional.of(1L)));
 
@@ -217,12 +255,41 @@ class OutputResultTest {
     }
 
     @Test
+    void shouldRestoreDoubleOptionalDoubleResult() throws JsonProcessingException {
+        Output<Optional<Object>> output = Output.of(Optional.of(Optional.of(1.0)));
+
+        String json = objectMapper.writeValueAsString(output);
+        Output<Optional<Object>> result = objectMapper.readValue(json, OptionalValueResult.class);
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(Optional.of(1.0));
+    }
+
+    @Test
     void shouldCreateOptionalStudentResult() {
         long id = 21L;
         StudentPayload entity = createStudent(id);
         CoursePayload extra = createCourse(id + 1);
         entity.setCourses(List.of(extra));
+
         Output<Optional<StudentPayload>> result = Output.of(Optional.of(entity));
+
+        assertThat(result).isInstanceOf(OptionalValueResult.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()).isInstanceOf(Optional.class).contains(entity);
+    }
+
+    @Test
+    void shouldRestoreOptionalStudentResult() throws JsonProcessingException {
+        long id = 23L;
+        StudentPayload entity = createStudent(id);
+        CoursePayload extra = createCourse(id + 1);
+        entity.setCourses(List.of(extra));
+        Output<Optional<StudentPayload>> output = Output.of(Optional.of(entity));
+
+        String json = objectMapper.writeValueAsString(output);
+        Output<Optional<StudentPayload>> result = objectMapper.readValue(json, OptionalValueResult.class);
 
         assertThat(result).isInstanceOf(OptionalValueResult.class);
         assertThat(result.isEmpty()).isFalse();
