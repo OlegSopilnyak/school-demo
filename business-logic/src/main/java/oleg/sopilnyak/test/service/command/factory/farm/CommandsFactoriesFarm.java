@@ -8,10 +8,10 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Container: all commands factories farm
@@ -24,11 +24,32 @@ import java.util.Optional;
 public class CommandsFactoriesFarm<T extends RootCommand<?>> implements CommandsFactory<T> {
     public static final String FARM_BEAN_NAME = "commandFactoriesFarm";
     public static final String NAME = "CommandFactories-Farm";
-    // The list of registered factories
-    private final List<CommandsFactory<T>> commandsFactories;
+    // the map of registered commands factories
+    private final Map<Class<T>, CommandsFactory<T>> commandsFactoriesMap = new ConcurrentHashMap<>();
 
-    public CommandsFactoriesFarm(final Collection<CommandsFactory<T>> factories) {
-        commandsFactories = new LinkedList<>(factories);
+    public CommandsFactoriesFarm(Collection<CommandsFactory<T>> factories) {
+        factories.forEach(this::register);
+    }
+
+    /**
+     * To register/re-register commands factory in the farm
+     *
+     * @param factory to register/re-register
+     */
+    public void register(final CommandsFactory<T> factory) {
+        commandsFactoriesMap.put(factory.commandFamily(), factory);
+    }
+
+    /**
+     * The class of commands family, the commands are belonged to
+     *
+     * @return command family class value
+     * @see RootCommand#commandFamily()
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <F extends RootCommand> Class<F> commandFamily() {
+        return (Class<F>) RootCommand.class;
     }
 
     /**
@@ -41,7 +62,7 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      */
     @Override
     public T command(String commandId) {
-        return commandsFactories.stream()
+        return commandsFactoriesMap.values().stream()
                 .map(factory -> factory.command(commandId))
                 .filter(Objects::nonNull).findFirst().orElse(null);
     }
@@ -61,7 +82,7 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
     @Override
     @SuppressWarnings("unchecked")
     public <I, R> Context<R> makeCommandContext(final String commandId, final Input<I> input) {
-        return (Context<R>) commandsFactories.stream()
+        return (Context<R>) commandsFactoriesMap.values().stream()
                 .map(factory -> factory.makeCommandContext(commandId, input))
                 .filter(Objects::nonNull).findFirst().orElse(null);
     }
@@ -78,7 +99,9 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
         return isNull(factoryName) || factoryName.isBlank() ?
                 Optional.empty()
                 :
-                commandsFactories.stream().filter(factory -> Objects.equals(factoryName, factory.getName())).findFirst();
+                commandsFactoriesMap.values().stream()
+                        .filter(factory -> Objects.equals(factoryName, factory.getName()))
+                        .findFirst();
     }
 
     /**
@@ -88,7 +111,7 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      */
     @Override
     public Collection<String> commandIds() {
-        return commandsFactories.stream()
+        return commandsFactoriesMap.values().stream()
                 .flatMap(factory -> factory.commandIds().stream())
                 .distinct().sorted().toList();
     }
@@ -110,6 +133,6 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      */
     @Override
     public int getSize() {
-        return commandsFactories.stream().mapToInt(CommandsFactory::getSize).sum();
+        return commandsFactoriesMap.values().stream().mapToInt(CommandsFactory::getSize).sum();
     }
 }

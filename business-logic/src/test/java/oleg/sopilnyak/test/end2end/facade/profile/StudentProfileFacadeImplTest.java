@@ -2,11 +2,13 @@ package oleg.sopilnyak.test.end2end.facade.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
@@ -26,13 +28,16 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUp
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.FindStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
@@ -40,6 +45,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +59,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
@@ -65,6 +75,8 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     ActionExecutor actionExecutor;
+    @Autowired
+    CommandThroughMessageService commandThroughMessageService;
     @Autowired
     ConfigurableApplicationContext context;
     @Autowired
@@ -80,6 +92,9 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
+    @MockitoSpyBean
+    @Autowired
+    CommandsFactoriesFarm farm;
 
     CommandsFactory<StudentProfileCommand<?>> factory;
     StudentProfileFacadeImpl facade;
@@ -88,19 +103,38 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper, actionExecutor));
+        farm.register(factory);
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule()).registerModule(new JsonContextModule<>(applicationContext, farm))
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        commandThroughMessageService.shutdown();
+        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
+        commandThroughMessageService.initialize();
         ActionContext.setup("test-facade", "test-processing");
+    }
+
+    @AfterEach
+    void tearDown() {
+        deleteEntities(StudentProfileEntity.class);
+        deleteEntities(PrincipalProfileEntity.class);
     }
 
     @Test
     void shouldAllPartsBeReady() {
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(actionExecutor).isNotNull();
+        assertThat(commandThroughMessageService).isNotNull();
+        assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
     }
 
     @Test
     void shouldFindProfileById_ProfileExists() {
+        String commandId = PROFILE_FIND_BY_ID;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
@@ -109,45 +143,51 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.get(), profile, true);
         verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById_ProfileNotExist() {
+        String commandId = PROFILE_FIND_BY_ID;
         Long id = 710L;
 
         Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
 
         assertThat(faculty).isEmpty();
         verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById_WrongProfileType() {
+        String commandId = PROFILE_FIND_BY_ID;
         Long id = persistPrincipal().getId();
 
         Optional<StudentProfile> profile = facade.findStudentProfileById(id);
 
         assertThat(profile).isEmpty();
         verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldCreateOrUpdateProfile_Create() {
+        String commandId = PROFILE_CREATE_OR_UPDATE;
         StudentProfile profileSource = makeStudentProfile(null);
 
         Optional<StudentProfile> entity = facade.createOrUpdateProfile(profileSource);
@@ -155,15 +195,17 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.get(), profileSource, false);
         verify(facade).createOrUpdate(profileSource);
-        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(any(Input.class));
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(any(Input.class));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(any(StudentProfilePayload.class));
         verify(persistence).saveProfile(any(StudentProfilePayload.class));
     }
 
     @Test
     void shouldCreateOrUpdateProfile_Update() {
+        String commandId = PROFILE_CREATE_OR_UPDATE;
         StudentProfile profile = payloadMapper.toPayload(persistStudent());
         Long id = profile.getId();
 
@@ -172,9 +214,10 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.orElseThrow(), profile, true);
         verify(facade).createOrUpdate(profile);
-        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(profile));
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(profile));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(any(StudentProfileEntity.class));
@@ -184,6 +227,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotCreateOrUpdateProfile_Create() {
+        String commandId = PROFILE_CREATE_OR_UPDATE;
         Long id = 711L;
         StudentProfile profileSource = payloadMapper.toPayload(makeStudentProfile(id));
 
@@ -193,9 +237,10 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(ProfileNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
-        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(profileSource));
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(profileSource));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).toEntity(any(StudentProfile.class));
@@ -204,14 +249,16 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteProfileById_ProfileExists() {
+        String commandId = PROFILE_DELETE;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
         facade.deleteById(id);
 
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).deleteProfileById(id);
@@ -220,15 +267,17 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteProfile_ProfileExists() {
+        String commandId = PROFILE_DELETE;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
         facade.delete(profile);
 
         verify(facade).deleteById(id);
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).deleteProfileById(id);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -238,6 +287,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDeleteProfile_ProfileNotExists() {
+        String commandId = PROFILE_DELETE;
         Long id = 715L;
         StudentProfile profile = makeStudentProfile(id);
 
@@ -245,9 +295,10 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         verify(facade).deleteById(id);
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(anyLong());
@@ -255,14 +306,16 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
+        String commandId = PROFILE_DELETE;
         Long id = 703L;
 
         ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(anyLong());
@@ -277,7 +330,8 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
-        verify(factory, never()).command(PROFILE_DELETE);
+        verify(farm, never()).command(anyString());
+        verify(factory, never()).command(anyString());
     }
 
     @Test
@@ -288,9 +342,11 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
         verify(facade, never()).deleteById(anyLong());
-        verify(factory, never()).command(PROFILE_DELETE);
+        verify(farm, never()).command(anyString());
+        verify(factory, never()).command(anyString());
     }
 
+    // private methods
     private CommandsFactory<StudentProfileCommand<?>> buildFactory(ProfilePersistenceFacade persistence) {
         Map<StudentProfileCommand<?>, String> commands = Map.of(
                 spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper)), "profileStudentUpdate",

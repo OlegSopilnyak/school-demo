@@ -176,8 +176,9 @@ public class JsonContextModule<T> extends SimpleModule {
         }
 
         @Override
-        public Context<T> deserialize(final JsonParser jsonParser,
-                                      final DeserializationContext deserializationContext) throws IOException {
+        public Context<T> deserialize(
+                final JsonParser jsonParser, final DeserializationContext ignored
+        ) throws IOException {
             final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final TreeNode treeNode = jsonParser.readValueAsTree();
             final CommandContext.CommandContextBuilder<T> contextBuilder = CommandContext.<T>builder();

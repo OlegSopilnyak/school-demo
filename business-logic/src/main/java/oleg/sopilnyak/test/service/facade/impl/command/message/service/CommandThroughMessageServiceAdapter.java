@@ -62,7 +62,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
      * @param objectMapper mapper for transformations
      */
     @Autowired
-    public final void setObjectMapper(@Lazy @Qualifier("commandsTroughMessageObjectMapper") ObjectMapper objectMapper) {
+    public final void setObjectMapper(@Lazy @Qualifier(COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME) ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

@@ -23,6 +23,17 @@ public interface CommandsFactory<C extends RootCommand<?>> {
     C command(String commandId);
 
     /**
+     * The class of commands family, the commands are belonged to
+     *
+     * @return command family class value
+     * @param <F> class of command's family
+     * @see RootCommand#commandFamily()
+     */
+    default <F extends RootCommand> Class<F> commandFamily() {
+        throw new UnsupportedOperationException("Please declare commands family type.");
+    }
+
+    /**
      * To make command execution context by command-id and input
      *
      * @param commandId command-id
