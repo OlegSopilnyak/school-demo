@@ -92,9 +92,8 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @SuppressWarnings("unchecked")
     @Override
-    public Optional<Student> finalCommandResult(Deque<Context<?>> contexts) {
-        return contexts.stream()
-                .filter(context -> context.getCommand() instanceof PersonInSequenceCommand)
+    public Optional<Student> finalCommandResult(final Deque<Context<?>> contexts) {
+        return contexts.stream().filter(CreateStudentMacroCommand::ofThePerson)
                 .map(context -> (Context<Optional<Student>>) context).findFirst()
                 .flatMap(context -> context.getResult().orElseGet(Optional::empty));
     }
@@ -275,6 +274,12 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     // private methods
+    // to check is context for create or update the person
+    private static boolean ofThePerson(Context<?> context) {
+        final RootCommand<?> command = context.getCommand();
+        return command instanceof StudentCommand<?> && CommandId.CREATE_OR_UPDATE.equals(command.getId());
+    }
+
     private NestedCommand<?> wrap(final StudentCommand<?> command) {
         return new PersonInSequenceCommand(command);
     }

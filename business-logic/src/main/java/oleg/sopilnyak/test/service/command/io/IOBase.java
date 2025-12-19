@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
@@ -180,7 +181,9 @@ public interface IOBase<P> extends Serializable {
 
         private static String getExceptionMessage(final TreeNode valueNode) throws IOException {
             final TreeNode messageNode = valueNode.get(EXCEPTION_MESSAGE_FIELD_NAME);
-            if (messageNode instanceof TextNode textNode) {
+            if (isNull(messageNode) || messageNode instanceof NullNode) {
+                return null;
+            } else if (messageNode instanceof TextNode textNode) {
                 return textNode.asText();
             } else {
                 throw new IOException("Wrong node-type of exception's message: " + messageNode.getClass().getName());

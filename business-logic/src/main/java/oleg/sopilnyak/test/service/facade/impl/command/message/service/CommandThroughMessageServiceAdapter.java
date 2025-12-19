@@ -278,7 +278,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
                 message.getContext().failed(exception);
             } else {
                 getLogger().warn("=?= Something strange was thrown =?=", error);
-                return;
+                message.getContext().failed(new IllegalArgumentException("Unknown type of error", error));
             }
         }
         final String correlationId = message.getCorrelationId();

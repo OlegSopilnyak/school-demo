@@ -15,6 +15,8 @@ import oleg.sopilnyak.test.service.message.payload.BasePayload;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -102,8 +104,17 @@ public interface Output<O> extends IOBase<O> {
      * @see BasePayload
      * @see BaseType
      */
-    static <P extends BasePayload<? extends BaseType>> Output<Set<P>> of(final Set<P> result) {
-        return new PayloadSetResult<>(result);
+    @SuppressWarnings("unchecked")
+    static <P extends BasePayload<? extends BaseType>> Output<Set<P>> of(final Set<?> result) {
+        if (CollectionUtils.isEmpty(result)) {
+            return new PayloadSetResult<>(Set.of());
+        }
+        final Object item = result.iterator().next();
+        if (item instanceof BasePayload<?>) {
+            final Set<P> payloadsSet = result.stream().map(i -> (P) i).collect(Collectors.toSet());
+            return new PayloadSetResult<>(payloadsSet);
+        }
+        return empty();
     }
 
     /**

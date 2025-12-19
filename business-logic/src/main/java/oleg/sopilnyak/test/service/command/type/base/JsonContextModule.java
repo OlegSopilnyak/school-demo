@@ -217,7 +217,7 @@ public class JsonContextModule<T> extends SimpleModule {
         private void deserializeCommandFamily(
                 CommandContext.CommandContextBuilder<T> contextBuilder, TreeNode commandTypeNode, RootCommand<T> command
         ) throws IOException {
-            if (nonNull(commandTypeNode) && commandTypeNode instanceof TextNode textTypeNode) {
+            if (commandTypeNode instanceof TextNode textTypeNode) {
                 final String commandFamilyTypeName = textTypeNode.textValue();
                 try {
                     final Class<?> commandFamilyType = Class.forName(commandFamilyTypeName).asSubclass(RootCommand.class);

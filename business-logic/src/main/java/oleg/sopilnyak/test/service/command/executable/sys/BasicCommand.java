@@ -41,7 +41,7 @@ public abstract class BasicCommand<T> implements RootCommand<T> {
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
                 final String springName = springName();
                 final Class<? extends RootCommand<T>> familyType = commandFamily();
-                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                getLog().info("Getting command from family:'{}' bean-name:[{}]",familyType.getSimpleName(), springName);
                 self.getAndSet(applicationContext.getBean(springName, familyType));
             }
         }

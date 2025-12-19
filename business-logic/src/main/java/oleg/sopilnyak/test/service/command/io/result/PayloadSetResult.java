@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -60,22 +61,28 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
         public void serialize(
                 final PayloadSetResult<T> result, final JsonGenerator generator, final SerializerProvider ignored
         ) throws IOException {
+            // getting the set to serialize
+            final Set<T> resultSet = result.value;
             // checking the types of the set
-            final String elementInSetTypeName = checkElementTypes(result.value).getName();
+            final String elementInSetTypeName = checkElementTypes(resultSet).getName();
             // checking the types of the set
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeStartObject();
             generator.writeStringField(IOFieldNames.TYPE_FIELD_NAME, PayloadSetResult.class.getName());
             generator.writeStringField(NESTED_TYPE_FIELD_NAME, elementInSetTypeName);
             generator.writeFieldName(VALUE_FIELD_NAME);
-            generator.writeRawValue(mapper.writeValueAsString(result.value));
+            generator.writeRawValue(mapper.writeValueAsString(resultSet));
             generator.writeEndObject();
         }
 
         // private methods
         private Class<?> checkElementTypes(final Set<T> set) throws IOException {
-            final Class<?> firstElementInSetType = set.iterator().next().getClass();
+            if (CollectionUtils.isEmpty(set)) {
+                // set is empty, type of elements in collection doesn't matter
+                return BasePayload.class;
+            }
             // checking the types of the elements in set
+            final Class<?> firstElementInSetType = set.iterator().next().getClass();
             for (final T elementInSet : set) {
                 if (!Objects.equals(firstElementInSetType, elementInSet.getClass())) {
                     throw new IOException("Payload Set parameter elements types mismatch");
@@ -130,6 +137,11 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
                 final Class<?> elementInSetType, final TreeNode valueTreeNode, final ObjectMapper mapper
         ) throws IOException {
             if (valueTreeNode instanceof ArrayNode arrayNode) {
+                if (arrayNode.isEmpty()) {
+                    // no elements serialized
+                    return new HashSet<>();
+                }
+                // restore elements to HashSet
                 final Set<T> payloadsSet = new HashSet<>();
                 final JavaType payloadType = mapper.getTypeFactory().constructType(elementInSetType);
                 for (final JsonNode valueNode : arrayNode) {
