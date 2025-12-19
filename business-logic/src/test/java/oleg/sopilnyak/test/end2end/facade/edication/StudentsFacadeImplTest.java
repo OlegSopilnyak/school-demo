@@ -162,10 +162,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isEmpty();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(studentId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
@@ -179,10 +176,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isNotEmpty();
         assertStudentEquals(newStudent, student.get(), false);
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(studentId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
@@ -197,10 +191,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(courseId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -212,10 +203,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).isEmpty();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(courseId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -229,10 +217,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertCourseEquals(course, findCourseById(courseId), false);
         assertThat(students).isEmpty();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(courseId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -249,10 +234,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -263,10 +245,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -278,10 +257,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -293,10 +269,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Optional<Student> result = facade.create(student);
 
         assertStudentEquals(student, result.orElseThrow(), false);
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(any(Input.class));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(student));
         verify(persistenceFacade).save(any(StudentPayload.class));
     }
 
@@ -310,10 +283,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isNotEmpty();
         assertStudentEquals(student, result.orElseThrow());
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(student));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(student));
         verify(persistenceFacade).findStudentById(student.getId());
         verify(persistenceFacade).save(student);
     }
@@ -335,10 +305,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(findStudentById(studentId)).isNull();
         assertThat(findStudentProfileById(profileId)).isNull();
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(studentId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).deleteStudent(studentId);
         verify(persistenceFacade).deleteProfileById(profileId);
         // 1. building context for delete
@@ -355,10 +322,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         var exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(studentId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).deleteStudent(anyLong());
     }
@@ -372,10 +336,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         var exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
         assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
-        verify(farm, times(2)).command(commandId);
-        verify(factory, times(3)).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(studentId));
-        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verifyAfterCommand(commandId, Input.of(studentId));
         // 1. building context for delete
         // 2. deleting student
         verify(persistenceFacade, times(2)).findStudentById(studentId);
@@ -383,6 +344,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     }
 
     // private methods
+    private void verifyAfterCommand(String commandId, Input<?> commandInput) {
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(commandInput);
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+    }
+
     private Student findStudentById(Long id) {
         return findEntity(StudentEntity.class, id, e -> e.getCourseSet().size());
     }
