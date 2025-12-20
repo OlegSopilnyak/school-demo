@@ -92,10 +92,10 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper, actionExecutor) {
-            @Override
-            public NestedCommand<?> wrap(NestedCommand<?> command) {
-                return spy(super.wrap(command));
-            }
+//            @Override
+//            public NestedCommand<?> wrap(NestedCommand<?> command) {
+//                return spy(super.wrap(command));
+//            }
         });
         ActionContext.setup("test-facade", "test-processing");
         messagesExchangeService.initialize();

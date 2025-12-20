@@ -203,23 +203,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         return command.createContext(Input.of(payload));
     }
 
-    /**
-     * To prepare command for sequential macro-command
-     *
-     * @param command nested command to wrap
-     * @return wrapped nested command
-     * @see SequentialMacroCommand#putToNest(NestedCommand)
-     */
-    @Override
-    public NestedCommand<?> wrap(final NestedCommand<?> command) {
-        if (command instanceof AuthorityPersonCommand<?> personCommand) {
-            return wrap(personCommand);
-        } else if (command instanceof PrincipalProfileCommand<?> profileCommand) {
-            return wrap(profileCommand);
-        }
-        throw new UnableExecuteCommandException(command.getId());
-    }
-
 // for command do activities as nested command
 
     /**
@@ -229,62 +212,18 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @param context the command context of the next command
      */
     @Override
-    protected void transferResultForward(Object result, Context<?> context) {
+    @SuppressWarnings("unchecked")
+    protected void transferResultForward(final Object result, final Context<?> context) {
         final String commandId = context.getCommand().getId();
-        log.debug("Trying transferring to context of '{}' the result {}", commandId, result);
         if (isOptionalProfile(result) && hasPerson(context)) {
-            Optional<PrincipalProfile> profile = (Optional<PrincipalProfile>) result;
-            Input<AuthorityPersonPayload> input = context.getRedoParameter();
-            if (input.isEmpty()) {
-                log.error("No input room in '{}'", commandId);
-                final Exception cause = new UnsupportedOperationException("Empty input in target context");
-                throw new CannotTransferCommandResultException(commandId, cause);
-            } else {
-                log.debug("Transferring to context of '{}'", commandId);
-                input.value().setProfileId(profile.orElseThrow(() -> new CannotTransferCommandResultException(commandId))
-                        .getId());
-            }
-
+            log.debug("Transferring to context of '{}' the result {}", commandId, result);
+            final Long profileId = ((Optional<PrincipalProfile>) result)
+                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId)).getId();
+            log.debug("Transferring profile-id:{} to context of '{}'", profileId, commandId);
+            transferProfileIdToAuthorityPersonInput(profileId, context);
         } else {
-            log.error("Cannot transfer to context of '{}'", commandId);
+            log.error("Cannot transfer to context of '{}' the result {}", commandId, result);
             throw new CannotTransferCommandResultException(commandId);
-        }
-    }
-
-    private boolean isOptionalProfile(Object result) {
-        return result instanceof Optional<?> optional
-                && optional.isPresent()
-                && optional.get() instanceof PrincipalProfile;
-    }
-
-    /**
-     * To transfer result from current command to next command context.<BR/>
-     * Send create-profile command result (profile-id) to create-person command input
-     *
-     * @param command successfully executed command
-     * @param result  the result of successful command execution
-     * @param target  next command context to execute command's redo
-     * @see PrincipalProfileCommand#doCommand(Context)
-     * @see CommandContext#setRedoParameter(Input)
-     * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see CreateAuthorityPersonMacroCommand#transferProfileIdToAuthorityPersonInput(Long, Context)
-     * @see AuthorityPersonPayload#setProfileId(Long)
-     * @see CannotTransferCommandResultException
-     */
-//    @Override
-    public <S, T> void transferPreviousExecuteDoResult(
-            final PrincipalProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
-    ) {
-        if (result instanceof Optional<?> opt
-                &&
-                opt.orElseThrow() instanceof PrincipalProfile profile
-                &&
-                AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(target.getCommand().getId())
-        ) {
-            // send create-profile result (profile-id) to create-person input (AuthorityPersonPayload#setProfileId)
-            transferProfileIdToAuthorityPersonInput(profile.getId(), target);
-        } else {
-            throw new CannotTransferCommandResultException(command.getId());
         }
     }
 
@@ -328,135 +267,20 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     }
 
     // private methods
+    // to check is result to transfer has necessary type
+    private static boolean isOptionalProfile(final Object result) {
+        return result instanceof Optional<?> optional
+                && optional.isPresent()
+                && optional.get() instanceof PrincipalProfile;
+    }
+
     // to check is context for create or update the person
     private static boolean hasPerson(Context<?> context) {
         final RootCommand<?> command = context.getCommand();
         return command instanceof AuthorityPersonCommand<?> && CommandId.CREATE_OR_UPDATE.equals(command.getId());
     }
 
-    private NestedCommand<?> wrap(final AuthorityPersonCommand<?> command) {
-        return new PersonInSequenceCommand(command);
-    }
-
-    private NestedCommand<?> wrap(final PrincipalProfileCommand<?> command) {
-        return new ProfileInSequenceCommand(command);
-    }
-
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {
         throw new CannotCreateCommandContextException(command.getId());
     }
-
-    // inner classes
-    private static class PersonInSequenceCommand extends SequentialMacroCommand.Chained<AuthorityPersonCommand<?>>
-            implements AuthorityPersonCommand<Void> {
-        private final AuthorityPersonCommand<?> wrappedCommand;
-
-        /**
-         * To transfer nested command execution result to target nested command context input<BR/>
-         * Not used in the main command, used default implementation
-         *
-         * @param visitor visitor for do transferring result from source to target
-         * @param value   result of source command execution
-         * @param target  nested command context for the next execution in sequence
-         * @param <S>     type of source command execution result
-         * @param <N>     type of target command execution result
-         * @see oleg.sopilnyak.test.service.command.type.nested.CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
-         * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(AuthorityPersonCommand, Object, Context)
-         */
-        @Override
-        public <S, N> void transferResultTo(
-                final TransferTransitionalResultVisitor visitor, final S value, final Context<N> target
-        ) {
-            visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
-        }
-
-        private PersonInSequenceCommand(AuthorityPersonCommand<?> personCommand) {
-            this.wrappedCommand = personCommand;
-        }
-
-        @Override
-        public AuthorityPersonCommand<?> unWrap() {
-            return wrappedCommand;
-        }
-
-        @Override
-        public Logger getLog() {
-            return wrappedCommand.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return wrappedCommand.getId();
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public void doCommand(Context context) {
-            wrappedCommand.doCommand(context);
-        }
-
-        @Override
-        public void undoCommand(Context<?> context) {
-            wrappedCommand.undoCommand(context);
-        }
-    }
-
-    private static class ProfileInSequenceCommand extends SequentialMacroCommand.Chained<PrincipalProfileCommand<?>>
-            implements PrincipalProfileCommand<Void> {
-        private final PrincipalProfileCommand<?> wrappedCommand;
-
-        /**
-         * To transfer nested command execution result to target nested command context input<BR/>
-         * Used in the main command to pass profile-id to the input of create AuthorityPerson nested command
-         *
-         * @param visitor visitor for do transferring result from source to target
-         * @param value   result of source command execution
-         * @param target  nested command context for the next execution in sequence
-         * @param <S>     type of source command execution result
-         * @param <N>     type of target command execution result
-         * @see oleg.sopilnyak.test.service.command.type.nested.CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
-         * @see TransferTransitionalResultVisitor#transferPreviousExecuteDoResult(RootCommand, Object, Context)
-         * @see CreateAuthorityPersonMacroCommand#transferPreviousExecuteDoResult(PrincipalProfileCommand, Object, Context)
-         */
-        @Override
-        public <S, N> void transferResultTo(final TransferTransitionalResultVisitor visitor, final S value, final Context<N> target) {
-            visitor.transferPreviousExecuteDoResult(wrappedCommand, value, target);
-        }
-
-        private ProfileInSequenceCommand(PrincipalProfileCommand<?> concreteCommand) {
-            this.wrappedCommand = concreteCommand;
-        }
-
-        @Override
-        public PrincipalProfileCommand<?> unWrap() {
-            return wrappedCommand;
-        }
-
-        @Override
-        public Logger getLog() {
-            return wrappedCommand.getLog();
-        }
-
-        @Override
-        public String getId() {
-            return wrappedCommand.getId();
-        }
-
-        @Override
-        public Void detachedResult(Void result) {
-            return null;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public void doCommand(Context context) {
-            wrappedCommand.doCommand(context);
-        }
-
-        @Override
-        public void undoCommand(Context<?> context) {
-            wrappedCommand.undoCommand(context);
-        }
-    }
-
 }

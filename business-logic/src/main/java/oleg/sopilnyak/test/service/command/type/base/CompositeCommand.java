@@ -120,6 +120,19 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     /**
+     * To execute DO of nested command with the nested context only
+     *
+     * @param <N>     the type of nested command execution result
+     * @param context the context used for use with the nested command
+     * @return context after nested command do
+     * @see CompositeCommand#executeDoNested(Context, Context.StateChangedListener)
+     * @see Context.StateChangedListener
+     */
+    default <N> Context<N> executeDoNested(final Context<N> context) {
+        return executeDoNested(context, null);
+    }
+
+    /**
      * To execute DO of nested command with the nested context and context-state-change listener through processing-executor
      *
      * @param <N>      the type of nested command execution result
@@ -128,11 +141,8 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * @return context after nested command do
      * @see CompositeCommand#executeNested(Deque, Context.StateChangedListener)
      * @see ActionExecutor#commitAction(ActionContext, Context)
-     * @see Context
      * @see Context#getHistory()
-     * @see Context.State
      * @see Context.LifeCycleHistory#states()
-     * @see Context.StateChangedListener
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
@@ -169,20 +179,8 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
                 previous.getAndSet(current);
             });
         }
+        // returning command-context after nested command execution
         return result;
-    }
-
-    /**
-     * To execute DO of nested command with the nested context only
-     *
-     * @param <N>     the type of nested command execution result
-     * @param context the context used for use with the nested command
-     * @return context after nested command do
-     * @see CompositeCommand#executeDoNested(Context, Context.StateChangedListener)
-     * @see Context.StateChangedListener
-     */
-    default <N> Context<N> executeDoNested(final Context<N> context) {
-        return executeDoNested(context, null);
     }
 
     /**
@@ -205,11 +203,12 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     /**
-     * To execute UNDO of nested command with the nested context
+     * To execute UNDO of nested command with the command-context
      *
-     * @param context the context used for use with the nested command
-     * @return context after nested command undo
+     * @param context the command-context for undo of nested command
+     * @return command-context after nested command undo
      * @see CompositeCommand#rollbackNested(Deque)
+     * @see ActionExecutor#rollbackAction(ActionContext, Context)
      */
     default Context<?> executeUndoNested(final Context<?> context) {
         try{
