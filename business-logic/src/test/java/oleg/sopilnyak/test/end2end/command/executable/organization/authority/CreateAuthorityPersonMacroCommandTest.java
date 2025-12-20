@@ -26,7 +26,6 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Cre
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -385,7 +384,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // person context state
         assertThat(personContext.getState()).isEqualTo(CANCEL);
 
-        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
         verify(personCommand, never()).doCommand(any(Context.class));
     }

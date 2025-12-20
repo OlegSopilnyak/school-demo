@@ -223,6 +223,41 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
 // for command do activities as nested command
 
     /**
+     * To transfer result of the previous command execution to the next command context
+     *
+     * @param result  result of previous command execution value
+     * @param context the command context of the next command
+     */
+    @Override
+    protected void transferResultForward(Object result, Context<?> context) {
+        final String commandId = context.getCommand().getId();
+        log.debug("Trying transferring to context of '{}' the result {}", commandId, result);
+        if (isOptionalProfile(result) && hasPerson(context)) {
+            Optional<PrincipalProfile> profile = (Optional<PrincipalProfile>) result;
+            Input<AuthorityPersonPayload> input = context.getRedoParameter();
+            if (input.isEmpty()) {
+                log.error("No input room in '{}'", commandId);
+                final Exception cause = new UnsupportedOperationException("Empty input in target context");
+                throw new CannotTransferCommandResultException(commandId, cause);
+            } else {
+                log.debug("Transferring to context of '{}'", commandId);
+                input.value().setProfileId(profile.orElseThrow(() -> new CannotTransferCommandResultException(commandId))
+                        .getId());
+            }
+
+        } else {
+            log.error("Cannot transfer to context of '{}'", commandId);
+            throw new CannotTransferCommandResultException(commandId);
+        }
+    }
+
+    private boolean isOptionalProfile(Object result) {
+        return result instanceof Optional<?> optional
+                && optional.isPresent()
+                && optional.get() instanceof PrincipalProfile;
+    }
+
+    /**
      * To transfer result from current command to next command context.<BR/>
      * Send create-profile command result (profile-id) to create-person command input
      *
@@ -236,7 +271,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see AuthorityPersonPayload#setProfileId(Long)
      * @see CannotTransferCommandResultException
      */
-    @Override
+//    @Override
     public <S, T> void transferPreviousExecuteDoResult(
             final PrincipalProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
     ) {

@@ -18,7 +18,9 @@ import org.slf4j.Logger;
  * Visitor: Transfer command execution result to the next command context input
  *
  * @see CommandInSequence#transferResultTo(TransferTransitionalResultVisitor, Object, Context)
+ * @deprecated
  */
+@Deprecated
 public interface TransferTransitionalResultVisitor {
     /**
      * To transfer result from current command to next command context

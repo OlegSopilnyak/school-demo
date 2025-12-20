@@ -28,7 +28,6 @@ import oleg.sopilnyak.test.service.command.executable.education.student.CreateSt
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
@@ -378,9 +377,9 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(StudentProfile.class));
 
-        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
-
-        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+//
+//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
         verify(command, never()).executeDoNested(eq(personContext), any(Context.StateChangedListener.class));
         verify(studentCommand, never()).doCommand(any(Context.class));

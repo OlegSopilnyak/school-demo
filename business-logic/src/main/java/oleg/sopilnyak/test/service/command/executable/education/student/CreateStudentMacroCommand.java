@@ -205,7 +205,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
      * @see CannotTransferCommandResultException
      */
-    @Override
+//    @Override
     public <S, T> void transferPreviousExecuteDoResult(
             @NonNull final StudentProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
     ) {

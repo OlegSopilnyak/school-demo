@@ -10,7 +10,9 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
  *
  * @see NestedCommand
  * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
+ * @deprecated
  */
+@Deprecated
 public interface CommandInSequence {
     /**
      * To transfer nested command execution result to target nested command context input

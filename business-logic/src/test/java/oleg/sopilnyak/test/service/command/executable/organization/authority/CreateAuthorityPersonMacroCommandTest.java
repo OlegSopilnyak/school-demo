@@ -26,7 +26,6 @@ import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -382,7 +381,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
 
-        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
 
         verify(personCommand, never()).doCommand(any(Context.class));
     }
