@@ -7,6 +7,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
@@ -36,14 +37,18 @@ import oleg.sopilnyak.test.service.command.executable.organization.authority.Log
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
 import jakarta.persistence.EntityManager;
@@ -53,21 +58,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
@@ -91,7 +101,10 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     ActionExecutor actionExecutor;
     @MockitoSpyBean
     @Autowired
-    SchedulingTaskExecutor schedulingTaskExecutor;
+    CommandThroughMessageService commandThroughMessageService;
+    @Autowired
+    @Qualifier("parallelCommandNestedCommandsExecutor")
+    Executor schedulingTaskExecutor;
     @Autowired
     EntityManagerFactory emf;
     @Autowired
@@ -101,6 +114,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     PersistenceFacade persistence;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
+    @MockitoSpyBean
+    @Autowired
+    CommandsFactoriesFarm farm;
 
     CommandsFactory<AuthorityPersonCommand<?>> factory;
     AuthorityPersonFacadeImpl facade;
@@ -109,6 +125,15 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
+        farm.register(factory);
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule()).registerModule(new JsonContextModule<>(applicationContext, farm))
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        commandThroughMessageService.shutdown();
+        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
+        commandThroughMessageService.initialize();
         ActionContext.setup("test-facade", "test-processing");
     }
 
@@ -121,8 +146,13 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldBeEverythingIsValid() {
+        assertThat(emf).isNotNull();
+        assertThat(applicationContext).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(actionExecutor).isNotNull();
+        assertThat(commandThroughMessageService).isNotNull();
+        assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
     }
@@ -133,16 +163,14 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         facade.logout(token);
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(Input.of(token));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGOUT, Input.of(token));
     }
 
     @Test
     void shouldLoginAuthorityPerson() {
         String username = "test-login";
         String password = "test-password";
-        AuthorityPersonPayload person = createAuthorityPerson();
+        AuthorityPersonPayload person = createPerson();
         assertThat(findAuthorityPersonById(person.getId())).isEqualTo(person.getOriginal());
         assertThat(findAuthorityPersonByProfileId(person.getProfileId())).isEqualTo(person.getOriginal());
         setPersonPermissions(person, username, password);
@@ -150,9 +178,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Optional<AuthorityPerson> loggedIn = facade.login(username, password);
 
         assertThat(loggedIn).isPresent().contains(person);
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(Input.of(username, password));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGIN, Input.of(username, password));
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(person.getProfileId());
     }
@@ -161,19 +187,17 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotLoginAuthorityPerson_WrongPassword() {
         String username = "test-login";
         String password = "test-password";
-        AuthorityPersonPayload person = createAuthorityPerson();
+        AuthorityPersonPayload person = createPerson();
         assertThat(findAuthorityPersonById(person.getId())).isEqualTo(person.getOriginal());
         assertThat(findAuthorityPersonByProfileId(person.getProfileId())).isEqualTo(person.getOriginal());
         setPersonPermissions(person, username, password);
 
-        Exception thrown = assertThrows(SchoolAccessDeniedException.class, () -> facade.login(username, "password"));
+        var thrown = assertThrows(SchoolAccessDeniedException.class, () -> facade.login(username, "password"));
 
         assertThat(thrown).isInstanceOf(SchoolAccessDeniedException.class);
         assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGIN);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).createContext(Input.of(username, "password"));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGIN)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGIN, Input.of(username, "password"));
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(person.getProfileId());
     }
@@ -184,23 +208,19 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).isEmpty();
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL, Input.empty());
         verify(persistence).findAllAuthorityPersons();
     }
 
     @Test
     void shouldFindAllAuthorityPersons_ExistsInstance() {
-        AuthorityPersonPayload person = createAuthorityPerson();
+        AuthorityPersonPayload person = createPerson();
         assertThat(findAuthorityPersonById(person.getId())).isEqualTo(person.getOriginal());
 
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).contains(payloadMapper.toPayload(person));
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL, Input.empty());
         verify(persistence).findAllAuthorityPersons();
     }
 
@@ -211,22 +231,19 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
 
         assertThat(person).isEmpty();
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
     }
 
     @Test
     void shouldFindAuthorityPersonById() {
-        AuthorityPerson authorityPerson = createAuthorityPerson();
+        AuthorityPerson authorityPerson = createPerson();
         Long id = authorityPerson.getId();
 
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
 
         assertThat(person).isPresent().contains(authorityPerson);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
     }
 
@@ -238,23 +255,19 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(person).isPresent();
         assertAuthorityPersonEquals(authorityPerson, person.get(), false);
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).createContext(Input.of(authorityPerson));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW, Input.of(authorityPerson));
         verify(persistence).save(authorityPerson);
     }
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Update() {
-        AuthorityPerson authorityPerson = createAuthorityPerson();
+        AuthorityPerson authorityPerson = createPerson();
 
         Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(authorityPerson);
 
         assertThat(person).isPresent();
         assertAuthorityPersonEquals(authorityPerson, person.get(), true);
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(authorityPerson));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE, Input.of(authorityPerson));
         verify(persistence).save(authorityPerson);
     }
 
@@ -275,22 +288,18 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).createContext(Input.of(authorityPersonSource));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE, Input.of(authorityPersonSource));
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence, never()).save(any(AuthorityPerson.class));
     }
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
-        Long id = createAuthorityPerson().getId();
+        Long id = createPerson().getId();
 
         facade.deleteAuthorityPersonById(id);
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
         verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence).deleteAuthorityPerson(id);
     }
@@ -299,14 +308,11 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() {
         Long id = 303L;
 
-        AuthorityPersonNotFoundException thrown =
-                assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
+        var thrown = assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("AuthorityPerson with ID:303 is not exists.");
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
@@ -317,22 +323,25 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         if (authorityPersonSource instanceof FakeAuthorityPerson person) {
             person.setFaculties(List.of(makeCleanFacultyNoDean(2)));
         }
-        Optional<AuthorityPerson> authorityPerson = facade.create(authorityPersonSource);
-        assertThat(authorityPerson).isPresent();
-        Long id = authorityPerson.orElseThrow().getId();
+        AuthorityPerson authorityPerson = createPerson(authorityPersonSource);
+        Long id = authorityPerson.getId();
 
-        AuthorityPersonManagesFacultyException thrown =
-                assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
+        var thrown = assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
 
         assertThat(thrown.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is managing faculties.");
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
         verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
 
     // private methods
+    private void verifyAfterCommand(String commandId, Input<?> commandInput) {
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(commandInput);
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+    }
+
     private AuthorityPerson findAuthorityPersonByProfileId(Long profileId) {
         String fkAttributeName = "profileId";
         return findEntityByFK(AuthorityPersonEntity.class, fkAttributeName, profileId, e -> e.getFacultyEntitySet().size());
@@ -374,6 +383,8 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)), "authorityPersonFindAll",
                 spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonFind"
         );
+        //
+        // configure commands for StudentProfileCommand family
         String acName = "applicationContext";
         profiles.entrySet().forEach(entry -> {
             PrincipalProfileCommand<?> command = entry.getKey();
@@ -388,6 +399,10 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
             PrincipalProfileCommand<?> transactionalCommand = (PrincipalProfileCommand<?>) transactCommand(command);
             context.getBeanFactory().registerSingleton(beanName, transactionalCommand);
         });
+        // register in the farm command-profiles factory
+        farm.register(new PrincipalProfileCommandsFactory(profiles.keySet()));
+        //
+        // configure commands for StudentCommand family
         commands.entrySet().forEach(entry -> {
             AuthorityPersonCommand<?> command = entry.getKey();
             if (ReflectionUtils.findField(command.getClass(), acName) != null) {
@@ -417,10 +432,13 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         }
     }
 
-    private AuthorityPersonPayload createAuthorityPerson() {
+    private AuthorityPersonPayload createPerson() {
+        return createPerson(makeCleanAuthorityPerson(0));
+    }
+
+    private AuthorityPersonPayload createPerson(AuthorityPerson person) {
         try {
             PrincipalProfile profile = persist(makePrincipalProfile(null));
-            AuthorityPerson person = makeCleanAuthorityPerson(0);
             if (person instanceof FakeAuthorityPerson fake) {
                 fake.setProfileId(profile.getId());
             }

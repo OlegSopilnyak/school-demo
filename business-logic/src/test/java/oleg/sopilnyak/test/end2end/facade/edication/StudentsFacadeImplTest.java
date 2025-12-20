@@ -156,19 +156,17 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotFindById() {
-        String commandId = STUDENT_FIND_BY_ID;
         Long studentId = 100L;
 
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isEmpty();
-        verifyAfterCommand(commandId, Input.of(studentId));
+        verifyAfterCommand(STUDENT_FIND_BY_ID, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldFindById() {
-        String commandId = STUDENT_FIND_BY_ID;
         Student newStudent = makeClearTestStudent();
         Long studentId = getPersistentStudent(newStudent).getId();
 
@@ -176,13 +174,12 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(student).isNotEmpty();
         assertStudentEquals(newStudent, student.get(), false);
-        verifyAfterCommand(commandId, Input.of(studentId));
+        verifyAfterCommand(STUDENT_FIND_BY_ID, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldFindEnrolledTo() {
-        String commandId = STUDENT_FIND_ENROLLED_TO;
         Student newStudent = makeClearTestStudent();
         Student saved = getPersistentStudent(newStudent);
         Long courseId = saved.getCourses().get(0).getId();
@@ -191,25 +188,23 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verifyAfterCommand(commandId, Input.of(courseId));
+        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldNotFindEnrolledTo_NoCourseById() {
-        String commandId = STUDENT_FIND_ENROLLED_TO;
         Long courseId = 200L;
 
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.of(courseId));
+        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldNotFindEnrolledTo_NoEnrolledStudents() {
-        String commandId = STUDENT_FIND_ENROLLED_TO;
         Course course = makeClearCourse(0);
         Long courseId = getPersistentCourse(course).getId();
 
@@ -217,13 +212,12 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertCourseEquals(course, findCourseById(courseId), false);
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.of(courseId));
+        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldFindNotEnrolled() {
-        String commandId = STUDENT_FIND_NOT_ENROLLED;
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
@@ -234,48 +228,44 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldNotFindNotEnrolled_StudentNotExists() {
-        String commandId = STUDENT_FIND_NOT_ENROLLED;
 
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldNotFindNotEnrolled_StudentHasCourses() {
-        String commandId = STUDENT_FIND_NOT_ENROLLED;
         getPersistentStudent(makeClearTestStudent());
 
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldCreateOrUpdate_Create() {
-        String commandId = STUDENT_CREATE_NEW;
         Student student = makeClearTestStudent();
 
         Optional<Student> result = facade.create(student);
 
         assertStudentEquals(student, result.orElseThrow(), false);
-        verifyAfterCommand(commandId, Input.of(student));
+        verifyAfterCommand(STUDENT_CREATE_NEW, Input.of(student));
         verify(persistenceFacade).save(any(StudentPayload.class));
     }
 
     @Test
     void shouldCreateOrUpdate_Update() {
-        String commandId = STUDENT_CREATE_OR_UPDATE;
         StudentPayload student = createStudent(makeClearTestStudent());
         student.setFirstName(student.getFirstName() + "-newOne");
 
@@ -283,14 +273,13 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isNotEmpty();
         assertStudentEquals(student, result.orElseThrow());
-        verifyAfterCommand(commandId, Input.of(student));
+        verifyAfterCommand(STUDENT_CREATE_OR_UPDATE, Input.of(student));
         verify(persistenceFacade).findStudentById(student.getId());
         verify(persistenceFacade).save(student);
     }
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
-        String commandId = STUDENT_DELETE;
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
@@ -305,7 +294,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(findStudentById(studentId)).isNull();
         assertThat(findStudentProfileById(profileId)).isNull();
-        verifyAfterCommand(commandId, Input.of(studentId));
+        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
         verify(persistenceFacade).deleteStudent(studentId);
         verify(persistenceFacade).deleteProfileById(profileId);
         // 1. building context for delete
@@ -316,27 +305,25 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
-        String commandId = STUDENT_DELETE;
         Long studentId = 101L;
 
         var exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
-        verifyAfterCommand(commandId, Input.of(studentId));
+        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).deleteStudent(anyLong());
     }
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
-        String commandId = STUDENT_DELETE;
         Long studentId = createStudent(makeClearTestStudent()).getId();
         assertThat(studentId).isNotNull();
 
         var exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
 
         assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
-        verifyAfterCommand(commandId, Input.of(studentId));
+        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
         // 1. building context for delete
         // 2. deleting student
         verify(persistenceFacade, times(2)).findStudentById(studentId);

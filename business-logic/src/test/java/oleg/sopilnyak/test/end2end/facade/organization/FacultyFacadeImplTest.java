@@ -121,7 +121,6 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldBeEverythingIsValid() {
-        assertThat(entityManagerFactory).isNotNull();
         assertThat(applicationContext).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
@@ -134,30 +133,27 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldFindAllFaculties_EmptySet() {
-        String commandId = ORGANIZATION_FACULTY_FIND_ALL;
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(ORGANIZATION_FACULTY_FIND_ALL, Input.empty());
         verify(persistence).findAllFaculties();
     }
 
     @Test
     void shouldFindAllFaculties_NotEmptySet() {
-        String commandId = ORGANIZATION_FACULTY_FIND_ALL;
         Faculty faculty = payloadMapper.toPayload(persistFaculty());
 
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).contains(faculty);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(ORGANIZATION_FACULTY_FIND_ALL, Input.empty());
         verify(persistence).findAllFaculties();
     }
 
     @Test
     void shouldFindFacultyById() {
-        String commandId = ORGANIZATION_FACULTY_FIND_BY_ID;
         Faculty entity = persistFaculty();
         Long id = entity.getId();
 
@@ -165,38 +161,35 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), entity);
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(ORGANIZATION_FACULTY_FIND_BY_ID, Input.of(id));
         verify(persistence).findFacultyById(id);
     }
 
     @Test
     void shouldNotFindFacultyById() {
-        String commandId = ORGANIZATION_FACULTY_FIND_BY_ID;
         Long id = 400L;
 
         Optional<Faculty> faculty = facade.findFacultyById(id);
 
         assertThat(faculty).isEmpty();
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(ORGANIZATION_FACULTY_FIND_BY_ID, Input.of(id));
         verify(persistence).findFacultyById(id);
     }
 
     @Test
     void shouldCreateOrUpdateFaculty_Create() {
-        String commandId = ORGANIZATION_FACULTY_CREATE_OR_UPDATE;
         Faculty facultySource = payloadMapper.toPayload(makeCleanFacultyNoDean(1));
 
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(facultySource);
 
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), facultySource, false);
-        verifyAfterCommand(commandId, Input.of(facultySource));
+        verifyAfterCommand(ORGANIZATION_FACULTY_CREATE_OR_UPDATE, Input.of(facultySource));
         verify(persistence).save(facultySource);
     }
 
     @Test
     void shouldCreateOrUpdateFaculty_Update() {
-        String commandId = ORGANIZATION_FACULTY_CREATE_OR_UPDATE;
         Faculty facultySource = payloadMapper.toPayload(persistFaculty());
         Long id = facultySource.getId();
         reset(payloadMapper);
@@ -205,7 +198,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertFacultyEquals(faculty.get(), facultySource);
-        verifyAfterCommand(commandId, Input.of(facultySource));
+        verifyAfterCommand(ORGANIZATION_FACULTY_CREATE_OR_UPDATE, Input.of(facultySource));
         verify(persistence).findFacultyById(id);
         verify(payloadMapper, times(2)).toPayload(any(FacultyEntity.class));
         verify(persistence).save(facultySource);
@@ -235,13 +228,12 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteFacultyById() throws FacultyNotFoundException, FacultyIsNotEmptyException {
-        String commandId = ORGANIZATION_FACULTY_DELETE;
         Faculty facultySource = persistFaculty();
         Long id = facultySource.getId();
 
         facade.deleteFacultyById(id);
 
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(ORGANIZATION_FACULTY_DELETE, Input.of(id));
         verify(persistence).findFacultyById(id);
         verify(persistence).deleteFaculty(id);
         assertThat(persistence.findFacultyById(id)).isEmpty();
@@ -249,32 +241,30 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotExists() {
-        String commandId = ORGANIZATION_FACULTY_DELETE;
         Long id = 403L;
 
         var thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(ORGANIZATION_FACULTY_DELETE, Input.of(id));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
     }
 
     @Test
     void shouldNoDeleteFacultyById_FacultyNotEmpty() {
-        String commandId = ORGANIZATION_FACULTY_DELETE;
         Faculty facultySource = makeFacultyNoDean(3);
         if (facultySource instanceof FakeFaculty source) {
             source.setId(null);
         }
-        Optional<Faculty> faculty = Optional.ofNullable(persist(facultySource));
+        Optional<Faculty> faculty = Optional.of(persist(facultySource));
         assertThat(faculty).isPresent();
         Long id = faculty.get().getId();
 
         var thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).startsWith("Faculty with ID").endsWith(" has courses.");
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(ORGANIZATION_FACULTY_DELETE, Input.of(id));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
     }

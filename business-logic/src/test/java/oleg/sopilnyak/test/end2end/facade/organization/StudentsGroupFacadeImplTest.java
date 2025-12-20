@@ -29,13 +29,16 @@ import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteS
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.StudentsGroupFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -57,6 +60,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
@@ -70,6 +77,9 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     ActionExecutor actionExecutor;
+    @MockitoSpyBean
+    @Autowired
+    CommandThroughMessageService commandThroughMessageService;
     @Autowired
     ConfigurableApplicationContext context;
     @Autowired
@@ -80,6 +90,9 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     StudentsGroupPersistenceFacade persistence;
     @Autowired
     EntityMapper entityMapper;
+    @MockitoSpyBean
+    @Autowired
+    CommandsFactoriesFarm farm;
     @Autowired
     BusinessMessagePayloadMapper payloadMapper;
 
@@ -90,6 +103,15 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     void setUp() {
         factory = spy(buildFactory(persistence));
         facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper, actionExecutor));
+        farm.register(factory);
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule()).registerModule(new JsonContextModule<>(applicationContext, farm))
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .disable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        commandThroughMessageService.shutdown();
+        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
+        commandThroughMessageService.initialize();
         ActionContext.setup("test-facade", "test-processing");
     }
 
@@ -102,8 +124,12 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldBeEverythingIsValid() {
+        assertThat(applicationContext).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
+        assertThat(actionExecutor).isNotNull();
+        assertThat(commandThroughMessageService).isNotNull();
+        assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
     }
@@ -116,9 +142,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
         assertThat(groups).contains(group);
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_ALL, Input.empty());
         verify(persistence).findAllStudentsGroups();
     }
 
@@ -128,9 +152,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
 
         assertThat(groups).isEmpty();
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_ALL)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_ALL, Input.empty());
         verify(persistence).findAllStudentsGroups();
     }
 
@@ -142,9 +164,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
 
         assertThat(faculty).isPresent();
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
     }
 
@@ -155,9 +175,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
     }
 
@@ -173,9 +191,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(StudentsGroupNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(group));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }
@@ -188,9 +204,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertStudentsGroupEquals(group, faculty.get(), false);
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(group));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
         verify(persistence).save(group);
     }
 
@@ -204,9 +218,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(faculty).isPresent();
         assertStudentsGroupEquals(group, faculty.get());
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).createContext(Input.of(group));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(group);
@@ -219,9 +231,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
         facade.deleteStudentsGroupById(id);
 
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence).deleteStudentsGroup(id);
         assertThat(findStudentsGroupById(id)).isNull();
@@ -234,9 +244,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
                 assertThrows(StudentsGroupNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:503 is not exists.");
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).deleteStudentsGroup(anyLong());
     }
@@ -250,18 +258,22 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         StudentsGroup group = persist(studentsGroup);
         Long id = group.getId();
 
-        StudentGroupWithStudentsException thrown =
-                assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
+        var thrown = assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
 
         assertThat(thrown.getMessage()).startsWith("Students Group with ID:").endsWith(" has students.");
-        verify(factory).command(ORGANIZATION_STUDENTS_GROUP_DELETE);
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_STUDENTS_GROUP_DELETE)).doCommand(any(Context.class));
+        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).deleteStudentsGroup(anyLong());
     }
 
     // private methods
+    private void verifyAfterCommand(String commandId, Input<?> commandInput) {
+        verify(farm, times(2)).command(commandId);
+        verify(factory, times(3)).command(commandId);
+        verify(factory.command(commandId)).createContext(commandInput);
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+    }
+
     private CommandsFactory<StudentsGroupCommand<?>> buildFactory(StudentsGroupPersistenceFacade persistence) {
         Map<StudentsGroupCommand<?>, String> commands = Map.of(
                 spy(new CreateOrUpdateStudentsGroupCommand(persistence, payloadMapper)),"studentsGroupUpdate",

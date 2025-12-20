@@ -97,8 +97,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     @SuppressWarnings("unchecked")
     @Override
     public Optional<AuthorityPerson> finalCommandResult(Deque<Context<?>> contexts) {
-        return contexts.stream()
-                .filter(context -> context.getCommand() instanceof PersonInSequenceCommand)
+        return contexts.stream().filter(CreateAuthorityPersonMacroCommand::hasPerson)
                 .map(context -> (Context<Optional<AuthorityPerson>>) context).findFirst()
                 .flatMap(context -> context.getResult().orElseGet(Optional::empty));
     }
@@ -294,6 +293,12 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     }
 
     // private methods
+    // to check is context for create or update the person
+    private static boolean hasPerson(Context<?> context) {
+        final RootCommand<?> command = context.getCommand();
+        return command instanceof AuthorityPersonCommand<?> && CommandId.CREATE_OR_UPDATE.equals(command.getId());
+    }
+
     private NestedCommand<?> wrap(final AuthorityPersonCommand<?> command) {
         return new PersonInSequenceCommand(command);
     }

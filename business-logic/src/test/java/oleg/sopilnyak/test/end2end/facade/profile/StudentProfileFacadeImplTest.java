@@ -134,7 +134,6 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldFindProfileById_ProfileExists() {
-        String commandId = PROFILE_FIND_BY_ID;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
@@ -143,42 +142,39 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.get(), profile, true);
         verify(facade).findById(id);
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById_ProfileNotExist() {
-        String commandId = PROFILE_FIND_BY_ID;
         Long id = 710L;
 
         Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
 
         assertThat(faculty).isEmpty();
         verify(facade).findById(id);
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById_WrongProfileType() {
-        String commandId = PROFILE_FIND_BY_ID;
         Long id = persistPrincipal().getId();
 
         Optional<StudentProfile> profile = facade.findStudentProfileById(id);
 
         assertThat(profile).isEmpty();
         verify(facade).findById(id);
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldCreateOrUpdateProfile_Create() {
-        String commandId = PROFILE_CREATE_OR_UPDATE;
         StudentProfile profileSource = makeStudentProfile(null);
 
         Optional<StudentProfile> entity = facade.createOrUpdateProfile(profileSource);
@@ -186,14 +182,13 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.get(), profileSource, false);
         verify(facade).createOrUpdate(profileSource);
-        verifyAfterCommand(commandId, Input.of(profileSource));
+        verifyAfterCommand(PROFILE_CREATE_OR_UPDATE, Input.of(profileSource));
         verify(persistence).save(any(StudentProfilePayload.class));
         verify(persistence).saveProfile(any(StudentProfilePayload.class));
     }
 
     @Test
     void shouldCreateOrUpdateProfile_Update() {
-        String commandId = PROFILE_CREATE_OR_UPDATE;
         StudentProfile profile = payloadMapper.toPayload(persistStudent());
         Long id = profile.getId();
 
@@ -202,7 +197,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(entity).isPresent();
         assertProfilesEquals(entity.orElseThrow(), profile, true);
         verify(facade).createOrUpdate(profile);
-        verifyAfterCommand(commandId, Input.of(profile));
+        verifyAfterCommand(PROFILE_CREATE_OR_UPDATE, Input.of(profile));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(any(StudentProfileEntity.class));
@@ -218,7 +213,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         var thrown = assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateProfile(profileSource));
 
-        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(PROFILE_CREATE_OR_UPDATE);
+        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(commandId);
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(ProfileNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Profile with ID:").endsWith(" is not exists.");
@@ -231,13 +226,12 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteProfileById_ProfileExists() {
-        String commandId = PROFILE_DELETE;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
         facade.deleteById(id);
 
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).deleteProfileById(id);
@@ -246,14 +240,13 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteProfile_ProfileExists() {
-        String commandId = PROFILE_DELETE;
         StudentProfile profile = persistStudent();
         Long id = profile.getId();
 
         facade.delete(profile);
 
         verify(facade).deleteById(id);
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
         verify(persistence).deleteProfileById(id);
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
@@ -263,7 +256,6 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDeleteProfile_ProfileNotExists() {
-        String commandId = PROFILE_DELETE;
         Long id = 715L;
         StudentProfile profile = makeStudentProfile(id);
 
@@ -271,7 +263,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
         verify(facade).deleteById(id);
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(anyLong());
@@ -279,13 +271,12 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
-        String commandId = PROFILE_DELETE;
         Long id = 703L;
 
         ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
-        verifyAfterCommand(commandId, Input.of(id));
+        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(anyLong());
