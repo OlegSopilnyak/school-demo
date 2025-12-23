@@ -9,14 +9,11 @@ import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
-import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
@@ -75,7 +72,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     }
 
     public CreateAuthorityPersonMacroCommand(
-            @Qualifier(Component.CREATE_OR_UPDATE) AuthorityPersonCommand<?> personCommand,
+            @Qualifier(AuthorityPersonCommand.Component.CREATE_OR_UPDATE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.CREATE_OR_UPDATE) PrincipalProfileCommand<?> profileCommand,
             BusinessMessagePayloadMapper payloadMapper, ActionExecutor actionExecutor
     ) {
@@ -213,7 +210,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     @SuppressWarnings("unchecked")
-    protected void transferResultForward(final Object result, final Context<?> context) {
+    public void transferResultForward(final Object result, final Context<?> context) {
         final String commandId = context.getCommand().getId();
         if (isOptionalProfile(result) && hasPerson(context)) {
             log.debug("Transferring to context of '{}' the result {}", commandId, result);

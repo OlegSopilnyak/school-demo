@@ -3,9 +3,6 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.CommandInSequence;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 
 import java.util.ArrayList;
@@ -16,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.springframework.util.ObjectUtils;
 
@@ -137,7 +133,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @param result  result of previous command execution value
      * @param context the command-context of the next command in sequence
      */
-    protected void transferResultForward(Object result, Context<?> context) {
+    public void transferResultForward(Object result, Context<?> context) {
         throw new CannotTransferCommandResultException(context.getCommand().getId());
     }
 

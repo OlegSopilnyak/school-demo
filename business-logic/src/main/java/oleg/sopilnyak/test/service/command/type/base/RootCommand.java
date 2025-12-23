@@ -134,7 +134,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context.State#WORK
      * @see RootCommand#self()
      * @see CommandExecutable#executeDo(Context)
-     * @see RootCommand#afterExecuteDo(Context)
+     * @see RootCommand#afterExecute(Context)
      */
     @Override
     default void doCommand(Context<T> context) {
@@ -142,31 +142,9 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
             // start executing command-do with correct context state
             context.setState(Context.State.WORK);
             self().executeDo(context);
-            afterExecuteDo(context);
+            afterExecute(context);
         } else {
             getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
-            context.setState(Context.State.FAIL);
-        }
-    }
-
-    /**
-     * To rollback command's execution according to command context
-     *
-     * @param context context of undo execution
-     * @see Context#isDone()
-     * @see Context#setState(Context.State)
-     * @see Context.State#WORK
-     * @see CommandExecutable#executeUndo(Context)
-     * @see RootCommand#self()
-     */
-    @Override
-    default void undoCommand(Context<?> context) {
-        if (context.isDone()) {
-            // start executing command-undo with correct context state
-            context.setState(Context.State.WORK);
-            self().executeUndo(context);
-        } else {
-            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         }
     }
@@ -181,7 +159,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see #detachedResult(Object)
      * @see Context#setResult(Object)
      */
-    default void afterExecuteDo(Context<T> context) {
+    default void afterExecute(Context<T> context) {
         final String commandId = getId();
         // check if command is done and has result
         if (!context.isDone()) {
@@ -197,10 +175,48 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
         } else {
             // detach result data
             getLog().debug("Detaching result data of command: '{}'", commandId);
+            //
+            // TODO maybe remove stuff below
             final T finalResult = detachedResult(result.get());
+            // TODO not needed it already
+            //
             getLog().debug("Saving detached result data of command: '{}' is {}", commandId, finalResult);
             context.setResult(finalResult);
         }
+    }
+
+    /**
+     * To rollback command's execution according to command context
+     *
+     * @param context context of undo execution
+     * @see Context#isDone()
+     * @see Context#setState(Context.State)
+     * @see Context.State#WORK
+     * @see CommandExecutable#executeUndo(Context)
+     * @see RootCommand#self()
+     * @see RootCommand#afterRollback(Context)
+     */
+    @Override
+    default void undoCommand(Context<?> context) {
+        if (context.isDone()) {
+            // start executing command-undo with correct context state
+            context.setState(Context.State.WORK);
+            self().executeUndo(context);
+            afterRollback(context);
+        } else {
+            getLog().warn("Cannot do undo of command {} with context:state '{}'", getId(), context.getState());
+            context.setState(Context.State.FAIL);
+        }
+    }
+
+    /**
+     * To do things after successful rollbacl
+     *
+     * @param context context of undo execution
+     * @see CommandExecutable#undoCommand(Context)
+     */
+    default void afterRollback(Context<?> context) {
+        // do nothing by default
     }
 
     /**
@@ -209,7 +225,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @return reference to the logger
      * @see RootCommand#doCommand(Context)
      * @see RootCommand#undoCommand(Context)
-     * @see RootCommand#afterExecuteDo(Context)
+     * @see RootCommand#afterExecute(Context)
      */
     Logger getLog();
 
@@ -218,7 +234,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      *
      * @param result result data to detach
      * @return detached result data
-     * @see RootCommand#afterExecuteDo(Context)
+     * @see RootCommand#afterExecute(Context)
      */
     T detachedResult(T result);
 

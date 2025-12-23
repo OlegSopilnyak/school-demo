@@ -18,7 +18,9 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.util.ObjectUtils;
 import lombok.Getter;
@@ -256,8 +258,29 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     private void afterProcessFailedExecution(final Deque<Context<?>> successful, final Deque<Context<?>> failed,
                                              final CommandContext<T> context) {
         context.failed(failed.getFirst().getException());
-        getLog().warn("Rolling back all successful commands {}", successful);
+        getLog().warn("Rolling back all successful nested commands {}", successful);
         // rollback all successful contexts
-        rollbackNested(successful);
+        final Deque<Context<?>> rollbackResult = rollbackNested(successful);
+        getLog().debug("Rolled back {} nested commands", rollbackResult.size());
+        // updating command-context input (redo) parameter's contexts
+        updateMacroCommandParameter(context, rollbackResult);
+    }
+
+    private void updateMacroCommandParameter(final Context<T> rootContext, final Deque<Context<?>> rollbackResult) {
+        final MacroCommandParameter inputParameter = rootContext.<MacroCommandParameter>getRedoParameter().value();
+        final Map<String, Context<?>> rolledbackMap = rollbackResult.stream()
+                .collect(Collectors.toMap(MacroCommand::contextCommandId, Function.identity()));
+        final Deque<Context<?>> updatedNestedContexts = inputParameter.getNestedContexts().stream()
+                .map(context -> updated(context, rolledbackMap))
+                .collect(Collectors.toCollection(LinkedList::new));
+        inputParameter.updateNestedContexts(updatedNestedContexts);
+    }
+
+    private static Context<?> updated(final Context<?> context, final Map<String, Context<?>> updated) {
+        return updated.getOrDefault(contextCommandId(context), context);
+    }
+
+    private static String contextCommandId(final Context<?> context) {
+        return context.getCommand().getId();
     }
 }

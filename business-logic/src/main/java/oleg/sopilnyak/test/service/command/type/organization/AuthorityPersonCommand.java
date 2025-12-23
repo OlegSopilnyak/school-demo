@@ -90,7 +90,7 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      *
      * @param result result data to detach
      * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecuteDo(Context)
+     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecute(Context)
      */
     @Override
     @SuppressWarnings("unchecked")
