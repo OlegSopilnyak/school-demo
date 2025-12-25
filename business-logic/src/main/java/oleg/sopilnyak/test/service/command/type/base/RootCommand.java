@@ -210,7 +210,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
     }
 
     /**
-     * To do things after successful rollbacl
+     * To do things after successful rollback
      *
      * @param context context of undo execution
      * @see CommandExecutable#undoCommand(Context)
