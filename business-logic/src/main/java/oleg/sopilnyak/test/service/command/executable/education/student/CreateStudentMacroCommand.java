@@ -10,13 +10,10 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
-import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
@@ -193,32 +190,24 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
 // for command do activities as nested command
 
     /**
-     * To transfer result from current command to next command context.<BR/>
-     * Send create-profile command result (profile-id) to create-person command input
+     * To transfer result of the previous command execution to the next command context
      *
-     * @param command successfully executed command
-     * @param result  the result of successful command execution
-     * @param target  next command context to execute command's redo
-     * @see StudentProfileCommand#doCommand(Context)
-     * @see CommandContext#setRedoParameter(Input)
-     * @see SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see CreateStudentMacroCommand#transferProfileIdToStudentInput(Long, Context)
-     * @see CannotTransferCommandResultException
+     * @param result  result of previous command execution value
+     * @param context the command context of the next command
      */
-//    @Override
-    public <S, T> void transferPreviousExecuteDoResult(
-            @NonNull final StudentProfileCommand<?> command, @NonNull final S result, @NonNull final Context<T> target
-    ) {
-        if (result instanceof Optional<?> optional
-                &&
-                optional.orElseThrow() instanceof StudentProfile profile
-                &&
-                StudentCommand.CommandId.CREATE_OR_UPDATE.equals(target.getCommand().getId())
-        ) {
-            // send create-profile result (profile-id) to create-person input (StudentPayload#setProfileId)
-            transferProfileIdToStudentInput(profile.getId(), target);
+    @Override
+    @SuppressWarnings("unchecked")
+    public void transferResultForward(final Object result, final Context<?> context) {
+        final String commandId = context.getCommand().getId();
+        if (isOptionalProfile(result) && hasPerson(context)) {
+            log.debug("Transferring to context of '{}' the result {}", commandId, result);
+            final Long profileId = ((Optional<StudentProfile>) result)
+                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId)).getId();
+            log.debug("Transferring profile-id:{} to context of '{}'", profileId, commandId);
+            transferProfileIdToStudentInput(profileId, context);
         } else {
-            throw new CannotTransferCommandResultException(command.getId());
+            log.error("Cannot transfer to context of '{}' the result {}", commandId, result);
+            throw new CannotTransferCommandResultException(commandId);
         }
     }
 
@@ -257,6 +246,12 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     // private methods
+    // to check is result to transfer has necessary type
+    private static boolean isOptionalProfile(final Object result) {
+        return result instanceof Optional<?> optional
+                && optional.isPresent() && optional.get() instanceof StudentProfile;
+    }
+
     // to check is context for create or update the person
     private static boolean hasPerson(Context<?> context) {
         final RootCommand<?> command = context.getCommand();

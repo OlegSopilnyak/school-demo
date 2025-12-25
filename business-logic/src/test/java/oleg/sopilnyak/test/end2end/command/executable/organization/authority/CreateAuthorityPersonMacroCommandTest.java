@@ -421,7 +421,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getResult()).isEmpty();
-        assertThat(context.getException()).isInstanceOf(RuntimeException.class);
+        assertThat(context.getException()).isInstanceOf(exception.getClass());
         assertThat(context.getException().getMessage()).isEqualTo(exception.getMessage());
 
         MacroCommandParameter parameter = context.<MacroCommandParameter>getRedoParameter().value();
@@ -752,7 +752,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(persistence).deleteAuthorityPerson(id);
     }
 
-    private Context<Optional<PrincipalProfile>> verifyProfileDoCommand() {
+    private void verifyProfileDoCommand() {
         ArgumentCaptor<Context<Optional<PrincipalProfile>>> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(profileCommand).doCommand(contextCaptor.capture());
         var nestedContext = contextCaptor.getValue();
@@ -761,25 +761,22 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertThat(nestedContext.getCommand().getId()).isEqualTo(profileCommand.getId());
         verify(profileCommand).executeDo(nestedContext);
         verify(persistence).save(any(PrincipalProfile.class));
-        return nestedContext;
     }
 
-    private Context<Optional<AuthorityPerson>> verifyPersonDoCommand() {
-        return verifyPersonDoCommand(true);
+    private void verifyPersonDoCommand() {
+        verifyPersonDoCommand(true);
     }
 
-    private Context<Optional<AuthorityPerson>> verifyPersonDoCommand(boolean checkResult) {
+    private void verifyPersonDoCommand(boolean checkResult) {
         ArgumentCaptor<Context<Optional<AuthorityPerson>>> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(personCommand).doCommand(contextCaptor.capture());
         var nestedContext = contextCaptor.getValue();
         if (checkResult) {
-            Optional<AuthorityPerson> person = nestedContext.getResult().orElseThrow();
-            assertThat(person).isNotEmpty();
+            assertThat(nestedContext.getResult().orElseThrow()).isNotEmpty();
         }
         assertThat(nestedContext.getCommand().getId()).isEqualTo(personCommand.getId());
         verify(personCommand).executeDo(nestedContext);
         verify(persistence).save(any(AuthorityPerson.class));
-        return nestedContext;
     }
 
     private static <T> void checkContextAfterDoCommand(Context<Optional<T>> context) {

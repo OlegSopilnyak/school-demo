@@ -267,8 +267,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     // to check is result to transfer has necessary type
     private static boolean isOptionalProfile(final Object result) {
         return result instanceof Optional<?> optional
-                && optional.isPresent()
-                && optional.get() instanceof PrincipalProfile;
+                && optional.isPresent() && optional.get() instanceof PrincipalProfile;
     }
 
     // to check is context for create or update the person

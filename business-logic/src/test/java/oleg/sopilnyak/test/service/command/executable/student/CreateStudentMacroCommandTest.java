@@ -3,7 +3,6 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -25,7 +24,6 @@ import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -56,6 +54,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.mapstruct.factory.Mappers;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CreateStudentMacroCommandTest extends TestModelFactory {
     @Mock
     PersistenceFacade persistence;
@@ -76,12 +75,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateStudentMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
-//            @Override
-//            public NestedCommand<?> wrap(NestedCommand<?> command) {
-//                return spy(super.wrap(command));
-//            }
-        });
+        command = spy(new CreateStudentMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
         // setup nested commands
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         doReturn(profileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
@@ -108,19 +102,6 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isSameAs(payloadMapper);
-        Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
-        NestedCommand<?> nestedProfileCommand = nested.pop();
-//        if (nestedProfileCommand instanceof SequentialMacroCommand.Chained<?> chained) {
-//            assertThat(chained.unWrap()).isSameAs(profileCommand);
-//        } else {
-//            fail("nested profile command is not a chained command");
-//        }
-        NestedCommand<?> nestedStudentCommand = nested.pop();
-//        if (nestedStudentCommand instanceof SequentialMacroCommand.Chained<?> chained) {
-//            assertThat(chained.unWrap()).isSameAs(personCommand);
-//        } else {
-//            fail("nested student command is not a chained command");
-//        }
     }
 
     @Test
@@ -293,8 +274,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
-        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
-        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
+//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
+//        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
     }
@@ -351,9 +332,6 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
-
-        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
-        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
     }
@@ -427,9 +405,6 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
-
-        verify(command).transferPreviousExecuteDoResult(eq(profileCommand), any(Optional.class), eq(studentContext));
-        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
 

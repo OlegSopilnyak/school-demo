@@ -134,7 +134,9 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @param context the command-context of the next command in sequence
      */
     public void transferResultForward(Object result, Context<?> context) {
-        throw new CannotTransferCommandResultException(context.getCommand().getId());
+        final String commandId = context.getCommand().getId();
+        getLog().error("Please implement transferResultForward(result,context) method for command with ID:'{}'", commandId);
+        throw new CannotTransferCommandResultException(commandId);
     }
 
     /**
