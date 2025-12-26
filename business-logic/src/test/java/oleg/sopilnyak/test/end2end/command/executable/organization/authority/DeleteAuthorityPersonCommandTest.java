@@ -44,6 +44,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
@@ -231,8 +232,7 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     private AuthorityPerson persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             AuthorityPerson source = makeCleanAuthorityPerson(0);
             AuthorityPersonEntity entity = entityMapper.toEntity(source);
@@ -244,7 +244,6 @@ class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(AuthorityPersonEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }
