@@ -104,7 +104,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     }
 
     public DeleteAuthorityPersonMacroCommand(
-            @Qualifier(Component.DELETE) AuthorityPersonCommand<?> personCommand,
+            @Qualifier(AuthorityPersonCommand.Component.DELETE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.DELETE_BY_ID) PrincipalProfileCommand<?> profileCommand,
             @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
             AuthorityPersonPersistenceFacade persistence, ActionExecutor actionExecutor
@@ -158,10 +158,10 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
         return mainInput.value() instanceof Long personId
                 &&
                 PrincipalProfileCommand.CommandId.DELETE_BY_ID.equals(command.getId())
-                ?
-                transactional().createPrincipalProfileContext(command, personId)
-                :
-                cannotCreateNestedContextFor(command);
+                // creating nested command-context in the transaction
+                ? transactional().createPrincipalProfileContext(command, personId)
+                // cannot create the nested command-context
+                : cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -177,7 +177,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public <N> Context<N> createPrincipalProfileContext(PrincipalProfileCommand<N> command, Long personId) {
         final Long profileId = persistence.findAuthorityPersonById(personId).map(AuthorityPerson::getProfileId)
-                .orElseThrow(() -> new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists."));
+                .orElseThrow(() -> personNotExistsException(personId));
         return command.createContext(Input.of(profileId));
     }
 
@@ -203,4 +203,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
         throw new CannotCreateCommandContextException(command.getId());
     }
 
+    private static AuthorityPersonNotFoundException personNotExistsException(Long personId) {
+        return new AuthorityPersonNotFoundException(PERSON_WITH_ID_PREFIX + personId + " is not exists.");
+    }
 }

@@ -63,6 +63,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -82,6 +83,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
@@ -256,7 +258,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(person).isPresent();
         assertAuthorityPersonEquals(authorityPerson, person.get(), false);
         verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW, Input.of(authorityPerson));
-        verify(persistence).save(authorityPerson);
+        ArgumentCaptor<AuthorityPerson> captor = ArgumentCaptor.forClass(AuthorityPerson.class);
+        verify(persistence).save(captor.capture());
+        assertAuthorityPersonEquals(captor.getValue(), authorityPerson);
     }
 
     @Test
