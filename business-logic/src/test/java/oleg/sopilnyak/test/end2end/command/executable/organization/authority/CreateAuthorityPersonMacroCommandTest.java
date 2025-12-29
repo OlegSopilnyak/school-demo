@@ -324,7 +324,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
 
         verify(command).executeDo(context);
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
-        verify(command).transferResultForward(any(), any(Context.class));
+        verify(command).transferResult(any(RootCommand.class), any(), any(Context.class));
         verify(command, times(command.fromNest().size())).executeDoNested(any(Context.class), any(Context.StateChangedListener.class));
 
         // check nested profile create
@@ -333,9 +333,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // check transfer profile-id to person creation command-context
         ArgumentCaptor<Context<Optional<AuthorityPerson>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<PrincipalProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
-        verify(command).transferResultForward(profileResultCaptor.capture(), personContextCaptor.capture());
+        verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
         assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(profileId);
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContextCaptor.getValue());
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create
         verifyPersonDoCommand();
@@ -397,9 +397,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // check transfer profile-id to person creation command-context
         ArgumentCaptor<Context<Optional<AuthorityPerson>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<PrincipalProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
-        verify(command).transferResultForward(profileResultCaptor.capture(), personContextCaptor.capture());
+        verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
         assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(personId);
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContextCaptor.getValue());
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create
         verifyPersonDoCommand();
@@ -450,8 +450,8 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // person context state
         assertThat(personContext.getState()).isEqualTo(CANCEL);
 
-        verify(command, never()).transferResultForward(any(Optional.class), any(Context.class));
-        verify(command, never()).transferProfileIdToAuthorityPersonInput(anyLong(), any(Context.class));
+        verify(command, never()).transferResult(any(RootCommand.class), any(Optional.class), any(Context.class));
+        verify(command, never()).transferProfileIdToAuthorityPersonUpdateInput(anyLong(), any(Context.class));
 
         verify(personCommand, never()).doCommand(any(Context.class));
     }
@@ -497,9 +497,9 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         // check transfer profile-id to person creation command-context
         ArgumentCaptor<Context<Optional<AuthorityPerson>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<PrincipalProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
-        verify(command).transferResultForward(profileResultCaptor.capture(), personContextCaptor.capture());
+        verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
         assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(profileId);
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContextCaptor.getValue());
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create
         verifyPersonDoCommand(false);

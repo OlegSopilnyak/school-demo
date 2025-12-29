@@ -14,10 +14,12 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,9 +42,9 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -61,6 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class MacroCommandTest {
     @Spy
     @InjectMocks
@@ -81,17 +84,20 @@ class MacroCommandTest {
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
+        setupBaseCommandIds();
         ActionContext.setup("test-facade", "test-processing");
     }
 
     @Test
     void checkIntegrity() {
+        reset(doubleCommand, booleanCommand, intCommand);
         assertThat(command).isNotNull();
         assertThat(command.fromNest()).hasSize(3);
     }
 
     @Test
     void shouldCreateMacroContext_Base() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 100;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -119,6 +125,7 @@ class MacroCommandTest {
 
     @Test
     void shouldCreateMacroContext_StudentCommand() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 115;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
@@ -154,6 +161,7 @@ class MacroCommandTest {
 
     @Test
     void shouldCreateMacroContext_StudentAndMacroCommand() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 116;
         Input<Integer> inputParameter = Input.of(parameter);
         // prepare macro-command
@@ -174,11 +182,6 @@ class MacroCommandTest {
 
             @Override
             public Void detachedResult(Void result) {
-                return null;
-            }
-
-            @Override
-            public BusinessMessagePayloadMapper getPayloadMapper() {
                 return null;
             }
 
@@ -248,6 +251,7 @@ class MacroCommandTest {
 
     @Test
     void shouldCreateMacroContext_WithEmptyNestedContexts() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 101;
         Input<Integer> inputParameter = Input.of(parameter);
         doCallRealMethod().when(doubleCommand).acceptPreparedContext(command, inputParameter);
@@ -275,6 +279,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotCreateMacroContext_MacroContextExceptionThrown() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 102;
         Input<Integer> inputParameter = Input.of(parameter);
         doThrow(new CannotCreateCommandContextException(command.getId())).when(command).createContext(inputParameter);
@@ -290,6 +295,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotCreateMacroContext_DoubleContextExceptionThrown() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 103;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContext(intCommand, inputParameter);
@@ -316,6 +322,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotCreateMacroContext_IntContextExceptionThrown() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 104;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContext(doubleCommand, inputParameter);
@@ -355,8 +362,7 @@ class MacroCommandTest {
         allowRealPrepareContextBase(inputParameter);
         Context<Double> macroContext = command.createContext(inputParameter);
         assertThat(macroContext.isReady()).isTrue();
-        MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
-        assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
+        assertThat(macroContext.<MacroCommandParameter>getRedoParameter().value().getRootInput().value()).isSameAs(parameter);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -364,6 +370,7 @@ class MacroCommandTest {
         command.doCommand(macroContext);
 
         assertThat(macroContext.isDone()).isTrue();
+        MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         verify(command).executeDo(macroContext);
         verify(command).executeNested(eq(wrapper.getNestedContexts()), any(Context.StateChangedListener.class));
         wrapper.getNestedContexts().forEach(context -> {
@@ -431,8 +438,11 @@ class MacroCommandTest {
         Input<Integer> inputParameter = Input.of(parameter);
         // prepare nested macro-command
         var command1 = mock(RootCommand.class);
+        doReturn("command1").when(command1).getId();
         var command2 = mock(CourseCommand.class);
+        doReturn("command2").when(command2).getId();
         var command3 = mock(StudentCommand.class);
+        doReturn("command3").when(command3).getId();
         final Double courseResult = 100.0;
         var macroCommand = spy(new MacroCommand<Double>(actionExecutor) {
             @Override
@@ -558,6 +568,7 @@ class MacroCommandTest {
 
     @Test
     void shouldDontMacroCommandRedo_NoNestedContextsChain() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 106;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -577,6 +588,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotDoMacroCommandRedo_NestedContextsAreNull() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 107;
         Input<Integer> inputParameter = Input.of(parameter);
         Context<Double> macroContext = command.createContext(inputParameter);
@@ -595,6 +607,7 @@ class MacroCommandTest {
 
     @Test
     void shouldDontMacroCommandRedo_MacroContextThrows() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 128;
         Input<Integer> inputParameter = Input.of(parameter);
         Context<Double> macroContext = command.createContext(inputParameter);
@@ -784,8 +797,11 @@ class MacroCommandTest {
         Input<Integer> inputParameter = Input.of(parameter);
         // prepare nested macro-command
         var command1 = mock(RootCommand.class);
+        doReturn("command1").when(command1).getId();
         var command2 = mock(CourseCommand.class);
+        doReturn("command2").when(command2).getId();
         var command3 = mock(StudentCommand.class);
+        doReturn("command3").when(command3).getId();
         var macroCommand = spy(new MacroCommand<Double>(actionExecutor) {
             @Override
             public Deque<Context<?>> executeNested(Deque<Context<?>> contexts, Context.StateChangedListener listener) {
@@ -816,7 +832,7 @@ class MacroCommandTest {
             public Deque<Context<?>> rollbackNested(Deque<Context<?>> contexts) {
                 return contexts.stream().map(context ->
                         isCourseCommand(context) ? undoCourseCommand(context) : executeUndoNested(context)
-                ).collect(Collectors.toCollection(LinkedList::new));
+                ).collect(Collectors.toCollection(ArrayDeque::new));
             }
 
             private static boolean isCourseCommand(Context<?> context) {
@@ -889,11 +905,10 @@ class MacroCommandTest {
         verify(command).rollbackNested(nestedDoneContexts);
         Deque<Context<?>> successDoneContexts = nestedDoneContexts.stream()
                 .filter(context -> context.getCommand() != studentCommand)
-                .map(context -> {
+                .peek(context -> {
                     verify(command).executeUndoNested(context);
                     verify(context.getCommand()).undoCommand(context);
-                    return context;
-                }).collect(Collectors.toCollection(LinkedList::new));
+                }).collect(Collectors.toCollection(ArrayDeque::new));
         // check canceled context calling
         verify(studentCommand, never()).undoCommand(any(Context.class));
         // check successful contexts calling
@@ -993,6 +1008,7 @@ class MacroCommandTest {
 
     @Test
     void shouldPrepareMacroContext() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 113;
         Input<Integer> inputParameter = Input.of(parameter);
         doCallRealMethod().when(doubleCommand).createContext(inputParameter);
@@ -1009,6 +1025,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotPrepareMacroContext_ExceptionThrown() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 114;
         Input<Integer> inputParameter = Input.of(parameter);
         when(doubleCommand.createContext(inputParameter)).thenThrow(new RuntimeException("cannot"));
@@ -1022,6 +1039,7 @@ class MacroCommandTest {
 
     @Test
     void shouldDoNestedContexts() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 115;
         Input<Integer> inputParameter = Input.of(parameter);
         AtomicInteger counter = new AtomicInteger(0);
@@ -1046,6 +1064,7 @@ class MacroCommandTest {
 
     @Test
     void shouldNotDoNestedContexts_NestedRedoThrows() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 116;
         Input<Integer> inputParameter = Input.of(parameter);
         AtomicInteger counter = new AtomicInteger(0);
@@ -1072,6 +1091,7 @@ class MacroCommandTest {
 
     @Test
     <T> void shouldDoAsNestedCommand() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 117;
         Input<Integer> inputParameter = Input.of(parameter);
         AtomicInteger counter = new AtomicInteger(0);
@@ -1097,6 +1117,7 @@ class MacroCommandTest {
 
     @Test
     <T> void shouldNotDoAsNestedCommand_EmptyContext() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 118;
         Input<Integer> inputParameter = Input.of(parameter);
         AtomicInteger counter = new AtomicInteger(0);
@@ -1115,6 +1136,7 @@ class MacroCommandTest {
 
     @Test
     <T> void shouldNotDoAsNestedCommand_NestedContextRedoThrows() {
+        reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 119;
         Input<Integer> inputParameter = Input.of(parameter);
         AtomicInteger counter = new AtomicInteger(0);
@@ -1224,6 +1246,12 @@ class MacroCommandTest {
     }
 
     // private methods
+    private void setupBaseCommandIds() {
+        doReturn("doubleCommand").when(doubleCommand).getId();
+        doReturn("booleanCommand").when(booleanCommand).getId();
+        doReturn("intCommand").when(intCommand).getId();
+    }
+
     private static Deque<Context<?>> commitNestedContexts(Deque<Context<?>> contexts, Context.StateChangedListener listener , CompositeCommand<?> compositeCommand) {
         return commitNestedContexts(null, contexts, listener, compositeCommand);
     }
@@ -1231,12 +1259,12 @@ class MacroCommandTest {
     private static Deque<Context<?>> commitNestedContexts(Context<?> excepted, Deque<Context<?>> contexts, Context.StateChangedListener listener , CompositeCommand<?> compositeCommand) {
         return contexts.stream().map(context ->
             context == excepted ? excepted : compositeCommand.executeDoNested(context, listener)
-        ).collect(Collectors.toCollection(LinkedList::new));
+        ).collect(Collectors.toCollection(ArrayDeque::new));
     }
 
-    private static LinkedList<Context<?>> rollbackNestedContexts(Deque<Context<?>> contexts, CompositeCommand<?> compositeCommand) {
+    private static Deque<Context<?>> rollbackNestedContexts(Deque<Context<?>> contexts, CompositeCommand<?> compositeCommand) {
         return contexts.stream().map(context -> compositeCommand.executeUndoNested((Context<Void>) context))
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toCollection(ArrayDeque::new));
     }
 
     private <N> void verifyDoneNestedContext(final Context<?> nestedContext, final Context.StateChangedListener listener) {

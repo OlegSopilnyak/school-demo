@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -46,6 +47,7 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class ParallelMacroCommandTest {
 
     ThreadPoolTaskExecutor executor = spy(new ThreadPoolTaskExecutor());
@@ -116,6 +118,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldDoParallelCommand_BaseCommands() {
+        setupBaseCommandIds();
         int parameter = 101;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -150,6 +153,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldDoParallelCommand_ExtraCommands() {
+        setupBaseCommandIds();
         int parameter = 102;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
@@ -199,6 +203,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldNotDoParallelCommand_doCommandThrowsException() {
+        setupBaseCommandIds();
         int parameter = 101;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -245,6 +250,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldRollbackAllNestedDoneContexts_BaseCommands() {
+        setupBaseCommandIds();
         int parameter = 103;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -285,6 +291,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldUndoParallelCommand_BaseCommands() {
+        setupBaseCommandIds();
         int parameter = 104;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -326,6 +333,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldUndoParallelCommand_ExtraCommands() {
+        setupBaseCommandIds();
         int parameter = 105;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
@@ -382,6 +390,7 @@ class ParallelMacroCommandTest {
 
     @Test
     <T> void shouldNotUndoParallelCommand_undoCommandThrowsException() {
+        setupBaseCommandIds();
         int parameter = 104;
         Input<Integer> inputParameter = Input.of(parameter);
         allowRealPrepareContextBase(inputParameter);
@@ -499,6 +508,12 @@ class ParallelMacroCommandTest {
     }
 
     // private methods
+    private void setupBaseCommandIds() {
+        doReturn("doubleCommand").when(doubleCommand).getId();
+        doReturn("booleanCommand").when(booleanCommand).getId();
+        doReturn("intCommand").when(intCommand).getId();
+    }
+
     private <N> void checkRegularNestedCommandExecution(RootCommand<?> nestedCommand, Context<N> nestedContext,
                                                         Context.StateChangedListener listener) {
         assertThat(nestedContext.getCommand()).isSameAs(nestedCommand);

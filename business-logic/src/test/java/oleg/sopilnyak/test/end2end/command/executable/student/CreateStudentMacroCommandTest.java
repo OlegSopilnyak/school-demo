@@ -312,7 +312,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
 
         verify(command).executeDo(context);
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
-        verify(command).transferResultForward(any(), any(Context.class));
+        verify(command).transferResult(any(RootCommand.class), any(), any(Context.class));
         verify(command, times(command.fromNest().size())).executeDoNested(any(Context.class), any(Context.StateChangedListener.class));
 
         // check nested profile create
@@ -321,9 +321,9 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         // check transfer profile-id to person creation command-context
         ArgumentCaptor<Context<Optional<Student>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<StudentProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
-        verify(command).transferResultForward(profileResultCaptor.capture(), personContextCaptor.capture());
+        verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
         assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(profileId);
-        verify(command).transferProfileIdToStudentInput(profileId, personContextCaptor.getValue());
+        verify(command).transferProfileIdToStudentUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create
         verifyStudentDoCommand();
@@ -417,8 +417,8 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         verify(profileCommand).executeDo(contextCaptor.getValue());
         verify(persistence).save(any(StudentProfile.class));
 
-        verify(command, never()).transferResultForward(any(Optional.class), any(Context.class));
-        verify(command, never()).transferProfileIdToStudentInput(anyLong(), any(Context.class));
+        verify(command, never()).transferResult(any(RootCommand.class), any(Optional.class), any(Context.class));
+        verify(command, never()).transferProfileIdToStudentUpdateInput(anyLong(), any(Context.class));
 
         verify(studentCommand, never()).doCommand(any(Context.class));
     }
@@ -457,9 +457,9 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         // check transfer profile-id to person creation command-context
         ArgumentCaptor<Context<Optional<Student>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<StudentProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
-        verify(command).transferResultForward(profileResultCaptor.capture(), personContextCaptor.capture());
+        verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
         assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(profileId);
-        verify(command).transferProfileIdToStudentInput(profileId, personContextCaptor.getValue());
+        verify(command).transferProfileIdToStudentUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create
         verifyPersonDoCommand(false);

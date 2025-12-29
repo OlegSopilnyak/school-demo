@@ -22,7 +22,6 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -53,6 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.mapstruct.factory.Mappers;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     @Mock
     PersistenceFacade persistence;
@@ -289,7 +289,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
 //        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
     }
@@ -349,7 +349,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
 //        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
     }
@@ -419,7 +419,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
 //        verify(command).transferPreviousExecuteDoResult(eq(profileCommand), any(Optional.class), eq(personContext));
-        verify(command).transferProfileIdToAuthorityPersonInput(profileId, personContext);
+        verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
 

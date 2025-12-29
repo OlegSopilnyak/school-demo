@@ -275,7 +275,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verifyProfileDoCommand(profileContext);
 
 //        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
-//        verify(command).transferProfileIdToStudentInput(profileId, studentContext);
+//        verify(command).transferProfileIdToStudentUpdateInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
     }

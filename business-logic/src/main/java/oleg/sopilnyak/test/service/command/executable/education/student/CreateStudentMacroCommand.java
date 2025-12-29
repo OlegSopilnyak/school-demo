@@ -119,13 +119,30 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public <N> Context<N> prepareContext(final StudentCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof Student person
-                &&
-                StudentCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
-                ?
-                createPersonContext(command, person)
-                :
-                cannotCreateNestedContextFor(command);
+        final String commandId = command.getId();
+        return macroInputParameter.value() instanceof Student person && isUpdatePersonCommand(commandId)
+                ? createPersonContext(command, person)
+                : cannotCreateNestedContextFor(commandId);
+    }
+
+    /**
+     * To prepare context for particular type of the nested command
+     *
+     * @param command   nested command instance
+     * @param mainInput macro-command input parameter
+     * @param <N>       type of create-or-update student profile command result
+     * @return built context of the command for input parameter
+     * @see Student
+     * @see StudentProfileCommand
+     * @see CreateStudentMacroCommand#createProfileContext(StudentProfileCommand, Student)
+     * @see Context
+     */
+    @Override
+    public <N> Context<N> prepareContext(@NonNull final StudentProfileCommand<N> command, final Input<?> mainInput) {
+        final String commandId = command.getId();
+        return mainInput.value() instanceof Student person && isUpdateProfileCommand(commandId)
+                ? createProfileContext(command, person)
+                : cannotCreateNestedContextFor(commandId);
     }
 
     /**
@@ -144,29 +161,6 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
         payload.setId(null);
         // create command-context with parameter by default
         return command.createContext(Input.of(payload));
-    }
-
-    /**
-     * To prepare context for particular type of the nested command
-     *
-     * @param command   nested command instance
-     * @param mainInput macro-command input parameter
-     * @param <N>       type of create-or-update student profile command result
-     * @return built context of the command for input parameter
-     * @see Student
-     * @see StudentProfileCommand
-     * @see CreateStudentMacroCommand#createProfileContext(StudentProfileCommand, Student)
-     * @see Context
-     */
-    @Override
-    public <N> Context<N> prepareContext(@NonNull final StudentProfileCommand<N> command, final Input<?> mainInput) {
-        return mainInput.value() instanceof Student person
-                &&
-                StudentProfileCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
-                ?
-                createProfileContext(command, person)
-                :
-                cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -192,21 +186,29 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     /**
      * To transfer result of the previous command execution to the next command context
      *
-     * @param result  result of previous command execution value
-     * @param context the command context of the next command
+     * @param executedCommand the command-owner of transferred result
+     * @param toTransfer      result of previous command execution value
+     * @param toExecute       the command context of the next command
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void transferResultForward(final Object result, final Context<?> context) {
-        final String commandId = context.getCommand().getId();
-        if (isOptionalProfile(result) && hasPerson(context)) {
-            log.debug("Transferring to context of '{}' the result {}", commandId, result);
-            final Long profileId = ((Optional<StudentProfile>) result)
-                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId)).getId();
+    public void transferResult(
+            final RootCommand<?> executedCommand, final Object toTransfer, final Context<?> toExecute
+    ) {
+        if (!isUpdateProfile(executedCommand)) {
+            return;
+        }
+        // transfer profile-update nested command result (profile-id) to person-update input
+        final String commandId = toExecute.getCommand().getId();
+        if (isOptionalProfile(toTransfer) && hasPerson(toExecute)) {
+            log.debug("Transferring to context of '{}' the result {}", commandId, toTransfer);
+            final Long profileId = ((Optional<StudentProfile>) toTransfer)
+                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId))
+                    .getId();
             log.debug("Transferring profile-id:{} to context of '{}'", profileId, commandId);
-            transferProfileIdToStudentInput(profileId, context);
+            transferProfileIdToStudentUpdateInput(profileId, toExecute);
         } else {
-            log.error("Cannot transfer to context of '{}' the result {}", commandId, result);
+            log.error("Cannot transfer to context of '{}' the result {}", commandId, toTransfer);
             throw new CannotTransferCommandResultException(commandId);
         }
     }
@@ -220,13 +222,16 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @see CommandContext#setRedoParameter(Input)
      * @see StudentPayload#setProfileId(Long)
      */
-    public void transferProfileIdToStudentInput(final Long profileId, @NonNull final Context<?> target) {
+    public void transferProfileIdToStudentUpdateInput(final Long profileId, @NonNull final Context<?> target) {
         final StudentPayload personPayload = target.<StudentPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
         if (target instanceof CommandContext<?> commandContext) {
             commandContext.setRedoParameter(Input.of(personPayload));
-            log.debug("Transferred to student changed input parameter: {}", personPayload);
+            log.debug("Transferred to student change input parameter: {}", personPayload);
+        } else {
+            final Throwable cause = new IllegalStateException("Wrong type of command context");
+            throw new CannotTransferCommandResultException(target.getCommand().getId(), cause);
         }
     }
 
@@ -246,6 +251,22 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     // private methods
+    // to check the command types
+    // is update person command-id
+    private static boolean isUpdatePersonCommand(final String commandId) {
+        return StudentCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+    }
+
+    // is update profile command-id
+    private static boolean isUpdateProfileCommand(final String commandId) {
+        return StudentProfileCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+    }
+
+    // is update profile nested command
+    private static boolean isUpdateProfile(final RootCommand<?> nestedCommand) {
+        return nestedCommand instanceof StudentProfileCommand && isUpdateProfileCommand(nestedCommand.getId());
+    }
+
     // to check is result to transfer has necessary type
     private static boolean isOptionalProfile(final Object result) {
         return result instanceof Optional<?> optional
@@ -259,7 +280,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     // to throw CannotCreateCommandContextException exception
-    private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<?> command) {
-        throw new CannotCreateCommandContextException(command.getId());
+    private static <T> Context<T> cannotCreateNestedContextFor(String commandId) {
+        throw new CannotCreateCommandContextException(commandId);
     }
 }

@@ -124,13 +124,29 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof AuthorityPerson person
-                &&
-                AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
-                ?
-                createPersonContext(command, person)
-                :
-                cannotCreateNestedContextFor(command);
+        return macroInputParameter.value() instanceof AuthorityPerson person && isUpdatePersonCommand(command.getId())
+                ? createPersonContext(command, person)
+                : cannotCreateNestedContextFor(command);
+    }
+
+    /**
+     * To prepare context for particular type of the nested command
+     *
+     * @param command             nested command instance
+     * @param macroInputParameter macro-command input parameter
+     * @param <N>                 type of create-or-update principal-profile nested command result
+     * @return built context of the command for input parameter
+     * @see Input
+     * @see AuthorityPerson
+     * @see AuthorityPersonCommand
+     * @see CreateAuthorityPersonMacroCommand#createProfileContext(PrincipalProfileCommand, AuthorityPerson)
+     * @see Context
+     */
+    @Override
+    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> macroInputParameter) {
+        return macroInputParameter.value() instanceof AuthorityPerson person && isUpdateProfileCommand(command.getId())
+                ? createProfileContext(command, person)
+                : cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -149,30 +165,6 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         payload.setId(null);
         // create command-context with parameter by default
         return command.createContext(Input.of(payload));
-    }
-
-    /**
-     * To prepare context for particular type of the nested command
-     *
-     * @param command             nested command instance
-     * @param macroInputParameter macro-command input parameter
-     * @param <N>                 type of create-or-update principal-profile nested command result
-     * @return built context of the command for input parameter
-     * @see Input
-     * @see AuthorityPerson
-     * @see AuthorityPersonCommand
-     * @see CreateAuthorityPersonMacroCommand#createProfileContext(PrincipalProfileCommand, AuthorityPerson)
-     * @see Context
-     */
-    @Override
-    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof AuthorityPerson person
-                &&
-                PrincipalProfileCommand.CommandId.CREATE_OR_UPDATE.equals(command.getId())
-                ?
-                createProfileContext(command, person)
-                :
-                cannotCreateNestedContextFor(command);
     }
 
     /**
@@ -205,19 +197,27 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     /**
      * To transfer result of the previous command execution to the next command context
      *
-     * @param result  result of previous command execution value
-     * @param context the command context of the next command
+     * @param executedCommand the command-owner of transferred result
+     * @param result          result of previous command execution value
+     * @param toExecute       the command context of the next command
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void transferResultForward(final Object result, final Context<?> context) {
-        final String commandId = context.getCommand().getId();
-        if (isOptionalProfile(result) && hasPerson(context)) {
+    public void transferResult(
+            final RootCommand<?> executedCommand, final Object result, final Context<?> toExecute
+    ) {
+        if (!isUpdateProfile(executedCommand)) {
+            return;
+        }
+        // transfer profile-update nested command result (profile-id) to person-update input
+        final String commandId = toExecute.getCommand().getId();
+        if (isOptionalProfile(result) && hasPerson(toExecute)) {
             log.debug("Transferring to context of '{}' the result {}", commandId, result);
             final Long profileId = ((Optional<PrincipalProfile>) result)
-                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId)).getId();
+                    .orElseThrow(() -> new CannotTransferCommandResultException(commandId))
+                    .getId();
             log.debug("Transferring profile-id:{} to context of '{}'", profileId, commandId);
-            transferProfileIdToAuthorityPersonInput(profileId, context);
+            transferProfileIdToAuthorityPersonUpdateInput(profileId, toExecute);
         } else {
             log.error("Cannot transfer to context of '{}' the result {}", commandId, result);
             throw new CannotTransferCommandResultException(commandId);
@@ -233,13 +233,13 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @see CommandContext#setRedoParameter(Input)
      * @see AuthorityPersonPayload#setProfileId(Long)
      */
-    public void transferProfileIdToAuthorityPersonInput(final Long profileId, @NonNull final Context<?> target) {
+    public void transferProfileIdToAuthorityPersonUpdateInput(final Long profileId, @NonNull final Context<?> target) {
         final AuthorityPersonPayload personPayload = target.<AuthorityPersonPayload>getRedoParameter().value();
         log.debug("Transferring profile id: {} to person: {}", profileId, personPayload);
         personPayload.setProfileId(profileId);
         if (target instanceof CommandContext<?> commandContext) {
             commandContext.setRedoParameter(Input.of(personPayload));
-            log.debug("Transferred to student changed input parameter: {}", personPayload);
+            log.debug("Transferred to authority person change input parameter: {}", personPayload);
         } else {
             final Throwable cause = new IllegalStateException("Wrong type of command context");
             throw new CannotTransferCommandResultException(target.getCommand().getId(), cause);
@@ -264,6 +264,22 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     }
 
     // private methods
+    // to check the command types
+    // is update person command-id
+    private static boolean isUpdatePersonCommand(final String commandId) {
+        return AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+    }
+
+    // is update profile command-id
+    private static boolean isUpdateProfileCommand(final String commandId) {
+        return PrincipalProfileCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+    }
+
+    // is update profile nested command
+    private static boolean isUpdateProfile(final RootCommand<?> nestedCommand) {
+        return nestedCommand instanceof PrincipalProfileCommand && isUpdateProfileCommand(nestedCommand.getId());
+    }
+
     // to check is result to transfer has necessary type
     private static boolean isOptionalProfile(final Object result) {
         return result instanceof Optional<?> optional
