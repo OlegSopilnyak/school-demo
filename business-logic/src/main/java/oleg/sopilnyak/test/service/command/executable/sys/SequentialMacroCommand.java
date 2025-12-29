@@ -3,10 +3,10 @@ package oleg.sopilnyak.test.service.command.executable.sys;
 import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,72 +48,75 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
         }
         // holder of flag if something went wrong during execution
         final AtomicBoolean isPreviousFailed = new AtomicBoolean(false);
-        // holder of last executed nested command result value
-        final AtomicReference<Object> previousResultHolder = new AtomicReference<>(null);
+        // the holder of just now executed with result nested command-context
+        final AtomicReference<Context<?>> executedCommandContextHolder = new AtomicReference<>(null);
         // sequential walking through command-contexts collection
         return contexts.stream().map(context -> isPreviousFailed.get()
                 // previous nested command's context.state has value FAIL? Cancel it
                 ? cancelSequentialNestedCommandContext(context, listener)
                 // try to execute nested command
-                : doSequentialNestedCommand(context, previousResultHolder, listener, isPreviousFailed)
+                : doSequentialNestedCommand(context, executedCommandContextHolder, listener, isPreviousFailed)
         ).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
      * To mark canceled nested command execution
      *
-     * @param context the command-context to cancel
+     * @param toCancel the nested command-context to cancel
      * @param listener the listener of context-state-changes
      * @return canceled command-context
      * @see Context.State#CANCEL
      */
-    protected Context<?> cancelSequentialNestedCommandContext(final Context<?> context, final Context.StateChangedListener listener) {
+    protected Context<?> cancelSequentialNestedCommandContext(final Context<?> toCancel, final Context.StateChangedListener listener) {
         // getting last state from the context history and use it for the listener's notification
-        final Context.State lastState = context.getHistory().states().getLast();
+        final Context.State lastState = toCancel.getHistory().states().getLast();
         getLog().debug("Cancel nested command execution from state {}", lastState);
         // update context-state-changes listener
-        listener.stateChanged(context, lastState, Context.State.CANCEL);
+        listener.stateChanged(toCancel, lastState, Context.State.CANCEL);
         // update context state to CANCEL
-        context.setState(Context.State.CANCEL);
-        return context;
+        toCancel.setState(Context.State.CANCEL);
+        return toCancel;
     }
 
     /**
      * To execute nested command using command-context
      *
-     * @param current the command-context of nested command to execute
-     * @param executionResultHolder holder of previous execution result
+     * @param toExecute the next nested command-context to execute
+     * @param executedHolder holder of previously executed nested command-context
      * @param listener the listener of context-state-changes
-     * @param isExecutionFailed holder of previous nested command execution success flag
-     * @param <N> type of nested command execution result
-     * @return command-context value after nested command execution
+     * @param isExecutionFailed holder of previous nested command execution failed flag
+     * @param <N> type of to-execute nested command result
+     * @return command-context value after to-execute nested command execution
      * @see Context#isDone()
      * @see Context#getResult()
      * @see java.util.Optional#orElse(Object)
      */
     protected <N> Context<N> doSequentialNestedCommand(
-            final Context<N> current, final AtomicReference<Object> executionResultHolder,
+            final Context<N> toExecute, final AtomicReference<Context<?>> executedHolder,
             final Context.StateChangedListener listener, final AtomicBoolean isExecutionFailed
     ) {
-        final Object previousExecutionResult = executionResultHolder.get();
-        if (Objects.nonNull(previousExecutionResult)) {
-            getLog().debug("Transferring the result to the current nested command context of '{}'", current.getCommand().getId());
-            // transferring result-data from previous execution to the current command-context
-            transferResultForward(previousExecutionResult, current);
+        final Context<?> executed = executedHolder.get();
+        if (Objects.nonNull(executed)) {
+            getLog().debug("Transferring the result to the current nested command context of '{}'", toExecute.getCommand().getId());
+            // transferring result-data from executed command-context-result to the current command-context
+            transferResult(executed.getCommand(), executed.getResult().orElse(null), toExecute);
         }
 
         // executing nested command using current command-context
-        getLog().debug("Executing nested command for Command-Context:{}", current);
-        final Context<N> context = executeDoNested(current, listener);
+        getLog().debug("Executing nested command for Command-Context:{}", toExecute);
+        final Context<N> context = executeDoNested(toExecute, listener);
 
         // checking nested command execution result's state
         if (context.isDone()) {
             //
             // current nested command execution is successful
-            // getting command execution result to store in the result holder
-            final Object executionResult = context.getResult().orElse(null);
-            getLog().debug("Previous Command is executed well, with result {}", executionResult);
-            executionResultHolder.getAndSet(executionResult);
+            // getting command execution result to log
+            getLog().debug("Command with id:'{}' is executed well, with result {}",
+                    context.getCommand().getId(),
+                    context.getResult().orElse(null)
+            );
+            // store well executed command-context to the holder
+            executedHolder.getAndSet(context);
         } else {
             //
             // current nested command execution is failed
@@ -128,14 +131,17 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
     }
 
     /**
-     * To transfer result of the previous command execution to the next command-context
+     * To transfer result of executed command to the next nested command in sequence
      *
-     * @param result  result of previous command execution value
-     * @param context the command-context of the next command in sequence
+     * @param executedCommand the command-owner of transferred result
+     * @param toTransfer      the result of executed nested command
+     * @param toExecute       the next nested command-context to execute in the sequence
      */
-    public void transferResultForward(Object result, Context<?> context) {
-        final String commandId = context.getCommand().getId();
-        getLog().error("Please implement transferResultForward(result,context) method for command with ID:'{}'", commandId);
+    public void transferResult(
+            final RootCommand<?> executedCommand, final Object toTransfer, final Context<?> toExecute
+    ) {
+        final String commandId = toExecute.getCommand().getId();
+        getLog().error("Please implement transferResult(command,result,context) method for command with ID:'{}'", commandId);
         throw new CannotTransferCommandResultException(commandId);
     }
 
@@ -150,28 +156,24 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      */
     @Override
     public Deque<Context<?>> rollbackNested(final Deque<Context<?>> contexts) {
-        final List<Context<?>> reverted = new ArrayList<>(contexts);
-        final AtomicBoolean isNestedRollbackFailed = new AtomicBoolean(false);
-        // reverse the order of undo nested command contexts
-        Collections.reverse(reverted);
+        final AtomicBoolean isFailedHolder = new AtomicBoolean(false);
         // rollback nested commands changes in the reverse order
-        final LinkedList<Context<?>> rolledBack = reverted.stream()
-                .map(context -> rollbackNestedCommand(context, isNestedRollbackFailed))
-                .collect(Collectors.toCollection(LinkedList::new));
+        final Deque<Context<?>> rolledBack = List.copyOf(contexts).reversed().stream()
+                .map(context -> rollbackNestedCommand(context, isFailedHolder))
+                .collect(Collectors.toCollection(ArrayDeque::new));
         // reverse the order of rolled back nested command contexts back to the original order
-        Collections.reverse(rolledBack);
-        return rolledBack;
+        return rolledBack.reversed();
     }
 
     /**
      * To rollback nested command execution
      *
-     * @param current command-context after nested command execution
-     * @param rollbackFailedHolder the holder of failed rollback flag
-     * @return command-context after nested command rollback
+     * @param current                        command-context after nested command execution
+     * @param isPreviousRollbackFailedHolder the holder of failed nested command's rollback flag
+     * @return nested command-context after nested command's rollback
      */
-    protected Context<?> rollbackNestedCommand(final Context<?> current, final AtomicBoolean rollbackFailedHolder) {
-        if (rollbackFailedHolder.get()) {
+    protected Context<?> rollbackNestedCommand(final Context<?> current, final AtomicBoolean isPreviousRollbackFailedHolder) {
+        if (isPreviousRollbackFailedHolder.get()) {
             getLog().debug("Skipping current nested rollback because previous one was failed");
             return current;
         }
@@ -185,7 +187,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
         if (context.isFailed()) {
             // nested command rollback is failed
             getLog().warn("=== Rollback of the nested command '{}' is failed", commandId, context.getException());
-            rollbackFailedHolder.compareAndSet(false, true);
+            isPreviousRollbackFailedHolder.compareAndSet(false, true);
         } else {
             // nested command rollback is successful
             getLog().debug("Rollback of the nested command '{}' is completed successfully", commandId);
