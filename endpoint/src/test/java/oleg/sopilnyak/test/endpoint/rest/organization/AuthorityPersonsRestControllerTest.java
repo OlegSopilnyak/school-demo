@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -20,6 +21,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityP
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
@@ -300,10 +302,10 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     void shouldDeleteAuthorityPerson() throws Exception {
         Long id = 302L;
         Long profileId = id + 100;
-        AuthorityPerson person = mock(AuthorityPerson.class);
+        AuthorityPerson person = spy(makeCleanAuthorityPerson(100));
         doReturn(profileId).when(person).getProfileId();
         doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonById(id);
-        PrincipalProfilePayload profile = mock(PrincipalProfilePayload.class);
+        PrincipalProfile profile = messagePayloadMapper.toPayload(makePrincipalProfile(profileId));
         doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileById(profileId);
         doReturn(profile).when(persistenceFacade).toEntity(profile);
         doReturn(profile).when(messagePayloadMapper).toPayload(profile);

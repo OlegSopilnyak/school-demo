@@ -81,7 +81,8 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      * @see RootCommand#getPayloadMapper()
      */
     default AuthorityPersonPayload adoptEntity(final AuthorityPerson entity) {
-        getLog().debug("In authority person entity with id={} manages {} faculties", entity.getId(), entity.getFaculties().size());
+        final int facultiesCount = entity.getFaculties() == null ? 0 : entity.getFaculties().size();
+        getLog().debug("In authority person entity with id={} manages {} faculties", entity.getId(), facultiesCount);
         return entity instanceof AuthorityPersonPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
     }
 
@@ -106,7 +107,7 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
                     (T) Optional.empty()
                     :
                     (T) optionalEntity.map(AuthorityPerson.class::cast).map(this::detach);
-        } else if (result instanceof Set entitiesSet) {
+        } else if (result instanceof Set<?> entitiesSet) {
             return (T) detach(entitiesSet);
         } else {
             getLog().debug("Won't detach result. Leave it as is:'{}'", result);
@@ -133,9 +134,9 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      * @return detached entities set
      * @see #detachedResult(Object)
      */
-    private Set<AuthorityPerson> detach(Set<AuthorityPerson> entitiesSet) {
+    private Set<AuthorityPerson> detach(Set<?> entitiesSet) {
         getLog().info("Entities set to detach:'{}'", entitiesSet);
-        return entitiesSet.stream().map(this::detach).collect(Collectors.toSet());
+        return entitiesSet.stream().map(AuthorityPerson.class::cast).map(this::detach).collect(Collectors.toSet());
     }
 
 // For commands playing Nested Command Role

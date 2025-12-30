@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -23,7 +24,6 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
-import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
 import java.util.Comparator;
@@ -286,7 +286,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldDeleteStudentValidId() throws Exception {
         long id = 102L;
         long profileId = id + 100;
-        StudentPayload student = mock(StudentPayload.class);
+        Student student = spy(makeClearStudent(100));
         doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(id);
         doReturn(profileId).when(student).getProfileId();
         StudentProfilePayload profile = mock(StudentProfilePayload.class);

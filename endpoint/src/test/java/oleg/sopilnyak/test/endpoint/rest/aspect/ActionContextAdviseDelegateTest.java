@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import oleg.sopilnyak.test.endpoint.rest.education.StudentsRestController;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
+
+import java.time.Duration;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.Test;
@@ -45,7 +47,7 @@ class ActionContextAdviseDelegateTest {
         assertThat(context.getActionName()).isEqualTo(controllerMethodName);
         assertThat(context.getFacadeName()).isEqualTo(facade.getName());
         assertThat(context.getStartedAt()).isNotNull();
-        assertThat(context.getLasts()).isNull();
+        assertThat(context.getLasts()).isEqualTo(Duration.ZERO);
     }
 
     @Test
