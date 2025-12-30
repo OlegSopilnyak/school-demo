@@ -6,7 +6,6 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,9 +47,9 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
         }
         // holder of flag if something went wrong during execution
         final AtomicBoolean isPreviousFailed = new AtomicBoolean(false);
-        // the holder of just now executed with result nested command-context
+        // the holder of just now executed nested command-context with execution result
         final AtomicReference<Context<?>> executedCommandContextHolder = new AtomicReference<>(null);
-        // sequential walking through command-contexts collection
+        // sequential walking through nested command-contexts collection
         return contexts.stream().map(context -> isPreviousFailed.get()
                 // previous nested command's context.state has value FAIL? Cancel it
                 ? cancelSequentialNestedCommandContext(context, listener)
@@ -67,7 +66,9 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @return canceled command-context
      * @see Context.State#CANCEL
      */
-    protected Context<?> cancelSequentialNestedCommandContext(final Context<?> toCancel, final Context.StateChangedListener listener) {
+    protected Context<?> cancelSequentialNestedCommandContext(
+            final Context<?> toCancel, final Context.StateChangedListener listener
+    ) {
         // getting last state from the context history and use it for the listener's notification
         final Context.State lastState = toCancel.getHistory().states().getLast();
         getLog().debug("Cancel nested command execution from state {}", lastState);
@@ -81,11 +82,11 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
     /**
      * To execute nested command using command-context
      *
-     * @param toExecute the next nested command-context to execute
-     * @param executedHolder holder of previously executed nested command-context
-     * @param listener the listener of context-state-changes
+     * @param toExecute         the next nested command-context to execute
+     * @param executedHolder    holder of previously executed nested command-context
+     * @param listener          the listener of context-state-changes
      * @param isExecutionFailed holder of previous nested command execution failed flag
-     * @param <N> type of to-execute nested command result
+     * @param <N>               type of to-execute nested command result
      * @return command-context value after to-execute nested command execution
      * @see Context#isDone()
      * @see Context#getResult()
@@ -160,7 +161,7 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
         // rollback nested commands changes in the reverse order
         final Deque<Context<?>> rolledBack = List.copyOf(contexts).reversed().stream()
                 .map(context -> rollbackNestedCommand(context, isFailedHolder))
-                .collect(Collectors.toCollection(ArrayDeque::new));
+                .collect(Collectors.toCollection(LinkedList::new));
         // reverse the order of rolled back nested command contexts back to the original order
         return rolledBack.reversed();
     }
@@ -172,7 +173,9 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @param isPreviousRollbackFailedHolder the holder of failed nested command's rollback flag
      * @return nested command-context after nested command's rollback
      */
-    protected Context<?> rollbackNestedCommand(final Context<?> current, final AtomicBoolean isPreviousRollbackFailedHolder) {
+    protected Context<?> rollbackNestedCommand(
+            final Context<?> current, final AtomicBoolean isPreviousRollbackFailedHolder
+    ) {
         if (isPreviousRollbackFailedHolder.get()) {
             getLog().debug("Skipping current nested rollback because previous one was failed");
             return current;

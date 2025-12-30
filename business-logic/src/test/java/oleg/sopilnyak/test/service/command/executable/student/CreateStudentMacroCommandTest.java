@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.student;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -274,8 +275,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), studentContext);
-//        verify(command).transferProfileIdToStudentUpdateInput(profileId, studentContext);
+        verify(command).transferResult(profileCommand, profileContext.getResult().get(), studentContext);
+        verify(command).transferProfileIdToStudentUpdateInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
     }
@@ -333,6 +334,9 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
+        verify(command).transferResult(profileCommand, profileContext.getResult().get(), studentContext);
+        verify(command).transferProfileIdToStudentUpdateInput(profileId, studentContext);
+
         verifyStudentDoCommand(studentContext);
     }
 
@@ -367,7 +371,8 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(StudentProfile.class));
 
-//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+        verify(command, never()).transferResult(eq(profileCommand), any(), eq(studentContext));
+        verify(command, never()).transferProfileIdToStudentUpdateInput(anyLong(), any(Context.class));
 
         verify(command, never()).executeDoNested(eq(studentContext), any(Context.StateChangedListener.class));
         verify(personCommand, never()).doCommand(any(Context.class));
@@ -405,6 +410,9 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         verify(command).executeNested(any(Deque.class), any(Context.StateChangedListener.class));
 
         verifyProfileDoCommand(profileContext);
+
+        verify(command).transferResult(eq(profileCommand), any(), eq(studentContext));
+        verify(command).transferProfileIdToStudentUpdateInput(profileId, studentContext);
 
         verifyStudentDoCommand(studentContext);
 

@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -73,12 +73,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor) {
-//            @Override
-//            public NestedCommand<?> wrap(NestedCommand<?> command) {
-//                return spy(super.wrap(command));
-//            }
-        });
+        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
         ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
@@ -103,19 +98,6 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         assertThat(ReflectionTestUtils.getField(personCommand, "payloadMapper")).isSameAs(payloadMapper);
         assertThat(ReflectionTestUtils.getField(profileCommand, "persistence")).isSameAs(persistence);
         assertThat(ReflectionTestUtils.getField(profileCommand, "payloadMapper")).isSameAs(payloadMapper);
-        Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
-        NestedCommand<?> nestedProfileCommand = nested.pop();
-//        if (nestedProfileCommand instanceof SequentialMacroCommand.Chained<?> chained) {
-//            assertThat(chained.unWrap()).isSameAs(profileCommand);
-//        } else {
-//            fail("nested profile command is not a chained command");
-//        }
-        NestedCommand<?> nestedStudentCommand = nested.pop();
-//        if (nestedStudentCommand instanceof SequentialMacroCommand.Chained<?> chained) {
-//            assertThat(chained.unWrap()).isSameAs(personCommand);
-//        } else {
-//            fail("nested person command is not a chained command");
-//        }
     }
 
     @Test
@@ -288,7 +270,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
+        verify(command).transferResult(profileCommand, profileContext.getResult().get(), personContext);
         verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
@@ -348,7 +330,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
-//        verify(command).transferPreviousExecuteDoResult(profileCommand, profileContext.getResult().get(), personContext);
+
+        verify(command).transferResult(profileCommand, profileContext.getResult().get(), personContext);
         verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
@@ -381,7 +364,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         verify(profileCommand).executeDo(profileContext);
         verify(persistence).save(any(PrincipalProfile.class));
 
-//        verify(command, never()).transferPreviousExecuteDoResult(any(RootCommand.class), any(), any(Context.class));
+        verify(command, never()).transferResult(eq(profileCommand), any(), eq(personContext));
+        verify(command, never()).transferProfileIdToAuthorityPersonUpdateInput(anyLong(), any(Context.class));
 
         verify(personCommand, never()).doCommand(any(Context.class));
     }
@@ -418,7 +402,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         verifyProfileDoCommand(profileContext);
 
-//        verify(command).transferPreviousExecuteDoResult(eq(profileCommand), any(Optional.class), eq(personContext));
+        verify(command).transferResult(eq(profileCommand), any(), eq(personContext));
         verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContext);
 
         verifyPersonDoCommand(personContext);
