@@ -111,7 +111,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
             // checking command context state after entity persistence
             afterEntityPersistenceCheck(
                     context, () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntityMode
+                    persisted.map(this::adoptEntity).orElse(null), isCreateEntityMode
             );
         } catch (Exception e) {
             log.error("Cannot create or update authority person '{}'", parameter, e);

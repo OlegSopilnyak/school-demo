@@ -484,11 +484,6 @@ class ParallelMacroCommandTest {
         public String getId() {
             return "parallel-fake-command";
         }
-
-        @Override
-        public Double detachedResult(Double result) {
-            return result;
-        }
     }
 
     static class ContextStateChangedListener implements Context.StateChangedListener {

@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SchoolCommandCacheTest {
     SchoolCommandCache cache;
 
@@ -48,11 +49,6 @@ class SchoolCommandCacheTest {
             @Override
             public String getId() {
                 return "test.command.cache";
-            }
-
-            @Override
-            public Object detachedResult(Object result) {
-                return result;
             }
         });
     }

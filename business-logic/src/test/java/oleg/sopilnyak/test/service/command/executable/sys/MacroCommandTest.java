@@ -39,7 +39,6 @@ import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
-import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 
 import java.util.ArrayDeque;
@@ -178,11 +177,6 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-void-command";
-            }
-
-            @Override
-            public Void detachedResult(Void result) {
-                return null;
             }
 
             @Override
@@ -463,16 +457,6 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-command";
-            }
-
-            @Override
-            public Double detachedResult(Double result) {
-                return result;
-            }
-
-            @Override
-            public BusinessMessagePayloadMapper getPayloadMapper() {
-                return null;
             }
 
             @Override
@@ -811,16 +795,6 @@ class MacroCommandTest {
             @Override
             public String getId() {
                 return "second-macro-command";
-            }
-
-            @Override
-            public Double detachedResult(Double result) {
-                return result;
-            }
-
-            @Override
-            public BusinessMessagePayloadMapper getPayloadMapper() {
-                return null;
             }
 
             @Override
@@ -1206,16 +1180,6 @@ class MacroCommandTest {
         @Override
         public String getId() {
             return "fake-command";
-        }
-
-        @Override
-        public Double detachedResult(Double result) {
-            return result;
-        }
-
-        @Override
-        public BusinessMessagePayloadMapper getPayloadMapper() {
-            return null;
         }
 
         @Override

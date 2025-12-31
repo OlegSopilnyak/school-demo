@@ -627,11 +627,6 @@ class SequentialMacroCommandTest {
         }
 
         @Override
-        public Double detachedResult(Double result) {
-            return result;
-        }
-
-        @Override
         public <N> Context<N> prepareContext(StudentCommand<N> command, Input<?> mainInput) {
             return prepareStudentContext();
         }

@@ -109,7 +109,7 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student, Op
             // checking command context state after entity persistence
             afterEntityPersistenceCheck(
                     context, () -> rollbackCachedEntity(context, persistence::save),
-                    persisted.orElse(null), isCreateEntityMode
+                    persisted.map(this::adoptEntity).orElse(null), isCreateEntityMode
             );
         } catch (Exception e) {
             log.error("Cannot save the student '{}'", parameter, e);

@@ -112,7 +112,7 @@ public abstract class CreateOrUpdateProfileCommand<E extends PersonProfile> exte
             // checking command context state after entity persistence
             afterEntityPersistenceCheck(
                     context, () -> rollbackCachedEntity(context, functionSave()),
-                    persisted.orElse(null), isCreateEntityMode
+                    persisted.map(this::adoptEntity).orElse(null), isCreateEntityMode
             );
         } catch (Exception e) {
             getLog().error("Cannot save the profile {}", parameter, e);

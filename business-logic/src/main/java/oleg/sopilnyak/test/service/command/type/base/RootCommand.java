@@ -156,32 +156,29 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see Context#isDone()
      * @see Context#getResult()
      * @see Optional#isEmpty()
-     * @see #detachedResult(Object)
      * @see Context#setResult(Object)
      */
     default void afterExecute(Context<T> context) {
         final String commandId = getId();
         // check if command is done and has result
-        if (!context.isDone()) {
-            getLog().warn("Cannot detach result data of command with id:'{}' for context:state {}", commandId, context.getState());
-            return;
-        }
-        // getting result from context
-        final Optional<T> result = context.getResult();
-        // check if result is present
-        if (result.isEmpty()) {
-            // command execution returned nothing, no result to detach
-            getLog().debug("Cannot detach result data of command: '{}' with context: no result", commandId);
+        if (context.isDone()) {
+            // getting result from context
+            final Optional<T> result = context.getResult();
+            // check if result is present
+            if (result.isEmpty()) {
+                // command execution returned nothing, no result to store
+                getLog().debug("Won't store result of command: '{}' to context holder: there's no result", commandId);
+            } else {
+                // store result data
+                getLog().debug("Getting result of command: '{}' execution", commandId);
+                final T finalResult = result.orElse(null);
+                getLog().debug(
+                        "Saving to context holder result data of command: '{}' result {}", commandId, finalResult
+                );
+                context.setResult(finalResult);
+            }
         } else {
-            // detach result data
-            getLog().debug("Detaching result data of command: '{}'", commandId);
-            //
-            // TODO maybe remove stuff below
-            final T finalResult = detachedResult(result.get());
-            // TODO not needed it already
-            //
-            getLog().debug("Saving detached result data of command: '{}' is {}", commandId, finalResult);
-            context.setResult(finalResult);
+            getLog().warn("Cannot make and apply result data of command with id:'{}' because of context:state {}", commandId, context.getState());
         }
     }
 
@@ -216,7 +213,8 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see CommandExecutable#undoCommand(Context)
      */
     default void afterRollback(Context<?> context) {
-        // do nothing by default
+        // clearing command execution result
+        context.setResult(null);
     }
 
     /**
@@ -228,15 +226,6 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      * @see RootCommand#afterExecute(Context)
      */
     Logger getLog();
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see RootCommand#afterExecute(Context)
-     */
-    T detachedResult(T result);
 
     // For commands playing as a nested-command
 

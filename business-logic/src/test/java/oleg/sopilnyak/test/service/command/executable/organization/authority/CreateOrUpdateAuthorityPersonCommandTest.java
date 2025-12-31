@@ -69,6 +69,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
     void shouldDoCommand_CreateEntity() {
         Long id = -300L;
         when(entity.getId()).thenReturn(id);
+        when(payload.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(entity));
@@ -99,7 +100,7 @@ class CreateOrUpdateAuthorityPersonCommandTest {
         Optional<AuthorityPerson> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(payload);
         verify(command).executeDo(context);
-        verify(entity).getId();
+        verify(entity, times(2)).getId();
         verify(persistence).findAuthorityPersonById(id);
         verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);

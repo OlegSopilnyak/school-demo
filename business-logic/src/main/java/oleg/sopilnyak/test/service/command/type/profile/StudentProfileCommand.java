@@ -13,8 +13,6 @@ import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
-import java.util.Optional;
-
 /**
  * Type for school-student-profile commands
  */
@@ -65,60 +63,23 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * @see RootCommand#getPayloadMapper()
      */
     @Override
-    @SuppressWarnings("unchecked")
     default <E extends PersonProfile> E adoptEntity(final E entity) {
-        if (entity instanceof StudentProfile profile) {
-            final String [] extraKeys = profile.getExtraKeys();
-            final int extraLength = isNull(extraKeys) ? 0 : extraKeys.length;
-            getLog().debug("In student profile entity with id={} has {} extra keys", entity.getId(), extraLength);
-            final var payload = profile instanceof StudentProfilePayload entityPayload
-                    ?
-                    entityPayload
-                    :
-                    getPayloadMapper().toPayload(profile);
-            return (E) payload;
-        } else {
-            throw new UnsupportedOperationException("Entity to adopt is not student-profile");
-        }
+        return switch (entity) {
+            case StudentProfile profile -> adoptProfile(entity, profile);
+            default -> throw new UnsupportedOperationException("Entity to adopt is not a principal-profile type");
+        };
     }
 
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecute(Context)
-     */
-    @Override
     @SuppressWarnings("unchecked")
-    default T detachedResult(T result) {
-        if (isNull(result)) {
-            getLog().debug("Result is null");
-            return null;
-        } else if (result instanceof StudentProfile entity) {
-            return (T) detach(entity);
-        } else if (result instanceof Optional<?> optionalEntity) {
-            // To detach StudentProfile optional result entity from persistence layer
-            return  optionalEntity.isEmpty() ?
-                    (T) Optional.empty()
-                    :
-                    (T) optionalEntity.map(StudentProfile.class::cast).map(this::detach);
-        } else {
-            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
-            return result;
-        }
-    }
-
-    /**
-     * To detach StudentProfile entity from persistence layer
-     *
-     * @param entity entity to detach
-     * @return detached entity
-     * @see #detachedResult(Object)
-     */
-    private StudentProfile detach(StudentProfile entity) {
-        getLog().info("Entity to detach:'{}'", entity);
-        return entity instanceof StudentProfilePayload payload ? payload : getPayloadMapper().toPayload(entity);
+    private <E extends PersonProfile> E adoptProfile(final E entity, final StudentProfile profile) {
+        final String[] extraKeys = profile.getExtraKeys();
+        final int extraLength = isNull(extraKeys) ? 0 : extraKeys.length;
+        getLog().debug("In student profile entity with id={} has {} extra keys", entity.getId(), extraLength);
+        return (E) (profile instanceof StudentProfilePayload entityPayload
+                // no needed transformation
+                ? entityPayload
+                // transforms using payload-mapper
+                : getPayloadMapper().toPayload(profile));
     }
 
 // For commands playing Nested Command Role

@@ -68,6 +68,7 @@ class CreateOrUpdateCourseCommandTest {
     void shouldDoCommand_CreateCourse() {
         Long id = -100L;
         when(mockedCourse.getId()).thenReturn(id);
+        when(mockedCoursePayload.getId()).thenReturn(id);
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistence.save(mockedCourse)).thenReturn(Optional.of(mockedCourse));
 

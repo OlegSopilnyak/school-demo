@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
-import static java.util.Objects.isNull;
-
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -10,10 +8,6 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Type for school-organization authority persons management command
@@ -84,59 +78,6 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
         final int facultiesCount = entity.getFaculties() == null ? 0 : entity.getFaculties().size();
         getLog().debug("In authority person entity with id={} manages {} faculties", entity.getId(), facultiesCount);
         return entity instanceof AuthorityPersonPayload entityPayload ? entityPayload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach command result data from persistence layer
-     *
-     * @param result result data to detach
-     * @return detached result data
-     * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#afterExecute(Context)
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    default T detachedResult(T result) {
-        if (isNull(result)) {
-            getLog().debug("Result is null");
-            return null;
-        } else if (result instanceof AuthorityPerson entity) {
-            return (T) detach(entity);
-        } else if (result instanceof Optional<?> optionalEntity) {
-            // To detach AuthorityPerson optional result entity from persistence layer
-            return  optionalEntity.isEmpty() ?
-                    (T) Optional.empty()
-                    :
-                    (T) optionalEntity.map(AuthorityPerson.class::cast).map(this::detach);
-        } else if (result instanceof Set<?> entitiesSet) {
-            return (T) detach(entitiesSet);
-        } else {
-            getLog().debug("Won't detach result. Leave it as is:'{}'", result);
-            return result;
-        }
-    }
-
-    /**
-     * To detach AuthorityPerson entity from persistence layer
-     *
-     * @param entity entity to detach
-     * @return detached entity
-     * @see #detachedResult(Object)
-     */
-    private AuthorityPerson detach(AuthorityPerson entity) {
-        getLog().info("Entity to detach:'{}'", entity);
-        return entity instanceof AuthorityPersonPayload payload ? payload : getPayloadMapper().toPayload(entity);
-    }
-
-    /**
-     * To detach AuthorityPerson entities set from persistence layer
-     *
-     * @param entitiesSet entities set to detach
-     * @return detached entities set
-     * @see #detachedResult(Object)
-     */
-    private Set<AuthorityPerson> detach(Set<?> entitiesSet) {
-        getLog().info("Entities set to detach:'{}'", entitiesSet);
-        return entitiesSet.stream().map(AuthorityPerson.class::cast).map(this::detach).collect(Collectors.toSet());
     }
 
 // For commands playing Nested Command Role

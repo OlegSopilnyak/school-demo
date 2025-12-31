@@ -48,8 +48,9 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
         return CommandId.CREATE_OR_UPDATE;
     }
 
-    public CreateOrUpdatePrincipalProfileCommand(final ProfilePersistenceFacade persistence,
-                                                 final BusinessMessagePayloadMapper payloadMapper) {
+    public CreateOrUpdatePrincipalProfileCommand(
+            final ProfilePersistenceFacade persistence, final BusinessMessagePayloadMapper payloadMapper
+    ) {
         super(PrincipalProfile.class, persistence, payloadMapper);
     }
 
@@ -81,7 +82,7 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
     @Override
     protected UnaryOperator<PrincipalProfile> functionAdoptEntity() {
         final UnaryOperator<PrincipalProfile> persistenceAdoption = persistence::toEntity;
-        return profile -> payloadMapper.toPayload(persistenceAdoption.apply(profile));
+        return profile -> adoptEntity(persistenceAdoption.apply(profile));
     }
 
     /**

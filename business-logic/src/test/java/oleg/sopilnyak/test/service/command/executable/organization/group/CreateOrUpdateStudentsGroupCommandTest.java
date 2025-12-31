@@ -68,6 +68,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
     void shouldDoCommand_CreateEntity() {
         Long id = -500L;
         when(entity.getId()).thenReturn(id);
+        when(payload.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Optional<StudentsGroup>> context = command.createContext(Input.of(entity));
@@ -98,7 +99,7 @@ class CreateOrUpdateStudentsGroupCommandTest {
         Optional<StudentsGroup> doResult = context.getResult().orElseThrow();
         assertThat(doResult.orElseThrow()).isEqualTo(payload);
         verify(command).executeDo(context);
-        verify(entity, times(2)).getId();
+        verify(entity, times(3)).getId();
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, times(2)).toPayload(entity);
         verify(persistence).save(entity);

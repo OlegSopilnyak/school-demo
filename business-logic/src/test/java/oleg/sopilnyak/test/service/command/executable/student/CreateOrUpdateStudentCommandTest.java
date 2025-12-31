@@ -66,6 +66,7 @@ class CreateOrUpdateStudentCommandTest {
     void shouldDoCommand_CreateStudent() {
         Long id = -1L;
         when(entity.getId()).thenReturn(id);
+        when(payload.getId()).thenReturn(id);
         when(persistence.save(entity)).thenReturn(Optional.of(entity));
         when(payloadMapper.toPayload(entity)).thenReturn(payload);
         Context<Optional<Student>> context = command.createContext(Input.of(entity));

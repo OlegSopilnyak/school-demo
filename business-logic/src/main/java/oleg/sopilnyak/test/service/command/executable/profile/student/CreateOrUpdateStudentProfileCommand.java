@@ -48,8 +48,9 @@ public class CreateOrUpdateStudentProfileCommand extends CreateOrUpdateProfileCo
         return CommandId.CREATE_OR_UPDATE;
     }
 
-    public CreateOrUpdateStudentProfileCommand(final ProfilePersistenceFacade persistence,
-                                               final BusinessMessagePayloadMapper payloadMapper) {
+    public CreateOrUpdateStudentProfileCommand(
+            final ProfilePersistenceFacade persistence, final BusinessMessagePayloadMapper payloadMapper
+    ) {
         super(StudentProfile.class, persistence, payloadMapper);
     }
 
@@ -81,7 +82,7 @@ public class CreateOrUpdateStudentProfileCommand extends CreateOrUpdateProfileCo
     @Override
     protected UnaryOperator<StudentProfile> functionAdoptEntity() {
         final UnaryOperator<StudentProfile> persistenceAdoption = persistence::toEntity;
-        return profile -> payloadMapper.toPayload(persistenceAdoption.apply(profile));
+        return profile -> adoptEntity(persistenceAdoption.apply(profile));
     }
 
     /**

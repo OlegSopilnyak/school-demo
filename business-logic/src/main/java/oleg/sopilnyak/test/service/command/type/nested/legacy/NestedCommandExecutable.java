@@ -66,6 +66,7 @@ public interface NestedCommandExecutable<T> extends Serializable {
      *
      * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
      */
+    @Deprecated
     interface InSequence {
         /**
          * To transfer nested command execution result to target nested command context input

@@ -135,7 +135,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         assertThat(doResult.orElseThrow()).isEqualTo(payload);
         assertThat(context.getUndoParameter().value()).isEqualTo(payload);
         verify(command).executeDo(context);
-        verify(profile).getId();
+        verify(profile, times(3)).getId();
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
@@ -149,6 +149,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         doCallRealMethod().when(persistence).save(profile);
         Long id = -700L;
         when(profile.getId()).thenReturn(id);
+        when(payload.getId()).thenReturn(id);
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
         when(persistence.saveProfile(profile)).thenReturn(Optional.of(profile));
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
@@ -261,7 +262,7 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(RuntimeException.class);
         verify(command).executeDo(context);
-        verify(profile).getId();
+        verify(profile, times(2)).getId();
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
