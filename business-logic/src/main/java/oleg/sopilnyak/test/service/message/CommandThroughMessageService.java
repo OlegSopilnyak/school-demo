@@ -21,7 +21,7 @@ public interface CommandThroughMessageService {
     void shutdown();
 
     /**
-     * To send command message for processing
+     * To send command message for doingMainLoop
      *
      * @param message the command message to be sent
      * @param <T>     the type of command execution result in command message

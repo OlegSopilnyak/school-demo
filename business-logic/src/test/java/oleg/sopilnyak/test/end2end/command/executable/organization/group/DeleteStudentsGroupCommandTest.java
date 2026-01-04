@@ -22,7 +22,7 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteStudentsGroupCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
+@SuppressWarnings("unchecked")
 class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -245,8 +246,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
     }
 
     private StudentsGroup persist(StudentsGroup source) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             StudentsGroupEntity entity = entityMapper.toEntity(source);
             transaction.begin();
@@ -257,7 +257,6 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentsGroupEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

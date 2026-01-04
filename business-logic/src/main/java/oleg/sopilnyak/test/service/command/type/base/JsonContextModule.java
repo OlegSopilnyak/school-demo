@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.command.type.base;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
-import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.history.History;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;

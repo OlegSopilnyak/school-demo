@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;

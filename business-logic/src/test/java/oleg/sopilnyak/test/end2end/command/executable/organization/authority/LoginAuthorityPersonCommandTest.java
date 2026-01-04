@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -46,6 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired

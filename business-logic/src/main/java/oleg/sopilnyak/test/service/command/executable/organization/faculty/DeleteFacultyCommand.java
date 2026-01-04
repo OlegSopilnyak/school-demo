@@ -6,8 +6,8 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -135,7 +135,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
-            // change faculty-id value for further do command processing
+            // change faculty-id value for further do command doingMainLoop
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

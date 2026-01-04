@@ -19,7 +19,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNot
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
@@ -50,6 +50,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class StudentsGroupFacadeImplTest {
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "organization.students.group.findAll";
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "organization.students.group.findById";
@@ -66,7 +67,7 @@ class StudentsGroupFacadeImplTest {
     @Mock
     ApplicationContext applicationContext;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     @Mock
     StudentsGroup mockGroup;
@@ -77,7 +78,7 @@ class StudentsGroupFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new StudentsGroupFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

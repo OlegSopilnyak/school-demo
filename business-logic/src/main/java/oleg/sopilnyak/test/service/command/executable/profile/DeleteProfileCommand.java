@@ -5,8 +5,8 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
-import oleg.sopilnyak.test.service.command.executable.sys.cache.SchoolCommandCache;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.cache.SchoolCommandCache;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
@@ -128,7 +128,7 @@ public abstract class DeleteProfileCommand<E extends PersonProfile> extends Scho
             final E entity = rollbackCachedEntity(context, functionSave()).orElseThrow();
 
             getLog().debug("Updated in database: '{}'", entity);
-            // change profile-id value for further do command processing
+            // change profile-id value for further do command doingMainLoop
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

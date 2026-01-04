@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 
@@ -31,7 +31,7 @@ import lombok.SneakyThrows;
  */
 @Deprecated
 public abstract class LegacyParallelMacroCommand<T> extends MacroCommand<T> {
-    protected LegacyParallelMacroCommand(ActionExecutor actionExecutor) {
+    protected LegacyParallelMacroCommand(CommandActionExecutor actionExecutor) {
         super(actionExecutor);
     }
 

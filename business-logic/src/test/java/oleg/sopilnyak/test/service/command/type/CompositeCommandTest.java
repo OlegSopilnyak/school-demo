@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
@@ -34,6 +34,7 @@ import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CompositeCommandTest {
 
     @Mock
@@ -41,7 +42,7 @@ class CompositeCommandTest {
 
     @BeforeEach
     void setUp() {
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @Test
@@ -208,7 +209,7 @@ class CompositeCommandTest {
     @Test
     void shouldExecuteDoNested_NoStateChangeListener() {
         ActionContext actionContext = ActionContext.current();
-        ActionExecutor executor = mock(ActionExecutor.class);
+        CommandActionExecutor executor = mock(CommandActionExecutor.class);
         doReturn(executor).when(compositeCommand).getActionExecutor();
         Context<?> nestedContext = mock(Context.class);
         doReturn(nestedContext).when(executor).commitAction(actionContext, nestedContext);
@@ -231,7 +232,7 @@ class CompositeCommandTest {
         Context<?> nestedContext = nestedCommand.createContext(input);
         assertThat(nestedContext.isReady()).isTrue();
         Context.StateChangedListener listener = mock(Context.StateChangedListener.class);
-        ActionExecutor executor = mock(ActionExecutor.class);
+        CommandActionExecutor executor = mock(CommandActionExecutor.class);
         doReturn(executor).when(compositeCommand).getActionExecutor();
         doAnswer((Answer<Context<Void>>) invocation -> {
             Context<Void> context = invocation.getArgument(1, Context.class);
@@ -258,7 +259,7 @@ class CompositeCommandTest {
     @Test
     void shouldExecuteUndoNested() {
         ActionContext actionContext = ActionContext.current();
-        ActionExecutor executor = mock(ActionExecutor.class);
+        CommandActionExecutor executor = mock(CommandActionExecutor.class);
         doReturn(executor).when(compositeCommand).getActionExecutor();
         Context<Void> nestedContext = mock(Context.class);
         doReturn(nestedContext).when(executor).rollbackAction(actionContext, nestedContext);

@@ -1,6 +1,6 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.MacroCommandTest.FakeMacroCommand.overrideStudentContext;
+import static oleg.sopilnyak.test.service.command.executable.core.MacroCommandTest.FakeMacroCommand.overrideStudentContext;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
@@ -76,7 +76,7 @@ class MacroCommandTest {
     @Mock
     StudentCommand<Double> studentCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     @BeforeEach
     void setUp() {
@@ -84,7 +84,7 @@ class MacroCommandTest {
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
         setupBaseCommandIds();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @Test
@@ -700,7 +700,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow processing-executor activity
+        // allow doingMainLoop-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -745,7 +745,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand<?>[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow processing-executor activity
+        // allow doingMainLoop-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -855,7 +855,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow processing-executor activity
+        // allow doingMainLoop-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -1139,7 +1139,7 @@ class MacroCommandTest {
         static CommandContext<?> overrideStudentContext;
         Logger logger = LoggerFactory.getLogger(FakeMacroCommand.class);
 
-        public FakeMacroCommand(StudentCommand<Double> student, ActionExecutor actionExecutor) {
+        public FakeMacroCommand(StudentCommand<Double> student, CommandActionExecutor actionExecutor) {
             super(actionExecutor);
             overrideStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }

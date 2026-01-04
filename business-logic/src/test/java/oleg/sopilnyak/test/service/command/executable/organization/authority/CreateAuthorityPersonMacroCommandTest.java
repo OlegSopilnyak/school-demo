@@ -20,7 +20,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
@@ -65,7 +65,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     @InjectMocks
     CreateOrUpdateAuthorityPersonCommand personCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     CreateAuthorityPersonMacroCommand command;
     @Mock
@@ -80,7 +80,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
         doReturn(profileCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

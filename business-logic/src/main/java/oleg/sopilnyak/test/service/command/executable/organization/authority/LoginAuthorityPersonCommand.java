@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;

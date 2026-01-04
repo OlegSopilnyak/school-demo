@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.profile;
 
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;

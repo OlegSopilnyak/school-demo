@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.education;
 
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -85,7 +85,7 @@ public interface StudentCommand<T> extends RootCommand<T> {
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(StudentCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {

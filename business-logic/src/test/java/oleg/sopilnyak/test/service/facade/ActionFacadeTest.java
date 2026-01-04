@@ -12,7 +12,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class ActionFacadeTest {
 
     @Mock
@@ -41,7 +42,7 @@ class ActionFacadeTest {
     @Mock
     Logger log;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     ActionFacade actionFacade;
 
@@ -55,7 +56,7 @@ class ActionFacadeTest {
             }
 
             @Override
-            public ActionExecutor getActionExecutor() {
+            public CommandActionExecutor getActionExecutor() {
                 return actionExecutor; // Mocked executor
             }
         });

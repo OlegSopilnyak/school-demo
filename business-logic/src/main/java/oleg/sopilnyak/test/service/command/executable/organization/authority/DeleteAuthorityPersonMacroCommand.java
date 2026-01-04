@@ -6,11 +6,11 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -72,7 +72,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
                 final String springName = Component.DELETE_ALL;
                 final Class<MacroDeleteAuthorityPerson<Boolean>> familyType = commandFamily();
-                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                getLog().debug("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
                 self.getAndSet(applicationContext.getBean(springName, familyType));
             }
         }
@@ -107,7 +107,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
             @Qualifier(AuthorityPersonCommand.Component.DELETE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.DELETE_BY_ID) PrincipalProfileCommand<?> profileCommand,
             @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
-            AuthorityPersonPersistenceFacade persistence, ActionExecutor actionExecutor
+            AuthorityPersonPersistenceFacade persistence, CommandActionExecutor actionExecutor
     ) {
         super(actionExecutor, executor);
         this.persistence = persistence;

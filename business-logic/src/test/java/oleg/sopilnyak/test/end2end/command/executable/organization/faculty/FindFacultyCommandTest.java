@@ -15,7 +15,7 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -36,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindFacultyCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class FindFacultyCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -119,8 +120,7 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
     }
 
     private Faculty persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             Faculty source = makeCleanFacultyNoDean(0);
             FacultyEntity entity = entityMapper.toEntity(source);
@@ -132,7 +132,6 @@ class FindFacultyCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(FacultyEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

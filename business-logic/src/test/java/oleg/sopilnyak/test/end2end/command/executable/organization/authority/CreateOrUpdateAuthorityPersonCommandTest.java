@@ -22,7 +22,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -47,6 +47,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateAuthorityPersonCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
@@ -347,8 +348,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
     }
 
     private AuthorityPerson persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             AuthorityPerson source = makeCleanAuthorityPerson(0);
             AuthorityPersonEntity entity = entityMapper.toEntity(source);
@@ -360,7 +360,6 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(AuthorityPersonEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

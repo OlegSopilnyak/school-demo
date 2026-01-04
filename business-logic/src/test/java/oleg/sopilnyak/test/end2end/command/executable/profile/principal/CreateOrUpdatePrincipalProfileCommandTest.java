@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -44,6 +44,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdatePrincipalProfileCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
@@ -367,8 +368,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private PrincipalProfile persistPrincipalProfile() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {
@@ -384,13 +384,11 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(PrincipalProfileEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 
     private StudentProfile persistStudentProfile() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             StudentProfile profile = makeStudentProfile(null);
             if (profile instanceof FakeStudentsProfile fakeProfile) {
@@ -405,7 +403,6 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentProfileEntity.class, entity.getId()));
         } finally {
             reset(persistence, payloadMapper);
-            em.close();
         }
     }
 }

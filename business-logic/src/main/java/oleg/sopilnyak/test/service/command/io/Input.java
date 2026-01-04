@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
@@ -169,12 +169,12 @@ public interface Input<P> extends IOBase<P> {
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
      *
-     * @param contexts sequence context for undo processing in CompositeCommand
+     * @param contexts sequence context for undo doingMainLoop in CompositeCommand
      * @return new instance of the input
      * @see DequeContextsParameter
      * @see Deque
      * @see Context
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#executeDo(Context)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#executeDo(Context)
      */
     static Input<Deque<Context<?>>> of(final Deque<Context<?>> contexts) {
         return new DequeContextsParameter(contexts);

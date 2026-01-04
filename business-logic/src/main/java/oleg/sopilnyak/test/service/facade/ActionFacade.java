@@ -4,7 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -34,13 +34,13 @@ public interface ActionFacade {
     /**
      * To get the actions executor instance
      *
-     * @return processing executor instance
-     * @see ActionExecutor
+     * @return doingMainLoop executor instance
+     * @see CommandActionExecutor
      */
-    ActionExecutor getActionExecutor();
+    CommandActionExecutor getActionExecutor();
 
     /**
-     * To act processing command with given command ID, command factory, and input parameter.
+     * To act doingMainLoop command with given command ID, command factory, and input parameter.
      *
      * @param commandId the command id
      * @param factory   the commands factory to find command by id
@@ -54,12 +54,12 @@ public interface ActionFacade {
      */
     default <T> Optional<T> executeCommand(String commandId, CommandsFactory<? extends RootCommand<?>> factory,
                                            Input<?> input) throws UnableExecuteCommandException {
-        // To do processing command with the given command-id, input parameter and default error processor
+        // To do doingMainLoop command with the given command-id, input parameter and default error processor
         return executeCommand(commandId, factory, input, defaultDoOnError(commandId));
     }
 
     /**
-     * To act processing command with given command-id, commands factory, input parameter and command error processor.
+     * To act doingMainLoop command with given command-id, commands factory, input parameter and command error processor.
      *
      * @param commandId the command id
      * @param factory   the commands factory to find command by id
@@ -69,7 +69,7 @@ public interface ActionFacade {
      * @return result of command execution or throws exception if command is not registered
      * @throws UnableExecuteCommandException if command cannot be executed
      * @see CommandsFactory#makeCommandContext(String, Input)
-     * @see ActionExecutor#commitAction(ActionContext, Context)
+     * @see CommandActionExecutor#commitAction(ActionContext, Context)
      * @see Context#isDone()
      * @see Context#getResult()
      * @see Context#getException()
@@ -96,7 +96,7 @@ public interface ActionFacade {
             // returns result of command execution
             return Optional.of(result);
         } else {
-            // fail processing
+            // fail doingMainLoop
             doThisOnError.accept(responseContext.getException());
             // returns null if command execution failed
             return Optional.empty();

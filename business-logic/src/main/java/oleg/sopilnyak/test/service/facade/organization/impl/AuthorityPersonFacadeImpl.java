@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonM
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -43,7 +43,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     public AuthorityPersonFacadeImpl(
             CommandsFactory<AuthorityPersonCommand<?>> factory,
             BusinessMessagePayloadMapper mapper,
-            ActionExecutor actionExecutor
+            CommandActionExecutor actionExecutor
     ) {
         super(factory, actionExecutor);
         this.toPayload = person -> person instanceof AuthorityPersonPayload ? person : mapper.toPayload(person);

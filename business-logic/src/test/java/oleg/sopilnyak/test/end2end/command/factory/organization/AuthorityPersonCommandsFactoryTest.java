@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -102,7 +102,7 @@ class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
         }
 
         @Bean
-        public ActionExecutor actionExecutor() {
+        public CommandActionExecutor actionExecutor() {
             return new ActionExecutorImpl(commandThroughMessageService());
         }
 

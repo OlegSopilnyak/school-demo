@@ -20,7 +20,7 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
@@ -53,6 +53,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.mapstruct.factory.Mappers;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class DeleteAuthorityPersonMacroCommandTest {
     @Mock
     PersistenceFacade persistence;
@@ -62,7 +63,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     @InjectMocks
     DeletePrincipalProfileCommand profileCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Mock
     SchedulingTaskExecutor schedulingTaskExecutor;
     @Spy
@@ -96,7 +97,7 @@ class DeleteAuthorityPersonMacroCommandTest {
         doReturn(command).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

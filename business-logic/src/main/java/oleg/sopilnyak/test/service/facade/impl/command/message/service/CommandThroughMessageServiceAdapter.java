@@ -2,11 +2,11 @@ package oleg.sopilnyak.test.service.facade.impl.command.message.service;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
-import oleg.sopilnyak.test.service.facade.impl.command.message.MessageProgressWatchdog;
-import oleg.sopilnyak.test.service.facade.impl.command.message.MessagesProcessor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
@@ -35,17 +35,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Service Implementation (Basic): execute command using request/response model
  *
  * @see CommandThroughMessageService
- * @see ActionExecutor#processActionCommand(CommandMessage)
+ * @see CommandActionExecutor#processActionCommand(CommandMessage)
  */
 
 public abstract class CommandThroughMessageServiceAdapter implements CommandThroughMessageService {
     // object mapper for the command-messages and other stuff
     protected ObjectMapper objectMapper;
     //
-    // @see ActionExecutor#processActionCommand(CommandMessage)
+    // @see CommandActionExecutor#processActionCommand(CommandMessage)
     private static final Logger log = LoggerFactory.getLogger("Low Level Command Action Executor");
-    private static final ActionExecutor lowLevelActionExecutor = () -> log;
-    // Executors for background processing
+    private static final CommandActionExecutor lowLevelActionExecutor = () -> log;
+    // Executors for background doingMainLoop
     private ExecutorService controlExecutorService;
     private ExecutorService messagesExecutorService;
     // Flag to control the current state of the service
@@ -79,7 +79,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         // adjust background processors
         // control executor for request/response processors
         controlExecutorService = createControlExecutorService();
-        // operational executor for processing command messages
+        // operational executor for doingMainLoop command messages
         messagesExecutorService = createMessagesExecutorService();
 
         // starting background processors
@@ -112,7 +112,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
      * Build and prepare message-processor for requests messages
      *
      * @param serviceActive the state of service
-     * @param executor executor to launch taken message's processing
+     * @param executor executor to launch taken message's doingMainLoop
      * @return built and prepared messages-processor instance
      */
     protected abstract MessagesProcessor prepareInputProcessor(
@@ -124,7 +124,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
      * Build and prepare message-processor for responses messages
      *
      * @param serviceActive the state of service
-     * @param executor executor to launch taken message's processing
+     * @param executor executor to launch taken message's doingMainLoop
      * @return built and prepared messages-processor instance
      */
     protected abstract MessagesProcessor prepareOutputProcessor(
@@ -141,6 +141,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
             getLogger().warn("MessageProcessingService Local Version is already stopped.");
             return;
         }
+        //
         // clear main flag of the service
         serviceActive.getAndSet(false);
         // send to processors final messages
@@ -175,7 +176,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
     }
 
     /**
-     * To send command context message for processing
+     * To send command context message for doingMainLoop
      *
      * @param message the command message to be sent
      * @param <T>     type of command execution result
@@ -187,7 +188,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         final String messageCorrelationId = message.getCorrelationId();
         if (!inputProcessor.isProcessorActive()) {
             getLogger().warn(
-                    "Send: '{}' is NOT active. Message with correlationId='{}' won't accept for processing.",
+                    "Send: '{}' is NOT active. Message with correlationId='{}' won't accept for doingMainLoop.",
                     inputProcessor.getProcessorName(), messageCorrelationId
             );
             ActionFacade.throwFor(
@@ -197,7 +198,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
         //
         // put message-watcher to in-progress map by correlation-id
-        if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageProgressWatchdog<>()) != null) {
+        if (messageInProgress.putIfAbsent(messageCorrelationId, new MessageProgressWatchdog<>(message)) != null) {
             // message with correlation-id already in progress
             getLogger().warn("Send: message with correlationId='{}' is already in progress", messageCorrelationId);
         } else {
@@ -226,7 +227,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
                 return null;
             }
             getLogger().info("Receive: waiting for sent message of command id: '{}' complete in message {}", commandId, messageCorrelationId);
-            // wait until processing is completed
+            // wait until doingMainLoop is completed
             messageWatcher.waitForMessageComplete();
             // removing message-watcher from in-progress-messages map using correlation-id
             messageInProgress.remove(messageCorrelationId);
@@ -242,11 +243,11 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
     }
 
     /**
-     * To process the request message's processing command in new transaction (strong isolation)<BR/>
+     * To process the request message's doingMainLoop command in new transaction (strong isolation)<BR/>
      * and send the response to the responses queue
      *
      * @param message message to process
-     * @see ActionExecutor#processActionCommand(CommandMessage)
+     * @see CommandActionExecutor#processActionCommand(CommandMessage)
      */
     protected <T> void processTakenRequestCommandMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
@@ -258,7 +259,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
                     final CommandMessage<T> result = lowLevelActionExecutor.processActionCommand(message);
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
-                    // finalize message's processing
+                    // finalize message's doingMainLoop
                     finalizeProcessedMessage(result, correlationId);
                 },
                 () -> logMessageIsNotInProgress(correlationId)
@@ -266,10 +267,10 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
     }
 
     /**
-     * Processing an error after taken message-command wrong processing
+     * Processing an error after taken message-command wrong doingMainLoop
      *
      * @param message request command-message
-     * @param error   cause of message processing error
+     * @param error   cause of message doingMainLoop error
      */
     protected void processUnprocessedRequestCommandMessage(final CommandMessage<?> message, final Throwable error) {
         if (!message.getContext().isFailed()) {
@@ -283,7 +284,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
         final String correlationId = message.getCorrelationId();
         getLogger().error("== Sending failed context of message {}", message.getCorrelationId());
-        // finalize message's processing
+        // finalize message's doingMainLoop
         finalizeProcessedMessage(message, correlationId);
     }
 
@@ -346,7 +347,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
             // responses processor is going to start
             latchOfProcessors.countDown();
             // running responses processor
-            messagesProcessor.processing();
+            messagesProcessor.doingMainLoop();
         };
         // launching messages processor runnable
         CompletableFuture.runAsync(processorRunnable, processorLaunchExecutor);
@@ -363,15 +364,15 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         }
     }
 
-    // initialize request message processing
+    // initialize request message doingMainLoop
     private void startProcessingMessage(final CommandMessage<?> message, final String messageCorrelationId) {
         // try to send the request to the requests processor
         if (inputProcessor.accept(message)) {
             // successfully sent
-            getLogger().info("Send: message with correlationId='{}' is accepted for processing.", messageCorrelationId);
+            getLogger().info("Send: message with correlationId='{}' is accepted for doingMainLoop.", messageCorrelationId);
         } else {
             // something went wrong
-            getLogger().error("Send: message with correlationId='{}' is NOT accepted for processing.", messageCorrelationId);
+            getLogger().error("Send: message with correlationId='{}' is NOT accepted for doingMainLoop.", messageCorrelationId);
             // removing message-watcher from in-progress-messages map using correlation-id
             messageInProgress.remove(messageCorrelationId);
             getLogger().error("Send: removed message-watcher for correlationId='{}' from in-progress-messages map.", messageCorrelationId);
@@ -387,7 +388,7 @@ public abstract class CommandThroughMessageServiceAdapter implements CommandThro
         } else {
             // something went wrong
             getLogger().error("Result: message with correlationId='{}' is processed but is NOT sent to responses processor", correlationId);
-            // simulate successful finalize result message processing
+            // simulate successful finalize result message doingMainLoop
             outputProcessor.onTakenMessage(processedMessage);
         }
     }

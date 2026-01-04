@@ -33,7 +33,7 @@ public interface TransferTransitionalResultVisitor {
      * @see RootCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final RootCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -51,7 +51,7 @@ public interface TransferTransitionalResultVisitor {
      * @see StudentCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -69,7 +69,7 @@ public interface TransferTransitionalResultVisitor {
      * @see CourseCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final CourseCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -87,7 +87,7 @@ public interface TransferTransitionalResultVisitor {
      * @see CompositeCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final CompositeCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -105,7 +105,7 @@ public interface TransferTransitionalResultVisitor {
      * @see PrincipalProfileCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final PrincipalProfileCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -123,7 +123,7 @@ public interface TransferTransitionalResultVisitor {
      * @see StudentProfileCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentProfileCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -141,7 +141,7 @@ public interface TransferTransitionalResultVisitor {
      * @see AuthorityPersonCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final AuthorityPersonCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -159,7 +159,7 @@ public interface TransferTransitionalResultVisitor {
      * @see FacultyCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final FacultyCommand<?> command,
                                                         final S result, final Context<T> target) {
@@ -177,7 +177,7 @@ public interface TransferTransitionalResultVisitor {
      * @see StudentsGroupCommand#doCommand(Context)
      * @see Context
      * @see Context#getResult()
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand#executeNested(Deque, Context.StateChangedListener)
      */
     default <S, T> void transferPreviousExecuteDoResult(final StudentsGroupCommand<?> command,
                                                         final S result, final Context<T> target) {

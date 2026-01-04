@@ -1,9 +1,9 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 public abstract class MacroCommand<T> implements CompositeCommand<T> {
     @Getter
     // commands executor for the commands from the nest
-    private final transient ActionExecutor actionExecutor;
+    private final transient CommandActionExecutor actionExecutor;
     // the list of nested commands
     private final List<NestedCommand<?>> netsedCommandsList = new LinkedList<>();
 
@@ -62,9 +62,9 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      * @see NestedCommand
      */
     @Override
-    public <N> boolean putToNest(final NestedCommand<N> command) {
+    public <N> void putToNest(final NestedCommand<N> command) {
         synchronized (netsedCommandsList) {
-            return netsedCommandsList.add(command);
+            netsedCommandsList.add(command);
         }
     }
 
@@ -83,7 +83,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     @Override
     public void executeDo(final Context<T> context) {
-        // preparing command's input for processing
+        // preparing command's input for doingMainLoop
         final Input<MacroCommandParameter> inputParameter = context.getRedoParameter();
         try {
             checkNullParameter(inputParameter);
@@ -116,7 +116,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             // updating command-context input (redo) parameter's contexts
             updateMacroCommandParameter(context, executionNestedResults);
             //
-            // after execution of nested, success and fail dequeues processing
+            // after execution of nested, success and fail dequeues doingMainLoop
             afterExecutionProcessing(context, succeed.getDeque(), failed.getDeque(), executionNestedResults);
         } catch (InterruptedException e) {
             getLog().error("Could not wait nested do finished '{}' with input {}", getId(), inputParameter, e);
@@ -184,7 +184,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     /**
-     * Post-processing nested commands execution contexts
+     * Post-doingMainLoop nested commands execution contexts
      *
      * @param rootContext        main context of macro-command
      * @param successful         collection of successful nested contexts
@@ -223,7 +223,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     /**
-     * Post-processing nested commands rolling back contexts
+     * Post-doingMainLoop nested commands rolling back contexts
      *
      * @param rootContext        main context of macro-command
      * @param rollbackResult collection of all nested contexts after nested commands rollback

@@ -24,7 +24,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
@@ -80,7 +80,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     StudentCommand studentCommand;
     @MockitoSpyBean
     @Autowired
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Autowired
     CommandThroughMessageService messagesExchangeService;
 
@@ -93,7 +93,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

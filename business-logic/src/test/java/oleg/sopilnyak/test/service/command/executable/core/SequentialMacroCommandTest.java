@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommandTest.FakeSequentialCommand.overrideCourseContext;
-import static oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommandTest.FakeSequentialCommand.overrideStudentContext;
+import static oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommandTest.FakeSequentialCommand.overrideCourseContext;
+import static oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommandTest.FakeSequentialCommand.overrideStudentContext;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.FAIL;
@@ -24,8 +24,8 @@ import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -69,7 +69,7 @@ class SequentialMacroCommandTest {
     @Mock
     volatile CourseCommand<?> courseCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     @BeforeEach
     void setUp() {
@@ -77,7 +77,7 @@ class SequentialMacroCommandTest {
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
         setupBaseCommandIds();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @Test
@@ -610,7 +610,7 @@ class SequentialMacroCommandTest {
         static CommandContext<Double> overrideCourseContext;
         private final Logger logger = LoggerFactory.getLogger(FakeSequentialCommand.class);
 
-        public FakeSequentialCommand(StudentCommand<?> student, CourseCommand<?> course, ActionExecutor actionExecutor) {
+        public FakeSequentialCommand(StudentCommand<?> student, CourseCommand<?> course, CommandActionExecutor actionExecutor) {
             super(actionExecutor);
             overrideStudentContext = CommandContext.<Double>builder().command((RootCommand<Double>) student).state(INIT).build();
             overrideCourseContext = CommandContext.<Double>builder().command((RootCommand<Double>) course).state(INIT).build();

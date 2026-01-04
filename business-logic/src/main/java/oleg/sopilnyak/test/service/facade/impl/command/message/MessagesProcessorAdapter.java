@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.service.facade.impl.command.message;
 
-import oleg.sopilnyak.test.service.message.CommandMessage;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 
@@ -14,15 +13,12 @@ public abstract class MessagesProcessorAdapter implements MessagesProcessor {
     protected final Logger log;
     private final AtomicBoolean processorActive;
     private final AtomicBoolean serviceActive;
-    private final Executor executor;
 
     protected MessagesProcessorAdapter(AtomicBoolean processorActive,
                                        AtomicBoolean serviceActive,
-                                       Executor executor,
                                        Logger log) {
         this.processorActive = processorActive;
         this.serviceActive = serviceActive;
-        this.executor = executor;
         this.log = log;
     }
 
@@ -35,17 +31,6 @@ public abstract class MessagesProcessorAdapter implements MessagesProcessor {
     @Override
     public boolean isOwnerActive() {
         return serviceActive.get();
-    }
-
-    /**
-     * To get the executor for taken messages
-     *
-     * @return executor reference
-     * @see this#onTakenMessage(CommandMessage)
-     */
-    @Override
-    public Executor takenMessageExecutor() {
-        return executor;
     }
 
     /**

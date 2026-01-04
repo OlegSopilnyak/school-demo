@@ -2,10 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -74,7 +74,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     public CreateAuthorityPersonMacroCommand(
             @Qualifier(AuthorityPersonCommand.Component.CREATE_OR_UPDATE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.CREATE_OR_UPDATE) PrincipalProfileCommand<?> profileCommand,
-            BusinessMessagePayloadMapper payloadMapper, ActionExecutor actionExecutor
+            BusinessMessagePayloadMapper payloadMapper, CommandActionExecutor actionExecutor
     ) {
         super(actionExecutor);
         this.payloadMapper = payloadMapper;
@@ -89,7 +89,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
     @SuppressWarnings("unchecked")
     @Override

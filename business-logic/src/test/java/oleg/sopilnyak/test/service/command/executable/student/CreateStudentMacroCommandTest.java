@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
@@ -68,7 +68,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
     @InjectMocks
     CreateOrUpdateStudentCommand personCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Mock
     ApplicationContext applicationContext;
 
@@ -85,7 +85,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         // execute command locally
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

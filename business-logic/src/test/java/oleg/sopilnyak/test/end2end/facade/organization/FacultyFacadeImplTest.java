@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
@@ -66,6 +66,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class FacultyFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_FACULTY_FIND_ALL = "organization.faculty.findAll";
     private static final String ORGANIZATION_FACULTY_FIND_BY_ID = "organization.faculty.findById";
@@ -74,7 +75,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
 
     @MockitoSpyBean
     @Autowired
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @MockitoSpyBean
     @Autowired
     CommandThroughMessageService commandThroughMessageService;
@@ -110,7 +111,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         commandThroughMessageService.shutdown();
         ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
         commandThroughMessageService.initialize();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

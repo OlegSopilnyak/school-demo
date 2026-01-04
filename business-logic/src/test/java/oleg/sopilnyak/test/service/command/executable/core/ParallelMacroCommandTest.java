@@ -1,6 +1,6 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommandTest.FakeParallelCommand.overrideStudentContext;
+import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommandTest.FakeParallelCommand.overrideStudentContext;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
@@ -21,8 +21,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -60,7 +60,7 @@ class ParallelMacroCommandTest {
     @Mock
     StudentCommand<Double> studentCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Spy
     @InjectMocks
     volatile FakeParallelCommand command;
@@ -72,7 +72,7 @@ class ParallelMacroCommandTest {
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach
@@ -439,7 +439,7 @@ class ParallelMacroCommandTest {
         static CommandContext<Double> overrideStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
 
-        public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand<Double> student, ActionExecutor actionExecutor) {
+        public FakeParallelCommand(SchedulingTaskExecutor commandContextExecutor, StudentCommand<Double> student, CommandActionExecutor actionExecutor) {
             super(actionExecutor, commandContextExecutor);
             overrideStudentContext = CommandContext.<Double>builder().command(student).state(INIT).build();
         }

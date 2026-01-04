@@ -20,7 +20,7 @@ import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -42,6 +42,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteFacultyCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class DeleteFacultyCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -216,8 +217,7 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private Faculty persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             Faculty source = makeCleanFacultyNoDean(0);
             FacultyEntity entity = entityMapper.toEntity(source);
@@ -229,7 +229,6 @@ class DeleteFacultyCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(FacultyEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

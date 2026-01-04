@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.io.parameter;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 

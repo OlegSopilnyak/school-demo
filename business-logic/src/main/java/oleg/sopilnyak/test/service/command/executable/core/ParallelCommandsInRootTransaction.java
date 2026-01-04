@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +34,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             }
             return inRootTransaction.result.get();
         } else {
-            getLog().warn("Cannot add processing to the queue");
+            getLog().warn("Cannot add doingMainLoop to the queue");
             return null;
         }
     }
@@ -63,7 +63,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             try {
                 result.getAndSet(calculateResult.get());
             } catch (Exception e) {
-                logger.error("Cannot execute processing.", e);
+                logger.error("Cannot execute doingMainLoop.", e);
             } finally {
                 actionIsFinished();
             }

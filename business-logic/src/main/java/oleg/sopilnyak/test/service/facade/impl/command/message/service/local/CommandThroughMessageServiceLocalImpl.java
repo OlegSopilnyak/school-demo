@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.facade.impl.command.message.service.local;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.facade.impl.command.message.MessageProgressWatchdog;
-import oleg.sopilnyak.test.service.facade.impl.command.message.MessagesProcessor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.facade.impl.command.message.MessagesProcessorAdapter;
 import oleg.sopilnyak.test.service.facade.impl.command.message.service.CommandThroughMessageServiceAdapter;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * Service Implementation: execute command using request/response model (Local version through blocking queues)
  *
  * @see CommandThroughMessageService
- * @see ActionExecutor#processActionCommand(CommandMessage)
+ * @see CommandActionExecutor#processActionCommand(CommandMessage)
  * @see BlockingQueue
  */
 
@@ -118,6 +118,24 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
                 ActionContext.release();
             }
         }
+
+        /**
+         * To run processor's taken message in asynchronous way
+         *
+         * @param runProcessTakenMessage taken message process runner
+         */
+        @Override
+        public void runAsyncTakenMessage(Runnable runProcessTakenMessage) {
+
+        }
+
+        /**
+         * To shut down the messages processor
+         */
+        @Override
+        public void shutdown() {
+
+        }
     }
 
     // Messages processor for background processing of responses
@@ -146,6 +164,24 @@ public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessage
             final String correlationId = message.getCorrelationId();
             log.info("Finishing processing response with correlationId='{}' which is needs completion", correlationId);
             completeMessageProcessing(message);
+        }
+
+        /**
+         * To run processor's taken message in asynchronous way
+         *
+         * @param runProcessTakenMessage taken message process runner
+         */
+        @Override
+        public void runAsyncTakenMessage(Runnable runProcessTakenMessage) {
+
+        }
+
+        /**
+         * To shut down the messages processor
+         */
+        @Override
+        public void shutdown() {
+
         }
 
         @SuppressWarnings("unchecked")

@@ -3,9 +3,9 @@ package oleg.sopilnyak.test.service.command.type.base;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
  */
 public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContextVisitor {
     /**
-     * To get processing-executor for nested commands processing
+     * To get doingMainLoop-executor for nested commands doingMainLoop
      *
      * @return instance of the executor
      */
-    default ActionExecutor getActionExecutor() {
-        throw new UnsupportedOperationException("ActionExecutor instance should be reachable");
+    default CommandActionExecutor getActionExecutor() {
+        throw new UnsupportedOperationException("CommandActionExecutor instance should be reachable");
     }
 
     /**
@@ -45,10 +45,9 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * To put the command to the composite's nest
      *
      * @param command the instance to put
-     * @return true if added
      * @param <N> the result type of the nested command
      */
-    <N> boolean putToNest(NestedCommand<N> command);
+    <N> void putToNest(NestedCommand<N> command);
 
     /**
      * To build command's context of composite command for the input
@@ -123,33 +122,33 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     /**
-     * To execute DO of nested command with the nested context and context-state-change listener through processing-executor
+     * To execute DO of nested command with the nested context and context-state-change listener through doingMainLoop-executor
      *
      * @param <N>      the type of nested command execution result
      * @param context  the context used for use with the nested command
      * @param listener which will be notified by new states after do execution
      * @return context after nested command do
      * @see CompositeCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see ActionExecutor#commitAction(ActionContext, Context)
+     * @see CommandActionExecutor#commitAction(ActionContext, Context)
      * @see Context#getHistory()
      * @see Context.LifeCycleHistory#states()
      * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
      */
     default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
         if (isNull(listener)) {
-            // execute nested context using processing executor
+            // execute nested context using doingMainLoop executor
             return getActionExecutor().commitAction(ActionContext.current(), context);
         }
         // store states before do execution
         final Deque<Context.State> statesBefore = context.getHistory().states();
         //
-        // execute nested context using processing executor
+        // execute nested context using doingMainLoop executor
         Context<N> result;
         try {
             result = getActionExecutor().commitAction(ActionContext.current(), context);
         } catch (Exception e) {
             result = context.failed(e);
-            getLog().error("Cannot commit nested context using processing executor...", e);
+            getLog().error("Cannot commit nested context using doingMainLoop executor...", e);
         }
         //
         // notifying context the state-change-listener by new states after DO execution
@@ -198,14 +197,14 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * @param context the command-context for undo of nested command
      * @return command-context after nested command undo
      * @see CompositeCommand#rollbackNested(Deque)
-     * @see ActionExecutor#rollbackAction(ActionContext, Context)
+     * @see CommandActionExecutor#rollbackAction(ActionContext, Context)
      */
     default Context<?> executeUndoNested(final Context<?> context) {
         try{
-            // execute rollback for nested context using processing executor
+            // execute rollback for nested context using doingMainLoop executor
             return getActionExecutor().rollbackAction(ActionContext.current(), context);
         } catch (Exception e) {
-            getLog().error("Cannot rollback nested context using processing executor...", e);
+            getLog().error("Cannot rollback nested context using doingMainLoop executor...", e);
             return context.failed(e);
         }
     }

@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import java.io.Serializable;
 
 /**
- * Type: Command to execute the business-logic processing as a nested-command of CompositeCommand
+ * Type: Command to execute the business-logic doingMainLoop as a nested-command of CompositeCommand
  *
  * @param <T> the type of command execution (do) result
  * @see CompositeCommand
@@ -29,7 +29,7 @@ public interface NestedCommand<T> extends Serializable {
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(NestedCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     Context<T> acceptPreparedContext(PrepareNestedContextVisitor visitor, Input<?> macroInputParameter);
 

@@ -7,10 +7,10 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -69,7 +69,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
                 // actually it's proxy of the command with transactional executeDo/executeUndo methods
                 final String springName = Component.DELETE_ALL;
                 final Class<MacroDeleteStudent<Boolean>> familyType = commandFamily();
-                getLog().info("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
+                getLog().debug("Getting command from family:{} bean-name:{}",familyType.getSimpleName(), springName);
                 self.getAndSet(applicationContext.getBean(springName, familyType));
             }
         }
@@ -104,7 +104,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
             @Qualifier(StudentCommand.Component.DELETE) StudentCommand<?> personCommand,
             @Qualifier(StudentProfileCommand.Component.DELETE_BY_ID) StudentProfileCommand<?> profileCommand,
             @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
-            StudentsPersistenceFacade persistence, ActionExecutor actionExecutor
+            StudentsPersistenceFacade persistence, CommandActionExecutor actionExecutor
     ) {
         super(actionExecutor, executor);
         this.persistence = persistence;
@@ -117,7 +117,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
     @Override
     public Boolean finalCommandResult(Deque<Context<?>> contexts) {

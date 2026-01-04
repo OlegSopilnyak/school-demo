@@ -19,7 +19,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundE
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.CreateOrUpdateFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.DeleteFacultyCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.faculty.FindAllFacultiesCommand;
@@ -48,6 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class FacultyFacadeImplTest {
     private static final String ORGANIZATION_FACULTY_FIND_ALL = "organization.faculty.findAll";
     private static final String ORGANIZATION_FACULTY_FIND_BY_ID = "organization.faculty.findById";
@@ -59,7 +60,7 @@ class FacultyFacadeImplTest {
     CommandsFactory<FacultyCommand<?>> factory;
     FacultyFacadeImpl facade;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Mock
     ApplicationContext applicationContext;
 
@@ -72,7 +73,7 @@ class FacultyFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

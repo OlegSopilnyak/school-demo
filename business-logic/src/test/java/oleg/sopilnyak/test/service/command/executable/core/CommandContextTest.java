@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
@@ -15,7 +15,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CommandContextTest<T> {
     @Mock
     RootCommand<T> rootCommand;
@@ -201,7 +202,7 @@ class CommandContextTest<T> {
     private static void sleepMilliseconds(long sleepTime) {
         try {
             TimeUnit.MILLISECONDS.sleep(sleepTime);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             // do nothing
         }
     }

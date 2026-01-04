@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -128,7 +128,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
         }
 
         @Bean
-        public ActionExecutor actionExecutor() {
+        public CommandActionExecutor actionExecutor() {
             return new ActionExecutorImpl(commandThroughMessageService());
         }
 

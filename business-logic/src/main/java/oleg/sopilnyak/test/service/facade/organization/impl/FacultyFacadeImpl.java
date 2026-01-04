@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.base.Organ
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -40,7 +40,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     public FacultyFacadeImpl(
             CommandsFactory<FacultyCommand<?>> factory,
             BusinessMessagePayloadMapper mapper,
-            ActionExecutor actionExecutor
+            CommandActionExecutor actionExecutor
     ) {
         super(factory, actionExecutor);
         this.toPayload = faculty -> faculty instanceof FacultyPayload ? faculty : mapper.toPayload(faculty);

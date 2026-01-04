@@ -228,7 +228,7 @@ public interface Context<T> extends Serializable {
      */
     interface StateChangedListener {
         /**
-         * State changed event processing method
+         * State changed event doingMainLoop method
          *
          * @param context  the context where state was changed
          * @param previous previous context state value

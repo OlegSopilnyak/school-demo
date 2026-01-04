@@ -18,7 +18,7 @@ public class UndoCommandMessage extends BaseCommandMessage {
      * type of execution result is not important, because undoCommand does not return any result
      *
      * @param correlationId correlation id of the message
-     * @param actionContext processing context of the message
+     * @param actionContext doingMainLoop context of the message
      * @param context       context of the command execution
      * @return instance of DoCommandMessage
      * @see Builder
@@ -35,7 +35,7 @@ public class UndoCommandMessage extends BaseCommandMessage {
      * Private constructor to create message to commands subsystem (to execute undoCommand)
      *
      * @param correlationId correlation id of the message
-     * @param actionContext processing context of the message
+     * @param actionContext doingMainLoop context of the message
      * @param context       context of the command execution
      */
     private UndoCommandMessage(String correlationId, ActionContext actionContext, Context<?> context) {

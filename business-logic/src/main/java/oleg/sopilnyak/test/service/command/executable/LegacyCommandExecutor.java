@@ -17,8 +17,8 @@ import java.util.function.Supplier;
  * The main engine for execute school commands
  * @deprecated
  */
-@Deprecated(since = "ActionExecutor is used instead")
-public interface CommandExecutor {
+@Deprecated(since = "CommandActionExecutor is used instead")
+public interface LegacyCommandExecutor {
     /**
      * To do simple school-command using Context
      *
@@ -30,8 +30,8 @@ public interface CommandExecutor {
      * @return result of command execution
      * @see CommandsFactory
      * @see RootCommand
-     * @see CommandExecutor#takeValidCommand(String, CommandsFactory)
-     * @see CommandExecutor#doCommand(RootCommand, Input)
+     * @see LegacyCommandExecutor#takeValidCommand(String, CommandsFactory)
+     * @see LegacyCommandExecutor#doCommand(RootCommand, Input)
      */
     static <T, C extends RootCommand<?>> T doSimpleCommand(final String commandId,
                                                            final Input<?> input,
@@ -54,8 +54,8 @@ public interface CommandExecutor {
      * @see Context
      * @see Context#getResult()
      * @see Context#getState()
-     * @see CommandExecutor#throwFor(String, Exception)
-     * @see CommandExecutor#createThrowFor(String)
+     * @see LegacyCommandExecutor#throwFor(String, Exception)
+     * @see LegacyCommandExecutor#createThrowFor(String)
      */
     private static <T, C extends RootCommand> T doCommand(final C command, final Input<?> input) {
         final Context<T> context = command.createContext(input);
@@ -78,7 +78,7 @@ public interface CommandExecutor {
      * @param <T>       type of command to execute doCommand method
      * @return valid taken command or throws
      * @see CommandsFactory#command(String)
-     * @see CommandExecutor#throwFor(String, Exception)
+     * @see LegacyCommandExecutor#throwFor(String, Exception)
      * @see CommandNotRegisteredInFactoryException
      */
     static <T extends RootCommand<?>> T takeValidCommand(final String commandId,
@@ -93,7 +93,7 @@ public interface CommandExecutor {
      *
      * @param commandId command-id where something went wrong
      * @return Runtime-exception instance
-     * @see CommandExecutor#doCommand(RootCommand, Input)
+     * @see LegacyCommandExecutor#doCommand(RootCommand, Input)
      */
     static Supplier<RuntimeException> createThrowFor(final String commandId) {
         return () -> new UnableExecuteCommandException(commandId);
@@ -106,7 +106,7 @@ public interface CommandExecutor {
      * @param e         unhandled exception occurred during command execution
      * @param <T>       type of command result or command type to execute doCommand
      * @return nothing
-     * @see CommandExecutor#doCommand(RootCommand, Input)
+     * @see LegacyCommandExecutor#doCommand(RootCommand, Input)
      */
     static <T> T throwFor(final String commandId, final Exception e) {
         throw new UnableExecuteCommandException(commandId, e);

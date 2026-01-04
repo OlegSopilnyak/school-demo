@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
-import static oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
+import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
 import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.JSON_CONTEXT_MODULE_BEAN_NAME;
 import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
 
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -61,12 +61,12 @@ public class SchoolCommandsConfiguration {
      * @return the instance
      */
     @Bean
-    public ActionExecutor actionExecutor() {
+    public CommandActionExecutor actionExecutor() {
         return new ActionExecutorImpl(commandThroughMessageService());
     }
 
     /**
-     * Local implementation of command messages deliverer for processing-executor
+     * Local implementation of command messages deliverer for doingMainLoop-executor
      *
      * @return implementation based on local queues
      * @see ActionExecutorImpl#processActionCommand(CommandMessage)

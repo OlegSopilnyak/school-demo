@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;

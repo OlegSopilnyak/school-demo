@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys.context.history;
+package oleg.sopilnyak.test.service.command.executable.core.context.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

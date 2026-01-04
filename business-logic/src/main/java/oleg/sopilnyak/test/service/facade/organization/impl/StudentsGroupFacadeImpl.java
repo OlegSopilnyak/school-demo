@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.base.Organ
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
@@ -38,7 +38,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     public StudentsGroupFacadeImpl(
             CommandsFactory<StudentsGroupCommand<?>> factory,
             BusinessMessagePayloadMapper mapper,
-            ActionExecutor actionExecutor
+            CommandActionExecutor actionExecutor
     ) {
         super(factory, actionExecutor);
         this.toPayload = group -> group instanceof StudentsGroupPayload ? group : mapper.toPayload(group);

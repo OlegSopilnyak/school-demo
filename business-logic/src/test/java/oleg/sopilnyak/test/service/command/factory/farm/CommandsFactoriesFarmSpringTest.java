@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.factory.farm;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -34,7 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class CommandsFactoriesFarmSpringTest {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
     @MockitoBean
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @MockitoBean(name = "parallelCommandNestedCommandsExecutor")
     SchedulingTaskExecutor executor;
     @MockitoBean

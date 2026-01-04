@@ -6,7 +6,7 @@ import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacad
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
@@ -30,14 +30,14 @@ import lombok.extern.slf4j.Slf4j;
 public class StudentsFacadeImpl implements StudentsFacade, ActionFacade {
     private final CommandsFactory<StudentCommand<?>> factory;
     @Getter
-    private final ActionExecutor actionExecutor;
+    private final CommandActionExecutor actionExecutor;
     // semantic data to payload converter
     private final UnaryOperator<Student> toPayload;
 
     public StudentsFacadeImpl(
             CommandsFactory<StudentCommand<?>> factory,
             BusinessMessagePayloadMapper mapper,
-            ActionExecutor actionExecutor
+            CommandActionExecutor actionExecutor
     ) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;

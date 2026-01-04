@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested.legacy;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -12,13 +12,13 @@ import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResul
 import java.io.Serializable;
 
 /**
- * Type: Command to execute the business-logic processing as a nested-command of CompositeCommand
+ * Type: Command to execute the business-logic doingMainLoop as a nested-command of CompositeCommand
  *
  * @param <T> the type of command execution (do) result
  * @see CompositeCommand
  * @deprecated
  */
-@Deprecated(since = "ActionExecutor is used instead")
+@Deprecated(since = "CommandActionExecutor is used instead")
 public interface NestedCommandExecutable<T> extends Serializable {
     /**
      * To prepare context for nested command using the visitor
@@ -27,7 +27,7 @@ public interface NestedCommandExecutable<T> extends Serializable {
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(NestedCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     Context<T> acceptPreparedContext(PrepareNestedContextVisitor visitor, Input<?> macroInputParameter);
 
@@ -64,7 +64,7 @@ public interface NestedCommandExecutable<T> extends Serializable {
     /**
      * For nested command in the sequential macro-command
      *
-     * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
+     * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand
      */
     @Deprecated
     interface InSequence {

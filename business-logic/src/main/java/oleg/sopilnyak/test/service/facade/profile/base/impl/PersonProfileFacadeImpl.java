@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.facade.profile.base.impl;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -29,12 +29,12 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     // semantic data to payload converter
     private final UnaryOperator<PersonProfile> toPayload;
     @Getter
-    private final ActionExecutor actionExecutor;
+    private final CommandActionExecutor actionExecutor;
 
     protected PersonProfileFacadeImpl(
             CommandsFactory<P> factory,
             BusinessMessagePayloadMapper mapper,
-            ActionExecutor actionExecutor
+            CommandActionExecutor actionExecutor
     ) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;

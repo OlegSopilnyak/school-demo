@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.group.CreateOrUpdateStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.DeleteStudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.group.FindAllStudentsGroupsCommand;
@@ -68,6 +68,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "organization.students.group.findAll";
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "organization.students.group.findById";
@@ -76,7 +77,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @MockitoSpyBean
     @Autowired
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @MockitoSpyBean
     @Autowired
     CommandThroughMessageService commandThroughMessageService;
@@ -112,7 +113,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         commandThroughMessageService.shutdown();
         ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
         commandThroughMessageService.initialize();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

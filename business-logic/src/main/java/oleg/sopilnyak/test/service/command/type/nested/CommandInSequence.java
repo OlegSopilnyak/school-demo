@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -9,7 +9,7 @@ import oleg.sopilnyak.test.service.command.type.base.RootCommand;
  * Command Marker: Mark the nested command which is using in the commands sequence
  *
  * @see NestedCommand
- * @see oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand
+ * @see oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand
  * @deprecated
  */
 @Deprecated

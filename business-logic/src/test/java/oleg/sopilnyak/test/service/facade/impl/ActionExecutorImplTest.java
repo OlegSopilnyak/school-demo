@@ -36,6 +36,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class ActionExecutorImplTest<T> {
     @Spy
     @InjectMocks
@@ -48,7 +49,7 @@ class ActionExecutorImplTest<T> {
     @InjectMocks
     CommandThroughMessageServiceLocalImpl messagesExchangeService;
 
-    ActionContext actionContext = ActionContext.builder().actionName("test-processing").facadeName("test-facade").build();
+    ActionContext actionContext = ActionContext.builder().actionName("test-doingMainLoop").facadeName("test-facade").build();
     @Mock
     Context<T> commandContext;
     @Mock
@@ -154,14 +155,13 @@ class ActionExecutorImplTest<T> {
 
     @Test
     void shouldNotProcessActionCommand_UnknownDirection() {
-        reset(applicationContext, objectMapper);
+        reset(applicationContext, objectMapper, command);
         BaseCommandMessage<?> message = new BaseCommandMessage<>("correlation-id", actionContext, commandContext) {
             @Override
             public Direction getDirection() {
                 return Direction.UNKNOWN;
             }
         };
-        doReturn(command).when(commandContext).getCommand();
 
         Exception e = assertThrows(IllegalArgumentException.class, () -> actionExecutor.processActionCommand(message));
 

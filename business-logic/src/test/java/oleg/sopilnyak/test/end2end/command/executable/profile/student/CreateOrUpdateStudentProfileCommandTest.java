@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
@@ -48,6 +48,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -370,14 +371,11 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
 
     private StudentProfile persist(StudentProfile newInstance) {
         StudentProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
@@ -424,14 +422,11 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
 
     private PrincipalProfile persist(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 }

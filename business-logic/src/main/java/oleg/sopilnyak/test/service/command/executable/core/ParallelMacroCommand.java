@@ -1,8 +1,8 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 
@@ -32,7 +32,7 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
     public static final String EXECUTOR_BEAN_NAME = "parallelCommandNestedCommandsExecutor";
     protected final transient Executor executor;
 
-    protected ParallelMacroCommand(ActionExecutor actionExecutor, @Qualifier(EXECUTOR_BEAN_NAME) Executor executor) {
+    protected ParallelMacroCommand(CommandActionExecutor actionExecutor, @Qualifier(EXECUTOR_BEAN_NAME) Executor executor) {
         super(actionExecutor);
         this.executor = executor;
     }
@@ -123,11 +123,11 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
 
     // run nested command execution in the separate thread
     private CompletableFuture<Context<?>> launchNestedCommandWith(final Supplier<Context<?>> commandExecution) {
-        // prepare processing context for execute command execution of the nested command
+        // prepare doingMainLoop context for execute command execution of the nested command
         final ActionContext actionContext = ActionContext.current();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // setup processing context for the thread of threads pool
+                // setup doingMainLoop context for the thread of threads pool
                 ActionContext.install(actionContext);
                 return commandExecution.get();
             } finally {

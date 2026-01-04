@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
-import oleg.sopilnyak.test.service.facade.impl.command.message.MessageProgressWatchdog;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessageProgressWatchdog;
 import oleg.sopilnyak.test.service.facade.impl.command.message.MessagesProcessorAdapter;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {CommandThroughMessageServiceLocalImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@SuppressWarnings("unchecked")
 class CommandThroughMessageServiceLocalImplTest {
     @MockitoBean("commandsTroughMessageObjectMapper")
     private ObjectMapper objectMapper;
@@ -51,7 +52,7 @@ class CommandThroughMessageServiceLocalImplTest {
     @Autowired
     private CommandThroughMessageServiceLocalImpl service;
 
-    ActionContext actionContext = ActionContext.builder().actionName("test-processing").facadeName("test-facade").build();
+    ActionContext actionContext = ActionContext.builder().actionName("test-doingMainLoop").facadeName("test-facade").build();
     @Mock
     Context<?> commandContext;
     @Mock
@@ -120,7 +121,7 @@ class CommandThroughMessageServiceLocalImplTest {
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(requests::isEmpty);
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
 
-        // check request message processing
+        // check request message doingMainLoop
         verify(message, atLeastOnce()).getContext();
 
         // check command execution
@@ -129,7 +130,7 @@ class CommandThroughMessageServiceLocalImplTest {
         verify(cmd).doCommand(commandCaptor.capture());
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
-        // check response message processing
+        // check response message doingMainLoop
         MessageProgressWatchdog<?> messageWatchDog = messageInProgress.get(message.getCorrelationId());
         assertThat(messageWatchDog).isNotNull();
         assertThat(messageWatchDog.getState()).isEqualTo(MessageProgressWatchdog.State.COMPLETED);
@@ -145,17 +146,17 @@ class CommandThroughMessageServiceLocalImplTest {
                 (Map<String, MessageProgressWatchdog<?>>) ReflectionTestUtils.getField(service, "messageInProgress");
         assertThat(messageInProgress).isNotNull().isEmpty();
         // simulate that message is already in progress
-        messageInProgress.put(message.getCorrelationId(), new MessageProgressWatchdog<>());
+        messageInProgress.put(message.getCorrelationId(), new MessageProgressWatchdog<>(message));
 
         service.send(message);
 
-        // check request message processing
+        // check request message doingMainLoop
         verify(message, never()).getContext();
 
         // check command execution
         verify(((RootCommand<Void>) command), never()).undoCommand(any(Context.class));
 
-        // check response message processing
+        // check response message doingMainLoop
         var messageWatchDog = messageInProgress.get(message.getCorrelationId());
         assertThat(messageWatchDog).isNotNull();
         assertThat(messageWatchDog.getState()).isEqualTo(MessageProgressWatchdog.State.IN_PROGRESS);
@@ -176,7 +177,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
         assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
         assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor isn't in active state.");
-        // check request message processing
+        // check request message doingMainLoop
         verify(message, atLeastOnce()).getContext();
     }
 
@@ -201,7 +202,7 @@ class CommandThroughMessageServiceLocalImplTest {
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(requests::isEmpty);
         await().atMost(Durations.ONE_SECOND).pollInterval(Durations.ONE_HUNDRED_MILLISECONDS).until(responses::isEmpty);
 
-        // check request message processing
+        // check request message doingMainLoop
         verify(message, atLeastOnce()).getContext();
 
         // check command execution
@@ -210,7 +211,7 @@ class CommandThroughMessageServiceLocalImplTest {
         verify(cmd).undoCommand(commandCaptor.capture());
         assertThat(commandContext).isEqualTo(commandCaptor.getValue());
 
-        // check response message processing
+        // check response message doingMainLoop
         MessageProgressWatchdog<?> messageWatchDog = messageInProgress.get(message.getCorrelationId());
         assertThat(messageWatchDog).isNotNull();
         assertThat(messageWatchDog.getState()).isEqualTo(MessageProgressWatchdog.State.COMPLETED);
@@ -231,7 +232,7 @@ class CommandThroughMessageServiceLocalImplTest {
         assertThat(e.getMessage()).isEqualTo("Cannot execute command '" + mockedCommandId + "'");
         assertThat(e.getCause()).isInstanceOf(IllegalStateException.class);
         assertThat(e.getCause().getMessage()).isEqualTo("RequestMessagesProcessor isn't in active state.");
-        // check request message processing
+        // check request message doingMainLoop
         verify(message, atLeastOnce()).getContext();
     }
 
@@ -261,7 +262,7 @@ class CommandThroughMessageServiceLocalImplTest {
         CommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
-        // check message processing is finished
+        // check message doingMainLoop is finished
         assertThat(messageInProgress).isEmpty();
     }
 
@@ -291,7 +292,7 @@ class CommandThroughMessageServiceLocalImplTest {
         CommandMessage<T> result = service.receive(command.getId(), message.getCorrelationId());
 
         assertThat(result).isNotNull().isEqualTo(message);
-        // check message processing is finished
+        // check message doingMainLoop is finished
         assertThat(messageInProgress).isEmpty();
     }
 

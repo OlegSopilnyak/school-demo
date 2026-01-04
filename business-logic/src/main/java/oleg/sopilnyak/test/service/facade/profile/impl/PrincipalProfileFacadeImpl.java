@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.facade.profile.impl;
 import static oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
@@ -22,7 +22,7 @@ public class PrincipalProfileFacadeImpl
 
     public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand<?>> factory,
                                       final BusinessMessagePayloadMapper payloadMapper,
-                                      ActionExecutor actionExecutor) {
+                                      CommandActionExecutor actionExecutor) {
         super(factory, payloadMapper, actionExecutor);
     }
 

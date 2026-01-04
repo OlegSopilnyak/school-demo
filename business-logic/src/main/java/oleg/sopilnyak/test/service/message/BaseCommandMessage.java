@@ -33,20 +33,20 @@ import lombok.Data;
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
     private static final String CORRELATION_ID_FIELD_NAME = "correlation-id";
-    private static final String ACTION_CONTEXT_FIELD_NAME = "processing-context";
+    private static final String ACTION_CONTEXT_FIELD_NAME = "doingMainLoop-context";
     private static final String COMMAND_CONTEXT_FIELD_NAME = "command-context";
     private static final String DIRECTION_FIELD_NAME = "direction";
 
     // correlation ID of the message
     private String correlationId;
-    // the processing context of command's execution
+    // the doingMainLoop context of command's execution
     @JsonDeserialize(using = IOBase.ActionContextDeserializer.class)
     private ActionContext actionContext;
     // the context of command's execution
     private Context<T> context;
 
     /**
-     * To validate message content after build or restore.
+     * To validateInput message content after build or restore.
      * Throws IllegalArgumentException if validation fails.
      */
     public final void validate() {

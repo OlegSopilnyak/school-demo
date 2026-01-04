@@ -4,7 +4,7 @@ import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -91,7 +91,7 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
      * @param macroInputParameter Macro-Command call's input
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(StudentProfileCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {

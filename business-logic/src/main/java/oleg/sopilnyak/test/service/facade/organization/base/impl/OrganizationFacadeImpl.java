@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.facade.organization.base.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
@@ -17,7 +17,7 @@ import lombok.Getter;
 public class OrganizationFacadeImpl<T extends OrganizationCommand<?>> implements OrganizationFacade, ActionFacade {
     protected final CommandsFactory<T> factory;
     @Getter
-    private final ActionExecutor actionExecutor;
+    private final CommandActionExecutor actionExecutor;
 
     /**
      * To get the logger of the facade

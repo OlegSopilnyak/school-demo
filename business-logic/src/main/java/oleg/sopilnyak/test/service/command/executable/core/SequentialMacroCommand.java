@@ -1,6 +1,6 @@
-package oleg.sopilnyak.test.service.command.executable.sys;
+package oleg.sopilnyak.test.service.command.executable.core;
 
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -23,7 +23,7 @@ import org.springframework.util.ObjectUtils;
  * @see MacroCommand
  */
 public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
-    protected SequentialMacroCommand(ActionExecutor actionExecutor) {
+    protected SequentialMacroCommand(CommandActionExecutor actionExecutor) {
         super(actionExecutor);
     }
 

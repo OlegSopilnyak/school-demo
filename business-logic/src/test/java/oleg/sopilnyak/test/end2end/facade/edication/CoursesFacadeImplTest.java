@@ -26,7 +26,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.DeleteCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.FindCourseCommand;
@@ -76,6 +76,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
         SchoolCommandsConfiguration.class,PersistenceConfiguration.class, TestConfig.class
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     public static final String COURSE_FIND_BY_ID = "course.findById";
@@ -92,7 +93,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     ApplicationContext applicationContext;
     @Autowired
     @MockitoSpyBean
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Autowired
     CommandThroughMessageService commandThroughMessageService;
     @Autowired
@@ -125,7 +126,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         commandThroughMessageService.shutdown();
         ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
         commandThroughMessageService.initialize();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach
@@ -149,7 +150,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     void shouldNotFindById() {
         Long courseId = 100L;
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -162,7 +163,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldFindById() {
         Course newCourse = makeClearTestCourse();
         Long courseId = persist(newCourse).getId();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
 
         Optional<Course> course = facade.findById(courseId);
 

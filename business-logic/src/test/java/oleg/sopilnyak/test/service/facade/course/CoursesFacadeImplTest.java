@@ -22,7 +22,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.course.CreateOrUpdateCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.DeleteCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.FindCourseCommand;
@@ -55,6 +55,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CoursesFacadeImplTest {
     private static final String COURSE_FIND_BY_ID = "course.findById";
     private static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
@@ -64,7 +65,7 @@ class CoursesFacadeImplTest {
     private static final String COURSE_REGISTER = "course.register";
     private static final String COURSE_UN_REGISTER = "course.unRegister";
 
-    ActionExecutor actionExecutor = mock(ActionExecutor.class);
+    CommandActionExecutor actionExecutor = mock(CommandActionExecutor.class);
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     CommandsFactory<CourseCommand<?>> factory;
@@ -83,7 +84,7 @@ class CoursesFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new CoursesFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

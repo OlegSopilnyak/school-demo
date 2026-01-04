@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.type.base;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
@@ -13,7 +13,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 
 /**
- * Type: School Command to execute the business-logic processing
+ * Type: School Command to execute the business-logic doingMainLoop
  *
  * @param <T> the type of command execution result
  */

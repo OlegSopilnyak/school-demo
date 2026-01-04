@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.MacroDeleteStudent;
@@ -58,6 +58,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.mapstruct.factory.Mappers;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class DeleteStudentMacroCommandTest extends TestModelFactory {
     @Mock
     PersistenceFacade persistence;
@@ -70,7 +71,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     @InjectMocks
     DeleteStudentCommand personCommand;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Mock
     SchedulingTaskExecutor schedulingTaskExecutor;
     ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -101,7 +102,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         // adjust local command execution
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     // setup nested commands

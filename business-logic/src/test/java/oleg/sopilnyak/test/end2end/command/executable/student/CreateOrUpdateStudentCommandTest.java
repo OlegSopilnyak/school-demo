@@ -19,7 +19,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
@@ -43,6 +43,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, CreateOrUpdateStudentCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -277,8 +278,7 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
 
     // private methods
     private StudentPayload persistStudent() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             Student source = makeClearStudent(0);
             StudentEntity entity = entityMapper.toEntity(source);
@@ -290,7 +290,6 @@ class CreateOrUpdateStudentCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

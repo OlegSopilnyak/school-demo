@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -48,6 +48,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @TestPropertySource(properties = {
         "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"
 })
+@SuppressWarnings("unchecked")
 class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -260,15 +261,12 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
 
     private Course persist(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getStudents().forEach(em::persist);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
@@ -281,8 +279,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
     }
 
     private StudentPayload persistStudent(int order) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             Student source = makeClearStudent(order);
             StudentEntity entity = entityMapper.toEntity(source);
@@ -294,13 +291,11 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 
     private boolean link(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -314,14 +309,11 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
 
     private boolean unlink(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -335,8 +327,6 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
     private StudentPayload persistStudent() {

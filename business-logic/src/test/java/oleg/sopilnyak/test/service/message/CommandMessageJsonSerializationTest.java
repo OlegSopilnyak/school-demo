@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class CommandMessageJsonSerializationTest {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -88,7 +89,7 @@ class CommandMessageJsonSerializationTest {
         String message = "Embedded IO exception message";
         IOException ex = new IOException(message);
         ex.fillInStackTrace();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         CannotProcessActionException exception = new CannotProcessActionException(ex);
         String exceptionMessage = exception.getMessage();
         int stackTraceDepth = ex.getStackTrace().length;
@@ -147,7 +148,7 @@ class CommandMessageJsonSerializationTest {
         ex.fillInStackTrace();
         int stackTraceDepth = ex.getStackTrace().length;
         StringWriter writer = new StringWriter();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         CannotProcessActionException exception = new CannotProcessActionException(ex);
         String exceptionMessage = exception.getMessage();
         JsonGenerator generator = objectMapper.createGenerator(writer);

@@ -26,7 +26,7 @@ import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
@@ -80,6 +80,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class StudentsFacadeImplTest extends MysqlTestModelFactory {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
@@ -95,7 +96,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @MockitoSpyBean
     @Autowired
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @MockitoSpyBean
     @Autowired
     CommandThroughMessageService commandThroughMessageService;
@@ -131,7 +132,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         commandThroughMessageService.shutdown();
         ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
         commandThroughMessageService.initialize();
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @AfterEach

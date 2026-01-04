@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGr
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
@@ -37,7 +37,7 @@ import org.mapstruct.factory.Mappers;
 @Import({SchoolCommandsConfiguration.class})
 @RequiredArgsConstructor
 public class BusinessLogicConfiguration {
-    private final ActionExecutor actionExecutor;
+    private final CommandActionExecutor actionExecutor;
     @Bean
     public BusinessMessagePayloadMapper messagePayloadMapper() {
         return Mappers.getMapper(BusinessMessagePayloadMapper.class);

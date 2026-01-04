@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.factory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -30,7 +30,7 @@ class CourseCommandsFactorySpringTest {
     private static final String SPRING_NAME = "courseCommandsFactory";
     private Collection<String> commandsId;
     @MockitoBean
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @MockitoBean(name = "parallelCommandNestedCommandsExecutor")
     SchedulingTaskExecutor executor;
     @MockitoBean

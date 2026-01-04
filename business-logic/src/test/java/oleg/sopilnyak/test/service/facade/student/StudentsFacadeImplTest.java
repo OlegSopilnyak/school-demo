@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
@@ -60,6 +60,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class StudentsFacadeImplTest {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
     private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
@@ -73,7 +74,7 @@ class StudentsFacadeImplTest {
 
     StudentsFacadeImpl facade;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
     @Mock
     SchedulingTaskExecutor schedulingTaskExecutor;
 
@@ -103,7 +104,7 @@ class StudentsFacadeImplTest {
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper, actionExecutor));
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
     @Test

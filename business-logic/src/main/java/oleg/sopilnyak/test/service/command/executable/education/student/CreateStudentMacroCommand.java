@@ -2,10 +2,10 @@ package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.sys.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.SequentialMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;
@@ -72,7 +72,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
             @Qualifier(Component.CREATE_OR_UPDATE) StudentCommand<?> personCommand,
             @Qualifier(StudentProfileCommand.Component.CREATE_OR_UPDATE) StudentProfileCommand<?> profileCommand,
             final BusinessMessagePayloadMapper payloadMapper,
-            final ActionExecutor actionExecutor
+            final CommandActionExecutor actionExecutor
     ) {
         super(actionExecutor);
         this.payloadMapper = payloadMapper;
@@ -85,7 +85,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      *
      * @param contexts nested command-contexts
      * @return the command result's value
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#afterExecutionProcessing(Context, Deque, Deque, Deque)
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -243,7 +243,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.executable.sys.MacroCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     @Override
     public Context<Optional<Student>> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> input) {

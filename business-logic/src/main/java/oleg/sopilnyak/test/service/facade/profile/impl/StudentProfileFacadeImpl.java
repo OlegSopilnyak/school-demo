@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.facade.profile.impl;
 import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.profile.base.impl.PersonProfileFacadeImpl;
@@ -21,7 +21,7 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
 
     public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
                                     final BusinessMessagePayloadMapper payloadMapper,
-                                    ActionExecutor actionExecutor) {
+                                    CommandActionExecutor actionExecutor) {
         super(factory, payloadMapper, actionExecutor);
     }
 

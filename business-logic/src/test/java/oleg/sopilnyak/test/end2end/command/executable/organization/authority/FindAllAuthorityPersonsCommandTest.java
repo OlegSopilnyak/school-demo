@@ -15,7 +15,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -36,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindAllAuthorityPersonsCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -118,8 +119,7 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
     }
 
     private AuthorityPerson persist() {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             AuthorityPerson source = makeCleanAuthorityPerson(0);
             AuthorityPersonEntity entity = entityMapper.toEntity(source);
@@ -131,7 +131,6 @@ class FindAllAuthorityPersonsCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(AuthorityPersonEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 }

@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Setter;
 
 /**
- *  Processor: parent class of messages processing processor, using local blocking-queue
+ *  Processor: parent class of messages doingMainLoop processor, using local blocking-queue
  */
 abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAdapter {
     // last message in the queue marker
@@ -28,11 +28,11 @@ abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAd
     protected MessagesProcessorOnLocalBlockingQueue(
             AtomicBoolean processorActive, AtomicBoolean serviceActive, Executor executor, Logger log
     ) {
-        super(processorActive, serviceActive, executor, log);
+        super(processorActive, serviceActive, log);
     }
 
     /**
-     * To accept for processing command-message
+     * To accept for doingMainLoop command-message
      *
      * @param message command-message to process
      */
@@ -55,7 +55,7 @@ abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAd
     }
 
     /**
-     * To take command message from the appropriate messages queue for further processing
+     * To take command message from the appropriate messages queue for further doingMainLoop
      *
      * @return the command message taken from the appropriate queue
      * @throws InterruptedException if interrupted while waiting

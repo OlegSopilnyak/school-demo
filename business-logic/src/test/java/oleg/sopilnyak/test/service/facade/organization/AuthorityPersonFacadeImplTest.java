@@ -26,7 +26,7 @@ import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
@@ -70,6 +70,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
@@ -79,7 +80,7 @@ class AuthorityPersonFacadeImplTest {
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
     private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
 
-    ActionExecutor actionExecutor = mock(ActionExecutor.class);
+    CommandActionExecutor actionExecutor = mock(CommandActionExecutor.class);
     @Mock
     ApplicationContext applicationContext;
     @Mock
@@ -116,7 +117,7 @@ class AuthorityPersonFacadeImplTest {
     void setUp() {
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

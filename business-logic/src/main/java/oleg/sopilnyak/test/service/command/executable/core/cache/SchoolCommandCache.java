@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys.cache;
+package oleg.sopilnyak.test.service.command.executable.core.cache;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -8,8 +8,8 @@ import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeExce
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.sys.BasicCommand;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -198,7 +198,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
      * @param context             command's do context
      * @param rollbackProcess     process to run after persistence fail
      * @param persistedEntityCopy persisted entity instance copy
-     * @param isCreateEntityMode  if true there was new entity creation processing
+     * @param isCreateEntityMode  if true there was new entity creation doingMainLoop
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)

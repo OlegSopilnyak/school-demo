@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.facade.impl.command.message;
+package oleg.sopilnyak.test.service.command.executable.core.executor.messaging;
 
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
@@ -10,11 +10,18 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class MessageProgressWatchdog<T> {
+    // original instance of the message to watch after
+    private final CommandMessage<T> original;
     @Getter
-    private CommandMessage<T> result = null;
+    private CommandMessage<T> result;
     @Getter
     private volatile State state = State.IN_PROGRESS;
     private final Object getResultMonitor = new Object();
+
+    public MessageProgressWatchdog(CommandMessage<T> original) {
+        this.original = original;
+        this.result  = original;
+    }
 
     public void setResult(CommandMessage<T> result) {
         if (result != null) {
@@ -24,6 +31,7 @@ public class MessageProgressWatchdog<T> {
     }
 
     public void waitForMessageComplete() {
+        result = null;
         synchronized (getResultMonitor) {
             while (state == State.IN_PROGRESS) {
                 try {
@@ -43,10 +51,10 @@ public class MessageProgressWatchdog<T> {
     public void messageProcessingIsDone() {
         synchronized (getResultMonitor) {
             if (state == State.COMPLETED) {
-                getResultMonitor.notifyAll();
+                getResultMonitor.notify();
             }
         }
     }
-    // State of message processing
+    // State of message doingMainLoop
     public enum State {IN_PROGRESS, COMPLETED}
 }

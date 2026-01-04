@@ -20,7 +20,7 @@ import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.ActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.CreateOrUpdatePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.FindPrincipalProfileCommand;
@@ -45,6 +45,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class PrincipalProfileFacadeImplTest {
     private static final String PROFILE_FIND_BY_ID = "profile.principal.findById";
     private static final String PROFILE_CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
@@ -61,7 +62,7 @@ class PrincipalProfileFacadeImplTest {
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
     PrincipalProfileFacadeImpl facade;
     @Mock
-    ActionExecutor actionExecutor;
+    CommandActionExecutor actionExecutor;
 
     @Mock
     PrincipalProfile profile;
@@ -72,7 +73,7 @@ class PrincipalProfileFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new PrincipalProfileFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-processing");
+        ActionContext.setup("test-facade", "test-doingMainLoop");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

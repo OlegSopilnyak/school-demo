@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.nested;
 
-import oleg.sopilnyak.test.service.command.executable.sys.MacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 
 import java.util.Deque;
@@ -24,7 +24,7 @@ public class NestedStateChangedListener implements Context.StateChangedListener 
     private final Logger log;
 
     /**
-     * State changed event processing method
+     * State changed event doingMainLoop method
      *
      * @param context  the context where state was changed
      * @param previous previous context state value

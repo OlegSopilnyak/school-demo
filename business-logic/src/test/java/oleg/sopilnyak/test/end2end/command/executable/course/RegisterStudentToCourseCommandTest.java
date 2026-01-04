@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -52,6 +52,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
         "school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update",
         "school.courses.maximum.rooms=2", "school.students.maximum.courses=2"
 })
+@SuppressWarnings("unchecked")
 class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -330,15 +331,12 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
 
     private Course persist(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getStudents().forEach(em::persist);
             em.getTransaction().commit();
             return entity;
-        } finally {
-            em.close();
         }
     }
 
@@ -351,8 +349,7 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
     }
 
     private StudentPayload persistStudent(int order) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             Student source = makeClearStudent(order);
             StudentEntity entity = entityMapper.toEntity(source);
@@ -364,13 +361,11 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             return payloadMapper.toPayload(em.find(StudentEntity.class, entity.getId()));
         } finally {
             reset(payloadMapper);
-            em.close();
         }
     }
 
     private boolean link(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -384,14 +379,11 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
 
     private boolean unlink(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -405,8 +397,6 @@ class RegisterStudentToCourseCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
 

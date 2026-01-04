@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.executable.sys.context;
+package oleg.sopilnyak.test.service.command.executable.core.context;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -9,7 +9,7 @@ import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
 import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
 
-import oleg.sopilnyak.test.service.command.executable.sys.context.history.History;
+import oleg.sopilnyak.test.service.command.executable.core.context.history.History;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
 import oleg.sopilnyak.test.service.command.type.base.RootCommand;

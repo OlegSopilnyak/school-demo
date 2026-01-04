@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.sys.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.base.Context;
@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
 @DirtiesContext
+@SuppressWarnings("unchecked")
 class ContextInputParameterTest {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
     private static final String STUDENT_FIND_ENROLLED = "student.findEnrolledTo";
