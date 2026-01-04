@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
@@ -17,7 +17,7 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 

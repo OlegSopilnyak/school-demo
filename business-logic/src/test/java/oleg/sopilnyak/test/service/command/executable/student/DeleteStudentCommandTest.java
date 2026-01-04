@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.student;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -21,7 +21,7 @@ import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersisten
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;

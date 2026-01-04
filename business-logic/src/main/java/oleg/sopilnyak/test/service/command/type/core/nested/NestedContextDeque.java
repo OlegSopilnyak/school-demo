@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.nested;
+package oleg.sopilnyak.test.service.command.type.core.nested;
 
 import java.util.Deque;
 import java.util.LinkedList;

@@ -7,9 +7,9 @@ import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
@@ -254,7 +254,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.type.core.CompositeCommand#createContext(Input)
      */
     @Override
     public Context<Optional<AuthorityPerson>> acceptPreparedContext(

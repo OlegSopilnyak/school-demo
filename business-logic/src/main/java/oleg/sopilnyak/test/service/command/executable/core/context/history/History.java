@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.core.context.history;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.io.IOException;
 import java.time.Duration;

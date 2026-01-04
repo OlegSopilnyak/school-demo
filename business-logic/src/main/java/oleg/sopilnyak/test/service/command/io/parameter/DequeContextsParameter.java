@@ -5,7 +5,7 @@ import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NA
 
 import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.io.IOException;
 import java.util.Deque;

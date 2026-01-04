@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.base;
+package oleg.sopilnyak.test.service.command.type.core;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;

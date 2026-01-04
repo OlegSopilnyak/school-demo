@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.factory.base;
 
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -1,10 +1,10 @@
-package oleg.sopilnyak.test.service.command.type.nested;
+package oleg.sopilnyak.test.service.command.type.core.nested;
 
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;

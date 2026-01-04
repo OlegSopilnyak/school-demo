@@ -2,13 +2,13 @@ package oleg.sopilnyak.test.service.command.executable.core;
 
 import static oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommandTest.FakeSequentialCommand.overrideCourseContext;
 import static oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommandTest.FakeSequentialCommand.overrideStudentContext;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.FAIL;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.INIT;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.READY;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.WORK;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.FAIL;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.INIT;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.READY;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.WORK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -28,11 +28,11 @@ import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActio
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 

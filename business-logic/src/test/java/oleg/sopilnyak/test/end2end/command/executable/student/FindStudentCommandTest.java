@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.end2end.command.executable.student;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.DONE;
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.UNDONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.DONE;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.anyLong;
@@ -20,7 +20,7 @@ import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersisten
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindStudentCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 

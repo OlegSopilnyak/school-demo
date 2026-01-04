@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.type.nested;
+package oleg.sopilnyak.test.service.command.type.core.nested;
 
 import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.util.Deque;
 import java.util.concurrent.CountDownLatch;

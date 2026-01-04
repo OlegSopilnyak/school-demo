@@ -4,7 +4,7 @@ import static oleg.sopilnyak.test.service.message.CommandMessage.Direction.DO;
 import static oleg.sopilnyak.test.service.message.CommandMessage.Direction.UNDO;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.DoCommandMessage;
@@ -53,8 +53,8 @@ public interface CommandActionExecutor {
      * @see CommandMessage
      * @see Context
      * @see Context#getCommand()
-     * @see oleg.sopilnyak.test.service.command.type.base.CommandExecutable#doCommand(Context)
-     * @see oleg.sopilnyak.test.service.command.type.base.CommandExecutable#undoCommand(Context)
+     * @see oleg.sopilnyak.test.service.command.type.core.CommandExecutable#doCommand(Context)
+     * @see oleg.sopilnyak.test.service.command.type.core.CommandExecutable#undoCommand(Context)
      */
     default <T> CommandMessage<T> processActionCommand(final CommandMessage<T> message) {
         //

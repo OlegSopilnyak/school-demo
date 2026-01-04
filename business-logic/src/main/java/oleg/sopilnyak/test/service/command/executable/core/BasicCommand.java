@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.executable.core;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.BeanFactory;

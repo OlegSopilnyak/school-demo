@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.service.command.executable.core;
 
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.exception.CannotTransferCommandResultException;
 
 import java.util.Deque;

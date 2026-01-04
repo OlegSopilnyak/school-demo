@@ -6,7 +6,7 @@ import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAM
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.io.IOException;

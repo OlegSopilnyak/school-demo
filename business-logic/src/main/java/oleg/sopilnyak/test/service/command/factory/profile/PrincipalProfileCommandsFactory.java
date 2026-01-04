@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.factory.profile;
 import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.base.ProfileCommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 
 import java.util.Collection;

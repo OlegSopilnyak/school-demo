@@ -1,8 +1,8 @@
-package oleg.sopilnyak.test.service.command.type.nested;
+package oleg.sopilnyak.test.service.command.type.core.nested;
 
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.io.Serializable;
 

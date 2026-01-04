@@ -19,7 +19,7 @@ import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringPairParameter;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
@@ -45,7 +45,7 @@ import org.mapstruct.factory.Mappers;
  * Type: I/O school-command input parameter
  *
  * @param <P> the type of command input parameter
- * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#executeDo(Context)
+ * @see oleg.sopilnyak.test.service.command.type.core.RootCommand#executeDo(Context)
  * @see CommandContext#setRedoParameter(Input)
  */
 public interface Input<P> extends IOBase<P> {

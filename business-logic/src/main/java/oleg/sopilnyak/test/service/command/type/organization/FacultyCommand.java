@@ -3,9 +3,9 @@ package oleg.sopilnyak.test.service.command.type.organization;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 

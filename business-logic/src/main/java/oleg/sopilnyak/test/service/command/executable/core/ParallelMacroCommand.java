@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.service.command.executable.core;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.util.Arrays;
 import java.util.Deque;

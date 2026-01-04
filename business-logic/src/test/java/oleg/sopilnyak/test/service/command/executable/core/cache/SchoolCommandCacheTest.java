@@ -16,8 +16,8 @@ import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeExce
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.util.Optional;

@@ -12,10 +12,10 @@ import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStud
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 
@@ -189,7 +189,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      * @return prepared for nested command context
      * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
      * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
-     * @see oleg.sopilnyak.test.service.command.type.base.CompositeCommand#createContext(Input)
+     * @see oleg.sopilnyak.test.service.command.type.core.CompositeCommand#createContext(Input)
      */
     @Override
     public Context<Boolean> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> macroInputParameter) {

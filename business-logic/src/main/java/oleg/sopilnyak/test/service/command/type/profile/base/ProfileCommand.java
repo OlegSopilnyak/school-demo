@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.profile.base;
 
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 /**
  * Type for school-profile command

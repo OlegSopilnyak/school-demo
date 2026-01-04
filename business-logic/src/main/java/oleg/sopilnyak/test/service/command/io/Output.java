@@ -8,7 +8,7 @@ import oleg.sopilnyak.test.service.command.io.result.OptionalValueResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
 import oleg.sopilnyak.test.service.command.io.result.StringIdResult;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
  * Type: I/O school-command execution result
  *
  * @param <O> the type of command execution result value
- * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#executeDo(Context)
+ * @see oleg.sopilnyak.test.service.command.type.core.RootCommand#executeDo(Context)
  * @see Context#setResult(Object)
  */
 public interface Output<O> extends IOBase<O> {

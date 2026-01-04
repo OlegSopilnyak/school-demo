@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.exception;
 
 import static java.util.Objects.nonNull;
 
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 /**
  * Exception throws when command-executor cannot execute the command

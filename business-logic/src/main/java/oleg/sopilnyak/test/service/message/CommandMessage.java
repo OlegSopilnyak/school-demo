@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.message;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.io.Serializable;
 

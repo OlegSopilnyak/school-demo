@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.exception;
 
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 /**
  * Exception throws when command is not registered in the command registry factory

@@ -1,13 +1,13 @@
-package oleg.sopilnyak.test.service.command.type.nested.legacy;
+package oleg.sopilnyak.test.service.command.type.core.nested.legacy;
 
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.CompositeCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
-import oleg.sopilnyak.test.service.command.type.nested.TransferTransitionalResultVisitor;
+import oleg.sopilnyak.test.service.command.type.core.CompositeCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.core.nested.TransferTransitionalResultVisitor;
 
 import java.io.Serializable;
 

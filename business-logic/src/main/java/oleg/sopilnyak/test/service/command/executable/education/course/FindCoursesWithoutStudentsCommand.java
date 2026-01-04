@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.service.command.executable.education.course;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 

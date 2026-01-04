@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUt
 import oleg.sopilnyak.test.service.command.executable.core.cache.SchoolCommandCache;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 

@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.base;
+package oleg.sopilnyak.test.service.command.type.core;
 
 import static java.util.Objects.isNull;
 
@@ -7,8 +7,8 @@ import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActio
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
-import oleg.sopilnyak.test.service.command.type.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
 
 import java.util.Collection;
 import java.util.Deque;

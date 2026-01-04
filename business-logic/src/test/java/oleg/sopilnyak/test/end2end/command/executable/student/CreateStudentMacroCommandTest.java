@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.end2end.command.executable.student;
 
-import static oleg.sopilnyak.test.service.command.type.base.Context.State.CANCEL;
+import static oleg.sopilnyak.test.service.command.type.core.Context.State.CANCEL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
@@ -28,10 +28,10 @@ import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActio
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
-import oleg.sopilnyak.test.service.command.type.base.Context;
-import oleg.sopilnyak.test.service.command.type.base.RootCommand;
+import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
-import oleg.sopilnyak.test.service.command.type.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;

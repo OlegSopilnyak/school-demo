@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.type.base;
+package oleg.sopilnyak.test.service.command.type.core;
 
 import oleg.sopilnyak.test.service.command.io.Input;
 

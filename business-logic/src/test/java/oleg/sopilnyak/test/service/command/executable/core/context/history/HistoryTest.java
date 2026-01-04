@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.core.context.history;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import java.time.Duration;
 import java.time.Instant;

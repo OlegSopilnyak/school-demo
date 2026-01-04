@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.message;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
-import oleg.sopilnyak.test.service.command.type.base.Context;
+import oleg.sopilnyak.test.service.command.type.core.Context;
 
 import lombok.Builder;
 
@@ -10,7 +10,7 @@ import lombok.Builder;
  * type of execution result is not important, because undoCommand does not return any result
  *
  * @see BaseCommandMessage
- * @see oleg.sopilnyak.test.service.command.type.base.RootCommand#undoCommand(Context)
+ * @see oleg.sopilnyak.test.service.command.type.core.RootCommand#undoCommand(Context)
  */
 public class UndoCommandMessage extends BaseCommandMessage {
     /**
