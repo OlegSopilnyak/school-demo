@@ -230,7 +230,7 @@ class MessagesExchangeTest {
 
     @Test
     void shouldActOnTakenResponseMessage_NoMessageInProgress() {
-        String correlationId = "correlation-id-8";
+        String correlationId = "correlation-id-81";
         doReturn(correlationId).when(taken).getCorrelationId();
 
         exchange.onTakenResponseMessage(taken);
@@ -238,6 +238,28 @@ class MessagesExchangeTest {
         verify(logger).info(anyString(), eq(correlationId));
         verify(exchange).messageWatchdogFor(correlationId);
         verify(logger).warn(anyString(), eq(correlationId));
+    }
+
+    @Test
+    void shouldFinalizeProcessedMessage_ResponsesAccepted() {
+        String correlationId = "correlation-id-9";
+        doReturn(true).when(responsesProcessor).accept(taken);
+
+        exchange.finalizeProcessedMessage(taken, correlationId);
+
+        verify(responsesProcessor).accept(taken);
+        verify(logger).debug(anyString(), eq(correlationId));
+    }
+
+    @Test
+    void shouldFinalizeProcessedMessage_ResponsesNotAccepted() {
+        String correlationId = "correlation-id-91";
+
+        exchange.finalizeProcessedMessage(taken, correlationId);
+
+        verify(responsesProcessor).accept(taken);
+        verify(logger).error(anyString(), eq(correlationId));
+        verify(responsesProcessor).onTakenMessage(taken);
     }
 
     // class implementation
