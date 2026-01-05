@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class MessagesExchange {
     // @see CommandActionExecutor#processActionCommand(CommandMessage)
-    private static final Logger log = LoggerFactory.getLogger("Low Level Command Action Executor");
-    private static final CommandActionExecutor lowLevelActionExecutor = () -> log;
+    private static final Logger logger = LoggerFactory.getLogger("Low Level Command Action Executor");
+    private static final CommandActionExecutor lowLevelActionExecutor = () -> logger;
     // The map of messages in progress, key is correlationId
     private final ConcurrentMap<String, MessageProgressWatchdog<?>> messageInProgress = new ConcurrentHashMap<>();
 
@@ -44,7 +44,7 @@ public abstract class MessagesExchange {
      * To prepare message watcher for the command-message
      *
      * @param correlationId correlation-id of message to watch after
-     * @param original original message to watch after
+     * @param original      original message to watch after
      * @return true if it's made
      */
     public boolean makeMessageInProgress(final String correlationId, final CommandMessage<?> original) {
@@ -86,7 +86,7 @@ public abstract class MessagesExchange {
         messageWatchdogFor(correlationId).ifPresentOrElse(_ -> {
                     //
                     // process the request's command locally and send the result to the responses queue
-                    final CommandMessage<T> result = lowLevelActionExecutor.processActionCommand(message);
+                    final CommandMessage<T> result = processCommandMessage(message);
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
                     // finalize message's processing
@@ -120,7 +120,6 @@ public abstract class MessagesExchange {
         }
     }
 
-
     /**
      * To process the taken response command-message.
      *
@@ -128,7 +127,7 @@ public abstract class MessagesExchange {
      */
     public <T> void onTakenResponseMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
-        log.info("Finishing processing response with correlationId='{}' which is needs completion", correlationId);
+        getLogger().info("Finishing processing response with correlationId='{}' which is needs completion", correlationId);
         // check if the message in progress map by correlation-id
         final Optional<MessageProgressWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
         // save result to watchdog and notify waiting threads
@@ -138,20 +137,32 @@ public abstract class MessagesExchange {
                     // notify thread waiting for this message-watcher result
                     // @see CommandMessagesExchangeExecutorAdapter#retrieveProcessedMessage(command-id,correlation-id)
                     watchDog.messageProcessingIsDone();
-                    log.info("Successfully processed response with correlationId='{}'", correlationId);
+                    getLogger().info("Successfully processed response with correlationId='{}'", correlationId);
                 },
                 () -> logMessageIsNotInProgress(correlationId)
         );
     }
 
-    // private methods
-    // log that message with correlationId is not found in progress map
-    private void logMessageIsNotInProgress(final String correlationId) {
-        getLogger().warn("= Message with correlationId='{}' is NOT found in progress map", correlationId);
+
+    /**
+     * To process in-progress command-message
+     *
+     * @param commandMessage message to process
+     * @param <T>            type of command result
+     * @return result of the processing
+     */
+    protected <T> CommandMessage<T> processCommandMessage(CommandMessage<T> commandMessage) {
+        return lowLevelActionExecutor.processActionCommand(commandMessage);
     }
 
-    // finalize processed message
-    private <T> void finalizeProcessedMessage(final CommandMessage<T> processedMessage, final String correlationId) {
+    /**
+     * To finalize processed message
+     *
+     * @param processedMessage message instance
+     * @param correlationId    message's correlation-id
+     * @param <T>              type of command result
+     */
+    protected <T> void finalizeProcessedMessage(final CommandMessage<T> processedMessage, final String correlationId) {
         // try to send the result to the responses processor
         if (getResponsesProcessor().accept(processedMessage)) {
             // successfully sent
@@ -162,5 +173,10 @@ public abstract class MessagesExchange {
             // simulate successful finalize result message processing
             getResponsesProcessor().onTakenMessage(processedMessage);
         }
+    }
+    // private methods
+    // log that message with correlationId is not found in progress map
+    private void logMessageIsNotInProgress(final String correlationId) {
+        getLogger().warn("= Message with correlationId='{}' is NOT found in progress map", correlationId);
     }
 }
