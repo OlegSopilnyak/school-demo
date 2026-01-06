@@ -86,7 +86,7 @@ public abstract class MessagesExchange {
         messageWatchdogFor(correlationId).ifPresentOrElse(_ -> {
                     //
                     // process the request's command locally and send the result to the responses queue
-                    final CommandMessage<T> result = processCommandMessage(message);
+                    final CommandMessage<T> result = makeResultFor(message);
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
                     // finalize message's processing
@@ -145,24 +145,19 @@ public abstract class MessagesExchange {
 
 
     /**
-     * To process in-progress command-message
+     * To process in-progress command-message and make result of the command as a command-message
      *
-     * @param commandMessage message to process
+     * @param commandMessage command-message to process
      * @param <T>            type of command result
      * @return result of the processing
      */
-    protected <T> CommandMessage<T> processCommandMessage(CommandMessage<T> commandMessage) {
+    protected <T> CommandMessage<T> makeResultFor(CommandMessage<T> commandMessage) {
         return lowLevelActionExecutor.processActionCommand(commandMessage);
     }
 
-    /**
-     * To finalize processed message
-     *
-     * @param processedMessage message instance
-     * @param correlationId    message's correlation-id
-     * @param <T>              type of command result
-     */
-    protected <T> void finalizeProcessedMessage(final CommandMessage<T> processedMessage, final String correlationId) {
+    // private methods
+    // To finalize processed message
+    private <T> void finalizeProcessedMessage(final CommandMessage<T> processedMessage, final String correlationId) {
         // try to send the result to the responses processor
         if (getResponsesProcessor().accept(processedMessage)) {
             // successfully sent
@@ -174,7 +169,7 @@ public abstract class MessagesExchange {
             getResponsesProcessor().onTakenMessage(processedMessage);
         }
     }
-    // private methods
+
     // log that message with correlationId is not found in progress map
     private void logMessageIsNotInProgress(final String correlationId) {
         getLogger().warn("= Message with correlationId='{}' is NOT found in progress map", correlationId);

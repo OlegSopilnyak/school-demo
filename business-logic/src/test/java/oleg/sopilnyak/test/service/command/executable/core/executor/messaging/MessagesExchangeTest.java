@@ -35,13 +35,11 @@ class MessagesExchangeTest {
     MessagesProcessor responsesProcessor;
     @Mock
     Logger logger;
-    boolean activeFlag;
 
     MessagesExchange exchange;
 
     @BeforeEach
     void setUp() {
-        activeFlag = false;
         exchange = spy(new FakeMessageExchange());
     }
 
@@ -111,9 +109,9 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange).processCommandMessage(taken);
-        verify(exchange).finalizeProcessedMessage(taken, correlationId);
+        verify(exchange).makeResultFor(taken);
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger, times(3)).debug(anyString(), eq(correlationId));
     }
 
@@ -125,7 +123,7 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange, never()).processCommandMessage(any(CommandMessage.class));
+        verify(exchange, never()).makeResultFor(any(CommandMessage.class));
         verify(logger).warn(anyString(), eq(correlationId));
     }
 
@@ -138,9 +136,9 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange).processCommandMessage(taken);
-        verify(exchange).finalizeProcessedMessage(taken, correlationId);
+        verify(exchange).makeResultFor(taken);
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor).onTakenMessage(taken);
         verify(logger).error(anyString(), eq(correlationId));
     }
 
@@ -156,8 +154,8 @@ class MessagesExchangeTest {
 
         exchange.onErrorRequestMessage(taken, exception);
 
-        verify(exchange).finalizeProcessedMessage(taken, correlationId);
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger).debug(anyString(), eq(correlationId));
         verify(logger).error(anyString(), eq(correlationId));
     }
@@ -170,7 +168,7 @@ class MessagesExchangeTest {
 
         exchange.onErrorRequestMessage(taken, exception);
 
-        verify(exchange, never()).finalizeProcessedMessage(any(CommandMessage.class), anyString());
+        verify(responsesProcessor, never()).accept(any(CommandMessage.class));
         verify(logger).error(anyString(), eq(context), eq(exception));
         verify(context).failed(exception);
     }
@@ -187,8 +185,8 @@ class MessagesExchangeTest {
 
         exchange.onErrorRequestMessage(taken, exception);
 
-        verify(exchange).finalizeProcessedMessage(taken, correlationId);
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger).error(anyString(), eq(correlationId));
         verify(context, never()).failed(any(Exception.class));
     }
@@ -204,8 +202,8 @@ class MessagesExchangeTest {
 
         exchange.onErrorRequestMessage(taken, exception);
 
-        verify(exchange).finalizeProcessedMessage(taken, correlationId);
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor).onTakenMessage(taken);
         verify(logger, times(2)).error(anyString(), eq(correlationId));
         verify(context, never()).failed(any(Exception.class));
     }
@@ -245,9 +243,10 @@ class MessagesExchangeTest {
         String correlationId = "correlation-id-9";
         doReturn(true).when(responsesProcessor).accept(taken);
 
-        exchange.finalizeProcessedMessage(taken, correlationId);
+        ReflectionTestUtils.invokeMethod(exchange, "finalizeProcessedMessage", taken, correlationId);
 
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger).debug(anyString(), eq(correlationId));
     }
 
@@ -255,9 +254,10 @@ class MessagesExchangeTest {
     void shouldFinalizeProcessedMessage_ResponsesNotAccepted() {
         String correlationId = "correlation-id-91";
 
-        exchange.finalizeProcessedMessage(taken, correlationId);
+        ReflectionTestUtils.invokeMethod(exchange, "finalizeProcessedMessage", taken, correlationId);
 
         verify(responsesProcessor).accept(taken);
+        verify(responsesProcessor).onTakenMessage(taken);
         verify(logger).error(anyString(), eq(correlationId));
         verify(responsesProcessor).onTakenMessage(taken);
     }
@@ -266,7 +266,7 @@ class MessagesExchangeTest {
     class FakeMessageExchange extends MessagesExchange {
         @Override
         public boolean isActive() {
-            return activeFlag;
+            return false;
         }
 
         @Override
@@ -280,7 +280,7 @@ class MessagesExchangeTest {
         }
 
         @Override
-        protected <T> CommandMessage<T> processCommandMessage(CommandMessage<T> commandMessage) {
+        protected <T> CommandMessage<T> makeResultFor(CommandMessage<T> commandMessage) {
             return commandMessage;
         }
     }
