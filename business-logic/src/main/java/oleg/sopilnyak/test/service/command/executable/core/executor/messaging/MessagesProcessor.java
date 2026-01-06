@@ -15,9 +15,6 @@ import org.slf4j.Logger;
  * @see oleg.sopilnyak.test.service.message.CommandThroughMessageService
  */
 public interface MessagesProcessor {
-    // predicate to check is taken message last one
-    Predicate<CommandMessage<?>> IS_LAST_MESSAGE = message -> Objects.equals(message, EMPTY);
-
     /**
      * Get the name of the processor for logging purposes.
      *
@@ -110,34 +107,43 @@ public interface MessagesProcessor {
      */
     void runAsyncTakenMessage(Runnable runnableForTakenMessage);
 
+    // predicate to check is taken message last one
+    Predicate<CommandMessage<?>> IS_LAST_MESSAGE = message -> Objects.equals(message, EMPTY);
+
     /**
      * To execute command-messages' processor main loop
      */
     default void doingMainLoop() {
+        // checking processor's state
         if (isProcessorActive()) {
             getLogger().warn("{} is already working.", getProcessorName());
             return;
         }
+        //
+        // process isn't active
         // making processor active
         activateProcessor();
         getLogger().info("{} is started. Main service active = '{}'", getProcessorName(), isOwnerActive());
         //
         // main processor loop
         while (isOwnerActive()) try {
+            //
+            // taking the message depends on processor's implementation
             final CommandMessage<?> message = takeMessage();
-            // check service-owner state
-            if (!isOwnerActive()) {
-                getLogger().debug("{} is going to stop.", getProcessorName());
-                break;
-            }
-            // testing taken message
-            if (IS_LAST_MESSAGE.test(message)) {
-                // last message is received
-                getLogger().debug("Received the last message, the processor {} is going to stop.", getProcessorName());
+            //
+            // check service-owner state or last message taken
+            if (!isOwnerActive() || IS_LAST_MESSAGE.test(message)) {
+                getLogger().debug(!isOwnerActive()
+                                // the processor's owner stops the processor
+                                ? "{} is going to stop by owner request."
+                                // last message is received
+                                : "Received the last message, the processor {} is going to stop.",
+                        getProcessorName()
+                );
                 break;
             } else {
                 //
-                // process the message asynchronously if service is active and message isn't empty
+                // process the command-message asynchronously
                 runAsyncTakenMessage(() -> onTakenMessage(message));
                 getLogger().debug(
                         "The processor {} runs received message processing in asynchronous way.",
@@ -148,6 +154,10 @@ public interface MessagesProcessor {
             getLogger().warn("{} getting command requests is interrupted", getProcessorName(), e);
             /* Clean up whatever needs to be handled before interrupting  */
             Thread.currentThread().interrupt();
+            // to leave the main loop
+            break;
+        } catch (Exception e) {
+            getLogger().warn("{} getting command requests throws", getProcessorName(), e);
             // to leave the main loop
             break;
         }
