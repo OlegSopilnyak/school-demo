@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @see CommandThroughMessageService
  * @see CommandActionExecutor#processActionCommand(CommandMessage)
  */
-
+@Deprecated
 public abstract class CommandThroughMessageServiceAdapter implements CommandThroughMessageService {
     // object mapper for the command-messages and other stuff
     protected ObjectMapper objectMapper;

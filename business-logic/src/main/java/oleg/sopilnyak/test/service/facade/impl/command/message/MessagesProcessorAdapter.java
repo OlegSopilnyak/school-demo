@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 /**
  * Processor: parent of messages processor for requests and response messages
  */
+@Deprecated
 public abstract class MessagesProcessorAdapter implements MessagesProcessor {
     protected final Logger log;
     private final AtomicBoolean processorActive;

@@ -99,6 +99,16 @@ class MessagesExchangeTest {
         assertThat(optionalWatchdog).isEmpty();
     }
 
+//    @Test
+    void shouldExecuteWithActionContext() {
+        // Init
+
+        // Act
+//        exchange.executeWithActionContext(original);
+
+        // Verification
+    }
+
     @Test
     void shouldActOnTakenRequestMessage() {
         String correlationId = "correlation-id-6";
@@ -109,7 +119,7 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange).makeResultFor(taken);
+        verify(exchange).localExecutionResult(taken);
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger, times(3)).debug(anyString(), eq(correlationId));
@@ -123,7 +133,7 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange, never()).makeResultFor(any(CommandMessage.class));
+        verify(exchange, never()).localExecutionResult(any(CommandMessage.class));
         verify(logger).warn(anyString(), eq(correlationId));
     }
 
@@ -136,7 +146,7 @@ class MessagesExchangeTest {
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
-        verify(exchange).makeResultFor(taken);
+        verify(exchange).localExecutionResult(taken);
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor).onTakenMessage(taken);
         verify(logger).error(anyString(), eq(correlationId));
@@ -280,7 +290,7 @@ class MessagesExchangeTest {
         }
 
         @Override
-        protected <T> CommandMessage<T> makeResultFor(CommandMessage<T> commandMessage) {
+        protected <T> CommandMessage<T> localExecutionResult(CommandMessage<T> commandMessage) {
             return commandMessage;
         }
     }

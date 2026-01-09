@@ -121,7 +121,7 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
         //
         // start process sending command-message to requests messages processor
         getLogger().info("=== Sending command-message to start processing it, correlationId='{}'", correlationId);
-        if (launchCommandMessageProcessing(message, correlationId, commandId)) {
+        if (launchingCommandMessageProcessing(message, correlationId, commandId)) {
             // waiting for processed command-message from responses processor
             getLogger().info("=== Waiting for processed command message of command '{}' with correlationId='{}'", commandId, correlationId);
             return waitingProcessedCommandMessage(correlationId, commandId);
@@ -134,33 +134,11 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
 
 
     /**
-     * To launch incoming command message processor
-     *
-     * @param latchOfProcessors latch of launched message processors
-     */
-    protected void launchInProcessor(final CountDownLatch latchOfProcessors) {
-        // preparing launch incoming(requests) command messages processor
-        requestsProcessor = prepareRequestsProcessor();
-        launchProcessor(requestsProcessor, latchOfProcessors);
-    }
-
-    /**
      * Build and prepare message-processor for requests messages
      *
      * @return built and prepared messages-processor instance
      */
     protected abstract MessagesProcessor prepareRequestsProcessor();
-
-    /**
-     * To launch processed command message processor
-     *
-     * @param latchOfProcessors latch of launched message processors
-     */
-    protected void launchOutProcessor(CountDownLatch latchOfProcessors) {
-        // preparing launch of processed(responses) command messages processor
-        responsesProcessor = prepareResponsesProcessor();
-        launchProcessor(responsesProcessor, latchOfProcessors);
-    }
 
     /**
      * Build and prepare message-processor for responses messages
@@ -210,7 +188,30 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
         }
     }
 
+    /**
+     * To create and configure messages-processor launcher execution service
+     *
+     * @return built executor service instance
+     */
+    protected ExecutorService buildExecutorService() {
+        return Executors.newFixedThreadPool(2, serviceThreadFactory("MessageProcessorThread-"));
+    }
+
     // private methods
+    // To launch incoming command message processor
+    private void launchInProcessor(final CountDownLatch latchOfProcessors) {
+        // preparing launch incoming(requests) command messages processor
+        requestsProcessor = prepareRequestsProcessor();
+        launchProcessor(requestsProcessor, latchOfProcessors);
+    }
+
+    // To launch processed command message processor
+    private void launchOutProcessor(CountDownLatch latchOfProcessors) {
+        // preparing launch of processed(responses) command messages processor
+        responsesProcessor = prepareResponsesProcessor();
+        launchProcessor(responsesProcessor, latchOfProcessors);
+    }
+
     // shutting down processors and services around them
     private void shutdownMessageProcessors() {
         requestsProcessor.shutdown();
@@ -230,13 +231,13 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
     }
 
     // to launch command-message processing, sending command-message to requests messages processor
-    private <T> boolean launchCommandMessageProcessing(final CommandMessage<T> message, final String correlationId, final String commandId) {
+    private <T> boolean launchingCommandMessageProcessing(final CommandMessage<T> message, final String correlationId, final String commandId) {
         if (!requestsProcessor.isProcessorActive()) {
             getLogger().warn(
                     "Launch: '{}' is NOT active. Message with correlationId='{}' won't accept for processing.",
                     requestsProcessor.getProcessorName(), correlationId
             );
-            final String errorMessage = requestsProcessor.getProcessorName() + " isn't in active state.";
+            final String errorMessage = processorNotActiveMessage(requestsProcessor.getProcessorName());
             ActionFacade.throwFor(commandId, new IllegalStateException(errorMessage));
         }
         //
@@ -249,6 +250,10 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
             getLogger().warn("Launch: message with correlationId='{}' is already in progress", correlationId);
             return false;
         }
+    }
+
+    private static String processorNotActiveMessage(String processorName) {
+        return processorName + " isn't in active state.";
     }
 
     // initialize request command-message processing
@@ -277,7 +282,8 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
         } else {
             final String processorName = responsesProcessor.getProcessorName();
             getLogger().warn("{} is NOT active. Message with correlationId='{}' is won't receive", processorName, correlationId);
-            return ActionFacade.throwFor(commandId, new IllegalStateException(processorName + " is NOT active."));
+            final String errorMessage = processorNotActiveMessage(processorName);
+            return ActionFacade.throwFor(commandId, new IllegalStateException(errorMessage));
         }
     }
 
@@ -315,13 +321,9 @@ public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExc
         return processedMessageHolder.get();
     }
 
-    // create and configure messages processor execution service
-    private static ExecutorService buildExecutorService() {
-        return Executors.newFixedThreadPool(2, serviceThreadFactory("MessageProcessorThread-"));
-    }
-
     // launching command messages processor asynchronously
     private void launchProcessor(final MessagesProcessor processor, final CountDownLatch latch) {
+        getLogger().debug("Launching '{}' messages-processor.", processor.getProcessorName());
         // launching messages processor runnable
         CompletableFuture.runAsync(() -> {
                     // command-messages processor is going to start

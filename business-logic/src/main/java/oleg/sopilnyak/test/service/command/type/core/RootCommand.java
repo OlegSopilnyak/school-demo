@@ -144,7 +144,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
             self().executeDo(context);
             afterExecute(context);
         } else {
-            getLog().warn("Cannot do redo of command {} with context:state '{}'", getId(), context.getState());
+            getLog().warn("Cannot execute the command id:'{}' with context:state '{}'", getId(), context.getState());
             context.setState(Context.State.FAIL);
         }
     }

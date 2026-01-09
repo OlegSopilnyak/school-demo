@@ -3,12 +3,10 @@ package oleg.sopilnyak.test.service.command.executable.core.executor.messaging.l
 
 import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
 
-import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandMessagesExchangeExecutorAdapter;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
@@ -30,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAdapter {
+    public static final String REQUEST_MESSAGES_PROCESSOR_NAME = "RequestMessagesProcessor";
+    public static final String RESPONSE_MESSAGES_PROCESSOR_NAME = "ResponseMessagesProcessor";
     private ExecutorService executor;
     // object mapper for the command-messages transformation and other stuff
     private ObjectMapper objectMapper;
@@ -50,13 +50,18 @@ public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAd
      * Build and prepare message-processor for requests messages
      *
      * @return built and prepared messages-processor instance
-     * @see CommandMessagesExchangeExecutorAdapter#launchInProcessor(CountDownLatch)
+     * @see oleg.sopilnyak.test.service.command.executable.core.executor.messaging.RootMessageProcessor
+     * @see CommandMessagesExchangeExecutorAdapter#initialize()
      * @see CommandMessagesExchangeExecutorAdapter#prepareRequestsProcessor()
+     * @see CommandMessagesExchangeExecutorAdapter#onTakenRequestMessage(CommandMessage)
+     * @see CommandMessagesExchangeExecutorAdapter#onErrorRequestMessage(CommandMessage, Throwable)
      */
     @Override
     protected MessagesProcessor prepareRequestsProcessor() {
-        return RequestsProcessor.builder()
-                .executor(executor).log(log).exchange(this).objectMapper(objectMapper)
+        return LocalMessageProcessor.builder()
+                .processorName(REQUEST_MESSAGES_PROCESSOR_NAME)
+                .executor(executor).logger(log).exchange(this).objectMapper(objectMapper)
+                .processingTaken(this::executeWithActionContext)
                 .build();
     }
 
@@ -64,14 +69,16 @@ public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAd
      * Build and prepare message-processor for responses messages
      *
      * @return built and prepared messages-processor instance
-     * @see CommandMessagesExchangeExecutorAdapter#launchOutProcessor(CountDownLatch)
+     * @see CommandMessagesExchangeExecutorAdapter#initialize()
      * @see CommandMessagesExchangeExecutorAdapter#prepareResponsesProcessor()
+     * @see CommandMessagesExchangeExecutorAdapter#onTakenResponseMessage(CommandMessage)
      */
     @Override
     protected MessagesProcessor prepareResponsesProcessor() {
-        return ResponsesProcessor.builder()
-                .executor(executor).log(log).exchange(this).objectMapper(objectMapper)
-                .build();
+        return LocalMessageProcessor.builder()
+                .processorName(RESPONSE_MESSAGES_PROCESSOR_NAME)
+                .executor(executor).logger(log).exchange(this).objectMapper(objectMapper)
+                .processingTaken(this::onTakenResponseMessage).build();
     }
 
     /**
@@ -103,67 +110,8 @@ public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAd
     }
 
     // inner classes
-    // Command-Messages processor to process the request type messages
+    // Command-Messages processor to process all message types
     @SuperBuilder
-    private static class RequestsProcessor extends LocalQueueMessageProcessor {
-        /**
-         * Get the name of the processor for logging purposes.
-         *
-         * @return the name of the processor
-         */
-        @Override
-        public String getProcessorName() {
-            return "RequestMessagesProcessor";
-        }
-
-        /**
-         * To process the taken request type message.
-         *
-         * @param message the command-message to be processed
-         */
-        @Override
-        public void onTakenMessage(CommandMessage<?> message) {
-            // setting up processing context for the working thread
-            ActionContext.install(message.getActionContext());
-            try {
-                log.debug("Starting request's processing with direction:{} correlation-id:{}",
-                        message.getDirection(), message.getCorrelationId());
-                // process taken message in the data transaction
-                exchange.onTakenRequestMessage(message);
-                log.debug(" ++ Successfully processed request with direction:{} correlation-id:{}",
-                        message.getDirection(), message.getCorrelationId());
-            } catch (Throwable e) {
-                // process message after the error has thrown
-                log.error("== Couldn't process message request with correlation-id:{}", message.getCorrelationId(), e);
-                exchange.onErrorRequestMessage(message, e);
-            } finally {
-                // release current processing context
-                ActionContext.release();
-            }
-        }
-    }
-
-    // Command-Messages processor to process the response type messages
-    @SuperBuilder
-    private static class ResponsesProcessor extends LocalQueueMessageProcessor {
-        /**
-         * Get the name of the processor for logging purposes.
-         *
-         * @return the name of the processor
-         */
-        @Override
-        public String getProcessorName() {
-            return "ResponseMessagesProcessor";
-        }
-
-        /**
-         * To process the taken response type message.
-         *
-         * @param message the command-message to be processed
-         */
-        @Override
-        public void onTakenMessage(CommandMessage<?> message) {
-            exchange.onTakenResponseMessage(message);
-        }
+    private static class LocalMessageProcessor extends LocalQueueMessageProcessor {
     }
 }

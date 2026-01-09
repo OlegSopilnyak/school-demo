@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@Deprecated
 public class CommandThroughMessageServiceLocalImpl extends CommandThroughMessageServiceAdapter {
     // Flags to control the current state of the processors
     private static final Map<Class<? extends MessagesProcessor>, AtomicBoolean> processorStates = Map.of(

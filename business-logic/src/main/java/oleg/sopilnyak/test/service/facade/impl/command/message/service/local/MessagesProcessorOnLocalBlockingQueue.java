@@ -18,6 +18,7 @@ import lombok.Setter;
 /**
  *  Processor: parent class of messages doingMainLoop processor, using local blocking-queue
  */
+@Deprecated
 abstract class MessagesProcessorOnLocalBlockingQueue extends MessagesProcessorAdapter {
     // last message in the queue marker
     private static final String LAST_MESSAGE = "Last Message Marker";

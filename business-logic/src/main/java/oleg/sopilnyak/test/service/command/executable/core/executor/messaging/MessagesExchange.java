@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.core.executor.messaging;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
@@ -73,6 +74,39 @@ public abstract class MessagesExchange {
     }
 
     /**
+     * To process request command-message in the action-context
+     *
+     * @param request command-message to process
+     */
+    protected void executeWithActionContext(CommandMessage<?> request) {
+        // checking up request's action-context
+        final ActionContext requestActionContext = request.getActionContext();
+        final String correlationId = request.getCorrelationId();
+        if (requestActionContext == null) {
+            getLogger().error("== Couldn't process message request with correlation-id:{} action-context is empty", correlationId);
+            onErrorRequestMessage(request, new IllegalArgumentException("Action context must not be null"));
+        } else {
+            getLogger().debug("Executing request with correlation-id:{} in action-context:{}", correlationId, requestActionContext);
+            // setting up processing action-context for the working thread
+            ActionContext.install(requestActionContext);
+            try {
+                final CommandMessage.Direction direction = request.getDirection();
+                getLogger().debug("Starting request's processing with direction:{} correlation-id:{}", direction, correlationId);
+                // process taken message in the data transaction
+                onTakenRequestMessage(request);
+                getLogger().debug("++ Successfully processed request with direction:{} correlation-id:{}", direction, correlationId);
+            } catch (Exception e) {
+                // process message after the error has thrown
+                getLogger().error("== Couldn't process message request with correlation-id:{}", correlationId, e);
+                onErrorRequestMessage(request, e);
+            } finally {
+                // release current processing context
+                ActionContext.release();
+            }
+        }
+    }
+
+    /**
      * To process the request message's processing command in new transaction (strong isolation)<BR/>
      * and send the response to the responses queue
      *
@@ -85,8 +119,8 @@ public abstract class MessagesExchange {
         // processing request using message-in-progress map by correlation-id
         messageWatchdogFor(correlationId).ifPresentOrElse(_ -> {
                     //
-                    // process the request's command locally and send the result to the responses queue
-                    final CommandMessage<T> result = makeResultFor(message);
+                    // process the request's command locally and pass the result to the responses messages processor
+                    final CommandMessage<T> result = localExecutionResult(message);
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
                     // finalize message's processing
@@ -145,13 +179,13 @@ public abstract class MessagesExchange {
 
 
     /**
-     * To process in-progress command-message and make result of the command as a command-message
+     * To process in-progress command-message and make result of the command as a command-message using low-level action executor
      *
      * @param commandMessage command-message to process
      * @param <T>            type of command result
      * @return result of the processing
      */
-    protected <T> CommandMessage<T> makeResultFor(CommandMessage<T> commandMessage) {
+    protected <T> CommandMessage<T> localExecutionResult(CommandMessage<T> commandMessage) {
         return lowLevelActionExecutor.processActionCommand(commandMessage);
     }
 

@@ -28,7 +28,7 @@ class RootMessageProcessorTest {
 
     @BeforeEach
     void setUp() {
-        processor = spy(FakeRootMessageProcessor.builder().log(logger).exchange(exchange).build());
+        processor = spy(FakeRootMessageProcessor.builder().logger(logger).exchange(exchange).build());
     }
 
     @Test

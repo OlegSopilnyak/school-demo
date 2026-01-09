@@ -56,9 +56,9 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> CommandMessage<T> takeMessage() throws InterruptedException {
-        log.debug("Taking available command message from the queue.");
+        logger.debug("Taking available command message from the queue.");
         final String takenMessageJson = messages.take();
-        log.debug("Took from the queue command message {}", takenMessageJson);
+        logger.debug("Took from the queue command message {}", takenMessageJson);
         if (IS_EMPTY_MESSAGE.or(LAST_MESSAGE::equals).test(takenMessageJson)) {
             return (CommandMessage<T>) CommandMessage.EMPTY;
         }
@@ -66,10 +66,10 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
         try {
             return objectMapper.readValue(takenMessageJson, BaseCommandMessage.class);
         } catch (IOException e) {
-            log.error("Failed deserialization of command-message", e);
+            logger.error("Failed deserialization of command-message", e);
             return (CommandMessage<T>) CommandMessage.EMPTY;
         } catch (Exception e) {
-            log.error("Something went wrong during deserialization of the command-message", e);
+            logger.error("Something went wrong during deserialization of the command-message", e);
             return (CommandMessage<T>) CommandMessage.EMPTY;
         }
     }
@@ -93,17 +93,17 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
      */
     @Override
     public <T> boolean accept(final CommandMessage<T> message) {
-        log.debug("Put to the queue command message {}", message);
+        logger.debug("Put to the queue command message {}", message);
         try {
             final String stringMessage = CommandMessage.EMPTY.equals(message)
                     // The last message marker
                     ? LAST_MESSAGE
                     // serialize message to JSON
                     : objectMapper.writeValueAsString(message);
-            log.debug("Put to the queue command message {}", stringMessage);
+            logger.debug("Put to the queue command message {}", stringMessage);
             return messages.add(stringMessage);
         } catch (IOException e) {
-            log.warn("Failed to serialize message to json", e);
+            logger.warn("Failed to serialize message to json", e);
             message.getContext().failed(e);
         }
         return false;
