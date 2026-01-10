@@ -31,7 +31,7 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
     private static final String LAST_MESSAGE = "Last Message Marker";
     private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
     @Setter
-    protected ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     /**
      * To run processor's taken command-message in asynchronous way <BR/>
