@@ -364,11 +364,11 @@ class MessagesExchangeTest {
     }
 
     @Test
-    void shouldFinalizeProcessedMessage_ResponsesAccepted() {
+    void shouldPassProcessedMessage_Out_ResponsesAccepted() {
         String correlationId = "correlation-id-9";
         doReturn(true).when(responsesProcessor).accept(taken);
 
-        ReflectionTestUtils.invokeMethod(exchange, "finalizeProcessedMessage", taken, correlationId);
+        ReflectionTestUtils.invokeMethod(exchange, "passProcessedMessageOut", taken, correlationId);
 
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
@@ -376,10 +376,10 @@ class MessagesExchangeTest {
     }
 
     @Test
-    void shouldFinalizeProcessedMessage_ResponsesNotAccepted() {
+    void shouldPassProcessedMessage_Out_ResponsesNotAccepted() {
         String correlationId = "correlation-id-91";
 
-        ReflectionTestUtils.invokeMethod(exchange, "finalizeProcessedMessage", taken, correlationId);
+        ReflectionTestUtils.invokeMethod(exchange, "passProcessedMessageOut", taken, correlationId);
 
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor).onTakenMessage(taken);

@@ -116,7 +116,7 @@ public abstract class MessagesExchange {
      * @param message command-message to be processed
      * @see this#executeWithActionContext(CommandMessage)
      * @see this#localExecutionResult(CommandMessage)
-     * @see this#finalizeProcessedMessage(CommandMessage, String)
+     * @see this#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
     public <T> void onTakenRequestMessage(final CommandMessage<T> message) {
@@ -130,7 +130,7 @@ public abstract class MessagesExchange {
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
                     // finalize message's processing
-                    finalizeProcessedMessage(result, correlationId);
+                    passProcessedMessageOut(result, correlationId);
                 },
                 // no command-message-watcher in message-in-progress map
                 () -> logMessageIsNotInProgress(correlationId)
@@ -143,7 +143,7 @@ public abstract class MessagesExchange {
      * @param message request command-message
      * @param error   cause of command-message processing error
      * @see this#executeWithActionContext(CommandMessage)
-     * @see this#finalizeProcessedMessage(CommandMessage, String)
+     * @see this#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
     public <T> void onErrorRequestMessage(final CommandMessage<T> message, final Throwable error) {
@@ -151,7 +151,7 @@ public abstract class MessagesExchange {
             final String correlationId = message.getCorrelationId();
             getLogger().error("== Sending failed context of message {}", message.getCorrelationId());
             // finalize message's processing
-            finalizeProcessedMessage(message, correlationId);
+            passProcessedMessageOut(message, correlationId);
         } else {
             getLogger().error("=+= Context not failed but something thrown after {}", message.getContext(), error);
             if (error instanceof Exception exception) {
@@ -200,8 +200,8 @@ public abstract class MessagesExchange {
     }
 
     // private methods
-    // To finalize processed message
-    private <T> void finalizeProcessedMessage(final CommandMessage<T> processedMessage, final String correlationId) {
+    // To pass processed message out
+    private <T> void passProcessedMessageOut(final CommandMessage<T> processedMessage, final String correlationId) {
         // try to send the result to the responses processor
         if (getResponsesProcessor().accept(processedMessage)) {
             // successfully sent
