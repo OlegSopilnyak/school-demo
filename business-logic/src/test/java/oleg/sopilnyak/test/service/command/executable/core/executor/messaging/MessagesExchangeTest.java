@@ -4,14 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.util.Map;
@@ -19,6 +23,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
@@ -35,6 +40,10 @@ class MessagesExchangeTest {
     MessagesProcessor responsesProcessor;
     @Mock
     Logger logger;
+    @Mock
+    Context context;
+    @Mock
+    RootCommand command;
 
     MessagesExchange exchange;
 
@@ -99,22 +108,122 @@ class MessagesExchangeTest {
         assertThat(optionalWatchdog).isEmpty();
     }
 
-//    @Test
+    @Test
     void shouldExecuteWithActionContext() {
         // Init
+        ActionContext actionContext = ActionContext.setup("test-facade", "test-action");
+        ActionContext.release();
+        String commandId = "command-id-50";
+        String correlationId = "correlation-id-50";
+        doReturn(actionContext).when(original).getActionContext();
+        doReturn(correlationId).when(original).getCorrelationId();
+        doReturn(CommandMessage.Direction.DO).when(original).getDirection();
+        doReturn(context).when(original).getContext();
+        doReturn(command).when(context).getCommand();
+        doReturn(commandId).when(command).getId();
+        assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
 
         // Act
-//        exchange.executeWithActionContext(original);
+        exchange.executeWithActionContext(original);
 
         // Verification
+        verify(exchange).onTakenRequestMessage(original);
+        verify(exchange).messageWatchdogFor(correlationId);
+        verify(exchange).localExecutionResult(original);
+        verify(command).doCommand(context);
+        verify(logger).debug("++ Successfully processed request with direction:{} correlation-id:{}",
+                CommandMessage.Direction.DO, correlationId);
+        verify(responsesProcessor).accept(original);
+        verify(exchange, never()).onErrorRequestMessage(any(CommandMessage.class), any(Throwable.class));
+    }
+
+    @Test
+    void shouldNotExecuteWithActionContext_NoActionContext() {
+        // Init
+        String correlationId = "correlation-id-51";
+        doReturn(correlationId).when(original).getCorrelationId();
+        doReturn(true).when(context).isFailed();
+        doReturn(context).when(original).getContext();
+
+        // Act
+        exchange.executeWithActionContext(original);
+
+        // Verification
+        verify(exchange, never()).onTakenRequestMessage(any(CommandMessage.class));
+        ArgumentCaptor<Exception> captor = ArgumentCaptor.forClass(Exception.class);
+        verify(exchange).onErrorRequestMessage(eq(original), captor.capture());
+        assertThat(captor.getValue()).isNotNull().isInstanceOf(IllegalArgumentException.class);
+        assertThat(captor.getValue().getMessage()).isEqualTo("Action context must not be null");
+        verify(responsesProcessor).accept(original);
+    }
+
+    @Test
+    void shouldNotExecuteWithActionContext_NoMessageInProgress() {
+        // Init
+        ActionContext actionContext = ActionContext.setup("test-facade", "test-action");
+        ActionContext.release();
+        String correlationId = "correlation-id-52";
+        doReturn(actionContext).when(original).getActionContext();
+        doReturn(correlationId).when(original).getCorrelationId();
+        doReturn(CommandMessage.Direction.DO).when(original).getDirection();
+
+        // Act
+        exchange.executeWithActionContext(original);
+
+        // Verification
+        verify(exchange).onTakenRequestMessage(original);
+        verify(logger).warn("= Message with correlationId='{}' is NOT found in progress map", correlationId);
+        verify(exchange, never()).onErrorRequestMessage(any(CommandMessage.class), any(Throwable.class));
+    }
+
+    @Test
+    void shouldNotExecuteWithActionContext_CommandDoThrows() {
+        // Init
+        ActionContext actionContext = ActionContext.setup("test-facade", "test-action");
+        ActionContext.release();
+        String commandId = "command-id-53";
+        String correlationId = "correlation-id-53";
+        doReturn(actionContext).when(original).getActionContext();
+        doReturn(correlationId).when(original).getCorrelationId();
+        doReturn(CommandMessage.Direction.DO).when(original).getDirection();
+        doReturn(context).when(original).getContext();
+        doReturn(command).when(context).getCommand();
+        doReturn(commandId).when(command).getId();
+        doReturn(command).when(command).self();
+        doCallRealMethod().when(command).doCommand(context);
+        doReturn(true).when(context).isReady();
+        doReturn(true).when(context).isFailed();
+        assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
+        Exception doCommandException = new RuntimeException("executeDo throws");
+        doThrow(doCommandException).when(command).executeDo(context);
+
+        // Act
+        exchange.executeWithActionContext(original);
+
+        // Verification
+        verify(exchange).onTakenRequestMessage(original);
+        verify(exchange).messageWatchdogFor(correlationId);
+        verify(exchange).localExecutionResult(original);
+        verify(command).doCommand(context);
+        verify(command).executeDo(context);
+        verify(logger).error("== Couldn't process message request with correlation-id:{}", correlationId, doCommandException);
+        verify(exchange).onErrorRequestMessage(original, doCommandException);
+        verify(responsesProcessor).accept(original);
+        verify(logger).error("Result: message with correlationId='{}' is processed but is NOT sent to responses processor", correlationId);
+        responsesProcessor.onTakenMessage(original);
     }
 
     @Test
     void shouldActOnTakenRequestMessage() {
+        String commandId = "command-id-6";
         String correlationId = "correlation-id-6";
-        assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
+        doReturn(CommandMessage.Direction.DO).when(taken).getDirection();
         doReturn(correlationId).when(taken).getCorrelationId();
+        doReturn(context).when(taken).getContext();
+        doReturn(command).when(context).getCommand();
+        doReturn(commandId).when(command).getId();
         doReturn(true).when(responsesProcessor).accept(taken);
+        assertThat(exchange.makeMessageInProgress(correlationId, taken)).isTrue();
 
         exchange.onTakenRequestMessage(taken);
 
@@ -139,14 +248,20 @@ class MessagesExchangeTest {
 
     @Test
     void shouldNotActOnTakenRequestMessage_ResponseProcessorDoesNotAccept() {
+        String commandId = "command-id-62";
         String correlationId = "correlation-id-62";
-        assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
+        doReturn(CommandMessage.Direction.DO).when(taken).getDirection();
         doReturn(correlationId).when(taken).getCorrelationId();
+        doReturn(context).when(taken).getContext();
+        doReturn(command).when(context).getCommand();
+        doReturn(commandId).when(command).getId();
+        assertThat(exchange.makeMessageInProgress(correlationId, taken)).isTrue();
 
         exchange.onTakenRequestMessage(taken);
 
         verify(exchange).messageWatchdogFor(correlationId);
         verify(exchange).localExecutionResult(taken);
+        verify(command).doCommand(context);
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor).onTakenMessage(taken);
         verify(logger).error(anyString(), eq(correlationId));
@@ -156,9 +271,9 @@ class MessagesExchangeTest {
     <T> void shouldActOnErrorRequestMessage_SendToResponses() {
         String correlationId = "correlation-id-7";
         doReturn(correlationId).when(taken).getCorrelationId();
-        Context<T> context = mock(Context.class);
-        doReturn(true).when(context).isFailed();
-        doReturn(context).when(taken).getContext();
+        Context<T> mockedContext = mock(Context.class);
+        doReturn(true).when(mockedContext).isFailed();
+        doReturn(mockedContext).when(taken).getContext();
         var exception = new RuntimeException("test");
         doReturn(true).when(responsesProcessor).accept(taken);
 
@@ -172,24 +287,24 @@ class MessagesExchangeTest {
 
     @Test
     <T> void shouldActOnErrorRequestMessage_ContextNotFailed() {
-        Context<T> context = mock(Context.class);
-        doReturn(context).when(taken).getContext();
+        Context<T> mockedContext = mock(Context.class);
+        doReturn(mockedContext).when(taken).getContext();
         var exception = new RuntimeException("test");
 
         exchange.onErrorRequestMessage(taken, exception);
 
         verify(responsesProcessor, never()).accept(any(CommandMessage.class));
-        verify(logger).error(anyString(), eq(context), eq(exception));
-        verify(context).failed(exception);
+        verify(logger).error(anyString(), eq(mockedContext), eq(exception));
+        verify(mockedContext).failed(exception);
     }
 
     @Test
     <T> void shouldActOnErrorRequestMessage_ContextIsFailed() {
         String correlationId = "correlation-id-71";
-        Context<T> context = mock(Context.class);
-        doReturn(true).when(context).isFailed();
+        Context<T> mockedContext = mock(Context.class);
+        doReturn(true).when(mockedContext).isFailed();
         doReturn(correlationId).when(taken).getCorrelationId();
-        doReturn(context).when(taken).getContext();
+        doReturn(mockedContext).when(taken).getContext();
         doReturn(true).when(responsesProcessor).accept(taken);
         var exception = new RuntimeException("test");
 
@@ -198,16 +313,16 @@ class MessagesExchangeTest {
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor, never()).onTakenMessage(any(CommandMessage.class));
         verify(logger).error(anyString(), eq(correlationId));
-        verify(context, never()).failed(any(Exception.class));
+        verify(mockedContext, never()).failed(any(Exception.class));
     }
 
     @Test
     <T> void shouldActOnErrorRequestMessage_ContextIsFailed_ResponseProcessorDoesNotAccept() {
         String correlationId = "correlation-id-71";
-        Context<T> context = mock(Context.class);
-        doReturn(true).when(context).isFailed();
+        Context<T> mockedContext = mock(Context.class);
+        doReturn(true).when(mockedContext).isFailed();
         doReturn(correlationId).when(taken).getCorrelationId();
-        doReturn(context).when(taken).getContext();
+        doReturn(mockedContext).when(taken).getContext();
         var exception = new RuntimeException("test");
 
         exchange.onErrorRequestMessage(taken, exception);
@@ -215,7 +330,7 @@ class MessagesExchangeTest {
         verify(responsesProcessor).accept(taken);
         verify(responsesProcessor).onTakenMessage(taken);
         verify(logger, times(2)).error(anyString(), eq(correlationId));
-        verify(context, never()).failed(any(Exception.class));
+        verify(mockedContext, never()).failed(any(Exception.class));
     }
 
     @Test
@@ -287,11 +402,6 @@ class MessagesExchangeTest {
         @Override
         protected Logger getLogger() {
             return logger;
-        }
-
-        @Override
-        protected <T> CommandMessage<T> localExecutionResult(CommandMessage<T> commandMessage) {
-            return commandMessage;
         }
     }
 }

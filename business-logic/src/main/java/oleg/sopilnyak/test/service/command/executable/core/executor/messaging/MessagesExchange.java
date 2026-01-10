@@ -74,9 +74,12 @@ public abstract class MessagesExchange {
     }
 
     /**
-     * To process request command-message in the action-context
+     * To process locally the command-message in the action-context
      *
      * @param request command-message to process
+     * @see ActionContext
+     * @see this#onErrorRequestMessage(CommandMessage, Throwable)
+     * @see this#onTakenRequestMessage(CommandMessage)
      */
     protected void executeWithActionContext(CommandMessage<?> request) {
         // checking up request's action-context
@@ -107,11 +110,14 @@ public abstract class MessagesExchange {
     }
 
     /**
-     * To process the request message's processing command in new transaction (strong isolation)<BR/>
-     * and send the response to the responses queue
+     * To process the request message's command in the new transaction (strong isolation)<BR/>
+     * and send the response to the responses messages-processor
      *
-     * @param message message to be processed
-     * @see CommandActionExecutor#processActionCommand(CommandMessage)
+     * @param message command-message to be processed
+     * @see this#executeWithActionContext(CommandMessage)
+     * @see this#localExecutionResult(CommandMessage)
+     * @see this#finalizeProcessedMessage(CommandMessage, String)
+     * @see MessagesProcessor#accept(CommandMessage)
      */
     public <T> void onTakenRequestMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
@@ -119,7 +125,7 @@ public abstract class MessagesExchange {
         // processing request using message-in-progress map by correlation-id
         messageWatchdogFor(correlationId).ifPresentOrElse(_ -> {
                     //
-                    // process the request's command locally and pass the result to the responses messages processor
+                    // process the request's command locally and pass the result to the responses messages-processor
                     final CommandMessage<T> result = localExecutionResult(message);
                     getLogger().debug("Processed request message with correlationId='{}'", correlationId);
                     //
@@ -132,10 +138,13 @@ public abstract class MessagesExchange {
     }
 
     /**
-     * Processing an error of taken request message-command
+     * Processing (locally) an error of taken request command-message
      *
      * @param message request command-message
-     * @param error   cause of message processing error
+     * @param error   cause of command-message processing error
+     * @see this#executeWithActionContext(CommandMessage)
+     * @see this#finalizeProcessedMessage(CommandMessage, String)
+     * @see MessagesProcessor#accept(CommandMessage)
      */
     public <T> void onErrorRequestMessage(final CommandMessage<T> message, final Throwable error) {
         if (message.getContext().isFailed()) {
@@ -155,14 +164,14 @@ public abstract class MessagesExchange {
     }
 
     /**
-     * To process the taken response command-message.
+     * To process the taken response command-message. Last step of command-message processing.
      *
      * @param message the command message to be finalized
      */
     public <T> void onTakenResponseMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
         getLogger().info("Finishing processing response with correlationId='{}' which is needs completion", correlationId);
-        // check if the message in progress map by correlation-id
+        // getting in-progress-message watchdog form progress map by correlation-id
         final Optional<MessageProgressWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
         // save result to watchdog and notify waiting threads
         watchdogOptional.ifPresentOrElse(watchDog -> {
@@ -184,6 +193,7 @@ public abstract class MessagesExchange {
      * @param commandMessage command-message to process
      * @param <T>            type of command result
      * @return result of the processing
+     * @see CommandActionExecutor#processActionCommand(CommandMessage)
      */
     protected <T> CommandMessage<T> localExecutionResult(CommandMessage<T> commandMessage) {
         return lowLevelActionExecutor.processActionCommand(commandMessage);

@@ -48,8 +48,6 @@ class CommandMessagesExchangeExecutorAdapterTest {
     @Mock
     CommandMessage<?> request;
     @Mock
-    CommandMessage<?> response;
-    @Mock
     Context context;
     @Mock
     RootCommand command;
@@ -520,11 +518,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
         public <T> CommandMessage<T> takeMessage() throws InterruptedException {
             // waiting for accept message
             while (takenHolder.get() == null) synchronized (takenStateMonitor) {
-                try {
-                    takenStateMonitor.wait(25);
-                } catch (InterruptedException _) {
-                    Thread.currentThread().interrupt();
-                }
+                takenStateMonitor.wait(25);
             }
             CommandMessage<T> taken = (CommandMessage<T>) takenHolder.get();
             takenHolder.getAndSet(null);
