@@ -75,7 +75,7 @@ class MessageProgressWatchdogTest<T> {
         assertThat(watchdog.getState()).isEqualTo(MessageProgressWatchdog.State.IN_PROGRESS);
         new Thread(() -> {
             try {
-                Thread.sleep(800);
+                Thread.sleep(1800);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return;

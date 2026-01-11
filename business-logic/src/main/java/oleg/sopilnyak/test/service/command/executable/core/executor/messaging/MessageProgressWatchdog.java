@@ -24,7 +24,7 @@ public class MessageProgressWatchdog<T> {
     private final Object getResultMonitor = new Object();
 
     public MessageProgressWatchdog(CommandMessage<T> original) {
-        this(original, Duration.ofMillis(400L));
+        this(original, Duration.ofMillis(1000L));
     }
 
     public MessageProgressWatchdog(CommandMessage<T> original, Duration duration) {
@@ -71,7 +71,7 @@ public class MessageProgressWatchdog<T> {
             // waiting while state is in progress
             while (state == State.IN_PROGRESS) {
                 try {
-                    getResultMonitor.wait(100);
+                    getResultMonitor.wait(25);
                     // check result message expiration
                     if (Duration.between(startsAt, LocalDateTime.now()).compareTo(duration) > 0) {
                         // updating watchdog's state
