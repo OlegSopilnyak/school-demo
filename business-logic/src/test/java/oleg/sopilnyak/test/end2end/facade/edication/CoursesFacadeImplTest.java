@@ -43,7 +43,6 @@ import oleg.sopilnyak.test.service.command.type.core.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.CoursesFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -95,8 +94,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     CommandActionExecutor actionExecutor;
     @Autowired
-    CommandThroughMessageService commandThroughMessageService;
-    @Autowired
     @MockitoSpyBean
     PersistenceFacade persistenceFacade;
     @Autowired
@@ -123,10 +120,10 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        commandThroughMessageService.shutdown();
-        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
-        commandThroughMessageService.initialize();
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        actionExecutor.shutdown();
+        ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
+        actionExecutor.initialize();
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach
@@ -141,7 +138,6 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(applicationContext).isNotNull();
         assertThat(payloadMapper).isNotNull();
         assertThat(actionExecutor).isNotNull();
-        assertThat(commandThroughMessageService).isNotNull();
         assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
@@ -163,7 +159,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     void shouldFindById() {
         Course newCourse = makeClearTestCourse();
         Long courseId = persist(newCourse).getId();
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 

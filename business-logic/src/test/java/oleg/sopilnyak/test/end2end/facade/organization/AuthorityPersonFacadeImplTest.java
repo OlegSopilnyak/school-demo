@@ -48,7 +48,6 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.organization.impl.AuthorityPersonFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
 import jakarta.persistence.EntityManager;
@@ -101,9 +100,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     CommandActionExecutor actionExecutor;
-    @MockitoSpyBean
-    @Autowired
-    CommandThroughMessageService commandThroughMessageService;
     @Autowired
     @Qualifier("parallelCommandNestedCommandsExecutor")
     Executor schedulingTaskExecutor;
@@ -133,9 +129,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        commandThroughMessageService.shutdown();
-        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
-        commandThroughMessageService.initialize();
+        actionExecutor.shutdown();
+        ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
+        actionExecutor.initialize();
         ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
@@ -153,7 +149,6 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(actionExecutor).isNotNull();
-        assertThat(commandThroughMessageService).isNotNull();
         assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();

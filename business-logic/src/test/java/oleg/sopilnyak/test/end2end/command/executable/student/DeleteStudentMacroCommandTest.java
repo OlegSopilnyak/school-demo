@@ -36,7 +36,6 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
@@ -96,8 +95,6 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     @Qualifier("parallelCommandNestedCommandsExecutor")
     Executor schedulingTaskExecutor;
-    @Autowired
-    CommandThroughMessageService messagesExchangeService;
     // delete student macro command
     DeleteStudentMacroCommand command;
 

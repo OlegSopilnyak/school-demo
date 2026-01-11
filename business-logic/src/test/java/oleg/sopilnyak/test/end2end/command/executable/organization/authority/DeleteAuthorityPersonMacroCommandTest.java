@@ -36,7 +36,6 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
@@ -91,8 +90,6 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @Autowired
     @Qualifier("parallelCommandNestedCommandsExecutor")
     Executor schedulingTaskExecutor;
-    @Autowired
-    CommandThroughMessageService messagesExchangeService;
     @MockitoSpyBean
     @Autowired
     @Qualifier("profilePrincipalDelete")

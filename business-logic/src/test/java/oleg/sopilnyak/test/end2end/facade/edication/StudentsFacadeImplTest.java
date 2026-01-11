@@ -47,7 +47,6 @@ import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.facade.education.impl.StudentsFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 import jakarta.persistence.EntityManager;
@@ -97,9 +96,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     CommandActionExecutor actionExecutor;
-    @MockitoSpyBean
-    @Autowired
-    CommandThroughMessageService commandThroughMessageService;
     @Autowired
     @Qualifier("parallelCommandNestedCommandsExecutor")
     Executor schedulingTaskExecutor;
@@ -129,9 +125,9 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        commandThroughMessageService.shutdown();
-        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
-        commandThroughMessageService.initialize();
+        actionExecutor.shutdown();
+        ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
+        actionExecutor.initialize();
         ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
@@ -149,7 +145,6 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(payloadMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
         assertThat(actionExecutor).isNotNull();
-        assertThat(commandThroughMessageService).isNotNull();
         assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();

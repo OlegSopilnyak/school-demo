@@ -35,7 +35,6 @@ import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonComm
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
@@ -81,8 +80,6 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @MockitoSpyBean
     @Autowired
     CommandActionExecutor actionExecutor;
-    @Autowired
-    CommandThroughMessageService messagesExchangeService;
 
     CreateAuthorityPersonMacroCommand command;
 
@@ -398,7 +395,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         ArgumentCaptor<Context<Optional<AuthorityPerson>>> personContextCaptor = ArgumentCaptor.forClass(Context.class);
         ArgumentCaptor<Optional<PrincipalProfile>> profileResultCaptor = ArgumentCaptor.forClass(Optional.class);
         verify(command).transferResult(any(RootCommand.class), profileResultCaptor.capture(), personContextCaptor.capture());
-        assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(personId);
+        assertThat(profileResultCaptor.getValue().orElseThrow().getId()).isEqualTo(profileId);
         verify(command).transferProfileIdToAuthorityPersonUpdateInput(profileId, personContextCaptor.getValue());
 
         // check nested person create

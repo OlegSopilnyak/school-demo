@@ -60,7 +60,7 @@ public class JsonContextModule<T> extends SimpleModule {
         final SimpleSerializers serializers = new SimpleSerializers();
         final SimpleDeserializers deserializers = new SimpleDeserializers();
         // add serializer/deserializer for command context
-        serializers.addSerializer(Context.class, new CommandContextSerializer());
+        serializers.addSerializer(Context.class, new CommandContextSerializer<>());
         deserializers.addDeserializer(Context.class, new CommandContextDeserializer<>(farm));
         // accept modified serializer/deserializer
         setupContext.addSerializers(serializers);
@@ -203,14 +203,12 @@ public class JsonContextModule<T> extends SimpleModule {
 
         // restore command instance from factories farm by command-id
         private RootCommand<T> restoreCommandFromFactoriesFarm(TreeNode commandIdNode) throws IOException {
-            final RootCommand<T> command;
             if (nonNull(commandIdNode) && commandIdNode instanceof TextNode textIdNode) {
                 // getting command instance from commands factories Farm by command-id
-                command = factoriesFarm.command(textIdNode.textValue());
+                return factoriesFarm.command(textIdNode.textValue());
             } else {
-                throw new IOException("Command ID Node is missing :" + commandIdNode);
+                throw new IOException("Command ID TreeNode is missing :" + commandIdNode);
             }
-            return command;
         }
 
         // check command-family-type and setup context though context builder
@@ -231,7 +229,7 @@ public class JsonContextModule<T> extends SimpleModule {
                     throw new IOException("Command Family Type is missing :" + commandFamilyTypeName);
                 }
             } else {
-                throw new IOException("Command Family Type Node is missing :" + commandTypeNode);
+                throw new IOException("Command Family Type TreeNode is missing :" + commandTypeNode);
             }
         }
 

@@ -1,11 +1,12 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
-import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.JSON_CONTEXT_MODULE_BEAN_NAME;
 import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
+import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.JSON_CONTEXT_MODULE_BEAN_NAME;
 
-import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local.LocalQueueCommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -25,10 +26,6 @@ import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
-import oleg.sopilnyak.test.service.message.CommandMessage;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import java.util.Collection;
 import java.util.Deque;
@@ -61,20 +58,9 @@ public class SchoolCommandsConfiguration {
      * @return the instance
      */
     @Bean
-    public CommandActionExecutor actionExecutor() {
-        return new ActionExecutorImpl(commandThroughMessageService());
-    }
-
-    /**
-     * Local implementation of command messages deliverer for doingMainLoop-executor
-     *
-     * @return implementation based on local queues
-     * @see ActionExecutorImpl#processActionCommand(CommandMessage)
-     */
-    @Bean
     @Profile("!AMQP")
-    public CommandThroughMessageService commandThroughMessageService() {
-        return new CommandThroughMessageServiceLocalImpl();
+    public CommandActionExecutor actionExecutor() {
+        return new LocalQueueCommandExecutor();
     }
 
     /**

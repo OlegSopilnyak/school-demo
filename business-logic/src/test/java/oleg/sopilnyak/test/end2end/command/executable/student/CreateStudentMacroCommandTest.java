@@ -30,12 +30,11 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
-import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
+import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.CannotCreateCommandContextException;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 import java.util.Deque;
@@ -81,8 +80,6 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     CommandActionExecutor actionExecutor;
-    @Autowired
-    CommandThroughMessageService messagesExchangeService;
 
     CreateStudentMacroCommand command;
     @Captor

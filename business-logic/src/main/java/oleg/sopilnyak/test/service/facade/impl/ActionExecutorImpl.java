@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor
+@Deprecated
 public class ActionExecutorImpl implements CommandActionExecutor {
     private final CommandThroughMessageService messagesExchangeService;
 

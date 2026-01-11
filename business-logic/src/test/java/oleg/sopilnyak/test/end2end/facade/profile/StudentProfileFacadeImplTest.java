@@ -37,7 +37,6 @@ import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.facade.profile.impl.StudentProfileFacadeImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 
@@ -77,8 +76,6 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
     @Autowired
     CommandActionExecutor actionExecutor;
     @Autowired
-    CommandThroughMessageService commandThroughMessageService;
-    @Autowired
     ConfigurableApplicationContext context;
     @Autowired
     ApplicationContext applicationContext;
@@ -110,9 +107,9 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .disable(SerializationFeature.INDENT_OUTPUT)
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        commandThroughMessageService.shutdown();
-        ReflectionTestUtils.setField(commandThroughMessageService, "objectMapper", objectMapper);
-        commandThroughMessageService.initialize();
+        actionExecutor.shutdown();
+        ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
+        actionExecutor.initialize();
         ActionContext.setup("test-facade", "test-doingMainLoop");
     }
 
@@ -127,7 +124,6 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         assertThat(payloadMapper).isNotNull();
         assertThat(persistence).isNotNull();
         assertThat(actionExecutor).isNotNull();
-        assertThat(commandThroughMessageService).isNotNull();
         assertThat(farm).isNotNull();
         assertThat(factory).isNotNull();
         assertThat(facade).isNotNull();
