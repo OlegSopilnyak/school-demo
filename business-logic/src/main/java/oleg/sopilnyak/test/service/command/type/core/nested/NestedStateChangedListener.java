@@ -24,7 +24,7 @@ public class NestedStateChangedListener implements Context.StateChangedListener 
     private final Logger log;
 
     /**
-     * State changed event doingMainLoop method
+     * State changed event processing method
      *
      * @param context  the context where state was changed
      * @param previous previous context state value

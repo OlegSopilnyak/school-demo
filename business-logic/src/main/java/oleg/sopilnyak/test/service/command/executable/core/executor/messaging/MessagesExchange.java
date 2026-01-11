@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public abstract class MessagesExchange {
     // @see CommandActionExecutor#processActionCommand(CommandMessage)
     private static final Logger logger = LoggerFactory.getLogger("Low Level Command Action Executor");
-    private static final CommandActionExecutor lowLevelActionExecutor = () -> logger;
+    private static final CommandThroughMessagesExecutor lowLevelActionExecutor = () -> logger;
     // The map of messages in progress, key is correlationId
     private final ConcurrentMap<String, MessageProgressWatchdog<?>> messageInProgress = new ConcurrentHashMap<>();
 

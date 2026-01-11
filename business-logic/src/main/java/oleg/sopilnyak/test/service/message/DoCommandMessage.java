@@ -17,7 +17,7 @@ public class DoCommandMessage<T> extends BaseCommandMessage<T> {
      * Factory method to create message to commands subsystem (to execute doCommand)
      *
      * @param correlationId correlation id of the message
-     * @param actionContext doingMainLoop context of the message
+     * @param actionContext action context of the message
      * @param context       context of the command execution
      * @param <T>           type of command execution result
      * @return instance of DoCommandMessage
@@ -33,7 +33,7 @@ public class DoCommandMessage<T> extends BaseCommandMessage<T> {
      * Private constructor to create message to commands subsystem (to execute doCommand)
      *
      * @param correlationId correlation id of the message
-     * @param actionContext doingMainLoop context of the message
+     * @param actionContext action context of the message
      * @param context       context of the command execution
      */
     private DoCommandMessage(String correlationId, ActionContext actionContext, Context<T> context) {

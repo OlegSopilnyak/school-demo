@@ -240,7 +240,7 @@ public interface IOBase<P> extends Serializable {
     }
 
     /**
-     * JSON: Deserializer for doingMainLoop-context field
+     * JSON: Deserializer for action-context field
      *
      * @see StdDeserializer
      * @see CommandMessage#getActionContext()

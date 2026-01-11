@@ -146,7 +146,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     @Test
     void shouldNotFindById() {
         Long courseId = 100L;
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
 
         Optional<Course> course = facade.findById(courseId);
 
@@ -407,7 +407,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     }
 
     @Test
-    void shouldUnRegister_Linked() throws CourseNotFoundException, StudentNotFoundException, InterruptedException {
+    void shouldUnRegister_Linked() throws CourseNotFoundException, StudentNotFoundException {
         Student student = persist(makeClearStudent(0));
         Course course = persist(makeClearCourse(0));
         assertThat(((StudentEntity) student).add(course)).isTrue();

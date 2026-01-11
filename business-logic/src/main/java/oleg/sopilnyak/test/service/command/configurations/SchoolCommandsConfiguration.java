@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
 import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
-import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
-import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.JSON_CONTEXT_MODULE_BEAN_NAME;
+import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
+import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.JSON_CONTEXT_MODULE_BEAN_NAME;
 
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;

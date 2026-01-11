@@ -169,7 +169,7 @@ public interface Input<P> extends IOBase<P> {
      * To create new input contexts-deque-parameter instance<BR/>
      * Used for undo command sequence in CompositeCommand
      *
-     * @param contexts sequence context for undo doingMainLoop in CompositeCommand
+     * @param contexts sequence context for undo processing in CompositeCommand
      * @return new instance of the input
      * @see DequeContextsParameter
      * @see Deque

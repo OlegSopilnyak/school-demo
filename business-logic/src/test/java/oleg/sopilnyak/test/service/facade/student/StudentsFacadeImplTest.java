@@ -104,7 +104,7 @@ class StudentsFacadeImplTest {
         facade = spy(new StudentsFacadeImpl(factory, payloadMapper, actionExecutor));
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @Test
@@ -118,9 +118,9 @@ class StudentsFacadeImplTest {
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isEmpty();
-        verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
-        verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
@@ -137,9 +137,9 @@ class StudentsFacadeImplTest {
         Optional<Student> student = facade.findById(studentId);
 
         assertThat(student).isPresent();
-        verify(factory).command(STUDENT_FIND_BY_ID);
-        verify(factory.command(STUDENT_FIND_BY_ID)).createContext(Input.of(studentId));
-        verify(factory.command(STUDENT_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(payloadMapper).toPayload(mockedStudent);
     }
@@ -155,9 +155,9 @@ class StudentsFacadeImplTest {
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).isEmpty();
-        verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
@@ -173,9 +173,9 @@ class StudentsFacadeImplTest {
         Set<Student> students = facade.findEnrolledTo(courseId);
 
         assertThat(students).hasSize(1);
-        verify(factory).command(STUDENT_FIND_ENROLLED_TO);
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).createContext(Input.of(courseId));
-        verify(factory.command(STUDENT_FIND_ENROLLED_TO)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
         verify(payloadMapper).toPayload(mockedStudent);
     }
@@ -190,9 +190,9 @@ class StudentsFacadeImplTest {
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).isEmpty();
-        verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -207,9 +207,9 @@ class StudentsFacadeImplTest {
         Set<Student> students = facade.findNotEnrolled();
 
         assertThat(students).hasSize(1);
-        verify(factory).command(STUDENT_FIND_NOT_ENROLLED);
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).createContext(Input.empty());
-        verify(factory.command(STUDENT_FIND_NOT_ENROLLED)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
         verify(payloadMapper).toPayload(mockedStudent);
     }

@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 class DoCommandMessageTest {
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
-    private static final String TEST_ACTION = "test-doingMainLoop";
+    private static final String TEST_ACTION = "test-action";
     private static final String TEST_FACADE = "test-facade";
     @MockitoBean
     private PersistenceFacade persistenceFacade;
@@ -137,7 +137,6 @@ class DoCommandMessageTest {
     @Test
     void shouldCreateMessageLongBoolean() {
         String commandId = DoCommandMessageTest.COMMAND_ID;
-        String correlationCommandId = DoCommandMessageTest.CORRELATION_ID;
         long id = 1;
         boolean value = true;
         Context.State state = Context.State.DONE;
@@ -150,7 +149,7 @@ class DoCommandMessageTest {
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
 
         // Create a DoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
+        // Set the command ID, action context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
@@ -163,7 +162,7 @@ class DoCommandMessageTest {
         commandContext.setStartedAt(startedAt);
         commandContext.setDuration(duration);
 
-        assertThat(message.getCorrelationId()).isSameAs(correlationCommandId);
+        assertThat(message.getCorrelationId()).isSameAs(CORRELATION_ID);
         assertThat(message.getContext().getCommand().getId()).isSameAs(commandId);
         assertThat(message.getActionContext()).isSameAs(actionContext);
         assertThat(message.getContext().getRedoParameter().value()).isSameAs(id);
@@ -187,7 +186,7 @@ class DoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a DoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
+        // Set the command ID, action context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
@@ -214,12 +213,12 @@ class DoCommandMessageTest {
         boolean resultValue = false;
         Context.State state = Context.State.DONE;
         CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().command(farm.command(commandId)).build();
-        ActionContext actionContext = ActionContext.builder().actionName("test-doingMainLoop").facadeName("test-facade").build();
+        ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
         // Create a DoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
+        // Set the command ID, action context and command context
         DoCommandMessage<Boolean> message = DoCommandMessage.<Boolean>builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();

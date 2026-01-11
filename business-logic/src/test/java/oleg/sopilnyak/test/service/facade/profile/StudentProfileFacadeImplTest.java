@@ -73,7 +73,7 @@ class StudentProfileFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new StudentProfileFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }

@@ -83,7 +83,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     @Override
     public void executeDo(final Context<T> context) {
-        // preparing command's input for doingMainLoop
+        // preparing command's input for processing
         final Input<MacroCommandParameter> inputParameter = context.getRedoParameter();
         try {
             checkNullParameter(inputParameter);
@@ -116,7 +116,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
             // updating command-context input (redo) parameter's contexts
             updateMacroCommandParameter(context, executionNestedResults);
             //
-            // after execution of nested, success and fail dequeues doingMainLoop
+            // after execution of nested, success and fail dequeues processing
             afterExecutionProcessing(context, succeed.getDeque(), failed.getDeque(), executionNestedResults);
         } catch (InterruptedException e) {
             getLog().error("Could not wait nested do finished '{}' with input {}", getId(), inputParameter, e);
@@ -184,7 +184,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     /**
-     * Post-doingMainLoop nested commands execution contexts
+     * Post-processing nested commands execution contexts
      *
      * @param rootContext        main context of macro-command
      * @param successful         collection of successful nested contexts
@@ -223,7 +223,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     }
 
     /**
-     * Post-doingMainLoop nested commands rolling back contexts
+     * Post-processing nested commands rolling back contexts
      *
      * @param rootContext        main context of macro-command
      * @param rollbackResult collection of all nested contexts after nested commands rollback

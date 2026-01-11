@@ -86,10 +86,10 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
     }
 
     /**
-     * To accept for doingMainLoop command-message
+     * To accept for processing command-message
      *
      * @param message command-message to process
-     * @return true, if message is accepted for the doingMainLoop, false otherwise
+     * @return true, if message is accepted for the processing, false otherwise
      */
     @Override
     public <T> boolean accept(final CommandMessage<T> message) {

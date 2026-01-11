@@ -123,11 +123,11 @@ public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
 
     // run nested command execution in the separate thread
     private CompletableFuture<Context<?>> launchNestedCommandWith(final Supplier<Context<?>> commandExecution) {
-        // prepare doingMainLoop context for execute command execution of the nested command
+        // prepare action context for execute command execution of the nested command
         final ActionContext actionContext = ActionContext.current();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // setup doingMainLoop context for the thread of threads pool
+                // setup action context for the thread of threads pool
                 ActionContext.install(actionContext);
                 return commandExecution.get();
             } finally {

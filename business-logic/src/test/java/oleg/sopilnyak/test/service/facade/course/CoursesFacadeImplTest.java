@@ -84,7 +84,7 @@ class CoursesFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new CoursesFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
         doCallRealMethod().when(actionExecutor).commitAction(any(ActionContext.class), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }
@@ -374,7 +374,7 @@ class CoursesFacadeImplTest {
         when(mockedStudent.getId()).thenReturn(studentId);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-        when(mockedStudent.getCourses()).thenReturn(IntStream.range(1, 10).mapToObj(i -> mockedCourse).toList());
+        when(mockedStudent.getCourses()).thenReturn(IntStream.range(1, 10).mapToObj(_ -> mockedCourse).toList());
 
         Exception exception = assertThrows(StudentCoursesExceedException.class, () -> facade.register(studentId, courseId));
 
@@ -398,7 +398,7 @@ class CoursesFacadeImplTest {
         when(mockedCourse.getId()).thenReturn(courseId);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
-        when(mockedCourse.getStudents()).thenReturn(IntStream.range(1, 51).mapToObj(i -> mockedStudent).toList());
+        when(mockedCourse.getStudents()).thenReturn(IntStream.range(1, 51).mapToObj(_ -> mockedStudent).toList());
 
         Exception exception = assertThrows(CourseHasNoRoomException.class, () -> facade.register(studentId, courseId));
 

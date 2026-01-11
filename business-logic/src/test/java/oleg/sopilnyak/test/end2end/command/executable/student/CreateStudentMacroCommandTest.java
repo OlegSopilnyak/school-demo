@@ -90,7 +90,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         command = spy(new CreateStudentMacroCommand(studentCommand, profileCommand, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach

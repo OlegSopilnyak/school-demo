@@ -84,7 +84,7 @@ class MacroCommandTest {
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
         setupBaseCommandIds();
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @Test
@@ -700,7 +700,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow doingMainLoop-executor activity
+        // allow action-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -745,7 +745,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand<?>[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow doingMainLoop-executor activity
+        // allow action-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -760,7 +760,7 @@ class MacroCommandTest {
         command.undoCommand(macroContext);
 
         assertThat(macroContext.getState()).isEqualTo(UNDONE);
-        nestedDoneContexts.stream().forEach(context ->
+        nestedDoneContexts.forEach(context ->
                 assertThat(context.getState()).isEqualTo(context.getCommand() == studentCommand ? CANCEL : UNDONE)
         );
         verify(command).executeUndo(macroContext);
@@ -855,7 +855,7 @@ class MacroCommandTest {
                 .map(RootCommand.class::cast)
                 .toArray(RootCommand[]::new);
         IntStream.range(0, nested.length).forEach(i -> configureNestedRedoResult(nested[i], parameters[i]));
-        // allow doingMainLoop-executor activity
+        // allow action-executor activity
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).rollbackAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -872,7 +872,7 @@ class MacroCommandTest {
 
         // check main macro-command state
         assertThat(macroContext.getState()).isEqualTo(UNDONE);
-        nestedDoneContexts.stream().forEach(context ->
+        nestedDoneContexts.forEach(context ->
                 assertThat(context.getState()).isEqualTo(context.getCommand() == studentCommand ? CANCEL : UNDONE)
         );
         verify(command).executeUndo(macroContext);
@@ -1024,7 +1024,7 @@ class MacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         configureNestedRedoResult(intCommand, parameter * 10);
-        Context.StateChangedListener listener = (context, previous, newOne) -> {
+        Context.StateChangedListener listener = (_, _, newOne) -> {
             if (newOne == DONE) counter.incrementAndGet();
         };
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
@@ -1049,7 +1049,7 @@ class MacroCommandTest {
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
         configureNestedRedoResult(booleanCommand, true);
         doThrow(UnableExecuteCommandException.class).when(intCommand).doCommand(any(Context.class));
-        Context.StateChangedListener listener = (context, previous, newOne) -> {
+        Context.StateChangedListener listener = (_, _, newOne) -> {
             if (newOne == DONE) counter.incrementAndGet();
         };
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
@@ -1074,7 +1074,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         configureNestedRedoResult(doubleCommand, parameter * 100.0);
-        Context.StateChangedListener listener = (context, previous, newOne) -> {
+        Context.StateChangedListener listener = (_, _, newOne) -> {
             if (newOne == DONE) counter.incrementAndGet();
         };
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
@@ -1090,7 +1090,7 @@ class MacroCommandTest {
     }
 
     @Test
-    <T> void shouldNotDoAsNestedCommand_EmptyContext() {
+    void shouldNotDoAsNestedCommand_EmptyContext() {
         reset(doubleCommand, booleanCommand, intCommand);
         int parameter = 118;
         Input<Integer> inputParameter = Input.of(parameter);
@@ -1099,7 +1099,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         assertThat(wrapper.getNestedContexts().getFirst()).isNull();
-        Context.StateChangedListener listener = (context, previous, newOne) -> {
+        Context.StateChangedListener listener = (_, _, newOne) -> {
             if (newOne == DONE) counter.incrementAndGet();
         };
 
@@ -1119,7 +1119,7 @@ class MacroCommandTest {
         MacroCommandParameter wrapper = macroContext.<MacroCommandParameter>getRedoParameter().value();
         assertThat(wrapper.getRootInput().value()).isSameAs(parameter);
         doThrow(UnableExecuteCommandException.class).when(doubleCommand).doCommand(any(Context.class));
-        Context.StateChangedListener listener = (context, previous, newOne) -> {
+        Context.StateChangedListener listener = (_, _, newOne) -> {
             if (newOne == DONE) counter.incrementAndGet();
         };
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
@@ -1227,7 +1227,8 @@ class MacroCommandTest {
     }
 
     private static Deque<Context<?>> rollbackNestedContexts(Deque<Context<?>> contexts, CompositeCommand<?> compositeCommand) {
-        return contexts.stream().map(context -> compositeCommand.executeUndoNested((Context<Void>) context))
+        return contexts.stream()
+                .map(compositeCommand::executeUndoNested)
                 .collect(Collectors.toCollection(ArrayDeque::new));
     }
 
@@ -1259,7 +1260,7 @@ class MacroCommandTest {
                 .forEach(context -> {
                     assertThat(context.isReady()).isTrue();
                     RootCommand<?> nestedCommand = context.getCommand();
-                    assertThat(context.<Object>getRedoParameter()).isEqualTo(parameter);
+                    assertThat(context.getRedoParameter()).isEqualTo(parameter);
                     verify(nestedCommand).acceptPreparedContext(command, parameter);
                     verify(command).prepareContext(nestedCommand, parameter);
                     verify(nestedCommand).createContext(parameter);
@@ -1293,7 +1294,7 @@ class MacroCommandTest {
         assertThat(nestedContext).isNotNull();
         assertThat(nestedContext.isReady()).isTrue();
         assertThat(nestedContext.getCommand()).isEqualTo(command);
-        assertThat(nestedContext.<Object>getRedoParameter()).isEqualTo(parameter);
+        assertThat(nestedContext.getRedoParameter()).isEqualTo(parameter);
     }
 
     private void allowRealPrepareContext(PrepareNestedContextVisitor macro, NestedCommand<?> nested, Input<?> parameter) {

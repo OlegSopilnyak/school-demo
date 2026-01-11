@@ -7,13 +7,11 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local.LocalQueueCommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.StudentsGroupCommand;
-import oleg.sopilnyak.test.service.facade.impl.ActionExecutorImpl;
-import oleg.sopilnyak.test.service.facade.impl.command.message.service.local.CommandThroughMessageServiceLocalImpl;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.CommandThroughMessageService;
 
 import java.util.Collection;
 import java.util.Set;
@@ -99,12 +97,7 @@ class StudentsGroupCommandsFactoryTest extends MysqlTestModelFactory {
 
         @Bean
         public CommandActionExecutor actionExecutor() {
-            return new ActionExecutorImpl(commandThroughMessageService());
-        }
-
-        @Bean
-        public CommandThroughMessageService commandThroughMessageService() {
-            return new CommandThroughMessageServiceLocalImpl();
+            return new LocalQueueCommandExecutor();
         }
 
         @Bean

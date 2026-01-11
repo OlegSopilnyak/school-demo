@@ -1,8 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local;
 
 
-import static oleg.sopilnyak.test.service.message.CommandThroughMessageService.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
-
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandMessagesExchangeExecutorAdapter;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -28,8 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAdapter {
-    public static final String REQUEST_MESSAGES_PROCESSOR_NAME = "RequestMessagesProcessor";
-    public static final String RESPONSE_MESSAGES_PROCESSOR_NAME = "ResponseMessagesProcessor";
     private ExecutorService executor;
     // object mapper for the command-messages transformation and other stuff
     private ObjectMapper objectMapper;

@@ -117,7 +117,7 @@ class AuthorityPersonFacadeImplTest {
     void setUp() {
         factory = buildFactory();
         facade = spy(new AuthorityPersonFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }
@@ -137,9 +137,9 @@ class AuthorityPersonFacadeImplTest {
 
         facade.logout(token);
 
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).createContext(Input.of(token));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_LOGOUT)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(token));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
     }
 
     @Test
@@ -195,9 +195,9 @@ class AuthorityPersonFacadeImplTest {
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).isEmpty();
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
     }
@@ -213,9 +213,9 @@ class AuthorityPersonFacadeImplTest {
         Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
 
         assertThat(persons).hasSize(1);
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper).toPayload(mockPerson);
     }
@@ -231,9 +231,9 @@ class AuthorityPersonFacadeImplTest {
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
 
         assertThat(person).isEmpty();
-        verify(factory).command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
     }
@@ -251,8 +251,8 @@ class AuthorityPersonFacadeImplTest {
         Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
 
         assertThat(person).isPresent();
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAuthorityPersonById(id);
         verify(payloadMapper).toPayload(any(AuthorityPerson.class));
     }

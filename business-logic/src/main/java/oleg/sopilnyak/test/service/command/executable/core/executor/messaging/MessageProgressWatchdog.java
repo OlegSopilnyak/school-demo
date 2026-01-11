@@ -105,6 +105,6 @@ public class MessageProgressWatchdog<T> {
             }
         }
     }
-    // State of message doingMainLoop
+    // State of message processing
     public enum State {IN_PROGRESS, COMPLETED, EXPIRED}
 }

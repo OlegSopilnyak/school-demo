@@ -73,7 +73,7 @@ class FacultyFacadeImplTest {
     void setUp() {
         factory = spy(buildFactory());
         facade = spy(new FacultyFacadeImpl(factory, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
     }
@@ -88,9 +88,9 @@ class FacultyFacadeImplTest {
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).isEmpty();
-        verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }
 
@@ -105,9 +105,9 @@ class FacultyFacadeImplTest {
         Collection<Faculty> faculties = facade.findAllFaculties();
 
         assertThat(faculties).hasSize(1);
-        verify(factory).command(ORGANIZATION_FACULTY_FIND_ALL);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).createContext(Input.empty());
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
     }
 
@@ -122,9 +122,9 @@ class FacultyFacadeImplTest {
         Optional<Faculty> faculty = facade.findFacultyById(id);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
 
@@ -141,9 +141,9 @@ class FacultyFacadeImplTest {
         Optional<Faculty> faculty = facade.findFacultyById(id);
 
         assertThat(faculty).contains(mockFacultyPayload);
-        verify(factory).command(ORGANIZATION_FACULTY_FIND_BY_ID);
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_FACULTY_FIND_BY_ID)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
     }
 
@@ -160,9 +160,9 @@ class FacultyFacadeImplTest {
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
         assertThat(faculty).isPresent();
-        verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockFacultyPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }
 
@@ -177,9 +177,9 @@ class FacultyFacadeImplTest {
         Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
 
         assertThat(faculty).isEmpty();
-        verify(factory).command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE);
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).createContext(Input.of(mockFacultyPayload));
-        verify(factory.command(ORGANIZATION_FACULTY_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockFacultyPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
     }
 
@@ -195,9 +195,9 @@ class FacultyFacadeImplTest {
 
         facade.deleteFacultyById(id);
 
-        verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence).deleteFaculty(id);
     }
@@ -213,9 +213,9 @@ class FacultyFacadeImplTest {
         FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
-        verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
     }
@@ -234,9 +234,9 @@ class FacultyFacadeImplTest {
         FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:404 has courses.");
-        verify(factory).command(ORGANIZATION_FACULTY_DELETE);
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).createContext(Input.of(id));
-        verify(factory.command(ORGANIZATION_FACULTY_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
         verify(persistence, never()).deleteFaculty(id);
     }

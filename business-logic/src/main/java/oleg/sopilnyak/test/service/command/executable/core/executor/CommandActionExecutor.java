@@ -34,20 +34,17 @@ public interface CommandActionExecutor {
     /**
      * To initialize school-commands executor
      */
-    default void initialize() {
-        throw new UnsupportedOperationException("Please implement it.");
-    }
+    void initialize();
 
     /**
      * To shut down school-commands executor
      */
-    default void shutdown() {
-        throw new UnsupportedOperationException("Please implement it.");
-    }
+    void shutdown();
+
     /**
      * To process command message, executing command from command-context of the message
      *
-     * @param message the doingMainLoop command message
+     * @param message the processing command message
      * @param <T>     type of command result
      * @return processed command message
      * @see CommandMessage
@@ -84,7 +81,7 @@ public interface CommandActionExecutor {
                 }
             }
         }
-        // returns the message after doingMainLoop
+        // returns the message after processing
         return message;
     }
 
@@ -96,9 +93,9 @@ public interface CommandActionExecutor {
     Logger getLogger();
 
     /**
-     * To do (commit) doingMainLoop with the doingMainLoop context and command context
+     * To do (commit) processing with the action context and command context
      *
-     * @param actionContext  the doingMainLoop context
+     * @param actionContext  the action context
      * @param commandContext the command context
      * @param <T>            type of do command execution result
      * @return command-context after undo command execution
@@ -110,20 +107,20 @@ public interface CommandActionExecutor {
     }
 
     /**
-     * To undo (rollback) doingMainLoop with the doingMainLoop context and command context
+     * To undo (rollback) processing with the action context and command context
      *
-     * @param actionContext  the doingMainLoop context
+     * @param actionContext  the action context
      * @param commandContext the command context
      * @return command-context after undo command execution
      * @see ActionContext
      * @see Context
      */
-    default Context<?> rollbackAction(final ActionContext actionContext, final Context<?> commandContext) {
+    default <T> Context<T> rollbackAction(final ActionContext actionContext, final Context<T> commandContext) {
         return processActionCommand(buildMessage(actionContext, commandContext, CommandMessage.Direction.UNDO)).getContext();
     }
 
     /**
-     * To validateInput input message's direction before doingMainLoop
+     * To validateInput input message's direction before processing
      *
      * @param message input message to check
      * @param <T>     type of do command execution result
@@ -139,9 +136,9 @@ public interface CommandActionExecutor {
     /**
      * To build the command-message instance to process
      *
-     * @param actionContext  the doingMainLoop context
+     * @param actionContext  the action context
      * @param commandContext the command context
-     * @param direction      the direction of message doingMainLoop
+     * @param direction      the direction of message processing
      * @param <T>            type of do command execution result
      * @return built message instance
      * @see ActionContext

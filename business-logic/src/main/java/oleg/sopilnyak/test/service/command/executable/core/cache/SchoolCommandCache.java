@@ -198,7 +198,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
      * @param context             command's do context
      * @param rollbackProcess     process to run after persistence fail
      * @param persistedEntityCopy persisted entity instance copy
-     * @param isCreateEntityMode  if true there was new entity creation doingMainLoop
+     * @param isCreateEntityMode  if true there was new entity creation processing
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context#setResult(Object)

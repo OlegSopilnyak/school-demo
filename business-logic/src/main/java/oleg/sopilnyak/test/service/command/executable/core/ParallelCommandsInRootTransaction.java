@@ -34,7 +34,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             }
             return inRootTransaction.result.get();
         } else {
-            getLog().warn("Cannot add doingMainLoop to the queue");
+            getLog().warn("Cannot add action to the queue");
             return null;
         }
     }
@@ -63,7 +63,7 @@ abstract class ParallelCommandsInRootTransaction<T> {
             try {
                 result.getAndSet(calculateResult.get());
             } catch (Exception e) {
-                logger.error("Cannot execute doingMainLoop.", e);
+                logger.error("Cannot execute action.", e);
             } finally {
                 actionIsFinished();
             }

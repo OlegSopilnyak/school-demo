@@ -136,7 +136,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
-            // change authority-person-id value for further do command doingMainLoop
+            // change authority-person-id value for further do command processing
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

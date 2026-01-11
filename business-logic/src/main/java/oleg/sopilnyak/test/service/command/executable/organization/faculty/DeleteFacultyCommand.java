@@ -135,7 +135,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
 
             final var entity = rollbackCachedEntity(context, persistence::save).orElseThrow();
 
-            // change faculty-id value for further do command doingMainLoop
+            // change faculty-id value for further do command processing
             if (context instanceof CommandContext<?> commandContext) {
                 commandContext.setRedoParameter(Input.of(entity.getId()));
             }

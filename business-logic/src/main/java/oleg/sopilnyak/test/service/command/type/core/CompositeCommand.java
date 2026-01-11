@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContextVisitor {
     /**
-     * To get doingMainLoop-executor for nested commands doingMainLoop
+     * To get action-executor for nested commands processing
      *
      * @return instance of the executor
      */
@@ -122,7 +122,7 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     /**
-     * To execute DO of nested command with the nested context and context-state-change listener through doingMainLoop-executor
+     * To execute DO of nested command with the nested context and context-state-change listener through action-executor
      *
      * @param <N>      the type of nested command execution result
      * @param context  the context used for use with the nested command
@@ -136,19 +136,19 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      */
     default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
         if (isNull(listener)) {
-            // execute nested context using doingMainLoop executor
+            // execute nested context using action executor
             return getActionExecutor().commitAction(ActionContext.current(), context);
         }
         // store states before do execution
         final Deque<Context.State> statesBefore = context.getHistory().states();
         //
-        // execute nested context using doingMainLoop executor
+        // execute nested context using action executor
         Context<N> result;
         try {
             result = getActionExecutor().commitAction(ActionContext.current(), context);
         } catch (Exception e) {
             result = context.failed(e);
-            getLog().error("Cannot commit nested context using doingMainLoop executor...", e);
+            getLog().error("Cannot commit nested context using action executor...", e);
         }
         //
         // notifying context the state-change-listener by new states after DO execution
@@ -201,10 +201,10 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      */
     default Context<?> executeUndoNested(final Context<?> context) {
         try{
-            // execute rollback for nested context using doingMainLoop executor
+            // execute rollback for nested context using action executor
             return getActionExecutor().rollbackAction(ActionContext.current(), context);
         } catch (Exception e) {
-            getLog().error("Cannot rollback nested context using doingMainLoop executor...", e);
+            getLog().error("Cannot rollback nested context using action executor...", e);
             return context.failed(e);
         }
     }

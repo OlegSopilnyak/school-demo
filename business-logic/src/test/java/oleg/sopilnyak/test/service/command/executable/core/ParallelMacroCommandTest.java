@@ -72,7 +72,7 @@ class ParallelMacroCommandTest {
         command.putToNest(doubleCommand);
         command.putToNest(booleanCommand);
         command.putToNest(intCommand);
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach

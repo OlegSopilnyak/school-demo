@@ -33,13 +33,13 @@ import lombok.Data;
 @JsonDeserialize(using = BaseCommandMessage.Deserializer.class)
 public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
     private static final String CORRELATION_ID_FIELD_NAME = "correlation-id";
-    private static final String ACTION_CONTEXT_FIELD_NAME = "doingMainLoop-context";
+    private static final String ACTION_CONTEXT_FIELD_NAME = "action-context";
     private static final String COMMAND_CONTEXT_FIELD_NAME = "command-context";
     private static final String DIRECTION_FIELD_NAME = "direction";
 
     // correlation ID of the message
     private String correlationId;
-    // the doingMainLoop context of command's execution
+    // the action context of command's execution
     @JsonDeserialize(using = IOBase.ActionContextDeserializer.class)
     private ActionContext actionContext;
     // the context of command's execution

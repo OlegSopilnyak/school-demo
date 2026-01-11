@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.service.command.executable.core.executor.messaging;
 
-import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.exception.CountDownLatchInterruptedException;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -24,9 +23,11 @@ import lombok.Getter;
  * Facade (Base Implementation): The main engine to execute school command activities through messages exchange.<BR/>
  * Implements business-logic based on command-messages exchange
  *
- * @see CommandActionExecutor
+ * @see CommandThroughMessagesExecutor
  */
-public abstract class CommandMessagesExchangeExecutorAdapter extends MessagesExchange implements CommandActionExecutor {
+public abstract class CommandMessagesExchangeExecutorAdapter
+        extends MessagesExchange
+        implements CommandThroughMessagesExecutor {
     // executor service to support message-processors lifecycle
     private ExecutorService processorLaunchExecutor = null;
     // Flag to control the current state of the service

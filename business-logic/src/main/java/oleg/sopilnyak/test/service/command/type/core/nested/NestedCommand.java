@@ -7,7 +7,7 @@ import oleg.sopilnyak.test.service.command.type.core.Context;
 import java.io.Serializable;
 
 /**
- * Type: Command to execute the business-logic doingMainLoop as a nested-command of CompositeCommand
+ * Type: Command to execute the business-logic processing as a nested-command of CompositeCommand
  *
  * @param <T> the type of command execution (do) result
  * @see CompositeCommand

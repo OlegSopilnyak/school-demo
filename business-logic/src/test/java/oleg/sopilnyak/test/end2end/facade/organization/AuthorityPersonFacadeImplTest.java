@@ -132,7 +132,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         actionExecutor.shutdown();
         ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
         actionExecutor.initialize();
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach

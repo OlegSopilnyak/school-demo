@@ -114,7 +114,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach

@@ -40,7 +40,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 class UndoCommandMessageTest {
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
-    private static final String TEST_ACTION = "test-doingMainLoop";
+    private static final String TEST_ACTION = "test-action";
     private static final String TEST_FACADE = "test-facade";
     @MockitoBean
     PlatformTransactionManager platformTransactionManager;
@@ -161,8 +161,8 @@ class UndoCommandMessageTest {
         ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
 
         // Create a UndoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
-        UndoCommandMessage message = UndoCommandMessage.<Boolean>builder()
+        // Set the command ID, action context and command context
+        UndoCommandMessage message = UndoCommandMessage.builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
 
@@ -196,8 +196,8 @@ class UndoCommandMessageTest {
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a UndoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
-        UndoCommandMessage message = UndoCommandMessage.<Boolean>builder()
+        // Set the command ID, action context and command context
+        UndoCommandMessage message = UndoCommandMessage.builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();
 
@@ -222,12 +222,12 @@ class UndoCommandMessageTest {
         long id = 6;
         Context.State state = Context.State.DONE;
         CommandContext<Void> commandContext = CommandContext.<Void>builder().command(farm.command(commandId)).build();
-        ActionContext actionContext = ActionContext.builder().actionName("test-doingMainLoop").facadeName("test-facade").build();
+        ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
         // Create a UndoCommandMessage instance
-        // Set the command ID, doingMainLoop context and command context
+        // Set the command ID, action context and command context
         UndoCommandMessage message = UndoCommandMessage.builder()
                 .correlationId(CORRELATION_ID).actionContext(actionContext).context(commandContext)
                 .build();

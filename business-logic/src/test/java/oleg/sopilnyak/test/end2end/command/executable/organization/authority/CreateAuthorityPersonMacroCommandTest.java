@@ -86,7 +86,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @BeforeEach
     void setUp() {
         command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
-        ActionContext.setup("test-facade", "test-doingMainLoop");
+        ActionContext.setup("test-facade", "test-action");
     }
 
     @AfterEach
