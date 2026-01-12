@@ -41,7 +41,7 @@ public class PrincipalProfilePayload extends BaseProfilePayload<PrincipalProfile
         }
         try {
             return signature.equals(makeSignatureFor(password));
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException _) {
             return false;
         }
     }

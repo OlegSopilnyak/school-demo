@@ -136,14 +136,13 @@ public interface BusinessMessagePayloadMapper {
     @Mapping(target = "original", expression = "java(group)")
     StudentsGroupPayload toPayload(StudentsGroup group);
 
-    default PersonProfile toPayload(PersonProfile profile) {
-        if (profile instanceof StudentProfile studentProfile) {
-            return toPayload(studentProfile);
-        } else if (profile instanceof PrincipalProfile principalProfileProfile) {
-            return toPayload(principalProfileProfile);
-        } else {
-            throw new UnsupportedOperationException("Cannot convert to payload for type:" + profile.getClass().getSimpleName());
-        }
+    default PersonProfile toPayload(PersonProfile personProfile) {
+        return switch(personProfile) {
+            case StudentProfile profile -> toPayload(profile);
+            case PrincipalProfile profile -> toPayload(profile);
+            default ->
+                    throw new UnsupportedOperationException("Cannot convert to payload for type:" + personProfile.getClass().getSimpleName());
+        };
     }
 
     /**
