@@ -7,8 +7,6 @@ import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
 import org.springframework.util.ObjectUtils;
@@ -22,9 +20,7 @@ import lombok.experimental.SuperBuilder;
  * @see BlockingQueue
  */
 @SuperBuilder
-abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
-    // Executors for asynchronous taken messages processing
-    private final Executor executor;
+class LocalQueueMessageProcessor extends RootMessageProcessor {
     // the predicate to check taken message's emptiness
     private static final Predicate<String> IS_EMPTY_MESSAGE = json -> ObjectUtils.isEmpty(json) || json.isBlank();
     // last message in the queue marker
@@ -32,18 +28,6 @@ abstract class LocalQueueMessageProcessor extends RootMessageProcessor {
     private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
     @Setter
     private ObjectMapper objectMapper;
-
-    /**
-     * To run processor's taken command-message in asynchronous way <BR/>
-     * Local processor use CompletableFuture feature
-     *
-     * @param runnableForTakenMessage taken message process runner
-     * @see CompletableFuture#runAsync(Runnable, Executor)
-     */
-    @Override
-    public void runAsyncTakenMessage(final Runnable runnableForTakenMessage) {
-        CompletableFuture.runAsync(runnableForTakenMessage, executor);
-    }
 
     /**
      * To take command-message from the appropriate messages processor's source for further processing in the processor

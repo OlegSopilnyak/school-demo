@@ -97,10 +97,5 @@ class RootMessageProcessorTest {
         public void onTakenMessage(CommandMessage<?> message) {
             throw new UnsupportedOperationException("onTakenMessage");
         }
-
-        @Override
-        public void runAsyncTakenMessage(Runnable runnableForTakenMessage) {
-            runnableForTakenMessage.run();
-        }
     }
 }

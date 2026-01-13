@@ -73,13 +73,16 @@ public abstract class RootMessageProcessor implements MessagesProcessor {
 
     /**
      * To run processor's taken message in asynchronous way
-     * In root processor implementation there is no any threads involved
+     * delegate running to messages exchange engine
      *
-     * @param runnableForTakenMessage taken message process runner
+     * @param onMessageAction consumer of taken message to process
+     * @param message taken message instance
+     * @see MessagesExchange#runAsync(Runnable)
      */
     @Override
-    public void runAsyncTakenMessage(final Runnable runnableForTakenMessage) {
-        runnableForTakenMessage.run();
+    public void runAsyncTakenMessage(Consumer<CommandMessage<?>> onMessageAction, CommandMessage<?> message) {
+        final Runnable runnableForTakenMessage = () -> onMessageAction.accept(message);
+        exchange.runAsync(runnableForTakenMessage);
     }
 
     /**

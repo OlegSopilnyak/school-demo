@@ -23,10 +23,12 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,7 +194,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
         // launchCommandMessageProcessing::initiateProcessingMessage
         verify(requestsProcessor).accept(request);
         verify(logger).info(startsWith("Launch: message with correlationId="), eq(correlationId));
-        verify(requestsProcessor).runAsyncTakenMessage(any(Runnable.class));
+        verify(requestsProcessor).runAsyncTakenMessage(any(Consumer.class ), eq(request));
         verify(requestsProcessor).onTakenMessage(request);
         verify(logger, times(2)).debug("Taken message {}", request);
         verify(messagesExecutor).executeWithActionContext(request);
@@ -206,7 +208,8 @@ class CommandMessagesExchangeExecutorAdapterTest {
         verify(responsesProcessor).accept(request);
         // waitingProcessedCommandMessage
         verify(logger).info(startsWith("=== Waiting for processed command message of "), eq(commandId), eq(correlationId));
-        verify(responsesProcessor).runAsyncTakenMessage(any(Runnable.class));
+        verify(responsesProcessor).runAsyncTakenMessage(any(Consumer.class ), eq(request));
+//        verify(responsesProcessor).runAsyncTakenMessage(any(Runnable.class));
         verify(responsesProcessor).onTakenMessage(request);
         verify(messagesExecutor).onTakenResponseMessage(request);
         verify(logger).info("Successfully processed response with correlationId='{}'", correlationId);
@@ -362,7 +365,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
         // launchCommandMessageProcessing::initiateProcessingMessage
         verify(requestsProcessor).accept(request);
         verify(logger).info("Launch: message with correlationId='{}' is accepted for processing.", correlationId);
-        verify(requestsProcessor).runAsyncTakenMessage(any(Runnable.class));
+        verify(requestsProcessor).runAsyncTakenMessage(any(Consumer.class ), eq(request));
         verify(requestsProcessor).onTakenMessage(request);
         verify(logger).debug("Taken message {}", request);
         verify(messagesExecutor).executeWithActionContext(request);
@@ -502,6 +505,39 @@ class CommandMessagesExchangeExecutorAdapterTest {
         @Override
         public Logger getLogger() {
             return logger;
+        }
+
+        /**
+         * To prepare and start message watcher for the command-message
+         *
+         * @param correlationId correlation-id of message to watch after
+         * @param original      original message to watch after
+         * @return true if it's made
+         */
+        @Override
+        protected boolean makeMessageInProgress(String correlationId, CommandMessage<?> original) {
+            return true;
+        }
+
+        /**
+         * To get the watcher of in-progress message
+         *
+         * @param correlationId correlation-id of watching message
+         * @return command-message watcher
+         */
+        @Override
+        protected <T> Optional<CommandMessageWatchdog<T>> messageWatchdogFor(String correlationId) {
+            return Optional.empty();
+        }
+
+        /**
+         * To stop watching after of the command-message
+         *
+         * @param correlationId correlation-id of message to stop watching after
+         */
+        @Override
+        protected void stopWatchingMessage(String correlationId) {
+
         }
 
         void nothingToExecute() {

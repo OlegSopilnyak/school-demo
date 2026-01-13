@@ -5,8 +5,6 @@ import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActio
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +15,17 @@ public abstract class MessagesExchange {
     // @see CommandActionExecutor#processActionCommand(CommandMessage)
     private static final Logger logger = LoggerFactory.getLogger("Low Level Command Action Executor");
     private static final CommandThroughMessagesExecutor lowLevelActionExecutor = () -> logger;
-    // The map of messages in progress, key is correlationId
-    private final ConcurrentMap<String, MessageProgressWatchdog<?>> messageInProgress = new ConcurrentHashMap<>();
+
+    /**
+     * To run processor's taken message processing in asynchronous way
+     * By default running in the same thread
+     *
+     * @param commandMessageProcessing taken message process runner
+     * @see MessagesProcessor#doingMainLoop()
+     */
+    public void runAsync(Runnable commandMessageProcessing) {
+        commandMessageProcessing.run();
+    }
 
     /**
      * To check the state of messages exchange sub-service
@@ -42,24 +49,13 @@ public abstract class MessagesExchange {
     protected abstract Logger getLogger();
 
     /**
-     * To prepare message watcher for the command-message
+     * To prepare and start message watcher for the command-message
      *
      * @param correlationId correlation-id of message to watch after
      * @param original      original message to watch after
      * @return true if it's made
      */
-    public boolean makeMessageInProgress(final String correlationId, final CommandMessage<?> original) {
-        return messageInProgress.putIfAbsent(correlationId, new MessageProgressWatchdog<>(original)) == null;
-    }
-
-    /**
-     * To stop watching after of the command-message
-     *
-     * @param correlationId correlation-id of message to stop watching after
-     */
-    public void stopWatchingMessage(String correlationId) {
-        messageInProgress.remove(correlationId);
-    }
+    protected abstract boolean makeMessageInProgress(final String correlationId, final CommandMessage<?> original);
 
     /**
      * To get the watcher of in-progress message
@@ -68,10 +64,14 @@ public abstract class MessagesExchange {
      * @param <T>           the type of message-command's result
      * @return command-message watcher
      */
-    @SuppressWarnings("unchecked")
-    public <T> Optional<MessageProgressWatchdog<T>> messageWatchdogFor(String correlationId) {
-        return Optional.ofNullable((MessageProgressWatchdog<T>) messageInProgress.get(correlationId));
-    }
+    protected abstract <T> Optional<CommandMessageWatchdog<T>> messageWatchdogFor(String correlationId);
+
+    /**
+     * To stop watching after of the command-message
+     *
+     * @param correlationId correlation-id of message to stop watching after
+     */
+    protected abstract void stopWatchingMessage(String correlationId);
 
     /**
      * To process locally the command-message in the action-context
@@ -119,7 +119,7 @@ public abstract class MessagesExchange {
      * @see this#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
-    public <T> void onTakenRequestMessage(final CommandMessage<T> message) {
+    protected <T> void onTakenRequestMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
         getLogger().debug("Processing request message with correlationId='{}'", correlationId);
         // processing request using message-in-progress map by correlation-id
@@ -146,7 +146,7 @@ public abstract class MessagesExchange {
      * @see this#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
-    public <T> void onErrorRequestMessage(final CommandMessage<T> message, final Throwable error) {
+    protected <T> void onErrorRequestMessage(final CommandMessage<T> message, final Throwable error) {
         if (message.getContext().isFailed()) {
             final String correlationId = message.getCorrelationId();
             getLogger().error("== Sending failed context of message {}", message.getCorrelationId());
@@ -168,11 +168,11 @@ public abstract class MessagesExchange {
      *
      * @param message the command message to be finalized
      */
-    public <T> void onTakenResponseMessage(final CommandMessage<T> message) {
+    protected  <T> void onTakenResponseMessage(final CommandMessage<T> message) {
         final String correlationId = message.getCorrelationId();
         getLogger().info("Finishing processing response with correlationId='{}' which is needs completion", correlationId);
         // getting in-progress-message watchdog form progress map by correlation-id
-        final Optional<MessageProgressWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
+        final Optional<CommandMessageWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
         // save result to watchdog and notify waiting threads
         watchdogOptional.ifPresentOrElse(watchDog -> {
                     // set up the result and mark as completed
@@ -185,7 +185,6 @@ public abstract class MessagesExchange {
                 () -> logMessageIsNotInProgress(correlationId)
         );
     }
-
 
     /**
      * To process in-progress command-message and make result of the command as a command-message using low-level action executor
@@ -202,15 +201,26 @@ public abstract class MessagesExchange {
     // private methods
     // To pass processed message out
     private <T> void passProcessedMessageOut(final CommandMessage<T> processedMessage, final String correlationId) {
+        final MessagesProcessor resultsProcessor = getResponsesProcessor();
+        getLogger().debug(
+                "Result: processing response in '{}' message with correlationId='{}'",
+                resultsProcessor.getProcessorName(), correlationId
+        );
         // try to send the result to the responses processor
-        if (getResponsesProcessor().accept(processedMessage)) {
+        if (resultsProcessor.accept(processedMessage)) {
             // successfully sent
-            getLogger().debug("Result: message with correlationId='{}' is processed and put to responses processor", correlationId);
+            getLogger().debug(
+                    "Result: message with correlationId='{}' is processed and put to responses processor",
+                    correlationId
+            );
         } else {
             // something went wrong
-            getLogger().error("Result: message with correlationId='{}' is processed but is NOT sent to responses processor", correlationId);
+            getLogger().error(
+                    "Result: message with correlationId='{}' is processed but is NOT sent to responses processor",
+                    correlationId
+            );
             // simulate successful finalize result message processing
-            getResponsesProcessor().onTakenMessage(processedMessage);
+            resultsProcessor.onTakenMessage(processedMessage);
         }
     }
 

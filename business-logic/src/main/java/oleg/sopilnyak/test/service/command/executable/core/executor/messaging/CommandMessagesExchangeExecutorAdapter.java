@@ -133,7 +133,6 @@ public abstract class CommandMessagesExchangeExecutorAdapter
         }
     }
 
-
     /**
      * Build and prepare message-processor for requests messages
      *
@@ -293,7 +292,7 @@ public abstract class CommandMessagesExchangeExecutorAdapter
         // command-message in progress holder
         final AtomicReference<CommandMessage<T>> processedMessageHolder = new AtomicReference<>(null);
         // getting message-watcher from in-progress map by correlation-id
-        final Optional<MessageProgressWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
+        final Optional<CommandMessageWatchdog<T>> watchdogOptional = messageWatchdogFor(correlationId);
         // waiting for and get processed command result
         watchdogOptional.ifPresentOrElse(watchdog -> {
                     getLogger().info(

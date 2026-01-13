@@ -8,12 +8,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesExchange;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,21 +33,20 @@ class LocalQueueMessageProcessorTest {
     @Mock
     Logger logger;
     @Mock
-    Executor executor;
-    @Mock
     ObjectMapper objectMapper;
     @Mock
     CommandMessage<?> message;
     @Mock
     Context context;
+    @Mock
+    MessagesExchange  messagesExchange;
 
     LocalQueueMessageProcessor processor;
 
     @BeforeEach
     void setUp() {
-        processor = spy(ConcreteMessageProcessor.builder().logger(logger)
-                .executor(executor).objectMapper(objectMapper)
-                .build());
+        processor = spy(ConcreteMessageProcessor.builder()
+                .exchange(messagesExchange).logger(logger).objectMapper(objectMapper).build());
     }
 
     @Test
@@ -56,14 +55,13 @@ class LocalQueueMessageProcessorTest {
         doAnswer((Answer<Void>) invocationOnMock -> {
             invocationOnMock.getArgument(0, Runnable.class).run();
             return null;
-        }).when(executor).execute(any(Runnable.class));
-        Runnable takenRunnable = () -> message.getContext();
+        }).when(messagesExchange).runAsync(any(Runnable.class));
 
         // Act
-        processor.runAsyncTakenMessage(takenRunnable);
+        processor.runAsyncTakenMessage(CommandMessage::getContext, message);
 
         // Verification
-        verify(executor).execute(any(Runnable.class));
+        verify(messagesExchange).runAsync(any(Runnable.class));
         verify(message).getContext();
     }
 
@@ -77,7 +75,7 @@ class LocalQueueMessageProcessorTest {
         doReturn(message).when(objectMapper).readValue(messageJson, BaseCommandMessage.class);
 
         // Act
-        CommandMessage<?>taken = processor.takeMessage();
+        CommandMessage<?> taken = processor.takeMessage();
 
         // Verification
         verify(logger).debug("Taking available command message from the queue.");
@@ -97,7 +95,7 @@ class LocalQueueMessageProcessorTest {
         doThrow(exception).when(objectMapper).readValue(messageJson, BaseCommandMessage.class);
 
         // Act
-        CommandMessage<?>taken = processor.takeMessage();
+        CommandMessage<?> taken = processor.takeMessage();
 
         // Verification
         verify(logger).debug("Taking available command message from the queue.");
@@ -118,7 +116,7 @@ class LocalQueueMessageProcessorTest {
         doThrow(exception).when(objectMapper).readValue(messageJson, BaseCommandMessage.class);
 
         // Act
-        CommandMessage<?>taken = processor.takeMessage();
+        CommandMessage<?> taken = processor.takeMessage();
 
         // Verification
         verify(logger).debug("Taking available command message from the queue.");
@@ -188,5 +186,6 @@ class LocalQueueMessageProcessorTest {
     }
 
     @SuperBuilder
-    private static class ConcreteMessageProcessor extends LocalQueueMessageProcessor {}
+    private static class ConcreteMessageProcessor extends LocalQueueMessageProcessor {
+    }
 }

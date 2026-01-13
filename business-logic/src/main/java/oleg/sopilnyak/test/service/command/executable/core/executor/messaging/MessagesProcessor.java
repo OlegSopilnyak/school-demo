@@ -5,6 +5,7 @@ import static oleg.sopilnyak.test.service.message.CommandMessage.EMPTY;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
 
@@ -12,9 +13,12 @@ import org.slf4j.Logger;
  * Processor: to process command-message in command-though-message service
  *
  * @see oleg.sopilnyak.test.service.message.CommandMessage
- * @see oleg.sopilnyak.test.service.message.CommandThroughMessageService
+ * @see CommandThroughMessagesExecutor
  */
 public interface MessagesProcessor {
+    // predicate to check is taken message last one
+    Predicate<CommandMessage<?>> IS_LAST_MESSAGE = message -> Objects.equals(message, EMPTY);
+
     /**
      * Get the name of the processor for logging purposes.
      *
@@ -26,7 +30,7 @@ public interface MessagesProcessor {
      * To check if the processor's owner (service) is active
      *
      * @return true if the processor's owner is active
-     * @see oleg.sopilnyak.test.service.message.CommandThroughMessageService
+     * @see CommandThroughMessagesExecutor
      */
     boolean isOwnerActive();
 
@@ -103,12 +107,10 @@ public interface MessagesProcessor {
     /**
      * To run processor's taken message in asynchronous way
      *
-     * @param runnableForTakenMessage taken message process runner
+     * @param onMessageAction consumer of taken message to process
+     * @param taken taken message instance
      */
-    void runAsyncTakenMessage(Runnable runnableForTakenMessage);
-
-    // predicate to check is taken message last one
-    Predicate<CommandMessage<?>> IS_LAST_MESSAGE = message -> Objects.equals(message, EMPTY);
+    void runAsyncTakenMessage(Consumer<CommandMessage<?>> onMessageAction, CommandMessage<?> taken);
 
     /**
      * To execute command-messages' processor main loop
@@ -144,7 +146,7 @@ public interface MessagesProcessor {
             } else {
                 //
                 // process the command-message asynchronously
-                runAsyncTakenMessage(() -> onTakenMessage(message));
+                runAsyncTakenMessage(this::onTakenMessage, message);
                 getLogger().debug(
                         "The processor {} runs received message processing in asynchronous way.",
                         getProcessorName()

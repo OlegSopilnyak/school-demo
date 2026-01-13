@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +67,7 @@ class MessagesProcessorTest {
         verify(processor).activateProcessor();
         verify(processor, atLeast(2)).isOwnerActive();
         verify(processor).takeMessage();
-        verify(processor).runAsyncTakenMessage(any(Runnable.class));
+        verify(processor).runAsyncTakenMessage(any(Consumer.class), eq(message));
         verify(processor).onTakenMessage(message);
         verify(processor).deActivateProcessor();
     }
@@ -84,7 +85,7 @@ class MessagesProcessorTest {
         verify(processor).activateProcessor();
         verify(processor, atLeast(2)).isOwnerActive();
         verify(processor, times(2)).takeMessage();
-        verify(processor).runAsyncTakenMessage(any(Runnable.class));
+        verify(processor).runAsyncTakenMessage(any(Consumer.class), eq(message));
         verify(processor).onTakenMessage(message);
         verify(processor).deActivateProcessor();
         verify(logger, times(2)).debug(anyString(), eq(processorName));
@@ -174,9 +175,15 @@ class MessagesProcessorTest {
 
         }
 
+        /**
+         * To run processor's taken message in asynchronous way
+         *
+         * @param onMessageAction consumer of taken message to process
+         * @param taken           taken message instance
+         */
         @Override
-        public void runAsyncTakenMessage(Runnable runnableForTakenMessage) {
-            runnableForTakenMessage.run();
+        public void runAsyncTakenMessage(Consumer<CommandMessage<?>> onMessageAction, CommandMessage<?> taken) {
+            onMessageAction.accept(taken);
         }
 
         @Override
