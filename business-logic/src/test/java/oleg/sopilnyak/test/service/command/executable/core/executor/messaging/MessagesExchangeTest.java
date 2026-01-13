@@ -18,6 +18,7 @@ import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -59,7 +63,7 @@ class MessagesExchangeTest {
         assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
 
         Map<String, CommandMessageWatchdog<?>> messages =
-                (Map<String, CommandMessageWatchdog<?>>) ReflectionTestUtils.getField(exchange, "messageInProgress");
+                (Map<String, CommandMessageWatchdog<?>>) ReflectionTestUtils.getField(exchange, "messages");
         assertThat(messages).isNotNull();
         assertThat(messages.get(correlationId)).isNotNull();
         assertThat(messages.get(correlationId).getResult()).isNull();
@@ -78,7 +82,7 @@ class MessagesExchangeTest {
         String correlationId = "correlation-id-3";
         assertThat(exchange.makeMessageInProgress(correlationId, original)).isTrue();
         Map<String, CommandMessageWatchdog<?>> messages =
-                (Map<String, CommandMessageWatchdog<?>>) ReflectionTestUtils.getField(exchange, "messageInProgress");
+                (Map<String, CommandMessageWatchdog<?>>) ReflectionTestUtils.getField(exchange, "messages");
         assertThat(messages).isNotNull();
         assertThat(messages.get(correlationId)).isNotNull();
         assertThat(messages.get(correlationId).getResult()).isNull();
@@ -333,22 +337,22 @@ class MessagesExchangeTest {
         verify(mockedContext, never()).failed(any(Exception.class));
     }
 
-//    @Test
+    @Test
     <T> void shouldActOnTakenResponseMessage() {
-//        String correlationId = "correlation-id-8";
-//        doReturn(correlationId).when(taken).getCorrelationId();
-//        Map<String, CommandMessageWatchdog<T>> messages =
-//                (Map<String, CommandMessageWatchdog<T>>) ReflectionTestUtils.getField(exchange, "messageInProgress");
-//        CommandMessageWatchdog<T> watchdog = (CommandMessageWatchdog<T>) spy(new MessageProgressWatchdogDeprecated<>(original));
-//        assertThat(messages).isNotNull();
-//        messages.put(correlationId, watchdog);
-//
-//        exchange.onTakenResponseMessage(taken);
-//
-//        verify(logger, times(2)).info(anyString(), eq(correlationId));
-//        verify(exchange).messageWatchdogFor(correlationId);
-//        verify(watchdog).setResult((CommandMessage<T>) taken);
-//        verify(watchdog).messageProcessingIsDone();
+        String correlationId = "correlation-id-8";
+        doReturn(correlationId).when(taken).getCorrelationId();
+        Map<String, CommandMessageWatchdog<T>> messages =
+                (Map<String, CommandMessageWatchdog<T>>) ReflectionTestUtils.getField(exchange, "messages");
+        CommandMessageWatchdog<T> watchdog = (CommandMessageWatchdog<T>) spy(Watchdog.builder().original(original).build());
+        assertThat(messages).isNotNull();
+        messages.put(correlationId, watchdog);
+
+        exchange.onTakenResponseMessage(taken);
+
+        verify(logger, times(2)).info(anyString(), eq(correlationId));
+        verify(exchange).messageWatchdogFor(correlationId);
+        verify(watchdog).setResult((CommandMessage<T>) taken);
+        verify(watchdog).messageProcessingIsDone();
     }
 
     @Test
@@ -389,6 +393,7 @@ class MessagesExchangeTest {
 
     // class implementation
     class FakeMessageExchange extends MessagesExchange {
+        Map<String, CommandMessageWatchdog<?>> messages = new HashMap<>();
         @Override
         public boolean isActive() {
             return false;
@@ -404,37 +409,67 @@ class MessagesExchangeTest {
             return logger;
         }
 
-        /**
-         * To prepare and start message watcher for the command-message
-         *
-         * @param correlationId correlation-id of message to watch after
-         * @param original      original message to watch after
-         * @return true if it's made
-         */
         @Override
         protected boolean makeMessageInProgress(String correlationId, CommandMessage<?> original) {
-            return true;
+            return messages.putIfAbsent(correlationId, Watchdog.builder().original(original).build()) == null;
         }
 
-        /**
-         * To get the watcher of in-progress message
-         *
-         * @param correlationId correlation-id of watching message
-         * @return command-message watcher
-         */
         @Override
         protected <T> Optional<CommandMessageWatchdog<T>> messageWatchdogFor(String correlationId) {
-            return Optional.empty();
+            return Optional.ofNullable((CommandMessageWatchdog<T>) messages.get(correlationId));
         }
 
-        /**
-         * To stop watching after of the command-message
-         *
-         * @param correlationId correlation-id of message to stop watching after
-         */
         @Override
         protected void stopWatchingMessage(String correlationId) {
-
+            messages.remove(correlationId);
         }
     }
+    @Data
+    @Builder
+    static class Watchdog implements CommandMessageWatchdog {
+        CommandMessage original;
+        CommandMessage result;
+        @Getter
+        @Builder.Default
+        State state = State.IN_PROGRESS;
+        final Object monitor = new Object();
+
+        @Override
+        public void setResult(CommandMessage result) {
+            if (result != null) {
+                this.result = result;
+                this.state = State.COMPLETED;
+            }
+        }
+
+        @Override
+        public void waitForMessageComplete() {
+            int maximumTry = 3;
+            int tryCount = 1;
+            while (state == State.IN_PROGRESS) {
+                synchronized (monitor) {
+                    try {
+                        monitor.wait(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (tryCount++ >= maximumTry) {
+                        state = State.EXPIRED;
+                        result = original;
+                        break;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void messageProcessingIsDone() {
+            synchronized (monitor) {
+                if (state == State.COMPLETED) {
+                    monitor.notifyAll();
+                }
+            }
+        }
+    }
+
 }
