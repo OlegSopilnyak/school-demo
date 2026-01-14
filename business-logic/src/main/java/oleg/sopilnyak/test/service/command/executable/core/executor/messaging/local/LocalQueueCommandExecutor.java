@@ -6,8 +6,6 @@ import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.Co
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.MessagesProcessor;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,15 +13,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -77,7 +72,7 @@ public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAd
      */
     @Override
     protected boolean makeMessageInProgress(String correlationId, CommandMessage<?> original) {
-        return messageInProgress.putIfAbsent(correlationId, new CommandMessageInProgressWatchdog<>(original)) == null;
+        return messageInProgress.putIfAbsent(correlationId, new LocalMessageInProgressWatchdog<>(original)) == null;
     }
 
     /**
@@ -163,77 +158,5 @@ public class LocalQueueCommandExecutor extends CommandMessagesExchangeExecutorAd
     @Override
     public Logger getLogger() {
         return log;
-    }
-
-    // inner class
-    // Watcher: local command-message in progress watcher
-    private static class CommandMessageInProgressWatchdog<T> implements CommandMessageWatchdog<T> {
-        private final Duration duration;
-        // original instance of the message to watch after
-        private final CommandMessage<T> original;
-        private final AtomicReference<CommandMessage<T>> result = new AtomicReference<>(null);
-        @Getter
-        private volatile State state = State.IN_PROGRESS;
-        private final Object getResultMonitor = new Object();
-
-        public CommandMessageInProgressWatchdog(CommandMessage<T> original) {
-            this(original, Duration.ofMillis(1000L));
-        }
-
-        public CommandMessageInProgressWatchdog(CommandMessage<T> original, Duration duration) {
-            this.original = original;
-            this.duration = duration;
-        }
-
-        @Override
-        public CommandMessage<T> getResult() {
-            return result.get();
-        }
-
-        @Override
-        public void setResult(CommandMessage<T> result) {
-            if (result != null) {
-                this.result.getAndSet(result);
-                this.state = State.COMPLETED;
-            }
-        }
-
-        @Override
-        public void waitForMessageComplete() {
-            synchronized (getResultMonitor) {
-                result.getAndSet(null);
-                final LocalDateTime startsAt = LocalDateTime.now();
-                // waiting while state is in progress
-                while (state == State.IN_PROGRESS) {
-                    try {
-                        getResultMonitor.wait(25);
-                        // check result message expiration
-                        if (Duration.between(startsAt, LocalDateTime.now()).compareTo(duration) > 0) {
-                            // updating watchdog's state
-                            state = State.EXPIRED;
-                            result.getAndSet(original);
-                            // updating result message context
-                            final String errorMessage = "Expired message with id:" + getResult().getCorrelationId();
-                            log.warn(errorMessage);
-                            getResult().getContext().failed(new TimeoutException(errorMessage));
-                            break;
-                        }
-                    } catch (InterruptedException e) {
-                        log.warn("Interrupted while waiting for state to complete.", e);
-                        /* Clean up whatever needs to be handled before interrupting  */
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void messageProcessingIsDone() {
-            synchronized (getResultMonitor) {
-                if (state == State.COMPLETED) {
-                    getResultMonitor.notifyAll();
-                }
-            }
-        }
     }
 }

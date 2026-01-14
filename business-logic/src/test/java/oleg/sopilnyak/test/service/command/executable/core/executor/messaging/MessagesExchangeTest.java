@@ -29,9 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -343,7 +340,7 @@ class MessagesExchangeTest {
         doReturn(correlationId).when(taken).getCorrelationId();
         Map<String, CommandMessageWatchdog<T>> messages =
                 (Map<String, CommandMessageWatchdog<T>>) ReflectionTestUtils.getField(exchange, "messages");
-        CommandMessageWatchdog<T> watchdog = (CommandMessageWatchdog<T>) spy(Watchdog.builder().original(original).build());
+        CommandMessageWatchdog<T> watchdog = (CommandMessageWatchdog<T>) spy(TestCommandMessageWatchdog.builder().original(original).build());
         assertThat(messages).isNotNull();
         messages.put(correlationId, watchdog);
 
@@ -394,6 +391,7 @@ class MessagesExchangeTest {
     // class implementation
     class FakeMessageExchange extends MessagesExchange {
         Map<String, CommandMessageWatchdog<?>> messages = new HashMap<>();
+
         @Override
         public boolean isActive() {
             return false;
@@ -411,7 +409,7 @@ class MessagesExchangeTest {
 
         @Override
         protected boolean makeMessageInProgress(String correlationId, CommandMessage<?> original) {
-            return messages.putIfAbsent(correlationId, Watchdog.builder().original(original).build()) == null;
+            return messages.putIfAbsent(correlationId, TestCommandMessageWatchdog.builder().original(original).build()) == null;
         }
 
         @Override
@@ -424,52 +422,4 @@ class MessagesExchangeTest {
             messages.remove(correlationId);
         }
     }
-    @Data
-    @Builder
-    static class Watchdog implements CommandMessageWatchdog {
-        CommandMessage original;
-        CommandMessage result;
-        @Getter
-        @Builder.Default
-        State state = State.IN_PROGRESS;
-        final Object monitor = new Object();
-
-        @Override
-        public void setResult(CommandMessage result) {
-            if (result != null) {
-                this.result = result;
-                this.state = State.COMPLETED;
-            }
-        }
-
-        @Override
-        public void waitForMessageComplete() {
-            int maximumTry = 3;
-            int tryCount = 1;
-            while (state == State.IN_PROGRESS) {
-                synchronized (monitor) {
-                    try {
-                        monitor.wait(100);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    if (tryCount++ >= maximumTry) {
-                        state = State.EXPIRED;
-                        result = original;
-                        break;
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void messageProcessingIsDone() {
-            synchronized (monitor) {
-                if (state == State.COMPLETED) {
-                    monitor.notifyAll();
-                }
-            }
-        }
-    }
-
 }

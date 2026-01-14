@@ -23,6 +23,8 @@ import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 import oleg.sopilnyak.test.service.message.BaseCommandMessage;
 import oleg.sopilnyak.test.service.message.CommandMessage;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -209,7 +211,6 @@ class CommandMessagesExchangeExecutorAdapterTest {
         // waitingProcessedCommandMessage
         verify(logger).info(startsWith("=== Waiting for processed command message of "), eq(commandId), eq(correlationId));
         verify(responsesProcessor).runAsyncTakenMessage(any(Consumer.class ), eq(request));
-//        verify(responsesProcessor).runAsyncTakenMessage(any(Runnable.class));
         verify(responsesProcessor).onTakenMessage(request);
         verify(messagesExecutor).onTakenResponseMessage(request);
         verify(logger).info("Successfully processed response with correlationId='{}'", correlationId);
@@ -473,6 +474,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
 
     // class implementation
     class CommandMessagesExchangeExecutorStub extends CommandMessagesExchangeExecutorAdapter {
+        Map<String, CommandMessageWatchdog<?>> messages = new HashMap<>();
 
         @Override
         protected MessagesProcessor prepareRequestsProcessor() {
@@ -507,37 +509,19 @@ class CommandMessagesExchangeExecutorAdapterTest {
             return logger;
         }
 
-        /**
-         * To prepare and start message watcher for the command-message
-         *
-         * @param correlationId correlation-id of message to watch after
-         * @param original      original message to watch after
-         * @return true if it's made
-         */
         @Override
         protected boolean makeMessageInProgress(String correlationId, CommandMessage<?> original) {
-            return true;
+            return messages.putIfAbsent(correlationId, TestCommandMessageWatchdog.builder().original(original).build()) == null;
         }
 
-        /**
-         * To get the watcher of in-progress message
-         *
-         * @param correlationId correlation-id of watching message
-         * @return command-message watcher
-         */
         @Override
         protected <T> Optional<CommandMessageWatchdog<T>> messageWatchdogFor(String correlationId) {
-            return Optional.empty();
+            return Optional.ofNullable((CommandMessageWatchdog<T>) messages.get(correlationId));
         }
 
-        /**
-         * To stop watching after of the command-message
-         *
-         * @param correlationId correlation-id of message to stop watching after
-         */
         @Override
         protected void stopWatchingMessage(String correlationId) {
-
+            messages.remove(correlationId);
         }
 
         void nothingToExecute() {
