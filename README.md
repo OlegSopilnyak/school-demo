@@ -9,7 +9,7 @@
 ### Used modules.
 
 * **common** - module with declared abstract service model and facades.
-* **[endpoint](./endpoint/README.md)** - module to manage REST requests to the system.
+* **[ingress](./ingress/README.md)** - module to manage REST requests to the system.
 * **[business-logic](./business-logic/README.md)** - module to process requests from REST-Controllers.
 * **persistence** - the module is providing support for persistence layer of the system.
 * **[application](./application/README.md)** - module to run system as a SpringBoot application, in docker container as well.

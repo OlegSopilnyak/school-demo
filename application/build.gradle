@@ -16,7 +16,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation project(":common")
-    implementation project(":endpoint")
+    implementation project(":ingress")
     implementation project(":business-logic")
     implementation project(":persistence")
 

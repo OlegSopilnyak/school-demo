@@ -1,10 +1,10 @@
 include 'common'
-include 'endpoint'
+include 'ingress'
 include 'business-logic'
 include 'persistence'
 
 project(':common').projectDir = "$rootDir/../common" as File
-project(':endpoint').projectDir = "$rootDir/../endpoint" as File
+project(':ingress').projectDir = "$rootDir/../ingress" as File
 project(':persistence').projectDir = "$rootDir/../persistence" as File
 project(':business-logic').projectDir = "$rootDir/../business-logic" as File
 
