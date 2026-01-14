@@ -82,7 +82,7 @@ public class RegisterCourseController {
             final Long entityId = Long.parseLong(strId);
             return owner.findById(entityId)
                     .orElseThrow(() -> new StudentNotFoundException("Student with id: " + entityId + " not found"));
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException _) {
             log.error("Wrong student-id: '{}'", strId);
             throw new StudentNotFoundException("Wrong student-id: '" + strId + "'");
         }
@@ -93,7 +93,7 @@ public class RegisterCourseController {
             final Long entityId = Long.parseLong(strId);
             return owner.findById(entityId)
                     .orElseThrow(() -> new CourseNotFoundException("Course with id: " + entityId + " not found"));
-        } catch (NumberFormatException | NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException _) {
             log.error("Wrong course-id: '{}'", strId);
             throw new CourseNotFoundException("Wrong course-id: '" + strId + "'");
         }

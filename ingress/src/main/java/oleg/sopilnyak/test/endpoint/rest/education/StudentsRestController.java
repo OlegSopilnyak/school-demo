@@ -52,7 +52,7 @@ public class StudentsRestController {
             log.debug("Getting student for id: {}", id);
 
             return resultToDto(studentId, facade.findById(id));
-        } catch (NumberFormatException | StudentNotFoundException e) {
+        } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {
             log.error("Cannot get student for id: {}", studentId);
@@ -68,7 +68,7 @@ public class StudentsRestController {
             log.debug("Getting students for course Id: {}", id);
 
             return resultToDto(facade.findEnrolledTo(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new CourseNotFoundException("Wrong course id: '" + courseId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot get courses for student-id: " + courseId, e);
@@ -80,7 +80,7 @@ public class StudentsRestController {
         log.debug("Trying to get not enrolled students");
         try {
             return resultToDto(facade.findNotEnrolled());
-        } catch (Exception e) {
+        } catch (Exception _) {
             throw new CannotProcessActionException("Cannot get not enrolled students");
         }
     }
@@ -91,7 +91,7 @@ public class StudentsRestController {
         log.debug("Trying to create the student {}", studentDto);
         try {
             return resultToDto(facade.create(studentDto));
-        } catch (Exception e) {
+        } catch (Exception _) {
             throw new CannotProcessActionException("Cannot create the student: " + studentDto.toString());
         }
     }
@@ -118,7 +118,7 @@ public class StudentsRestController {
             log.debug("Deleting student for id: {}", id);
 
             facade.delete(id);
-        } catch (NumberFormatException | StudentNotFoundException e) {
+        } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot delete student for id = " + studentId, e);

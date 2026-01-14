@@ -91,7 +91,7 @@ public class AuthorityPersonsRestController {
             log.debug("Getting authority person for id: {}", id);
 
             return resultToDto(personId, facade.findAuthorityPersonById(id));
-        } catch (NumberFormatException | AuthorityPersonNotFoundException e) {
+        } catch (NumberFormatException | AuthorityPersonNotFoundException _) {
             throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot get authority person for id: " + personId, e);
@@ -135,7 +135,7 @@ public class AuthorityPersonsRestController {
 
             facade.deleteAuthorityPersonById(id);
 
-        } catch (NumberFormatException | AuthorityPersonNotFoundException e) {
+        } catch (NumberFormatException | AuthorityPersonNotFoundException _) {
             throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (Exception e) {
             log.error("Cannot delete authority person for id = {}", personId, e);

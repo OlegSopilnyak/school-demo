@@ -43,7 +43,7 @@ public class StudentProfileRestController {
             log.debug("Getting student-profile for id: {}", id);
 
             return toDto(id, facade.findStudentProfileById(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + personId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot get student-profile for id: " + personId, e);

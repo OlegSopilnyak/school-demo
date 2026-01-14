@@ -61,7 +61,7 @@ public class StudentsGroupsRestController {
             log.debug("Getting students group for id: {}", id);
 
             return resultToDto(groupId, facade.findStudentsGroupById(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (Exception e) {
             log.error("Cannot get students group for id: {}", groupId, e);
@@ -106,7 +106,7 @@ public class StudentsGroupsRestController {
             }
 
             facade.deleteStudentsGroupById(id);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (Exception e) {
             log.error("Cannot delete students group for id = {}", groupId, e);

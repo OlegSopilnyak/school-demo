@@ -62,7 +62,7 @@ public class FacultiesRestController {
             log.debug("Getting faculty for id: {}", id);
 
             return resultToDto(facultyId, facade.findFacultyById(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new FacultyNotFoundException(WRONG_FACULTY_ID + facultyId + "'");
         } catch (Exception e) {
             log.error("Cannot get faculty for id: {}", facultyId, e);

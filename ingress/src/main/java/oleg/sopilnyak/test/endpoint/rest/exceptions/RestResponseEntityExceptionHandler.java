@@ -21,19 +21,9 @@ import org.springframework.web.context.request.WebRequest;
 public class RestResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {CannotProcessActionException.class})
-    public ResponseEntity<ActionErrorMessage> onException(CannotProcessActionException ex, WebRequest req) {
-        log.error("Cannot do facade's action", ex);
-        final ActionErrorMessage response;
-        final Throwable cause = ex.getCause();
-        if (cause instanceof SchoolAccessDeniedException accessDeniedException) {
-            response = onException(accessDeniedException, req);
-        } else if (cause instanceof EntityNotFoundException notFoundException) {
-            response = onException(notFoundException, req);
-        } else if (cause instanceof EntityUnableProcessException unableProcessException) {
-            response = onException(unableProcessException, req);
-        } else {
-            response = unknownException(cause, req);
-        }
+    public ResponseEntity<ActionErrorMessage> onException(CannotProcessActionException exception, WebRequest request) {
+        log.error("Cannot do facade's action", exception);
+        final var response = prepareResponseFor(exception, request);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
     }
 
@@ -59,19 +49,9 @@ public class RestResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = {GeneralCannotDeleteException.class})
-    public ResponseEntity<ActionErrorMessage> onException(GeneralCannotDeleteException ex, WebRequest req) {
-        log.error("Cannot delete entity", ex);
-        final Throwable cause = ex.getCause();
-        final ActionErrorMessage response;
-        if (cause instanceof SchoolAccessDeniedException accessDeniedException) {
-            response = onException(accessDeniedException, req);
-        } else if (cause instanceof EntityNotFoundException notFoundException) {
-            response = onException(notFoundException, req);
-        } else if (cause instanceof EntityUnableProcessException unableProcessException) {
-            response = onException(unableProcessException, req);
-        } else {
-            response = unknownException(cause, req);
-        }
+    public ResponseEntity<ActionErrorMessage> onException(GeneralCannotDeleteException exception, WebRequest request) {
+        log.error("Cannot delete entity", exception);
+        final var response = prepareResponseFor(exception, request);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
     }
 
@@ -82,6 +62,15 @@ public class RestResponseEntityExceptionHandler {
     }
 
     // private methods
+    private ActionErrorMessage prepareResponseFor(final RuntimeException exception, final WebRequest request) {
+        return switch (exception.getCause()) {
+            case SchoolAccessDeniedException noAccessException -> onException(noAccessException, request);
+            case EntityNotFoundException notFoundException -> onException(notFoundException, request);
+            case EntityUnableProcessException processException -> onException(processException, request);
+            case null, default -> unknownException(exception.getCause(), request);
+        };
+    }
+
     private static ActionErrorMessage errorMessageFor(HttpStatus status, Throwable ex, WebRequest req) {
         return ActionErrorMessage.builder()
                 .errorCode(status.value()).errorMessage(ex.getMessage()).errorUrl(req.getDescription(false))

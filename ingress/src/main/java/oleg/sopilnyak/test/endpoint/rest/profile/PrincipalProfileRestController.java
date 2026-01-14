@@ -44,7 +44,7 @@ public class PrincipalProfileRestController {
             log.debug("Getting principal profile for id: {}", id);
 
             return toDto(id, facade.findPrincipalProfileById(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new ProfileNotFoundException(WRONG_PRINCIPAL_PROFILE_ID + personId + "'");
         } catch (Exception e) {
             log.error("Cannot get principal-profile for id: {}", personId, e);

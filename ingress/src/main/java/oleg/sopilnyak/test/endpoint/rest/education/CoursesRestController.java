@@ -68,7 +68,7 @@ public class CoursesRestController {
             log.debug("Getting courses for student Id: '{}'", studentId);
 
             return resultToDto(facade.findRegisteredFor(id));
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             throw new StudentNotFoundException("Wrong student-id: '" + studentId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException(e);
@@ -124,7 +124,7 @@ public class CoursesRestController {
 
             facade.delete(id);
 
-        } catch (NumberFormatException | CourseNotFoundException e) {
+        } catch (NumberFormatException | CourseNotFoundException _) {
             throw new CourseNotFoundException(WRONG_COURSE_ID + courseId + "'");
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot delete course for id: " + courseId, e);
