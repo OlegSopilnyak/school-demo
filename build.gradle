@@ -4,12 +4,11 @@ allprojects {
         mavenCentral()
     }
     group = 'oleg.sopilnyak.test'
-    version = '0.0.1-SNAPSHOT'
+    version = '0.10.0-SNAPSHOT'
 }
 
 subprojects {
     apply plugin: 'java'
-
 
     java {
         targetCompatibility = JavaVersion.VERSION_25
