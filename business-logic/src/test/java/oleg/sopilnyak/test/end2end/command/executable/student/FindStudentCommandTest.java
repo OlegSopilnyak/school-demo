@@ -27,6 +27,7 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import jakarta.persistence.EntityTransaction;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,6 +40,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, FindStudentCommand.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class FindStudentCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -50,6 +52,12 @@ class FindStudentCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     StudentCommand command;
+
+    @BeforeEach
+    void setUp() {
+        deleteEntities(StudentProfileEntity.class);
+        deleteEntities(StudentEntity.class);
+    }
 
     @AfterEach
     void tearDown() {

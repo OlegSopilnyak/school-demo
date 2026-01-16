@@ -11,7 +11,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>persistence</artifactId>
-    <description>Persistence module for students and courses of the school. Shared tests library.</description>
+    <description>Persistence module for students and courses of the school.</description>
 
     <!--  <packaging>jar</packaging>-->
 
@@ -20,7 +20,6 @@
         <dependency>
             <groupId>oleg.sopilnyak.test</groupId>
             <artifactId>common</artifactId>
-            <version>${project.application.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -38,7 +37,8 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.14</version>
+            <version>[8.0.,)</version>
+            <scope>runtime</scope>
         </dependency>
         <!-- Testing stuff -->
         <dependency>
