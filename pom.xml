@@ -66,6 +66,11 @@
             </dependency>
             <dependency>
                 <groupId>oleg.sopilnyak.test</groupId>
+                <artifactId>application</artifactId>
+                <version>${project.application.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>oleg.sopilnyak.test</groupId>
                 <artifactId>persistence</artifactId>
                 <version>${project.application.version}</version>
             </dependency>

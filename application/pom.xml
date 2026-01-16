@@ -1,65 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <!-- This module was also published with a richer model, Gradle metadata,  -->
-  <!-- which should be used instead. Do not delete the following line which  -->
-  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
-  <!-- that they should prefer consuming it instead. -->
-  <!-- do_not_remove: published-with-gradle-metadata -->
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>oleg.sopilnyak.test</groupId>
-  <artifactId>application</artifactId>
-  <version>0.10.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>oleg.sopilnyak.test</groupId>
-      <artifactId>common</artifactId>
-      <version>0.10.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>oleg.sopilnyak.test</groupId>
-      <artifactId>ingress</artifactId>
-      <version>0.10.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>oleg.sopilnyak.test</groupId>
-      <artifactId>business-logic</artifactId>
-      <version>0.10.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>oleg.sopilnyak.test</groupId>
-      <artifactId>persistence</artifactId>
-      <version>0.10.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-  <dependencyManagement>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <parent>
+        <groupId>oleg.sopilnyak.test</groupId>
+        <artifactId>parent-project</artifactId>
+        <version>0.10.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>application</artifactId>
+    <description>Main-Application module for students and courses of the school</description>
+    <packaging>jar</packaging>
+
     <dependencies>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.9</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
+        <!-- Production stuff -->
+        <dependency>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>ingress</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>business-logic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
-  </dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <finalName>schoolApplication</finalName>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
