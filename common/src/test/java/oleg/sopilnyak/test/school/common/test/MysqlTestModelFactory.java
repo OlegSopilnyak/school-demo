@@ -50,7 +50,9 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
 
     @DynamicPropertySource
     static void databaseProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", database::getJdbcUrl);
+        final Supplier<Object> jdbcUrlSupplier =
+                () -> database.getJdbcUrl()  + "?verifyServerCertificate=false&useSSL=false&requireSSL=false";
+        registry.add("spring.datasource.url", jdbcUrlSupplier);
         registry.add("spring.datasource.username", database::getUsername);
         registry.add("spring.datasource.password", database::getPassword);
     }

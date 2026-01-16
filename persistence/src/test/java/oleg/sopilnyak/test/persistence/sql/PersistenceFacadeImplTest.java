@@ -56,11 +56,11 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
 
         {
             long profileId = facade.findPersonProfileByLogin("bill").orElseThrow().getId();
-            assertThat(facade.findAuthorityPersonById(profileId)).isPresent();
+            assertThat(facade.findPrincipalProfileById(profileId)).isPresent();
         }
         {
             long profileId = facade.findPersonProfileByLogin("hillary").orElseThrow().getId();
-            assertThat(facade.findAuthorityPersonById(profileId)).isPresent();
+            assertThat(facade.findPrincipalProfileById(profileId)).isPresent();
         }
     }
 
