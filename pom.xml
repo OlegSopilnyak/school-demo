@@ -56,6 +56,11 @@
             </dependency>
             <dependency>
                 <groupId>oleg.sopilnyak.test</groupId>
+                <artifactId>ingress</artifactId>
+                <version>${project.application.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>oleg.sopilnyak.test</groupId>
                 <artifactId>business-logic</artifactId>
                 <version>${project.application.version}</version>
             </dependency>
