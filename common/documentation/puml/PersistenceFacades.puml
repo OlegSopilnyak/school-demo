@@ -1,0 +1,105 @@
+[plantuml,PersistenceFacades.puml.png,png]
+----
+@startuml
+
+left to right direction
+scale 2/3
+
+
+interface AuthorityPersonPersistenceFacade {
+	{method}  {abstract} +deleteAuthorityPerson ( id : Long ) : boolean
+	{method}  {abstract} +findAllAuthorityPersons () : Set
+	{method}  {abstract} +findAuthorityPersonById ( id : Long ) : Optional
+	{method}  {abstract} +findAuthorityPersonByProfileId ( id : Long ) : Optional
+	{method}  {static} -isValid ( person : AuthorityPerson ) : boolean
+	{method}  {abstract} +save ( person : AuthorityPerson ) : Optional
+	{method} +updateAccess ( person : AuthorityPerson , username : String , password : String ) : boolean
+	{method}  {abstract} +updateAccess ( personId : Long , username : String , password : String ) : boolean
+}
+
+
+interface CoursesPersistenceFacade {
+	{method}  {abstract} +deleteCourse ( courseId : Long ) : void
+	{method}  {abstract} +findCourseById ( id : Long ) : Optional
+	{method}  {abstract} +isNoCourses () : boolean
+	{method}  {abstract} +save ( course : Course ) : Optional
+}
+
+
+interface EducationPersistenceFacade {
+}
+
+
+interface FacultyPersistenceFacade {
+	{method}  {abstract} +deleteFaculty ( id : Long ) : void
+	{method}  {abstract} +findAllFaculties () : Set
+	{method}  {abstract} +findFacultyById ( id : Long ) : Optional
+	{method}  {abstract} +save ( instance : Faculty ) : Optional
+}
+
+
+interface OrganizationPersistenceFacade {
+}
+
+
+interface PersistenceFacade {
+	{method}  {abstract} +initDefaultDataset () : void
+}
+
+
+interface ProfilePersistenceFacade {
+	{method}  {abstract} +deleteProfileById ( id : Long ) : void
+	{method}  {abstract} +findPersonProfileByLogin ( login : String ) : Optional
+	{method} +findPrincipalProfileById ( id : Long ) : Optional
+	{method} +findPrincipalProfileByLogin ( login : String ) : Optional
+	{method}  {abstract} +findProfileById ( id : Long ) : Optional
+	{method} +findStudentProfileById ( id : Long ) : Optional
+	{method} +save ( input : PrincipalProfile ) : Optional
+	{method} +save ( input : StudentProfile ) : Optional
+	{method}  {abstract} +saveProfile ( profile : PersonProfile ) : Optional
+	{method}  {abstract} +toEntity ( profile : PersonProfile ) : PersonProfile
+}
+
+
+interface RegisterPersistenceFacade {
+	{method}  {abstract} +findCoursesRegisteredForStudent ( studentId : Long ) : Set
+	{method}  {abstract} +findCoursesWithoutStudents () : Set
+	{method}  {abstract} +findEnrolledStudentsByCourseId ( courseId : Long ) : Set
+	{method}  {abstract} +findNotEnrolledStudents () : Set
+	{method}  {abstract} +link ( student : Student , course : Course ) : boolean
+	{method}  {abstract} +unLink ( student : Student , course : Course ) : boolean
+}
+
+
+interface StudentsGroupPersistenceFacade {
+	{method}  {abstract} +deleteStudentsGroup ( id : Long ) : void
+	{method}  {abstract} +findAllStudentsGroups () : Set
+	{method}  {abstract} +findStudentsGroupById ( id : Long ) : Optional
+	{method}  {abstract} +save ( instance : StudentsGroup ) : Optional
+}
+
+
+interface StudentsPersistenceFacade {
+	{method}  {abstract} +deleteStudent ( studentId : Long ) : boolean
+	{method}  {abstract} +findStudentById ( id : Long ) : Optional
+	{method}  {abstract} +isNoStudents () : boolean
+	{method}  {abstract} +save ( student : Student ) : Optional
+}
+
+
+
+
+EducationPersistenceFacade ..|>  CoursesPersistenceFacade
+EducationPersistenceFacade ..|>  RegisterPersistenceFacade
+EducationPersistenceFacade ..|>  StudentsPersistenceFacade
+OrganizationPersistenceFacade ..|>  AuthorityPersonPersistenceFacade
+OrganizationPersistenceFacade ..|>  FacultyPersistenceFacade
+OrganizationPersistenceFacade ..|>  StudentsGroupPersistenceFacade
+PersistenceFacade ..|>  EducationPersistenceFacade
+PersistenceFacade ..|>  OrganizationPersistenceFacade
+PersistenceFacade ..|>  ProfilePersistenceFacade
+
+hide fields
+
+@enduml
+----

@@ -70,8 +70,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/authorities";
 
     @Autowired
-    EntityManagerFactory emf;
-    @Autowired
     EntityMapper entityMapper;
     @Autowired
     PersistenceFacade database;
@@ -188,7 +186,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         String password = "test-password";
         AuthorityPerson person = create(makeCleanAuthorityPerson(212));
         setPersonPermissions(person, username, password);
-        assertThat(database.updateAuthorityPersonAccess(person, username, password)).isTrue();
+        assertThat(database.updateAccess(person, username, password)).isTrue();
         if (person instanceof AuthorityPersonEntity entity) {
             entity.setFaculties(List.of());
             merge(entity);

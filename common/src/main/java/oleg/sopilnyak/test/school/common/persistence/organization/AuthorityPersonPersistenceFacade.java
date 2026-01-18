@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.school.common.persistence.organization;
 
+import static java.util.Objects.nonNull;
+
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -66,4 +68,31 @@ public interface AuthorityPersonPersistenceFacade {
     boolean deleteAuthorityPerson(Long id) throws
             AuthorityPersonManagesFacultyException,
             AuthorityPersonNotFoundException;
+
+    /**
+     * To update authority person's access parameters
+     *
+     * @param person   the instance of authority person to update
+     * @param username new value of login's username
+     * @param password new value of login's password
+     * @return true if changes applied
+     */
+    default boolean updateAccess(AuthorityPerson person, String username, String password) {
+        return isValid(person) && updateAccess(person.getId(), username, password);
+    }
+
+    private static boolean isValid(final AuthorityPerson person) {
+        return nonNull(person) && nonNull(person.getId()) && person.getId() > 0L;
+    }
+
+    /**
+     * To update authority person's access parameters
+     *
+     * @param personId system-id of authority person to update
+     * @param username new value of login's username
+     * @param password new value of login's password
+     * @return true if changes applied
+     */
+    boolean updateAccess(Long personId, String username, String password);
+
 }
