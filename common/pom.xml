@@ -49,7 +49,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.plugin.version}</version>
-                <!--                <version>2.5.1</version>-->
                 <configuration>
                     <compilerArgument>-parameters</compilerArgument>
                     <parameters>true</parameters>
@@ -86,6 +85,7 @@
                 <groupId>de.elnarion.maven</groupId>
                 <version>3.0.1</version>
                 <executions>
+                    <!-- Class Diagrams -->
                     <execution>
                         <id>generate-classes-diagram</id>
                         <goals>
@@ -93,7 +93,8 @@
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml</outputDirectory>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>CommonDataModel.puml</outputFilename>
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.model</scanPackage>
@@ -104,6 +105,7 @@
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
                                 <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
                             </additionalPlantUmlConfigs>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
                     <execution>
@@ -113,7 +115,8 @@
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml</outputDirectory>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>BusinessLogicFacades.puml</outputFilename>
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.business.facade</scanPackage>
@@ -126,6 +129,7 @@
                             </additionalPlantUmlConfigs>
                             <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
                             <hideFields>true</hideFields>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
                     <execution>
@@ -135,7 +139,8 @@
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml</outputDirectory>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>PersistenceFacades.puml</outputFilename>
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.persistence</scanPackage>
@@ -148,6 +153,23 @@
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
                                 <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
                             </additionalPlantUmlConfigs>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <!-- Sequence Diagrams -->
+                    <execution>
+                        <id>generate-simple-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>SchoolAccess.makeSignatureFor.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.model.SchoolAccess</startClass>
+                            <startMethod>makeSignatureFor</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
                         </configuration>
                     </execution>
                 </executions>

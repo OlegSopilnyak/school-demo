@@ -1,6 +1,7 @@
 [plantuml,BusinessLogicFacades.puml.png,png]
 ----
 @startuml
+!pragma layout smetana
 
 left to right direction
 scale 2/3
@@ -33,7 +34,6 @@ interface CoursesFacade {
 	{method} +findRegisteredFor ( student : Student ) : Set
 	{method}  {abstract} +findWithoutStudents () : Set
 	{method} +getName () : String
-	{method}  {static} -isInvalid ( item : BaseType ) : boolean
 	{method}  {abstract} +register ( studentId : Long , courseId : Long ) : void
 	{method} +register ( student : Student , course : Course ) : void
 	{method}  {abstract} +unRegister ( studentId : Long , courseId : Long ) : void
@@ -88,7 +88,6 @@ interface StudentsFacade {
 	{method}  {abstract} +findEnrolledTo ( courseId : Long ) : Set
 	{method}  {abstract} +findNotEnrolled () : Set
 	{method} +getName () : String
-	{method}  {static} -isInvalid ( item : BaseType ) : boolean
 }
 
 

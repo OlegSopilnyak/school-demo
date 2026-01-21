@@ -1,6 +1,7 @@
 [plantuml,CommonDataModel.puml.png,png]
 ----
 @startuml
+!pragma layout smetana
 
 left to right direction
 scale 2/3
@@ -68,7 +69,6 @@ interface PrincipalProfile {
 interface SchoolAccess {
 	{method}  {abstract} +getLogin () : String
 	{method} +isPassword ( password : String ) : boolean
-	{method}  {static} -makeHexString ( data : byte[] ) : String
 	{method} +makeSignatureFor ( password : String ) : String
 }
 

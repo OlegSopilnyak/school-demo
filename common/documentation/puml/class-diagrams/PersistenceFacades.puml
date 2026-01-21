@@ -1,6 +1,7 @@
 [plantuml,PersistenceFacades.puml.png,png]
 ----
 @startuml
+!pragma layout smetana
 
 left to right direction
 scale 2/3
@@ -11,7 +12,6 @@ interface AuthorityPersonPersistenceFacade {
 	{method}  {abstract} +findAllAuthorityPersons () : Set
 	{method}  {abstract} +findAuthorityPersonById ( id : Long ) : Optional
 	{method}  {abstract} +findAuthorityPersonByProfileId ( id : Long ) : Optional
-	{method}  {static} -isValid ( person : AuthorityPerson ) : boolean
 	{method}  {abstract} +save ( person : AuthorityPerson ) : Optional
 	{method} +updateAccess ( person : AuthorityPerson , username : String , password : String ) : boolean
 	{method}  {abstract} +updateAccess ( personId : Long , username : String , password : String ) : boolean
