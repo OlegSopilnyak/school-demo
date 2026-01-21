@@ -13,6 +13,12 @@
     <artifactId>common</artifactId>
     <description>Common types and facades declaration. Shared tests library.</description>
 
+    <properties>
+        <asciidoctorj-pdf.version>2.3.19</asciidoctorj-pdf.version>
+        <asciidoctorj-diagram.version>3.0.1</asciidoctorj-diagram.version>
+        <asciidoctorj-diagram-plantuml>1.2025.3</asciidoctorj-diagram-plantuml>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -38,7 +44,7 @@
         <dependency>
             <groupId>de.elnarion.util</groupId>
             <artifactId>plantuml-generator-util</artifactId>
-            <version>3.0.1</version>
+            <version>${de.elnarion.maven.version}</version>
             <classifier>tests</classifier>
             <type>test-jar</type>
         </dependency>
@@ -76,20 +82,22 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- PlantUML Diagrams generator -->
             <plugin>
                 <!--
                     plantuml-generator: creates a puml file in target/generated-docs folder
+                    Begin of plugin definition
                     generated during mvn test
                 -->
                 <artifactId>plantuml-generator-maven-plugin</artifactId>
                 <groupId>de.elnarion.maven</groupId>
-                <version>3.0.1</version>
+                <version>${de.elnarion.maven.version}</version>
                 <executions>
                     <!--
                     UML Class Diagrams
                     -->
                     <execution>
-                        <id>generate-classes-diagram</id>
+                        <id>generate-data-model-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -111,7 +119,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-business-logic-facades-diagram</id>
+                        <id>generate-business-logic-facades-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -135,7 +143,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-persistence-facades-diagram</id>
+                        <id>generate-persistence-facades-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -215,7 +223,9 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>AuthorityPersonFacade.deleteAuthorityPerson.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade</startClass>
+                            <startClass>
+                                oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade
+                            </startClass>
                             <startMethod>deleteAuthorityPerson</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -230,7 +240,8 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>FacultyFacade.deleteFaculty.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade</startClass>
+                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade
+                            </startClass>
                             <startMethod>deleteFaculty</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -245,7 +256,9 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>StudentsGroupFacade.deleteStudentsGroup.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade</startClass>
+                            <startClass>
+                                oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade
+                            </startClass>
                             <startMethod>deleteStudentsGroup</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -260,7 +273,9 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>PersonProfileFacade.delete.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade</startClass>
+                            <startClass>
+                                oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade
+                            </startClass>
                             <startMethod>delete</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -275,17 +290,56 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>AuthorityPersonPersistenceFacade.updateAccess.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade</startClass>
+                            <startClass>
+                                oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade
+                            </startClass>
                             <startMethod>updateAccess</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
                     </execution>
                 </executions>
+                <!--
+                    plantuml-generator: creates a puml file in target/generated-docs folder
+                    End of plugin definition
+                -->
             </plugin>
-            <!--
-                plantuml-generator: creates a puml file in target/generated-docs folder
-            -->
+            <!-- AsciiDoctor Documentation generator -->
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>${asciidoctor-maven-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-diagram</artifactId>
+                        <version>${asciidoctorj-diagram.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-diagram-plantuml</artifactId>
+                        <version>${asciidoctorj-diagram-plantuml}</version>
+                    </dependency>
+                </dependencies>
+
+                <configuration>
+                    <sourceDirectory>${project.basedir}/documentation/asciidoc</sourceDirectory>
+                    <outputDirectory>${project.basedir}/documentation/html</outputDirectory>
+                    <backend>html</backend>
+                    <requires>
+                        <require>asciidoctor-diagram</require>
+                    </requires>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>convert-asciidoc-to-html</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

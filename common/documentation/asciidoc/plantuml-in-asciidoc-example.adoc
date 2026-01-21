@@ -1,0 +1,66 @@
+= PlantUML in AsciiDoc
+:doctype: article
+:toc: left
+:toclevels: 4
+:sectnums:
+:source-highlighter: rouge
+:imagesdir: ./images
+
+== Intro
+
+This is an example https://docs.asciidoctor.org[AsciiDoc] document which contains a few simple
+https://plantuml.com[PlantUML] diagrams.
+
+<<<
+== Examples
+
+=== Sequence diagram
+
+Example of a simple Sequence diagram.
+
+.Sequence diagram
+[plantuml, sequence-diagram, png]
+----
+Alice -> Bob: request
+Bob --> Alice: response
+----
+
+=== Class diagram
+
+Example of a simple Class diagram.
+
+.Class diagram
+[plantuml, class-diagram, png]
+----
+class Class01 {
+  - privateField
+  # protectedField
+  ~ packagePrivateField
+  + publicField
+  + publicMethod()
+}
+
+Class01 "1" *-- "0..n" Class02 : contains
+
+Class03 o-- Class04 : aggregation
+
+Class05 --> "1" Class06
+----
+
+<<<
+=== Component diagram
+
+Example of a simple Component diagram.
+
+.Component diagram
+[plantuml, collaboration-diagram, png]
+----
+actor CustomerSupport as sup
+component CustomerPortal as por
+component CustomerService as ser
+database CustomerDb as db
+
+sup --> por : 1 maintain customer data
+por --> ser : 1.1 maintain customer data request
+ser --> db : 1.1.1 persist customer data
+----

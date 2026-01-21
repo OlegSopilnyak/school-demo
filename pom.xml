@@ -20,6 +20,9 @@
         <project.application.version>0.10.0-SNAPSHOT</project.application.version>
         <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
         <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <!-- documentation -->
+        <de.elnarion.maven.version>3.0.1</de.elnarion.maven.version>
+        <asciidoctor-maven-plugin.version>3.2.0</asciidoctor-maven-plugin.version>
     </properties>
 
     <modelVersion>4.0.0</modelVersion>
