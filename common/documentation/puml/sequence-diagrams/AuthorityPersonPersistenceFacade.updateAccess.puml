@@ -1,0 +1,33 @@
+[plantuml,AuthorityPersonPersistenceFacade.updateAccess.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonPersistenceFacade
+participant BaseType
+
+activate AuthorityPersonPersistenceFacade
+	AuthorityPersonPersistenceFacade -> AuthorityPersonPersistenceFacade : isValid
+	activate AuthorityPersonPersistenceFacade
+		AuthorityPersonPersistenceFacade -> BaseType : getId
+		activate BaseType
+			BaseType --> AuthorityPersonPersistenceFacade : Long
+		deactivate BaseType
+		AuthorityPersonPersistenceFacade -> BaseType : getId
+		activate BaseType
+			BaseType --> AuthorityPersonPersistenceFacade : Long
+		deactivate BaseType
+		AuthorityPersonPersistenceFacade --> AuthorityPersonPersistenceFacade : boolean
+	deactivate AuthorityPersonPersistenceFacade
+	AuthorityPersonPersistenceFacade -> BaseType : getId
+	activate BaseType
+		BaseType --> AuthorityPersonPersistenceFacade : Long
+	deactivate BaseType
+	AuthorityPersonPersistenceFacade -> AuthorityPersonPersistenceFacade : updateAccess
+	activate AuthorityPersonPersistenceFacade
+		AuthorityPersonPersistenceFacade --> AuthorityPersonPersistenceFacade : boolean
+	deactivate AuthorityPersonPersistenceFacade
+deactivate AuthorityPersonPersistenceFacade
+
+@enduml
+
+----

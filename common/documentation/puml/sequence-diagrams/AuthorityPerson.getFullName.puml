@@ -1,0 +1,29 @@
+[plantuml,AuthorityPerson.getFullName.puml.png,png]
+----
+@startuml
+
+participant AuthorityPerson
+participant Person
+
+activate AuthorityPerson
+	AuthorityPerson -> Person : getGender
+	activate Person
+		Person --> AuthorityPerson : String
+	deactivate Person
+	AuthorityPerson -> Person : getFirstName
+	activate Person
+		Person --> AuthorityPerson : String
+	deactivate Person
+	AuthorityPerson -> Person : getLastName
+	activate Person
+		Person --> AuthorityPerson : String
+	deactivate Person
+	AuthorityPerson -> AuthorityPerson : getTitle
+	activate AuthorityPerson
+		AuthorityPerson --> AuthorityPerson : String
+	deactivate AuthorityPerson
+deactivate AuthorityPerson
+
+@enduml
+
+----

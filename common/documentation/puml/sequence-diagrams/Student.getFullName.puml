@@ -1,0 +1,25 @@
+[plantuml,Student.getFullName.puml.png,png]
+----
+@startuml
+
+participant Student
+participant Person
+
+activate Student
+	Student -> Person : getGender
+	activate Person
+		Person --> Student : String
+	deactivate Person
+	Student -> Person : getFirstName
+	activate Person
+		Person --> Student : String
+	deactivate Person
+	Student -> Person : getLastName
+	activate Person
+		Person --> Student : String
+	deactivate Person
+deactivate Student
+
+@enduml
+
+----

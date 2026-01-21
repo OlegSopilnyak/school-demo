@@ -85,7 +85,9 @@
                 <groupId>de.elnarion.maven</groupId>
                 <version>3.0.1</version>
                 <executions>
-                    <!-- Class Diagrams -->
+                    <!--
+                    UML Class Diagrams
+                    -->
                     <execution>
                         <id>generate-classes-diagram</id>
                         <goals>
@@ -156,9 +158,11 @@
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
-                    <!-- Sequence Diagrams -->
+                    <!--
+                    UML Sequence Diagrams
+                    -->
                     <execution>
-                        <id>generate-simple-diagram</id>
+                        <id>generate-school-access-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
@@ -168,6 +172,111 @@
                             <outputFilename>SchoolAccess.makeSignatureFor.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.school.common.model.SchoolAccess</startClass>
                             <startMethod>makeSignatureFor</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-authority-person-fullname-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>AuthorityPerson.getFullName.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.model.AuthorityPerson</startClass>
+                            <startMethod>getFullName</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-student-fullname-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Student.getFullName.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.model.Student</startClass>
+                            <startMethod>getFullName</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-authority-person-facade-deleteAuthorityPerson-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>AuthorityPersonFacade.deleteAuthorityPerson.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade</startClass>
+                            <startMethod>deleteAuthorityPerson</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-faculty-facade-deleteFaculty-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>FacultyFacade.deleteFaculty.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade</startClass>
+                            <startMethod>deleteFaculty</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-students-group-facade-deleteFaculty-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>StudentsGroupFacade.deleteStudentsGroup.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade</startClass>
+                            <startMethod>deleteStudentsGroup</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-base-profile-facade-delete-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>PersonProfileFacade.delete.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade</startClass>
+                            <startMethod>delete</startMethod>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-authority-person-persistence-facade-updateAccess-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>AuthorityPersonPersistenceFacade.updateAccess.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade</startClass>
+                            <startMethod>updateAccess</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
