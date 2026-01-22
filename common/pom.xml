@@ -117,6 +117,26 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>generate-data-model-class-diagram-4-md</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>CommonDataModel.md.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.school.common.model</scanPackage>
+                            </scanPackages>
+                            <enableMarkdownWrapper>true</enableMarkdownWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <additionalPlantUmlConfigs>
+                            </additionalPlantUmlConfigs>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generate-business-logic-facades-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
@@ -302,6 +322,11 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctorj-pdf</artifactId>
+                        <version>${asciidoctorj-pdf.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.asciidoctor</groupId>
                         <artifactId>asciidoctorj-diagram</artifactId>
                         <version>${asciidoctorj-diagram.version}</version>
                     </dependency>
@@ -314,8 +339,8 @@
 
                 <configuration>
                     <sourceDirectory>${project.basedir}/documentation/asciidoc</sourceDirectory>
-                    <outputDirectory>${project.basedir}/documentation/html</outputDirectory>
-                    <backend>html</backend>
+                    <outputDirectory>${project.basedir}/documentation/pdf</outputDirectory>
+                    <backend>pdf</backend>
                     <requires>
                         <require>asciidoctor-diagram</require>
                     </requires>
