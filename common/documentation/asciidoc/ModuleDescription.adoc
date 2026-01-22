@@ -8,8 +8,10 @@ Doc Writer <oleg.sopilnyak@gmail.com>
 :imagesdir: ./images
 
 == Intro
-* This module joins prototype DataModel which should be implemented in the rest modules. And  the skeleton (set of interfaces).
-* The interfaces will be used in ingress, business-logic and persistence modules. Facade interfaces should be implemented in particular modules and joined together in application module.
+* The module joins prototype DataModel which should be implemented in the rest modules. +
+And  the layers' skeletons (set of interfaces).
+* The interfaces will be used in ingress, business-logic and persistence modules. +
+Facades should be implemented in particular modules and joined together in main application module.
 
 == Module parts
 
