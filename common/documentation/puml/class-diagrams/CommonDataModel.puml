@@ -3,10 +3,6 @@
 @startuml
 !pragma layout smetana
 
-left to right direction
-scale 2/3
-
-
 interface AuthorityPerson {
 	{method}  {abstract} +getFaculties () : List
 	{method} +getFullName () : String

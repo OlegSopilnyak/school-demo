@@ -5,7 +5,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.23">
-<title>PlantUML in AsciiDoc</title>
+<meta name="author" content="Doc Writer">
+<title>Core Application Module</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,16 +437,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>PlantUML in AsciiDoc</h1>
+<h1>Core Application Module</h1>
+<div class="details">
+<span id="author" class="author">Doc Writer</span><br>
+<span id="email" class="email"><a href="mailto:oleg.sopilnyak@gmail.com">oleg.sopilnyak@gmail.com</a></span><br>
+</div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_intro">1. Intro</a></li>
-<li><a href="#_examples">2. Examples</a>
+<li><a href="#_module_parts">2. Module parts</a>
 <ul class="sectlevel2">
-<li><a href="#_sequence_diagram">2.1. Sequence diagram</a></li>
-<li><a href="#_class_diagram">2.2. Class diagram</a></li>
-<li><a href="#_component_diagram">2.3. Component diagram</a></li>
+<li><a href="#_common_data_model">2.1. Common Data Model</a></li>
+<li><a href="#_business_logic_skeleton">2.2. Business Logic Skeleton</a></li>
+<li><a href="#_persistence_skeleton">2.3. Persistence Skeleton</a></li>
 </ul>
 </li>
 </ul>
@@ -455,59 +460,179 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_intro">1. Intro</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>This is an example <a href="https://docs.asciidoctor.org">AsciiDoc</a> document which contains a few simple
-<a href="https://plantuml.com">PlantUML</a> diagrams.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This module joins prototype DataModel which should be implemented in the rest modules. And  the skeleton (set of interfaces).</p>
+</li>
+<li>
+<p>The interfaces will be used in ingress, business-logic and persistence modules. Facade interfaces should be implemented in particular modules and joined together in application module.</p>
+</li>
+</ul>
 </div>
-<div style="page-break-after: always;"></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_examples">2. Examples</h2>
+<h2 id="_module_parts">2. Module parts</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_sequence_diagram">2.1. Sequence diagram</h3>
+<h3 id="_common_data_model">2.1. Common Data Model</h3>
 <div class="paragraph">
-<p>Example of a simple Sequence diagram.</p>
+<p>Common Used Data Model (prototypes of model&#8217;s entities)</p>
+</div>
+<details>
+<summary class="title">Data Model</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommonDataModel.puml.png.png" alt="CommonDataModel.puml" width="1480" height="480">
+</div>
+<div class="title">Figure 1. Core Data Model</div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/sequence-diagram.png" alt="sequence diagram" width="129" height="153">
+<img src="./images/AuthorityPerson.getFullName.puml.png.png" alt="AuthorityPerson.getFullName.puml" width="203" height="362">
 </div>
-<div class="title">Figure 1. Sequence diagram</div>
+<div class="title">Figure 2. AuthorityPerson.getFullName() [Get Full Authority Person Name Sequence]</div>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Student.getFullName.puml.png.png" alt="Student.getFullName.puml" width="177" height="275">
+</div>
+<div class="title">Figure 3. Student.getFullName() [Get Full Student Name Sequence]</div>
+</div>
+</div>
+</details>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_class_diagram">2.2. Class diagram</h3>
+<h3 id="_business_logic_skeleton">2.2. Business Logic Skeleton</h3>
 <div class="paragraph">
-<p>Example of a simple Class diagram.</p>
+<p>Set of interfaces used to implement business-logic functionality of the application.</p>
+</div>
+<details>
+<summary class="title">Business Logic</summary>
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>General Facade Diagram</p>
+</li>
+</ul>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/class-diagram.png" alt="class diagram" width="366" height="258">
+<img src="./images/BusinessLogicFacades.puml.png.png" alt="BusinessLogicFacades.puml" width="2871" height="415">
 </div>
-<div class="title">Figure 2. Class diagram</div>
+<div class="title">Figure 4. Business Logic Facades by Entity Types</div>
 </div>
-<div style="page-break-after: always;"></div>
+<div class="ulist">
+<ul>
+<li>
+<p>Authority Person Facade Sequences</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/AuthorityPersonFacade.deleteAuthorityPerson.puml.png.png" alt="AuthorityPersonFacade.deleteAuthorityPerson.puml" width="435" height="362">
+</div>
+<div class="title">Figure 5. AuthorityPersonFacade.deleteAuthorityPerson(&#8230;&#8203;) [Delete Authority Person Entity]</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Common Person Profile Facade Sequences</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/PersonProfileFacade.delete.puml.png.png" alt="PersonProfileFacade.delete.puml" width="430" height="448">
+</div>
+<div class="title">Figure 6. PersonProfileFacade.delete(&#8230;&#8203;) [Delete Common Person Entity]</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Faculty Facade Sequences</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/FacultyFacade.deleteFaculty.puml.png.png" alt="FacultyFacade.deleteFaculty.puml" width="357" height="362">
+</div>
+<div class="title">Figure 7. FacultyFacade.deleteFaculty(&#8230;&#8203;) [Delete Faculty Entity]</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Students Group Facade Sequences</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/StudentsGroupFacade.deleteStudentsGroup.puml.png.png" alt="StudentsGroupFacade.deleteStudentsGroup.puml" width="427" height="362">
+</div>
+<div class="title">Figure 8. StudentsGroupFacade.deleteStudentsGroup(&#8230;&#8203;) [ Delete Students Group Entity]</div>
+</div>
+</div>
+</details>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_component_diagram">2.3. Component diagram</h3>
+<h3 id="_persistence_skeleton">2.3. Persistence Skeleton</h3>
 <div class="paragraph">
-<p>Example of a simple Component diagram.</p>
+<p>Set of interfaces used to implement persistence functionality of the application.</p>
+</div>
+<details>
+<summary class="title">Persistence</summary>
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>General Facade Diagram</p>
+</li>
+</ul>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/collaboration-diagram.png" alt="collaboration diagram" width="293" height="416">
+<img src="./images/PersistenceFacades.puml.png.png" alt="PersistenceFacades.puml" width="2216" height="527">
 </div>
-<div class="title">Figure 3. Component diagram</div>
+<div class="title">Figure 9. Persistence Facades by Entity Types</div>
 </div>
+<hr>
+<div class="ulist">
+<ul>
+<li>
+<p>Authority Person Persistence Facade Sequences</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/AuthorityPersonPersistenceFacade.updateAccess.puml.png.png" alt="AuthorityPersonPersistenceFacade.updateAccess.puml" width="330" height="448">
+</div>
+<div class="title">Figure 10. AuthorityPersonPersistenceFacade.updateAccess(&#8230;&#8203;) [Authority Person Facade Update Entity]</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/SchoolAccess.makeSignatureFor.puml.png.png" alt="SchoolAccess.makeSignatureFor.puml" width="167" height="266">
+</div>
+<div class="title">Figure 11. SchoolAccess.makeSignatureFor(&#8230;&#8203;) [Authority Person Facade Make Security Signature]</div>
+</div>
+<hr>
+</div>
+</details>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-21 05:55:02 +0200
+Last updated 2026-01-22 02:00:03 +0200
 </div>
 </div>
 </body>

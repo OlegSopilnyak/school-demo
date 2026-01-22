@@ -112,8 +112,6 @@
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <additionalPlantUmlConfigs>
-                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
                             </additionalPlantUmlConfigs>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
@@ -133,10 +131,6 @@
                             </scanPackages>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
-                            <additionalPlantUmlConfigs>
-                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
-                            </additionalPlantUmlConfigs>
                             <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
                             <hideFields>true</hideFields>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
@@ -159,10 +153,6 @@
                             <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
-                            <additionalPlantUmlConfigs>
-                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>
-                            </additionalPlantUmlConfigs>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>

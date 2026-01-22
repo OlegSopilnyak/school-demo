@@ -3,10 +3,6 @@
 @startuml
 !pragma layout smetana
 
-left to right direction
-scale 2/3
-
-
 interface AuthorityPersonPersistenceFacade {
 	{method}  {abstract} +deleteAuthorityPerson ( id : Long ) : boolean
 	{method}  {abstract} +findAllAuthorityPersons () : Set

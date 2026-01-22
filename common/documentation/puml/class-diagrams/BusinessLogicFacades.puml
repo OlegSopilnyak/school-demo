@@ -3,10 +3,6 @@
 @startuml
 !pragma layout smetana
 
-left to right direction
-scale 2/3
-
-
 interface AuthorityPersonFacade {
 	{method}  {abstract} +create ( instance : AuthorityPerson ) : Optional
 	{method}  {abstract} +createOrUpdateAuthorityPerson ( instance : AuthorityPerson ) : Optional
