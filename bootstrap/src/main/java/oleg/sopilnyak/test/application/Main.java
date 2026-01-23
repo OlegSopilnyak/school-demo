@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import;
 @SpringBootApplication
 @Import({EndpointConfiguration.class, BusinessLogicConfiguration.class, PersistenceConfiguration.class, MySqlDataSourceConfiguration.class})
 public class Main {
-    public static void main(String[] parameters) {
+    static void main(String[] parameters) {
         log.info("Running school-application...");
         SpringApplication application = new SpringApplication(Main.class);
         application.run(parameters);
@@ -24,7 +24,7 @@ public class Main {
 
     @Bean
     public CommandLineRunner commandLineRunner(PersistenceFacade persistenceFacade) {
-        return args -> {
+        return _ -> {
             log.info("Creating default database for application...");
             persistenceFacade.initDefaultDataset();
         };
