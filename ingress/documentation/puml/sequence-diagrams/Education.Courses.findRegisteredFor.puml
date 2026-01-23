@@ -1,0 +1,21 @@
+[plantuml,Education.Courses.findRegisteredFor.puml.png,png]
+----
+@startuml
+
+participant CoursesRestController
+participant CoursesFacade
+
+activate CoursesRestController
+	CoursesRestController -> CoursesFacade : findRegisteredFor
+	activate CoursesFacade
+		CoursesFacade --> CoursesRestController : Set
+	deactivate CoursesFacade
+	CoursesRestController -> CoursesRestController : resultToDto
+	activate CoursesRestController
+		CoursesRestController --> CoursesRestController : List
+	deactivate CoursesRestController
+deactivate CoursesRestController
+
+@enduml
+
+----

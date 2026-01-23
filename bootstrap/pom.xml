@@ -10,10 +10,9 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>persistence</artifactId>
-    <description>Persistence module for students and courses of the school.</description>
-
-    <!--  <packaging>jar</packaging>-->
+    <artifactId>bootstrap</artifactId>
+    <description>Main-Application module for students and courses of the school</description>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Production stuff -->
@@ -22,47 +21,32 @@
             <artifactId>micro-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>ingress</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-json</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>[8.0.,)</version>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Testing stuff -->
         <dependency>
             <groupId>oleg.sopilnyak.test</groupId>
-            <artifactId>micro-core</artifactId>
-            <version>${project.application.version}</version>
-            <classifier>tests</classifier>
-            <type>test-jar</type>
-            <scope>test</scope>
+            <artifactId>business-logic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>oleg.sopilnyak.test</groupId>
+            <artifactId>persistence</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mysql</artifactId>
-            <version>[1.,)</version>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <finalName>schoolApplication</finalName>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -76,11 +60,6 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                        </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>${map-struct.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

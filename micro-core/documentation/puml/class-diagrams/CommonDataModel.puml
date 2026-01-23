@@ -1,0 +1,105 @@
+[plantuml,CommonDataModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface AuthorityPerson {
+	{method}  {abstract} +getFaculties () : List
+	{method} +getFullName () : String
+	{method}  {abstract} +getTitle () : String
+}
+
+
+interface BaseType {
+	{method}  {abstract} +getId () : Long
+}
+
+
+interface Course {
+	{method}  {abstract} +getDescription () : String
+	{method}  {abstract} +getName () : String
+	{method}  {abstract} +getStudents () : List
+}
+
+
+enum ExtraKey {
+	{field} +FACEBOOK
+	{field} +INSTAGRAM
+	{field} +LINKEDIN
+	{field} +TELEGRAM
+	{field} +WEB
+	{field} +YOUTUBE
+}
+
+
+interface Faculty {
+	{method}  {abstract} +getCourses () : List
+	{method}  {abstract} +getDean () : AuthorityPerson
+	{method}  {abstract} +getName () : String
+}
+
+
+interface Person {
+	{method}  {abstract} +getFirstName () : String
+	{method}  {abstract} +getGender () : String
+	{method}  {abstract} +getLastName () : String
+	{method} +getProfileId () : Long
+}
+
+
+interface PersonProfile {
+	{method}  {abstract} +getEmail () : String
+	{method} +getExtra ( key : ExtraKey ) : Optional
+	{method}  {abstract} +getExtra ( key : String ) : Optional
+	{method}  {abstract} +getExtraKeys () : String[]
+	{method}  {abstract} +getLocation () : String
+	{method}  {abstract} +getPhone () : String
+	{method}  {abstract} +getPhotoUrl () : String
+}
+
+
+interface PrincipalProfile {
+}
+
+
+interface SchoolAccess {
+	{method}  {abstract} +getLogin () : String
+	{method} +isPassword ( password : String ) : boolean
+	{method} +makeSignatureFor ( password : String ) : String
+}
+
+
+interface Student {
+	{method}  {abstract} +getCourses () : List
+	{method}  {abstract} +getDescription () : String
+	{method} +getFullName () : String
+}
+
+
+interface StudentProfile {
+}
+
+
+interface StudentsGroup {
+	{method}  {abstract} +getLeader () : Student
+	{method}  {abstract} +getName () : String
+	{method}  {abstract} +getStudents () : List
+}
+
+
+
+
+AuthorityPerson ..|>  Person
+Course ..|>  BaseType
+Faculty ..|>  BaseType
+Person ..|>  BaseType
+PersonProfile ..|>  BaseType
+PrincipalProfile ..|>  PersonProfile
+PrincipalProfile ..|>  SchoolAccess
+Student ..|>  Person
+StudentProfile ..|>  PersonProfile
+StudentsGroup ..|>  BaseType
+
+
+@enduml
+----

@@ -1,0 +1,31 @@
+[plantuml,Education.Courses.createCourse.puml.png,png]
+----
+@startuml
+
+participant CoursesRestController
+participant BaseDto
+participant CoursesFacade
+participant EndpointMapper
+
+activate CoursesRestController
+	CoursesRestController -> BaseDto : setId
+	activate BaseDto
+		BaseDto --> CoursesRestController : void
+	deactivate BaseDto
+	CoursesRestController -> CoursesFacade : createOrUpdate
+	activate CoursesFacade
+		CoursesFacade --> CoursesRestController : Optional
+	deactivate CoursesFacade
+	CoursesRestController -> CoursesRestController : resultToDto
+	activate CoursesRestController
+		CoursesRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> CoursesRestController : CourseDto
+		deactivate EndpointMapper
+		CoursesRestController --> CoursesRestController : CourseDto
+	deactivate CoursesRestController
+deactivate CoursesRestController
+
+@enduml
+
+----

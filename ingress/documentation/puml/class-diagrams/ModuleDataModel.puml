@@ -1,0 +1,132 @@
+[plantuml,ModuleDataModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class AuthorityPersonDto {
+	{field} +faculties : List
+	{field} +title : String
+	{method}  {static} +builder () : AuthorityPersonDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+abstract class BaseDto {
+	{field} +id : Long
+	{method} +toString () : String
+}
+
+
+abstract class BasePersonDto {
+	{field} +firstName : String
+	{field} +gender : String
+	{field} +lastName : String
+	{field} +profileId : Long
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+abstract class BaseProfileDto {
+	{field} +email : String
+	{field} +extras : Extra[]
+	{field} +location : String
+	{field} +phone : String
+	{field} +photoUrl : String
+	{method} +equals ( o : Object ) : boolean
+	{method} +getExtra ( key : String ) : Optional
+	{method} +getExtraKeys () : String[]
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class CourseDto {
+	{field} +description : String
+	{field} +name : String
+	{field} +students : List
+	{method}  {static} +builder () : CourseDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class Extra {
+	{field} +key : String
+	{field} +value : String
+	{method}  {static} +builder () : ExtraBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class FacultyDto {
+	{field} +courses : List
+	{field} +dean : AuthorityPerson
+	{field} +name : String
+	{method}  {static} +builder () : FacultyDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class PrincipalProfileDto {
+	{field} +login : String
+	{method}  {static} +builder () : PrincipalProfileDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class StudentDto {
+	{field} +courses : List
+	{field} +description : String
+	{method}  {static} +builder () : StudentDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class StudentProfileDto {
+	{method}  {static} +builder () : StudentProfileDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class StudentsGroupDto {
+	{field} +leader : Student
+	{field} +name : String
+	{field} +students : List
+	{method}  {static} +builder () : StudentsGroupDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+
+
+AuthorityPersonDto --|>  BasePersonDto
+BasePersonDto --|>  BaseDto
+BaseProfileDto --|>  BaseDto
+CourseDto --|>  BaseDto
+FacultyDto --|>  BaseDto
+PrincipalProfileDto --|>  BaseProfileDto
+StudentDto --|>  BasePersonDto
+StudentProfileDto --|>  BaseProfileDto
+StudentsGroupDto --|>  BaseDto
+
+hide methods
+
+@enduml
+----

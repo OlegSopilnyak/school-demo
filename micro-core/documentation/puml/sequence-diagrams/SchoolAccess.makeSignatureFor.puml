@@ -1,0 +1,20 @@
+[plantuml,SchoolAccess.makeSignatureFor.puml.png,png]
+----
+@startuml
+
+participant SchoolAccess
+
+activate SchoolAccess
+	SchoolAccess -> SchoolAccess : getLogin
+	activate SchoolAccess
+		SchoolAccess --> SchoolAccess : String
+	deactivate SchoolAccess
+	SchoolAccess -> SchoolAccess : makeHexString
+	activate SchoolAccess
+		SchoolAccess --> SchoolAccess : String
+	deactivate SchoolAccess
+deactivate SchoolAccess
+
+@enduml
+
+----

@@ -1,0 +1,118 @@
+[plantuml,BusinessLogicFacades.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface AuthorityPersonFacade {
+	{method}  {abstract} +create ( instance : AuthorityPerson ) : Optional
+	{method}  {abstract} +createOrUpdateAuthorityPerson ( instance : AuthorityPerson ) : Optional
+	{method} +deleteAuthorityPerson ( instance : AuthorityPerson ) : void
+	{method}  {abstract} +deleteAuthorityPersonById ( id : Long ) : void
+	{method}  {abstract} +findAllAuthorityPersons () : Collection
+	{method}  {abstract} +findAuthorityPersonById ( id : Long ) : Optional
+	{method} +getName () : String
+	{method}  {abstract} +login ( username : String , password : String ) : Optional
+	{method}  {abstract} +logout ( token : String ) : void
+}
+
+
+interface BusinessFacade {
+	{method}  {abstract} +getName () : String
+}
+
+
+interface CoursesFacade {
+	{method}  {abstract} +createOrUpdate ( course : Course ) : Optional
+	{method} +delete ( course : Course ) : void
+	{method}  {abstract} +delete ( courseId : Long ) : void
+	{method}  {abstract} +findById ( id : Long ) : Optional
+	{method}  {abstract} +findRegisteredFor ( studentId : Long ) : Set
+	{method} +findRegisteredFor ( student : Student ) : Set
+	{method}  {abstract} +findWithoutStudents () : Set
+	{method} +getName () : String
+	{method}  {abstract} +register ( studentId : Long , courseId : Long ) : void
+	{method} +register ( student : Student , course : Course ) : void
+	{method}  {abstract} +unRegister ( studentId : Long , courseId : Long ) : void
+	{method} +unRegister ( student : Student , course : Course ) : void
+}
+
+
+interface FacultyFacade {
+	{method}  {abstract} +createOrUpdateFaculty ( instance : Faculty ) : Optional
+	{method} +deleteFaculty ( instance : Faculty ) : void
+	{method}  {abstract} +deleteFacultyById ( id : Long ) : void
+	{method}  {abstract} +findAllFaculties () : Collection
+	{method}  {abstract} +findFacultyById ( id : Long ) : Optional
+	{method} +getName () : String
+}
+
+
+interface OrganizationFacade {
+	{method} +isInvalid ( item : BaseType ) : boolean
+}
+
+
+interface PersonProfileFacade {
+	{method}  {abstract} +createOrUpdate ( profile : PersonProfile ) : Optional
+	{method} +delete ( profile : PersonProfile ) : void
+	{method}  {abstract} +deleteById ( id : Long ) : void
+	{method}  {abstract} +findById ( id : Long ) : Optional
+}
+
+
+interface PrincipalProfileFacade {
+	{method} +createOrUpdateProfile ( input : PrincipalProfile ) : Optional
+	{method} +findPrincipalProfileById ( id : Long ) : Optional
+	{method} +getName () : String
+}
+
+
+interface StudentProfileFacade {
+	{method} +createOrUpdateProfile ( input : StudentProfile ) : Optional
+	{method} +findStudentProfileById ( id : Long ) : Optional
+	{method} +getName () : String
+}
+
+
+interface StudentsFacade {
+	{method}  {abstract} +create ( student : Student ) : Optional
+	{method}  {abstract} +createOrUpdate ( student : Student ) : Optional
+	{method}  {abstract} +delete ( studentId : Long ) : boolean
+	{method} +delete ( student : Student ) : boolean
+	{method}  {abstract} +findById ( id : Long ) : Optional
+	{method} +findEnrolledTo ( course : Course ) : Set
+	{method}  {abstract} +findEnrolledTo ( courseId : Long ) : Set
+	{method}  {abstract} +findNotEnrolled () : Set
+	{method} +getName () : String
+}
+
+
+interface StudentsGroupFacade {
+	{method}  {abstract} +createOrUpdateStudentsGroup ( instance : StudentsGroup ) : Optional
+	{method} +deleteStudentsGroup ( instance : StudentsGroup ) : void
+	{method}  {abstract} +deleteStudentsGroupById ( id : Long ) : void
+	{method}  {abstract} +findAllStudentsGroups () : Collection
+	{method}  {abstract} +findStudentsGroupById ( id : Long ) : Optional
+	{method} +getName () : String
+}
+
+
+
+
+AuthorityPersonFacade ..|>  BusinessFacade
+AuthorityPersonFacade ..|>  OrganizationFacade
+CoursesFacade ..|>  BusinessFacade
+FacultyFacade ..|>  BusinessFacade
+FacultyFacade ..|>  OrganizationFacade
+PrincipalProfileFacade ..|>  BusinessFacade
+PrincipalProfileFacade ..|>  PersonProfileFacade
+StudentProfileFacade ..|>  BusinessFacade
+StudentProfileFacade ..|>  PersonProfileFacade
+StudentsFacade ..|>  BusinessFacade
+StudentsGroupFacade ..|>  BusinessFacade
+StudentsGroupFacade ..|>  OrganizationFacade
+
+hide fields
+
+@enduml
+----

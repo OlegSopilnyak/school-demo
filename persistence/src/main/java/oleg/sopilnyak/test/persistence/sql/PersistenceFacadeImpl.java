@@ -104,8 +104,8 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
         log.info("Saving authority persons set...");
         delegate.save(maleTeacher);
         delegate.save(femaleTeacher);
-        delegate.updateAuthorityPersonAccess(maleTeacher, "bill", "");
-        delegate.updateAuthorityPersonAccess(femaleTeacher, "hillary", "");
+        delegate.updateAccess(maleTeacher, "bill", "");
+        delegate.updateAccess(femaleTeacher, "hillary", "");
 
         FacultyEntity languageFaculty = FacultyEntity.builder().name("Languages").build();
         FacultyEntity mathFaculty = FacultyEntity.builder().name("Math").build();
@@ -186,7 +186,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean updateAuthorityPersonAccess(Long personId, String username, String password) {
+    public boolean updateAccess(Long personId, String username, String password) {
         log.debug("Updating authority person access...");
         log.debug("Looking for authority person with id: {}", personId);
         final AuthorityPersonEntity person = authorityPersonRepository.findById(personId).orElse(null);

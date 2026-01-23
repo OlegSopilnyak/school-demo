@@ -1,0 +1,104 @@
+= Core Application Module
+Doc Writer <oleg.sopilnyak@gmail.com>
+:doctype: article
+:toc: left
+:toclevels: 4
+:sectnums:
+:source-highlighter: rouge
+:imagesdir: ./images
+
+== Intro
+* The module joins prototype DataModel which should be implemented in the rest modules. +
+And  the layers' skeletons (set of interfaces).
+* The interfaces will be used in ingress, business-logic and persistence modules. +
+Facades should be implemented in particular modules and joined together in main application module.
+
+== Module parts
+
+=== Common Data Model
+
+Common Used Data Model (prototypes of model's entities)
+
+.Data Model
+[%collapsible]
+====
+
+.Core Data Model
+include::../puml/class-diagrams/CommonDataModel.puml[]
+
+.AuthorityPerson.getFullName() [Get Full Authority Person Name Sequence]
+include::../puml/sequence-diagrams/AuthorityPerson.getFullName.puml[]
+
+.Student.getFullName() [Get Full Student Name Sequence]
+include::../puml/sequence-diagrams/Student.getFullName.puml[]
+====
+
+'''
+=== Business Logic Skeleton
+
+Set of interfaces used to implement business-logic functionality of the application.
+
+.Business Logic
+[%collapsible]
+====
+* General Facade Diagram
+
+.Business Logic Facades by Entity Types
+include::../puml/class-diagrams/BusinessLogicFacades.puml[]
+
+'''
+
+* Authority Person Facade Sequences
+
+.AuthorityPersonFacade.deleteAuthorityPerson(...) [Delete Authority Person Entity]
+include::../puml/sequence-diagrams/AuthorityPersonFacade.deleteAuthorityPerson.puml[]
+
+'''
+
+* Common Person Profile Facade Sequences
+
+.PersonProfileFacade.delete(...) [Delete Common Person Entity]
+include::../puml/sequence-diagrams/PersonProfileFacade.delete.puml[]
+
+'''
+
+* Faculty Facade Sequences
+
+.FacultyFacade.deleteFaculty(...) [Delete Faculty Entity]
+include::../puml/sequence-diagrams/FacultyFacade.deleteFaculty.puml[]
+
+'''
+
+* Students Group Facade Sequences
+
+.StudentsGroupFacade.deleteStudentsGroup(...) [ Delete Students Group Entity]
+include::../puml/sequence-diagrams/StudentsGroupFacade.deleteStudentsGroup.puml[]
+====
+
+'''
+=== Persistence Skeleton
+
+Set of interfaces used to implement persistence functionality of the application.
+
+.Persistence
+[%collapsible]
+====
+
+* General Facade Diagram
+
+.Persistence Facades by Entity Types
+include::../puml/class-diagrams/PersistenceFacades.puml[]
+
+'''
+
+* Authority Person Persistence Facade Sequences
+
+.AuthorityPersonPersistenceFacade.updateAccess(...) [Authority Person Access Update Entity]
+include::../puml/sequence-diagrams/AuthorityPersonPersistenceFacade.updateAccess.puml[]
+
+.SchoolAccess.makeSignatureFor(...) [Authority Person Make Security Access Signature]
+include::../puml/sequence-diagrams/SchoolAccess.makeSignatureFor.puml[]
+
+'''
+
+====

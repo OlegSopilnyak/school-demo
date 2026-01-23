@@ -1,0 +1,35 @@
+[plantuml,Education.Students.updateStudent.puml.png,png]
+----
+@startuml
+
+participant StudentsRestController
+participant BaseDto
+participant StudentsFacade
+participant EndpointMapper
+
+activate StudentsRestController
+	StudentsRestController -> BaseDto : getId
+	activate BaseDto
+		BaseDto --> StudentsRestController : Long
+	deactivate BaseDto
+	StudentsRestController -> StudentsRestController : isInvalid
+	activate StudentsRestController
+		StudentsRestController --> StudentsRestController : boolean
+	deactivate StudentsRestController
+	StudentsRestController -> StudentsFacade : createOrUpdate
+	activate StudentsFacade
+		StudentsFacade --> StudentsRestController : Optional
+	deactivate StudentsFacade
+	StudentsRestController -> StudentsRestController : resultToDto
+	activate StudentsRestController
+		StudentsRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> StudentsRestController : StudentDto
+		deactivate EndpointMapper
+		StudentsRestController --> StudentsRestController : StudentDto
+	deactivate StudentsRestController
+deactivate StudentsRestController
+
+@enduml
+
+----

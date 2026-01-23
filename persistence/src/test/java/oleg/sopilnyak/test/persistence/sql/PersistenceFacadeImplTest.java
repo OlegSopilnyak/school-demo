@@ -80,7 +80,7 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         }
         long personId = facade.save(person).orElseThrow().getId();
 
-        assertThat(facade.updateAuthorityPersonAccess(personId, "username", "password")).isTrue();
+        assertThat(facade.updateAccess(personId, "username", "password")).isTrue();
 
         PrincipalProfileEntity updated = facade.findPrincipalProfileById(profileId).map(PrincipalProfileEntity.class::cast).orElseThrow();
         String signature = PrincipalProfileEntity.builder().login("username").build().makeSignatureFor("password");
