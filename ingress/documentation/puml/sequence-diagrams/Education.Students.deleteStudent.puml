@@ -1,0 +1,17 @@
+[plantuml,Education.Students.deleteStudent.puml.png,png]
+----
+@startuml
+
+participant StudentsRestController
+participant StudentsFacade
+
+activate StudentsRestController
+	StudentsRestController -> StudentsFacade : delete
+	activate StudentsFacade
+		StudentsFacade --> StudentsRestController : boolean
+	deactivate StudentsFacade
+deactivate StudentsRestController
+
+@enduml
+
+----

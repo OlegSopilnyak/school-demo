@@ -1,0 +1,26 @@
+[plantuml,Education.Students.findStudent.puml.png,png]
+----
+@startuml
+
+participant StudentsRestController
+participant StudentsFacade
+participant EndpointMapper
+
+activate StudentsRestController
+	StudentsRestController -> StudentsFacade : findById
+	activate StudentsFacade
+		StudentsFacade --> StudentsRestController : Optional
+	deactivate StudentsFacade
+	StudentsRestController -> StudentsRestController : resultToDto
+	activate StudentsRestController
+		StudentsRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> StudentsRestController : StudentDto
+		deactivate EndpointMapper
+		StudentsRestController --> StudentsRestController : StudentDto
+	deactivate StudentsRestController
+deactivate StudentsRestController
+
+@enduml
+
+----

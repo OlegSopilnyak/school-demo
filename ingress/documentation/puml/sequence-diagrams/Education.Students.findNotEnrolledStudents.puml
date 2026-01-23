@@ -1,0 +1,21 @@
+[plantuml,Education.Students.findNotEnrolledStudents.puml.png,png]
+----
+@startuml
+
+participant StudentsRestController
+participant StudentsFacade
+
+activate StudentsRestController
+	StudentsRestController -> StudentsFacade : findNotEnrolled
+	activate StudentsFacade
+		StudentsFacade --> StudentsRestController : Set
+	deactivate StudentsFacade
+	StudentsRestController -> StudentsRestController : resultToDto
+	activate StudentsRestController
+		StudentsRestController --> StudentsRestController : List
+	deactivate StudentsRestController
+deactivate StudentsRestController
+
+@enduml
+
+----
