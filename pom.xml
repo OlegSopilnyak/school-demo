@@ -36,8 +36,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>common</module>
-        <module>application</module>
+        <module>micro-core</module>
+        <module>bootstrap</module>
         <module>ingress</module>
         <module>business-logic</module>
         <module>persistence</module>
@@ -54,7 +54,7 @@
         <dependencies>
             <dependency>
                 <groupId>oleg.sopilnyak.test</groupId>
-                <artifactId>common</artifactId>
+                <artifactId>micro-core</artifactId>
                 <version>${project.application.version}</version>
             </dependency>
             <dependency>
@@ -69,7 +69,7 @@
             </dependency>
             <dependency>
                 <groupId>oleg.sopilnyak.test</groupId>
-                <artifactId>application</artifactId>
+                <artifactId>bootstrap</artifactId>
                 <version>${project.application.version}</version>
             </dependency>
             <dependency>

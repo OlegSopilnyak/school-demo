@@ -10,7 +10,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>common</artifactId>
+    <artifactId>micro-core</artifactId>
     <description>Common types and facades declaration. Shared tests library.</description>
 
     <properties>

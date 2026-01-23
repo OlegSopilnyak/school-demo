@@ -8,11 +8,11 @@
 
 ### Used modules.
 
-* **common** - module with declared abstract service model and facades.
+* **[micro-core](./micro-core/README.md)** - module with declared abstract service's model and facades.
 * **[ingress](./ingress/README.md)** - module to manage REST requests to the system.
 * **[business-logic](./business-logic/README.md)** - module to process requests from REST-Controllers.
 * **persistence** - the module is providing support for persistence layer of the system.
-* **[application](./application/README.md)** - module to run system as a SpringBoot application, in docker container as well.
+* **[bootstrap](./bootstrap/README.md)** - module to run system as a SpringBoot application, in docker container as well.
 
 
 To run application in:
@@ -35,3 +35,7 @@ In order to support application's health-check in **Docker-Compose** mode there 
 provides some endpoints.
 One of them (**GET** http://localhost:8080/school/actuator/health) is used for health-check support.
 Other could be used for application's observation.
+In project used 2 BuildTools
+1. **Gradle** for development
+1. **Maven** for documentation generation
+

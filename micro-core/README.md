@@ -1,5 +1,5 @@
 
-# Mini Core Application Module
+# 'Micro Core' Application Module
 The module joins **Prototype DataModel** which should be implemented<br> in each particular module's **DataModel**.<br>And  the application layers **Facades Skeletons** (set of interfaces).
 
 

@@ -19,7 +19,7 @@
         <!-- Production stuff -->
         <dependency>
             <groupId>oleg.sopilnyak.test</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>micro-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -43,7 +43,7 @@
         <!-- Testing stuff -->
         <dependency>
             <groupId>oleg.sopilnyak.test</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>micro-core</artifactId>
             <version>${project.application.version}</version>
             <classifier>tests</classifier>
             <type>test-jar</type>
