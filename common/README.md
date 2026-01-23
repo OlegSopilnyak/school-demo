@@ -1,18 +1,7 @@
 
-# Core Application Module
-The module joins prototype **DataModel** which should be implemented in<br> the rest modules' **DataModel**.<br>And  the application layers **Facades Skeletons** (set of interfaces).
-<br>[ModuleDescription](documentation/pdf/ModuleDescription.pdf)
+# Mini Core Application Module
+The module joins **Prototype DataModel** which should be implemented<br> in each particular module's **DataModel**.<br>And  the application layers **Facades Skeletons** (set of interfaces).
 
-<script>
-import basics from './documentation/puml/class-diagrams/CommonDataModel.md'
-</script>
-<!--@include:./documentation/puml/class-diagrams/CommonDataModel.md-->
 
-<!--include:./documentation/puml/class-diagrams/CommonDataModel.md-->
-<!--
-{{ basics }}
-
-![[./documentation/puml/class-diagrams/CommonDataModel.md]]
-!includeurl file:
-./documentation/puml/class-diagrams/CommonDataModel.md
--->
+For more details please go to the folder **documentation/html** and open
+[ModuleDescription.html](documentation/html/ModuleDescription.html)
