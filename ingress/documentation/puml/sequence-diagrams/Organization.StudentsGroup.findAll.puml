@@ -1,0 +1,21 @@
+[plantuml,Organization.StudentsGroup.findAll.puml.png,png]
+----
+@startuml
+
+participant StudentsGroupsRestController
+participant StudentsGroupFacade
+
+activate StudentsGroupsRestController
+	StudentsGroupsRestController -> StudentsGroupFacade : findAllStudentsGroups
+	activate StudentsGroupFacade
+		StudentsGroupFacade --> StudentsGroupsRestController : Collection
+	deactivate StudentsGroupFacade
+	StudentsGroupsRestController -> StudentsGroupsRestController : resultToDto
+	activate StudentsGroupsRestController
+		StudentsGroupsRestController --> StudentsGroupsRestController : List
+	deactivate StudentsGroupsRestController
+deactivate StudentsGroupsRestController
+
+@enduml
+
+----

@@ -1,0 +1,49 @@
+[plantuml,Organization.AuthorityPerson.updatePerson.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonsRestController
+participant BaseDto
+participant AuthorityPersonFacade
+participant EndpointMapper
+participant AuthorityPersonDto
+participant BasePersonDto
+
+activate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> BaseDto : getId
+	activate BaseDto
+		BaseDto --> AuthorityPersonsRestController : Long
+	deactivate BaseDto
+	AuthorityPersonsRestController -> AuthorityPersonsRestController : isInvalid
+	activate AuthorityPersonsRestController
+		AuthorityPersonsRestController --> AuthorityPersonsRestController : boolean
+	deactivate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonFacade : createOrUpdateAuthorityPerson
+	activate AuthorityPersonFacade
+		AuthorityPersonFacade --> AuthorityPersonsRestController : Optional
+	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> AuthorityPersonsRestController : resultToDto
+	activate AuthorityPersonsRestController
+		AuthorityPersonsRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> AuthorityPersonsRestController : AuthorityPersonDto
+		deactivate EndpointMapper
+		AuthorityPersonsRestController --> AuthorityPersonsRestController : AuthorityPersonDto
+	deactivate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonDto : toString
+	activate AuthorityPersonDto
+		AuthorityPersonDto -> BasePersonDto : toString
+		activate BasePersonDto
+			BasePersonDto -> BaseDto : toString
+			activate BaseDto
+				BaseDto --> BasePersonDto : String
+			deactivate BaseDto
+			BasePersonDto --> AuthorityPersonDto : String
+		deactivate BasePersonDto
+		AuthorityPersonDto --> AuthorityPersonsRestController : String
+	deactivate AuthorityPersonDto
+deactivate AuthorityPersonsRestController
+
+@enduml
+
+----

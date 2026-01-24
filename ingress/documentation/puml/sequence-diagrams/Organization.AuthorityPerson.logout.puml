@@ -1,0 +1,22 @@
+[plantuml,Organization.AuthorityPerson.logout.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonsRestController
+participant ObjectUtils
+participant AuthorityPersonFacade
+
+activate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> ObjectUtils : isEmpty
+	activate ObjectUtils
+		ObjectUtils --> AuthorityPersonsRestController : boolean
+	deactivate ObjectUtils
+	AuthorityPersonsRestController -> AuthorityPersonFacade : logout
+	activate AuthorityPersonFacade
+		AuthorityPersonFacade --> AuthorityPersonsRestController : void
+	deactivate AuthorityPersonFacade
+deactivate AuthorityPersonsRestController
+
+@enduml
+
+----

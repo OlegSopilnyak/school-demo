@@ -1,0 +1,26 @@
+[plantuml,Organization.AuthorityPerson.findById.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonsRestController
+participant AuthorityPersonFacade
+participant EndpointMapper
+
+activate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonFacade : findAuthorityPersonById
+	activate AuthorityPersonFacade
+		AuthorityPersonFacade --> AuthorityPersonsRestController : Optional
+	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> AuthorityPersonsRestController : resultToDto
+	activate AuthorityPersonsRestController
+		AuthorityPersonsRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> AuthorityPersonsRestController : AuthorityPersonDto
+		deactivate EndpointMapper
+		AuthorityPersonsRestController --> AuthorityPersonsRestController : AuthorityPersonDto
+	deactivate AuthorityPersonsRestController
+deactivate AuthorityPersonsRestController
+
+@enduml
+
+----

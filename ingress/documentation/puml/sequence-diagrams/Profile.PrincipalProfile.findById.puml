@@ -1,0 +1,31 @@
+[plantuml,Profile.PrincipalProfile.findById.puml.png,png]
+----
+@startuml
+
+participant PrincipalProfileRestController
+participant PrincipalProfileFacade
+participant PersonProfileFacade
+participant EndpointMapper
+
+activate PrincipalProfileRestController
+	PrincipalProfileRestController -> PrincipalProfileFacade : findPrincipalProfileById
+	activate PrincipalProfileFacade
+		PrincipalProfileFacade -> PersonProfileFacade : findById
+		activate PersonProfileFacade
+			PersonProfileFacade --> PrincipalProfileFacade : Optional
+		deactivate PersonProfileFacade
+		PrincipalProfileFacade --> PrincipalProfileRestController : Optional
+	deactivate PrincipalProfileFacade
+	PrincipalProfileRestController -> PrincipalProfileRestController : toDto
+	activate PrincipalProfileRestController
+		PrincipalProfileRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> PrincipalProfileRestController : PrincipalProfileDto
+		deactivate EndpointMapper
+		PrincipalProfileRestController --> PrincipalProfileRestController : PrincipalProfileDto
+	deactivate PrincipalProfileRestController
+deactivate PrincipalProfileRestController
+
+@enduml
+
+----

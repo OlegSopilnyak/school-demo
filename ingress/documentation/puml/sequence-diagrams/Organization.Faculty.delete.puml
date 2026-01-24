@@ -1,0 +1,35 @@
+[plantuml,Organization.Faculty.delete.puml.png,png]
+----
+@startuml
+
+participant FacultiesRestController
+participant FacultyFacade
+participant OrganizationFacade
+participant BaseType
+
+activate FacultiesRestController
+	FacultiesRestController -> FacultyFacade : deleteFaculty
+	activate FacultyFacade
+		FacultyFacade -> OrganizationFacade : isInvalid
+		activate OrganizationFacade
+			OrganizationFacade -> BaseType : getId
+			activate BaseType
+				BaseType --> OrganizationFacade : Long
+			deactivate BaseType
+			OrganizationFacade --> FacultyFacade : boolean
+		deactivate OrganizationFacade
+		FacultyFacade -> BaseType : getId
+		activate BaseType
+			BaseType --> FacultyFacade : Long
+		deactivate BaseType
+		FacultyFacade -> FacultyFacade : deleteFacultyById
+		activate FacultyFacade
+			FacultyFacade --> FacultyFacade : void
+		deactivate FacultyFacade
+		FacultyFacade --> FacultiesRestController : void
+	deactivate FacultyFacade
+deactivate FacultiesRestController
+
+@enduml
+
+----

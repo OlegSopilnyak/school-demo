@@ -1,0 +1,21 @@
+[plantuml,Organization.StudentsGroup.delete.puml.png,png]
+----
+@startuml
+
+participant StudentsGroupsRestController
+participant StudentsGroupFacade
+
+activate StudentsGroupsRestController
+	StudentsGroupsRestController -> StudentsGroupsRestController : isInvalid
+	activate StudentsGroupsRestController
+		StudentsGroupsRestController --> StudentsGroupsRestController : boolean
+	deactivate StudentsGroupsRestController
+	StudentsGroupsRestController -> StudentsGroupFacade : deleteStudentsGroupById
+	activate StudentsGroupFacade
+		StudentsGroupFacade --> StudentsGroupsRestController : void
+	deactivate StudentsGroupFacade
+deactivate StudentsGroupsRestController
+
+@enduml
+
+----

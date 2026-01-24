@@ -1,0 +1,31 @@
+[plantuml,Organization.StudentsGroup.create.puml.png,png]
+----
+@startuml
+
+participant StudentsGroupsRestController
+participant BaseDto
+participant StudentsGroupFacade
+participant EndpointMapper
+
+activate StudentsGroupsRestController
+	StudentsGroupsRestController -> BaseDto : setId
+	activate BaseDto
+		BaseDto --> StudentsGroupsRestController : void
+	deactivate BaseDto
+	StudentsGroupsRestController -> StudentsGroupFacade : createOrUpdateStudentsGroup
+	activate StudentsGroupFacade
+		StudentsGroupFacade --> StudentsGroupsRestController : Optional
+	deactivate StudentsGroupFacade
+	StudentsGroupsRestController -> StudentsGroupsRestController : resultToDto
+	activate StudentsGroupsRestController
+		StudentsGroupsRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> StudentsGroupsRestController : StudentsGroupDto
+		deactivate EndpointMapper
+		StudentsGroupsRestController --> StudentsGroupsRestController : StudentsGroupDto
+	deactivate StudentsGroupsRestController
+deactivate StudentsGroupsRestController
+
+@enduml
+
+----

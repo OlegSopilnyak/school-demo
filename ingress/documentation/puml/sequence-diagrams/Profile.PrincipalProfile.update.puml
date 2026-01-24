@@ -1,0 +1,54 @@
+[plantuml,Profile.PrincipalProfile.update.puml.png,png]
+----
+@startuml
+
+participant PrincipalProfileRestController
+participant BaseDto
+participant PrincipalProfileFacade
+participant PersonProfileFacade
+participant EndpointMapper
+participant PrincipalProfileDto
+participant BaseProfileDto
+
+activate PrincipalProfileRestController
+	PrincipalProfileRestController -> BaseDto : getId
+	activate BaseDto
+		BaseDto --> PrincipalProfileRestController : Long
+	deactivate BaseDto
+	PrincipalProfileRestController -> PrincipalProfileRestController : isInvalid
+	activate PrincipalProfileRestController
+		PrincipalProfileRestController --> PrincipalProfileRestController : boolean
+	deactivate PrincipalProfileRestController
+	PrincipalProfileRestController -> PrincipalProfileFacade : createOrUpdateProfile
+	activate PrincipalProfileFacade
+		PrincipalProfileFacade -> PersonProfileFacade : createOrUpdate
+		activate PersonProfileFacade
+			PersonProfileFacade --> PrincipalProfileFacade : Optional
+		deactivate PersonProfileFacade
+		PrincipalProfileFacade --> PrincipalProfileRestController : Optional
+	deactivate PrincipalProfileFacade
+	PrincipalProfileRestController -> PrincipalProfileRestController : toDto
+	activate PrincipalProfileRestController
+		PrincipalProfileRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> PrincipalProfileRestController : PrincipalProfileDto
+		deactivate EndpointMapper
+		PrincipalProfileRestController --> PrincipalProfileRestController : PrincipalProfileDto
+	deactivate PrincipalProfileRestController
+	PrincipalProfileRestController -> PrincipalProfileDto : toString
+	activate PrincipalProfileDto
+		PrincipalProfileDto -> BaseProfileDto : toString
+		activate BaseProfileDto
+			BaseProfileDto -> BaseDto : toString
+			activate BaseDto
+				BaseDto --> BaseProfileDto : String
+			deactivate BaseDto
+			BaseProfileDto --> PrincipalProfileDto : String
+		deactivate BaseProfileDto
+		PrincipalProfileDto --> PrincipalProfileRestController : String
+	deactivate PrincipalProfileDto
+deactivate PrincipalProfileRestController
+
+@enduml
+
+----

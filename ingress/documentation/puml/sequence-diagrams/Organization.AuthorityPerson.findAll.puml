@@ -1,0 +1,21 @@
+[plantuml,Organization.AuthorityPerson.findAll.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonsRestController
+participant AuthorityPersonFacade
+
+activate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonFacade : findAllAuthorityPersons
+	activate AuthorityPersonFacade
+		AuthorityPersonFacade --> AuthorityPersonsRestController : Collection
+	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> AuthorityPersonsRestController : resultToDto
+	activate AuthorityPersonsRestController
+		AuthorityPersonsRestController --> AuthorityPersonsRestController : List
+	deactivate AuthorityPersonsRestController
+deactivate AuthorityPersonsRestController
+
+@enduml
+
+----

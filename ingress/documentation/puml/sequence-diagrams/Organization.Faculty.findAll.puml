@@ -1,0 +1,21 @@
+[plantuml,Organization.Faculty.findAll.puml.png,png]
+----
+@startuml
+
+participant FacultiesRestController
+participant FacultyFacade
+
+activate FacultiesRestController
+	FacultiesRestController -> FacultyFacade : findAllFaculties
+	activate FacultyFacade
+		FacultyFacade --> FacultiesRestController : Collection
+	deactivate FacultyFacade
+	FacultiesRestController -> FacultiesRestController : resultToDto
+	activate FacultiesRestController
+		FacultiesRestController --> FacultiesRestController : List
+	deactivate FacultiesRestController
+deactivate FacultiesRestController
+
+@enduml
+
+----

@@ -1,0 +1,21 @@
+[plantuml,Organization.AuthorityPerson.deletePerson.puml.png,png]
+----
+@startuml
+
+participant AuthorityPersonsRestController
+participant AuthorityPersonFacade
+
+activate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonsRestController : isInvalid
+	activate AuthorityPersonsRestController
+		AuthorityPersonsRestController --> AuthorityPersonsRestController : boolean
+	deactivate AuthorityPersonsRestController
+	AuthorityPersonsRestController -> AuthorityPersonFacade : deleteAuthorityPersonById
+	activate AuthorityPersonFacade
+		AuthorityPersonFacade --> AuthorityPersonsRestController : void
+	deactivate AuthorityPersonFacade
+deactivate AuthorityPersonsRestController
+
+@enduml
+
+----

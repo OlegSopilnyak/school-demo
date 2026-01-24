@@ -1,0 +1,31 @@
+[plantuml,Organization.Faculty.create.puml.png,png]
+----
+@startuml
+
+participant FacultiesRestController
+participant BaseDto
+participant FacultyFacade
+participant EndpointMapper
+
+activate FacultiesRestController
+	FacultiesRestController -> BaseDto : setId
+	activate BaseDto
+		BaseDto --> FacultiesRestController : void
+	deactivate BaseDto
+	FacultiesRestController -> FacultyFacade : createOrUpdateFaculty
+	activate FacultyFacade
+		FacultyFacade --> FacultiesRestController : Optional
+	deactivate FacultyFacade
+	FacultiesRestController -> FacultiesRestController : resultToDto
+	activate FacultiesRestController
+		FacultiesRestController -> EndpointMapper : toDto
+		activate EndpointMapper
+			EndpointMapper --> FacultiesRestController : FacultyDto
+		deactivate EndpointMapper
+		FacultiesRestController --> FacultiesRestController : FacultyDto
+	deactivate FacultiesRestController
+deactivate FacultiesRestController
+
+@enduml
+
+----
