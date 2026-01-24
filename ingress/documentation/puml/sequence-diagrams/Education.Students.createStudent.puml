@@ -5,9 +5,6 @@
 participant StudentsRestController
 participant StudentsFacade
 participant EndpointMapper
-participant StudentDto
-participant BasePersonDto
-participant BaseDto
 
 activate StudentsRestController
 	StudentsRestController -> StudentsFacade : create
@@ -22,18 +19,6 @@ activate StudentsRestController
 		deactivate EndpointMapper
 		StudentsRestController --> StudentsRestController : StudentDto
 	deactivate StudentsRestController
-	StudentsRestController -> StudentDto : toString
-	activate StudentDto
-		StudentDto -> BasePersonDto : toString
-		activate BasePersonDto
-			BasePersonDto -> BaseDto : toString
-			activate BaseDto
-				BaseDto --> BasePersonDto : String
-			deactivate BaseDto
-			BasePersonDto --> StudentDto : String
-		deactivate BasePersonDto
-		StudentDto --> StudentsRestController : String
-	deactivate StudentDto
 deactivate StudentsRestController
 
 @enduml

@@ -341,7 +341,7 @@
                             <outputFilename>Education.Students.createStudent.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.endpoint.rest.education.StudentsRestController</startClass>
                             <startMethod>createStudent</startMethod>
-                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|StudentDto)</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
