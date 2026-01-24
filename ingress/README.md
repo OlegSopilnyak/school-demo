@@ -1,9 +1,9 @@
-# --  REST endpoints for the School Application
+# Ingress REST endpoints for the School Application
 
 ## Receives HTTP request and servers them 
 
-Received by REST controllers http requests pre-processing
-for further processing<br> and sending to **<ins>business-logic layer</ins>** through service facades.  
+Receives by REST controllers http requests pre-processing
+for further processing<br> delegating them to **<ins>business-logic layer</ins>** through one's facades.  
 
 ![Endpoint Layer General Diagram](diagrams/Endpoints%20Layer%20General%20Diagram.png "Endpoint Layer Diagram")
 ### General Request Processing
@@ -132,5 +132,5 @@ for further processing<br> and sending to **<ins>business-logic layer</ins>** th
   calls the`StudentProfileFacade#createOrUpdateProfile(profileDto))`<BR>
   returns updated **oleg.sopilnyak.test.endpoint.dto.StudentProfileDto**, input parameter `StudentProfileDto profileDto`
 
-### Module Data Model
-![Endpoint Layer General Diagram](diagrams/Model%20Classes%20Diagram.png "Endpoint Layer Diagram")
+For more details please go to the folder **documentation/html** and open
+[ModuleDescription.html](documentation/html/ModuleDescription.html)
