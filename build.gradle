@@ -1,4 +1,14 @@
+//For all project properties
 allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -9,7 +19,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-
     java {
         targetCompatibility = JavaVersion.VERSION_25
         sourceCompatibility = JavaVersion.VERSION_25
@@ -19,11 +28,11 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 
-    jar {
-        enabled = true
-    }
-
     test {
         useJUnitPlatform()
+    }
+
+    jar {
+        enabled = true
     }
 }
