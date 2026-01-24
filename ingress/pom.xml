@@ -708,6 +708,70 @@
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-action-context-advise-beforeCall-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Aspect.ActionContextAdvise.beforeCall.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.rest.aspect.ActionContextAdviseDelegate</startClass>
+                            <startMethod>beforeCall</startMethod>
+                            <classBlacklistRegexp>.*(Logger|Builder|.*Mock.*|ObjectUtils)</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-action-context-advise-afterCall-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Aspect.ActionContextAdvise.afterCall.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.rest.aspect.ActionContextAdviseDelegate</startClass>
+                            <startMethod>afterCall</startMethod>
+                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-ascpect-advise-controllerBeforeAdvise-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Aspect.MainAdvise.controllerBeforeAdvise.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.aspect.RestControllerAspect</startClass>
+                            <startMethod>controllerBeforeAdvise</startMethod>
+                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-ascpect-advise-controllerAfterAdvise-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Aspect.MainAdvise.controllerAfterAdvise.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.aspect.RestControllerAspect</startClass>
+                            <startMethod>controllerAfterAdvise</startMethod>
+                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
                 </executions>
                 <!--
                     plantuml-generator: creates a puml file in target/generated-docs folder

@@ -1,0 +1,29 @@
+[plantuml,Aspect.ActionContextAdvise.afterCall.puml.png,png]
+----
+@startuml
+
+participant ActionContextAdviseDelegate
+participant ActionContext
+
+activate ActionContextAdviseDelegate
+	ActionContextAdviseDelegate -> ActionContext : current
+	activate ActionContext
+		ActionContext --> ActionContextAdviseDelegate : ActionContext
+	deactivate ActionContext
+	ActionContextAdviseDelegate -> ActionContext : finish
+	activate ActionContext
+		ActionContext -> ActionContext : setLasts
+		activate ActionContext
+			ActionContext --> ActionContext : void
+		deactivate ActionContext
+		ActionContext --> ActionContextAdviseDelegate : void
+	deactivate ActionContext
+	ActionContextAdviseDelegate -> ActionContext : release
+	activate ActionContext
+		ActionContext --> ActionContextAdviseDelegate : void
+	deactivate ActionContext
+deactivate ActionContextAdviseDelegate
+
+@enduml
+
+----

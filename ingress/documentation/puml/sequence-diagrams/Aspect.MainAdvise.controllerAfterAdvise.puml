@@ -1,0 +1,30 @@
+[plantuml,Aspect.MainAdvise.controllerAfterAdvise.puml.png,png]
+----
+@startuml
+
+participant RestControllerAspect
+participant JoinPoint
+participant AdviseDelegate
+
+activate RestControllerAspect
+	RestControllerAspect -> RestControllerAspect : after
+	activate RestControllerAspect
+		RestControllerAspect -> JoinPoint : getSignature
+		activate JoinPoint
+			JoinPoint --> RestControllerAspect : Signature
+		deactivate JoinPoint
+		RestControllerAspect -> AdviseDelegate : afterCall
+		activate AdviseDelegate
+			AdviseDelegate --> RestControllerAspect : void
+		deactivate AdviseDelegate
+		RestControllerAspect -> JoinPoint : getSignature
+		activate JoinPoint
+			JoinPoint --> RestControllerAspect : Signature
+		deactivate JoinPoint
+		RestControllerAspect --> RestControllerAspect : void
+	deactivate RestControllerAspect
+deactivate RestControllerAspect
+
+@enduml
+
+----

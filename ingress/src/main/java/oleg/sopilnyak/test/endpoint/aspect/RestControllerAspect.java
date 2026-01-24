@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -39,7 +40,9 @@ public class RestControllerAspect {
      */
     @Before("controllerMethodCalls() && moduleRestCalls()")
     public void controllerBeforeAdvise(final JoinPoint jp) {
-        delegates.forEach(delegate -> before(delegate, jp));
+        for(final AdviseDelegate delegate : delegates) {
+            before(delegate, jp);
+        }
     }
 
     /**
@@ -52,17 +55,20 @@ public class RestControllerAspect {
      */
     @After("controllerMethodCalls() && moduleRestCalls()")
     public void controllerAfterAdvise(final JoinPoint jp) {
-        delegates.forEach(delegate -> after(delegate, jp));
+        for(final AdviseDelegate delegate : delegates) {
+            after(delegate, jp);
+        }
     }
 
     // private methods
     private static void before(final AdviseDelegate delegate, final JoinPoint jp) {
-        log.debug("Calling before {} for '{}'", delegate, jp.getSignature());
+        final Signature signature = jp.getSignature();
+        log.debug("Calling before {} for '{}'", delegate, signature);
         try {
             delegate.beforeCall(jp);
             log.info("before for delegate '{}' called...", delegate);
         } catch (Throwable e) {
-            log.error("Cannot execute before for '{}'", jp.getSignature(), e);
+            log.error("Cannot execute before for '{}'", signature, e);
         }
     }
 

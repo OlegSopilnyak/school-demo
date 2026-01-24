@@ -1,0 +1,52 @@
+[plantuml,Aspect.ActionContextAdvise.beforeCall.puml.png,png]
+----
+@startuml
+
+participant ActionContextAdviseDelegate
+participant JoinPoint
+participant BusinessFacade
+participant Signature
+participant ActionContext
+
+activate ActionContextAdviseDelegate
+	ActionContextAdviseDelegate -> ActionContextAdviseDelegate : getRestControllerInstance
+	activate ActionContextAdviseDelegate
+		ActionContextAdviseDelegate -> JoinPoint : getTarget
+		activate JoinPoint
+			JoinPoint --> ActionContextAdviseDelegate : Object
+		deactivate JoinPoint
+		ActionContextAdviseDelegate --> ActionContextAdviseDelegate : Object
+	deactivate ActionContextAdviseDelegate
+	ActionContextAdviseDelegate -> JoinPoint : getSignature
+	activate JoinPoint
+		JoinPoint --> ActionContextAdviseDelegate : Signature
+	deactivate JoinPoint
+	ActionContextAdviseDelegate -> ActionContextAdviseDelegate : retrieveFacadeFrom
+	activate ActionContextAdviseDelegate
+		ActionContextAdviseDelegate -> ActionContextAdviseDelegate : toFacade
+		activate ActionContextAdviseDelegate
+			ActionContextAdviseDelegate --> ActionContextAdviseDelegate : BusinessFacade
+		deactivate ActionContextAdviseDelegate
+		ActionContextAdviseDelegate --> ActionContextAdviseDelegate : BusinessFacade
+	deactivate ActionContextAdviseDelegate
+	ActionContextAdviseDelegate -> BusinessFacade : getName
+	activate BusinessFacade
+		BusinessFacade --> ActionContextAdviseDelegate : String
+	deactivate BusinessFacade
+	ActionContextAdviseDelegate -> Signature : getName
+	activate Signature
+		Signature --> ActionContextAdviseDelegate : String
+	deactivate Signature
+	ActionContextAdviseDelegate -> ActionContext : setup
+	activate ActionContext
+		ActionContext -> ActionContext : builder
+		activate ActionContext
+			ActionContext --> ActionContext : ActionContext$ActionContextBuilder
+		deactivate ActionContext
+		ActionContext --> ActionContextAdviseDelegate : ActionContext
+	deactivate ActionContext
+deactivate ActionContextAdviseDelegate
+
+@enduml
+
+----

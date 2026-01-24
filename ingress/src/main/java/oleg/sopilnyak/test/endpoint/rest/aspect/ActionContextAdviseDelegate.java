@@ -15,6 +15,7 @@ import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.Signature;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,8 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
         // getting controller instance from the joint point
         if ((controller = getRestControllerInstance(joinPoint)) == null) return;
 
-        log.debug("before call for {}", joinPoint.getSignature());
+        final Signature signature = joinPoint.getSignature();
+        log.debug("before call for {}", signature);
         try {
             // getting facade from the controller
             final BusinessFacade facade = retrieveFacadeFrom(controller);
@@ -54,7 +56,7 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
             } else {
                 log.debug("BusinessFacade found: {}", facade);
                 // setting up current ActionContext with facade name and action name
-                ActionContext.setup(facade.getName(), joinPoint.getSignature().getName());
+                ActionContext.setup(facade.getName(), signature.getName());
             }
         } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
             log.error("Error while trying to get facade from {}", controller, e);
@@ -82,20 +84,20 @@ public class ActionContextAdviseDelegate implements AdviseDelegate {
 
     // private methods
     private static Object getRestControllerInstance(final JoinPoint joinPoint) {
-        if (MockUtil.isSpy(joinPoint.getTarget())) {
+        final Object target = joinPoint.getTarget();
+        if (MockUtil.isSpy(target)) {
             log.warn("Target controller is spy.");
             // if target is spy, we can retrieve genuine instance from it
             // this is useful for Mockito spy, which is not a mock, but a real object
-            return Mockito.mockingDetails(joinPoint.getTarget()).getMockCreationSettings().getSpiedInstance();
-        } else if (MockUtil.isMock(joinPoint.getTarget())) {
+            return Mockito.mockingDetails(target).getMockCreationSettings().getSpiedInstance();
+        } else if (MockUtil.isMock(target)) {
             log.warn("Target controller is mock.");
             // if target is mock, we cannot retrieve genuine instance from it
             return null;
         } else {
-            final var realRestControllerInstance = joinPoint.getTarget();
-            log.debug("Returning genuine target controller instance: {}", realRestControllerInstance);
+            log.debug("Returning genuine target controller instance: {}", target);
             // this is real controller instance, not mock or spy
-            return realRestControllerInstance;
+            return target;
         }
     }
 
