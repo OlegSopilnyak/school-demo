@@ -1,9 +1,9 @@
-include 'common'
+include 'micro-core'
 include 'ingress'
 include 'business-logic'
 include 'persistence'
 
-project(':common').projectDir = "$rootDir/../common" as File
+project(':micro-core').projectDir = "$rootDir/../micro-core" as File
 project(':ingress').projectDir = "$rootDir/../ingress" as File
 project(':persistence').projectDir = "$rootDir/../persistence" as File
 project(':business-logic').projectDir = "$rootDir/../business-logic" as File
