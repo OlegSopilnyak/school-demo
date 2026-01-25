@@ -6,8 +6,6 @@ participant AuthorityPersonsRestController
 participant BaseDto
 participant AuthorityPersonFacade
 participant EndpointMapper
-participant AuthorityPersonDto
-participant BasePersonDto
 
 activate AuthorityPersonsRestController
 	AuthorityPersonsRestController -> BaseDto : getId
@@ -30,18 +28,6 @@ activate AuthorityPersonsRestController
 		deactivate EndpointMapper
 		AuthorityPersonsRestController --> AuthorityPersonsRestController : AuthorityPersonDto
 	deactivate AuthorityPersonsRestController
-	AuthorityPersonsRestController -> AuthorityPersonDto : toString
-	activate AuthorityPersonDto
-		AuthorityPersonDto -> BasePersonDto : toString
-		activate BasePersonDto
-			BasePersonDto -> BaseDto : toString
-			activate BaseDto
-				BaseDto --> BasePersonDto : String
-			deactivate BaseDto
-			BasePersonDto --> AuthorityPersonDto : String
-		deactivate BasePersonDto
-		AuthorityPersonDto --> AuthorityPersonsRestController : String
-	deactivate AuthorityPersonDto
 deactivate AuthorityPersonsRestController
 
 @enduml

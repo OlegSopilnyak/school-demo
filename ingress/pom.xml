@@ -453,7 +453,7 @@
                             <outputFilename>Organization.AuthorityPerson.createPerson.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.endpoint.rest.organization.AuthorityPersonsRestController</startClass>
                             <startMethod>createPerson</startMethod>
-                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|AuthorityPersonDto)</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
@@ -469,7 +469,7 @@
                             <outputFilename>Organization.AuthorityPerson.updatePerson.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.endpoint.rest.organization.AuthorityPersonsRestController</startClass>
                             <startMethod>updatePerson</startMethod>
-                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|AuthorityPersonDto)</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

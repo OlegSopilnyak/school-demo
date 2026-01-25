@@ -50,7 +50,7 @@ include::../puml/sequence-diagrams/Aspect.ActionContextAdvise.afterCall.puml[]
 '''
 ====
 
-=== Education Controller Sequences
+=== Education Controllers Sequences
 
 .School Students and Courses
 [%collapsible]
@@ -131,9 +131,96 @@ include::../puml/sequence-diagrams/Education.Students.updateStudent.puml[]
 include::../puml/sequence-diagrams/Education.Students.deleteStudent.puml[]
 ====
 
-=== School Staff Controller Sequences
+=== School Organization and Staff Controllers Sequences
 
-.School Organization
+.Organization and Staff
 [%collapsible]
 ====
+
+* Faculty Find by Id
+
+.Faculty Find by Id Sequence
+include::../puml/sequence-diagrams/Organization.Faculty.findById.puml[]
+
+* Faculty Find All
+
+.Faculty Find All Sequence
+include::../puml/sequence-diagrams/Organization.Faculty.findAll.puml[]
+
+* Faculty Create New
+
+.Faculty Create New Sequence
+include::../puml/sequence-diagrams/Organization.Faculty.create.puml[]
+
+* Faculty Update Exists
+
+.Faculty Update Exists Sequence
+include::../puml/sequence-diagrams/Organization.Faculty.update.puml[]
+
+* Faculty Delete Exists
+
+.Faculty Delete Exists Sequence
+include::../puml/sequence-diagrams/Organization.Faculty.delete.puml[]
+'''
+
+* Students Group Find by Id
+
+.Students Group Find by Id Sequence
+include::../puml/sequence-diagrams/Organization.StudentsGroup.findById.puml[]
+
+* Students Group Find All
+
+.Students Group Find All Sequence
+include::../puml/sequence-diagrams/Organization.StudentsGroup.findAll.puml[]
+
+* Students Group Create New
+
+.Students Group Create New Sequence
+include::../puml/sequence-diagrams/Organization.StudentsGroup.create.puml[]
+
+* Students Group Update Exists
+
+.Students Group Update Exists Sequence
+include::../puml/sequence-diagrams/Organization.StudentsGroup.update.puml[]
+
+* Students Group Delete Exists
+
+.Students Group Delete Exists Sequence
+include::../puml/sequence-diagrams/Organization.StudentsGroup.delete.puml[]
+'''
+
+* Authority Person (Principal) Log In
+
+.Authority Person (Principal) Log In Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.login.puml[]
+
+* Authority Person (Principal) Log Out
+
+.Authority Person (Principal) Log Out Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.logout.puml[]
+
+* Authority Person (Principal) Find by Id
+
+.Authority Person (Principal) Find by Id Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.findById.puml[]
+
+* Authority Person (Principal) Find All
+
+.Authority Person (Principal) Find All Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.findAll.puml[]
+
+* Authority Person (Principal) Create New
+
+.Authority Person (Principal) Create New Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.createPerson.puml[]
+
+* Authority Person (Principal) Update Exists
+
+.Authority Person (Principal) Update Exists Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.updatePerson.puml[]
+
+* Authority Person (Principal) Delete Exists
+
+.Authority Person (Principal) Delete Exists Sequence
+include::../puml/sequence-diagrams/Organization.AuthorityPerson.deletePerson.puml[]
 ====
