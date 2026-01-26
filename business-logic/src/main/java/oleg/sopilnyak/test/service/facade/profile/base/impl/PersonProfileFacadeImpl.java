@@ -48,6 +48,30 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     protected abstract String deleteByIdCommandId();
 
     /**
+     * Facade depended, action's execution
+     *
+     * @param actionId         the id of the action
+     * @param actionParameters the parameters of action to execute
+     * @return action execution result value
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T concreteAction(final String actionId, final Object... actionParameters) {
+        if (actionId.equals(findByIdCommandId())) {
+            final Long id = (Long) actionParameters[0];
+            return (T) findById(id);
+        } else if (actionId.equals(createOrUpdateCommandId())) {
+            final PersonProfile profile = (PersonProfile) actionParameters[0];
+            return (T) createOrUpdate(profile);
+        } else if (actionId.equals(deleteByIdCommandId())) {
+            final Long id = (Long) actionParameters[0];
+            deleteById(id);
+            return null;
+        }
+        throw new IllegalArgumentException("Unknown actionId: " + actionId);
+    }
+
+    /**
      * To get the person's profile by ID
      *
      * @param id system-id of the profile

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.school.common.business.facade.profile.base;
 
+import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
@@ -8,8 +9,55 @@ import java.util.Optional;
 
 /**
  * Service-BaseFacade: Service for manage person profiles in the school
+ *
+ * @see BusinessFacade
  */
-public interface PersonProfileFacade {
+public interface PersonProfileFacade extends BusinessFacade {
+    /**
+     * Action ID of find person by id
+     *
+     * @return action-id value
+     */
+    String findByIdActionId();
+
+    /**
+     * Action ID of create or update person by person instance
+     *
+     * @return created or updated person instance value
+     */
+    String createOrUpdateActionId();
+
+    /**
+     * Action ID of delete person by id
+     *
+     * @return action-id value
+     */
+    String deleteByIdActionId();
+
+    /**
+     * Facade depended, action's execution
+     *
+     * @param actionId         the id of the action
+     * @param actionParameters the parameters of action to execute
+     * @param <T>              type of action execution result
+     * @return action execution result value
+     */
+    @SuppressWarnings("unchecked")
+    default <T> T concreteAction(String actionId, Object... actionParameters) {
+        if (actionId.equals(findByIdActionId())) {
+            final Long id = (Long) actionParameters[0];
+            return (T) findById(id);
+        } else if (actionId.equals(createOrUpdateActionId())) {
+            final PersonProfile profile = (PersonProfile) actionParameters[0];
+            return (T) createOrUpdate(profile);
+        } else if (actionId.equals(deleteByIdActionId())) {
+            final Long id = (Long) actionParameters[0];
+            deleteById(id);
+            return null;
+        }
+        throw new IllegalArgumentException("Unknown actionId: " + actionId);
+    }
+
     /**
      * To get the person's profile by ID
      *
