@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
-import oleg.sopilnyak.test.school.common.exception.EntityUnableProcessException;
+import oleg.sopilnyak.test.school.common.exception.UnableProcessEntityException;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.core.GeneralCannotDeleteException;
@@ -41,9 +41,9 @@ public class RestResponseEntityExceptionHandler {
         return errorMessageFor(HttpStatus.NOT_FOUND, ex, req);
     }
 
-    @ExceptionHandler(value = {EntityUnableProcessException.class})
+    @ExceptionHandler(value = {UnableProcessEntityException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ActionErrorMessage onException(EntityUnableProcessException ex, WebRequest req) {
+    public ActionErrorMessage onException(UnableProcessEntityException ex, WebRequest req) {
         log.error("Entity unable processed", ex);
         return errorMessageFor(HttpStatus.CONFLICT, ex, req);
     }
@@ -66,7 +66,7 @@ public class RestResponseEntityExceptionHandler {
         return switch (exception.getCause()) {
             case SchoolAccessDeniedException noAccessException -> onException(noAccessException, request);
             case EntityNotFoundException notFoundException -> onException(notFoundException, request);
-            case EntityUnableProcessException processException -> onException(processException, request);
+            case UnableProcessEntityException processException -> onException(processException, request);
             case null, default -> unknownException(exception.getCause(), request);
         };
     }

@@ -1,0 +1,107 @@
+[plantuml,Exceptions.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+class AuthorityPersonManagesFacultyException {
+}
+
+
+class AuthorityPersonNotFoundException {
+}
+
+
+class CannotProcessActionException {
+	{field} {static} -MESSAGE_TEMPLATE : String
+	{field} {static} -MESSAGE_TEMPLATE_PREFIX : String
+}
+
+
+class CourseHasNoRoomException {
+}
+
+
+class CourseNotFoundException {
+}
+
+
+class CourseWithStudentsException {
+}
+
+
+abstract class EntityNotFoundException {
+}
+
+
+class FacultyIsNotEmptyException {
+}
+
+
+class FacultyNotFoundException {
+}
+
+
+class GeneralCannotDeleteException {
+}
+
+
+class InvalidParameterTypeException {
+	{field} {static} -MESSAGE_TEMPLATE : String
+}
+
+
+class ProfileNotFoundException {
+}
+
+
+class SchoolAccessDeniedException {
+}
+
+
+class StudentCoursesExceedException {
+}
+
+
+class StudentGroupWithStudentsException {
+}
+
+
+class StudentNotFoundException {
+}
+
+
+class StudentWithCoursesException {
+}
+
+
+class StudentsGroupNotFoundException {
+}
+
+
+abstract class UnableProcessEntityException {
+}
+
+
+
+
+AuthorityPersonManagesFacultyException --|>  GeneralCannotDeleteException
+AuthorityPersonNotFoundException --|>  EntityNotFoundException
+CourseHasNoRoomException --|>  UnableProcessEntityException
+CourseNotFoundException --|>  EntityNotFoundException
+CourseWithStudentsException --|>  GeneralCannotDeleteException
+FacultyIsNotEmptyException --|>  GeneralCannotDeleteException
+FacultyNotFoundException --|>  EntityNotFoundException
+GeneralCannotDeleteException --|>  UnableProcessEntityException
+ProfileNotFoundException --|>  EntityNotFoundException
+StudentCoursesExceedException --|>  UnableProcessEntityException
+StudentGroupWithStudentsException --|>  GeneralCannotDeleteException
+StudentNotFoundException --|>  EntityNotFoundException
+StudentWithCoursesException --|>  GeneralCannotDeleteException
+StudentsGroupNotFoundException --|>  EntityNotFoundException
+
+
+@enduml
+----

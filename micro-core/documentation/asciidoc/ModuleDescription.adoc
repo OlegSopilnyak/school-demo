@@ -34,6 +34,19 @@ include::../puml/sequence-diagrams/Student.getFullName.puml[]
 ====
 
 '''
+=== Exceptions
+
+Common Used Exceptions
+
+.Common used Exceptions
+[%collapsible]
+====
+
+.Core Exceptions
+include::../puml/class-diagrams/Exceptions.puml[]
+====
+'''
+
 === Business Logic Skeleton
 
 Set of interfaces used to implement business-logic functionality of the application.

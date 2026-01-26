@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.school.common.exception.core;
 
-import oleg.sopilnyak.test.school.common.exception.EntityUnableProcessException;
+import oleg.sopilnyak.test.school.common.exception.UnableProcessEntityException;
 
 /**
  * Exception: throws when system cannot delete entity
  */
-public class GeneralCannotDeleteException extends EntityUnableProcessException {
+public class GeneralCannotDeleteException extends UnableProcessEntityException {
     public GeneralCannotDeleteException(String message) {
         super(message);
     }

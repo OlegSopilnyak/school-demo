@@ -111,8 +111,6 @@
                             </scanPackages>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
-                            <additionalPlantUmlConfigs>
-                            </additionalPlantUmlConfigs>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
@@ -153,6 +151,28 @@
                             <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-exceptions-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>Exceptions.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.school.common.exception</scanPackage>
+                            </scanPackages>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+<!--                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>-->
+                            </additionalPlantUmlConfigs>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
