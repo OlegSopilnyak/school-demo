@@ -17,6 +17,7 @@ interface AuthorityPersonFacade {
 
 
 interface BusinessFacade {
+	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
 	{method}  {abstract} +getName () : String
 }
 
@@ -53,22 +54,42 @@ interface OrganizationFacade {
 
 
 interface PersonProfileFacade {
+	{method} +concreteAction ( actionId : String , actionParameters : Object[] ) : Object
 	{method}  {abstract} +createOrUpdate ( profile : PersonProfile ) : Optional
+	{method}  {abstract} +createOrUpdateActionId () : String
 	{method} +delete ( profile : PersonProfile ) : void
 	{method}  {abstract} +deleteById ( id : Long ) : void
+	{method}  {abstract} +deleteByIdActionId () : String
 	{method}  {abstract} +findById ( id : Long ) : Optional
+	{method}  {abstract} +findByIdActionId () : String
 }
 
 
 interface PrincipalProfileFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE_BY_ID : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +PREFIX : String
+	{method} +createOrUpdateActionId () : String
 	{method} +createOrUpdateProfile ( input : PrincipalProfile ) : Optional
+	{method} +deleteByIdActionId () : String
+	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
+	{method} +findByIdActionId () : String
 	{method} +findPrincipalProfileById ( id : Long ) : Optional
 	{method} +getName () : String
 }
 
 
 interface StudentProfileFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE_BY_ID : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +PREFIX : String
+	{method} +createOrUpdateActionId () : String
 	{method} +createOrUpdateProfile ( input : StudentProfile ) : Optional
+	{method} +deleteByIdActionId () : String
+	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
+	{method} +findByIdActionId () : String
 	{method} +findStudentProfileById ( id : Long ) : Optional
 	{method} +getName () : String
 }
@@ -104,6 +125,7 @@ AuthorityPersonFacade ..|>  OrganizationFacade
 CoursesFacade ..|>  BusinessFacade
 FacultyFacade ..|>  BusinessFacade
 FacultyFacade ..|>  OrganizationFacade
+PersonProfileFacade ..|>  BusinessFacade
 PrincipalProfileFacade ..|>  BusinessFacade
 PrincipalProfileFacade ..|>  PersonProfileFacade
 StudentProfileFacade ..|>  BusinessFacade

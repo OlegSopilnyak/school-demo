@@ -25,9 +25,20 @@ include::../puml/class-diagrams/ModuleDataModel.puml[]
 ====
 
 '''
+=== Action Exceptions Handling
+
+.Action's Errors Handler
+[%collapsible]
+====
+
+.Module Data Model
+include::../puml/class-diagrams/ErrorHandling.puml[]
+====
+
+'''
 === Controllers Aspect Advises
 
-Aspects applied for each HTTP request
+Aspects applied for each Controller Request
 
 .Advises
 [%collapsible]
@@ -47,8 +58,24 @@ include::../puml/sequence-diagrams/Aspect.ActionContextAdvise.beforeCall.puml[]
 
 .Action Context After Controller Advice Sequence
 include::../puml/sequence-diagrams/Aspect.ActionContextAdvise.afterCall.puml[]
-'''
 ====
+'''
+
+=== Controllers Errors Handling
+.Controller Exception Handling
+[%collapsible]
+====
+* Handle Known Controller Exception
+
+.Known Controller Exception Handler Sequence
+include::../puml/sequence-diagrams/KnownExceptionHandling.puml[]
+
+* Handle Unknown Controller Exception
+
+.Unknown Controller Exception Handler Sequence
+include::../puml/sequence-diagrams/UnKnownExceptionHandling.puml[]
+====
+'''
 
 === Education Controllers Sequences
 
@@ -130,6 +157,7 @@ include::../puml/sequence-diagrams/Education.Students.updateStudent.puml[]
 .Delete Exists Student Sequence
 include::../puml/sequence-diagrams/Education.Students.deleteStudent.puml[]
 ====
+'''
 
 === School Organization and Staff Controllers Sequences
 
@@ -224,3 +252,4 @@ include::../puml/sequence-diagrams/Organization.AuthorityPerson.updatePerson.pum
 .Authority Person (Principal) Delete Exists Sequence
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.deletePerson.puml[]
 ====
+'''

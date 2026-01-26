@@ -1,0 +1,40 @@
+[plantuml,ErrorHandling.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+class ActionErrorMessage {
+	{field} +errorCode : int
+	{field} +errorMessage : String
+	{field} +errorUrl : String
+	{method}  {static} +builder () : ActionErrorMessageBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class RestResponseEntityExceptionHandler {
+	{field} {static} -log : Logger
+	{method}  {static} -errorMessageFor ( status : HttpStatus , ex : Throwable , req : WebRequest ) : ActionErrorMessage
+	{method} +onException ( exception : CannotProcessActionException , request : WebRequest ) : ResponseEntity
+	{method} +onException ( exception : EntityNotFoundException , req : WebRequest ) : ActionErrorMessage
+	{method} +onException ( exception : GeneralCannotDeleteException , request : WebRequest ) : ResponseEntity
+	{method} +onException ( exception : SchoolAccessDeniedException , req : WebRequest ) : ActionErrorMessage
+	{method} +onException ( exception : UnableProcessEntityException , req : WebRequest ) : ActionErrorMessage
+	{method} -prepareResponseFor ( exception : RuntimeException , request : WebRequest ) : ActionErrorMessage
+	{method} +unknownException ( exception : Throwable , req : WebRequest ) : ActionErrorMessage
+}
+
+
+
+
+
+hide fields
+
+@enduml
+----

@@ -171,7 +171,6 @@
                             <useShortClassNames>true</useShortClassNames>
                             <additionalPlantUmlConfigs>
                                 <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
-<!--                                <additionalPlantUmlConfig>scale 2/3</additionalPlantUmlConfig>-->
                             </additionalPlantUmlConfigs>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>

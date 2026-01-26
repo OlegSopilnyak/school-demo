@@ -29,23 +29,23 @@ public class RestResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {SchoolAccessDeniedException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ActionErrorMessage onException(SchoolAccessDeniedException ex, WebRequest req) {
-        log.error("Access denied", ex);
-        return errorMessageFor(HttpStatus.FORBIDDEN, ex, req);
+    public ActionErrorMessage onException(SchoolAccessDeniedException exception, WebRequest req) {
+        log.error("Access denied", exception);
+        return errorMessageFor(HttpStatus.FORBIDDEN, exception, req);
     }
 
     @ExceptionHandler(value = {EntityNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ActionErrorMessage onException(EntityNotFoundException ex, WebRequest req) {
-        log.error("Entity not found", ex);
-        return errorMessageFor(HttpStatus.NOT_FOUND, ex, req);
+    public ActionErrorMessage onException(EntityNotFoundException exception, WebRequest req) {
+        log.error("Entity not found", exception);
+        return errorMessageFor(HttpStatus.NOT_FOUND, exception, req);
     }
 
     @ExceptionHandler(value = {UnableProcessEntityException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ActionErrorMessage onException(UnableProcessEntityException ex, WebRequest req) {
-        log.error("Entity unable processed", ex);
-        return errorMessageFor(HttpStatus.CONFLICT, ex, req);
+    public ActionErrorMessage onException(UnableProcessEntityException exception, WebRequest req) {
+        log.error("Entity unable processed", exception);
+        return errorMessageFor(HttpStatus.CONFLICT, exception, req);
     }
 
     @ExceptionHandler(value = {GeneralCannotDeleteException.class})
@@ -57,8 +57,8 @@ public class RestResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {RuntimeException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ActionErrorMessage unknownException(Throwable ex, WebRequest req) {
-        return errorMessageFor(HttpStatus.INTERNAL_SERVER_ERROR, ex, req);
+    public ActionErrorMessage unknownException(Throwable exception, WebRequest req) {
+        return errorMessageFor(HttpStatus.INTERNAL_SERVER_ERROR, exception, req);
     }
 
     // private methods

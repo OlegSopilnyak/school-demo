@@ -1,0 +1,107 @@
+[plantuml,KnownExceptionHandling.puml.png,png]
+----
+@startuml
+
+participant RestResponseEntityExceptionHandler
+participant ActionErrorMessage
+participant HttpStatus
+participant WebRequest
+
+activate RestResponseEntityExceptionHandler
+	RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : prepareResponseFor
+	activate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : onException
+		activate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : errorMessageFor
+			activate RestResponseEntityExceptionHandler
+				RestResponseEntityExceptionHandler -> ActionErrorMessage : builder
+				activate ActionErrorMessage
+					ActionErrorMessage --> RestResponseEntityExceptionHandler : ActionErrorMessage$ActionErrorMessageBuilder
+				deactivate ActionErrorMessage
+				RestResponseEntityExceptionHandler -> HttpStatus : value
+				activate HttpStatus
+					HttpStatus --> RestResponseEntityExceptionHandler : int
+				deactivate HttpStatus
+				RestResponseEntityExceptionHandler -> WebRequest : getDescription
+				activate WebRequest
+					WebRequest --> RestResponseEntityExceptionHandler : String
+				deactivate WebRequest
+				RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+			deactivate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+		deactivate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : onException
+		activate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : errorMessageFor
+			activate RestResponseEntityExceptionHandler
+				RestResponseEntityExceptionHandler -> ActionErrorMessage : builder
+				activate ActionErrorMessage
+					ActionErrorMessage --> RestResponseEntityExceptionHandler : ActionErrorMessage$ActionErrorMessageBuilder
+				deactivate ActionErrorMessage
+				RestResponseEntityExceptionHandler -> HttpStatus : value
+				activate HttpStatus
+					HttpStatus --> RestResponseEntityExceptionHandler : int
+				deactivate HttpStatus
+				RestResponseEntityExceptionHandler -> WebRequest : getDescription
+				activate WebRequest
+					WebRequest --> RestResponseEntityExceptionHandler : String
+				deactivate WebRequest
+				RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+			deactivate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+		deactivate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : onException
+		activate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : errorMessageFor
+			activate RestResponseEntityExceptionHandler
+				RestResponseEntityExceptionHandler -> ActionErrorMessage : builder
+				activate ActionErrorMessage
+					ActionErrorMessage --> RestResponseEntityExceptionHandler : ActionErrorMessage$ActionErrorMessageBuilder
+				deactivate ActionErrorMessage
+				RestResponseEntityExceptionHandler -> HttpStatus : value
+				activate HttpStatus
+					HttpStatus --> RestResponseEntityExceptionHandler : int
+				deactivate HttpStatus
+				RestResponseEntityExceptionHandler -> WebRequest : getDescription
+				activate WebRequest
+					WebRequest --> RestResponseEntityExceptionHandler : String
+				deactivate WebRequest
+				RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+			deactivate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+		deactivate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : unknownException
+		activate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : errorMessageFor
+			activate RestResponseEntityExceptionHandler
+				RestResponseEntityExceptionHandler -> ActionErrorMessage : builder
+				activate ActionErrorMessage
+					ActionErrorMessage --> RestResponseEntityExceptionHandler : ActionErrorMessage$ActionErrorMessageBuilder
+				deactivate ActionErrorMessage
+				RestResponseEntityExceptionHandler -> HttpStatus : value
+				activate HttpStatus
+					HttpStatus --> RestResponseEntityExceptionHandler : int
+				deactivate HttpStatus
+				RestResponseEntityExceptionHandler -> WebRequest : getDescription
+				activate WebRequest
+					WebRequest --> RestResponseEntityExceptionHandler : String
+				deactivate WebRequest
+				RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+			deactivate RestResponseEntityExceptionHandler
+			RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+		deactivate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+	deactivate RestResponseEntityExceptionHandler
+	RestResponseEntityExceptionHandler -> HttpStatus : valueOf
+	activate HttpStatus
+		HttpStatus -> HttpStatus : resolve
+		activate HttpStatus
+			HttpStatus --> HttpStatus : HttpStatus
+		deactivate HttpStatus
+		HttpStatus --> RestResponseEntityExceptionHandler : HttpStatus
+	deactivate HttpStatus
+deactivate RestResponseEntityExceptionHandler
+
+@enduml
+
+----

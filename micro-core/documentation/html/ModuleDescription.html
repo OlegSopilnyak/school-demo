@@ -449,8 +449,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_module_parts">2. Module parts</a>
 <ul class="sectlevel2">
 <li><a href="#_common_data_model">2.1. Common Data Model</a></li>
-<li><a href="#_business_logic_skeleton">2.2. Business Logic Skeleton</a></li>
-<li><a href="#_persistence_skeleton">2.3. Persistence Skeleton</a></li>
+<li><a href="#_exceptions">2.2. Exceptions</a></li>
+<li><a href="#_business_logic_skeleton">2.3. Business Logic Skeleton</a></li>
+<li><a href="#_persistence_skeleton">2.4. Persistence Skeleton</a></li>
 </ul>
 </li>
 </ul>
@@ -508,7 +509,25 @@ Facades should be implemented in particular modules and joined together in main 
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_business_logic_skeleton">2.2. Business Logic Skeleton</h3>
+<h3 id="_exceptions">2.2. Exceptions</h3>
+<div class="paragraph">
+<p>Common Used Exceptions</p>
+</div>
+<details>
+<summary class="title">Common used Exceptions</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/Exceptions.puml.png.png" alt="Exceptions.puml" width="844" height="911">
+</div>
+<div class="title">Figure 4. Core Exceptions</div>
+</div>
+</div>
+</details>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_business_logic_skeleton">2.3. Business Logic Skeleton</h3>
 <div class="paragraph">
 <p>Set of interfaces used to implement business-logic functionality of the application.</p>
 </div>
@@ -524,9 +543,9 @@ Facades should be implemented in particular modules and joined together in main 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/BusinessLogicFacades.puml.png.png" alt="BusinessLogicFacades.puml" width="2871" height="415">
+<img src="./images/BusinessLogicFacades.puml.png.png" alt="BusinessLogicFacades.puml" width="2633" height="579">
 </div>
-<div class="title">Figure 4. Business Logic Facades by Entity Types</div>
+<div class="title">Figure 5. Business Logic Facades by Entity Types</div>
 </div>
 <hr>
 <div class="ulist">
@@ -540,7 +559,7 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/AuthorityPersonFacade.deleteAuthorityPerson.puml.png.png" alt="AuthorityPersonFacade.deleteAuthorityPerson.puml" width="435" height="362">
 </div>
-<div class="title">Figure 5. AuthorityPersonFacade.deleteAuthorityPerson(&#8230;&#8203;) [Delete Authority Person Entity]</div>
+<div class="title">Figure 6. AuthorityPersonFacade.deleteAuthorityPerson(&#8230;&#8203;) [Delete Authority Person Entity]</div>
 </div>
 <hr>
 <div class="ulist">
@@ -554,7 +573,7 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/PersonProfileFacade.delete.puml.png.png" alt="PersonProfileFacade.delete.puml" width="430" height="448">
 </div>
-<div class="title">Figure 6. PersonProfileFacade.delete(&#8230;&#8203;) [Delete Common Person Entity]</div>
+<div class="title">Figure 7. PersonProfileFacade.delete(&#8230;&#8203;) [Delete Common Person Entity]</div>
 </div>
 <hr>
 <div class="ulist">
@@ -568,7 +587,7 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/FacultyFacade.deleteFaculty.puml.png.png" alt="FacultyFacade.deleteFaculty.puml" width="357" height="362">
 </div>
-<div class="title">Figure 7. FacultyFacade.deleteFaculty(&#8230;&#8203;) [Delete Faculty Entity]</div>
+<div class="title">Figure 8. FacultyFacade.deleteFaculty(&#8230;&#8203;) [Delete Faculty Entity]</div>
 </div>
 <hr>
 <div class="ulist">
@@ -582,14 +601,14 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/StudentsGroupFacade.deleteStudentsGroup.puml.png.png" alt="StudentsGroupFacade.deleteStudentsGroup.puml" width="427" height="362">
 </div>
-<div class="title">Figure 8. StudentsGroupFacade.deleteStudentsGroup(&#8230;&#8203;) [ Delete Students Group Entity]</div>
+<div class="title">Figure 9. StudentsGroupFacade.deleteStudentsGroup(&#8230;&#8203;) [ Delete Students Group Entity]</div>
 </div>
 </div>
 </details>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_persistence_skeleton">2.3. Persistence Skeleton</h3>
+<h3 id="_persistence_skeleton">2.4. Persistence Skeleton</h3>
 <div class="paragraph">
 <p>Set of interfaces used to implement persistence functionality of the application.</p>
 </div>
@@ -607,7 +626,7 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/PersistenceFacades.puml.png.png" alt="PersistenceFacades.puml" width="2216" height="527">
 </div>
-<div class="title">Figure 9. Persistence Facades by Entity Types</div>
+<div class="title">Figure 10. Persistence Facades by Entity Types</div>
 </div>
 <hr>
 <div class="ulist">
@@ -621,13 +640,13 @@ Facades should be implemented in particular modules and joined together in main 
 <div class="content">
 <img src="./images/AuthorityPersonPersistenceFacade.updateAccess.puml.png.png" alt="AuthorityPersonPersistenceFacade.updateAccess.puml" width="330" height="448">
 </div>
-<div class="title">Figure 10. AuthorityPersonPersistenceFacade.updateAccess(&#8230;&#8203;) [Authority Person Access Update Entity]</div>
+<div class="title">Figure 11. AuthorityPersonPersistenceFacade.updateAccess(&#8230;&#8203;) [Authority Person Access Update Entity]</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/SchoolAccess.makeSignatureFor.puml.png.png" alt="SchoolAccess.makeSignatureFor.puml" width="167" height="266">
 </div>
-<div class="title">Figure 11. SchoolAccess.makeSignatureFor(&#8230;&#8203;) [Authority Person Make Security Access Signature]</div>
+<div class="title">Figure 12. SchoolAccess.makeSignatureFor(&#8230;&#8203;) [Authority Person Make Security Access Signature]</div>
 </div>
 <hr>
 </div>
@@ -638,7 +657,7 @@ Facades should be implemented in particular modules and joined together in main 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-22 15:02:24 +0200
+Last updated 2026-01-26 10:39:42 +0200
 </div>
 </div>
 </body>

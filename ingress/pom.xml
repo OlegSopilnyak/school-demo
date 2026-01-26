@@ -151,9 +151,64 @@
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-error-handling-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>ErrorHandling.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.endpoint.rest.exceptions</scanPackage>
+                            </scanPackages>
+                            <blacklistRegexp>.*Builder.*</blacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                            <hideFields>true</hideFields>
+                            <maxVisibilityMethods>PRIVATE</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
                     <!--
                     UML Sequence Diagrams
                     -->
+                    <execution>
+                        <id>generate-known-error-handler-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>KnownExceptionHandling.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler</startClass>
+                            <startMethod>onException</startMethod>
+                            <classBlacklistRegexp>.*(Logger|Builder)</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-unknown-error-handler-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>UnKnownExceptionHandling.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler</startClass>
+                            <startMethod>unknownException</startMethod>
+                            <classBlacklistRegexp>.*(Logger|Builder)</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>generate-courses-controller-findCourse-diagram</id>
                         <goals>

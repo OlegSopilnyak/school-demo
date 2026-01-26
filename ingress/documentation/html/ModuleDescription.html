@@ -449,9 +449,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_module_parts">2. Module parts</a>
 <ul class="sectlevel2">
 <li><a href="#_the_data_model">2.1. The Data Model</a></li>
-<li><a href="#_controllers_aspect_advises">2.2. Controllers Aspect Advises</a></li>
-<li><a href="#_education_controllers_sequences">2.3. Education Controllers Sequences</a></li>
-<li><a href="#_school_organization_and_staff_controllers_sequences">2.4. School Organization and Staff Controllers Sequences</a></li>
+<li><a href="#_action_exceptions_handling">2.2. Action Exceptions Handling</a></li>
+<li><a href="#_controllers_aspect_advises">2.3. Controllers Aspect Advises</a></li>
+<li><a href="#_controllers_errors_handling">2.4. Controllers Errors Handling</a></li>
+<li><a href="#_education_controllers_sequences">2.5. Education Controllers Sequences</a></li>
+<li><a href="#_school_organization_and_staff_controllers_sequences">2.6. School Organization and Staff Controllers Sequences</a></li>
 </ul>
 </li>
 </ul>
@@ -487,9 +489,24 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_controllers_aspect_advises">2.2. Controllers Aspect Advises</h3>
+<h3 id="_action_exceptions_handling">2.2. Action Exceptions Handling</h3>
+<details>
+<summary class="title">Action&#8217;s Errors Handler</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/ErrorHandling.puml.png.png" alt="ErrorHandling.puml" width="665" height="345">
+</div>
+<div class="title">Figure 2. Module Data Model</div>
+</div>
+</div>
+</details>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_controllers_aspect_advises">2.3. Controllers Aspect Advises</h3>
 <div class="paragraph">
-<p>Aspects applied for each HTTP request</p>
+<p>Aspects applied for each Controller Request</p>
 </div>
 <details>
 <summary class="title">Advises</summary>
@@ -505,13 +522,13 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Aspect.MainAdvise.controllerBeforeAdvise.puml.png.png" alt="Aspect.MainAdvise.controllerBeforeAdvise.puml" width="359" height="301">
 </div>
-<div class="title">Figure 2. Basic Before Controller Advice Sequence</div>
+<div class="title">Figure 3. Basic Before Controller Advice Sequence</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/Aspect.MainAdvise.controllerAfterAdvise.puml.png.png" alt="Aspect.MainAdvise.controllerAfterAdvise.puml" width="359" height="362">
 </div>
-<div class="title">Figure 3. Basic After Controller Advice Sequence</div>
+<div class="title">Figure 4. Basic After Controller Advice Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -524,20 +541,55 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Aspect.ActionContextAdvise.beforeCall.puml.png.png" alt="Aspect.ActionContextAdvise.beforeCall.puml" width="829" height="743">
 </div>
-<div class="title">Figure 4. Action Context Before Controller Advice Sequence</div>
+<div class="title">Figure 5. Action Context Before Controller Advice Sequence</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/Aspect.ActionContextAdvise.afterCall.puml.png.png" alt="Aspect.ActionContextAdvise.afterCall.puml" width="336" height="362">
 </div>
-<div class="title">Figure 5. Action Context After Controller Advice Sequence</div>
+<div class="title">Figure 6. Action Context After Controller Advice Sequence</div>
 </div>
-<hr>
 </div>
 </details>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_education_controllers_sequences">2.3. Education Controllers Sequences</h3>
+<h3 id="_controllers_errors_handling">2.4. Controllers Errors Handling</h3>
+<details>
+<summary class="title">Controller Exception Handling</summary>
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Handle Known Controller Exception</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/KnownExceptionHandling.puml.png.png" alt="KnownExceptionHandling.puml" width="740" height="1749">
+</div>
+<div class="title">Figure 7. Known Controller Exception Handler Sequence</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Handle Unknown Controller Exception</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/UnKnownExceptionHandling.puml.png.png" alt="UnKnownExceptionHandling.puml" width="722" height="362">
+</div>
+<div class="title">Figure 8. Unknown Controller Exception Handler Sequence</div>
+</div>
+</div>
+</details>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_education_controllers_sequences">2.5. Education Controllers Sequences</h3>
 <details>
 <summary class="title">School Students and Courses</summary>
 <div class="content">
@@ -555,7 +607,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findCourse.puml.png.png" alt="Education.Courses.findCourse.puml" width="415" height="301">
 </div>
-<div class="title">Figure 6. Course Find by Id Sequence</div>
+<div class="title">Figure 9. Course Find by Id Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -568,7 +620,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findEmptyCourses.puml.png.png" alt="Education.Courses.findEmptyCourses.puml" width="289" height="240">
 </div>
-<div class="title">Figure 7. Find Courses Without Students Sequence</div>
+<div class="title">Figure 10. Find Courses Without Students Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -581,7 +633,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findRegisteredFor.puml.png.png" alt="Education.Courses.findRegisteredFor.puml" width="288" height="240">
 </div>
-<div class="title">Figure 8. Find Courses For The Student Sequence</div>
+<div class="title">Figure 11. Find Courses For The Student Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -594,7 +646,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.createCourse.puml.png.png" alt="Education.Courses.createCourse.puml" width="492" height="362">
 </div>
-<div class="title">Figure 9. Create The Course Sequence</div>
+<div class="title">Figure 12. Create The Course Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -607,7 +659,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.updateCourse.puml.png.png" alt="Education.Courses.updateCourse.puml" width="492" height="448">
 </div>
-<div class="title">Figure 10. Update The Course Sequence</div>
+<div class="title">Figure 13. Update The Course Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -620,7 +672,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.deleteCourse.puml.png.png" alt="Education.Courses.deleteCourse.puml" width="288" height="240">
 </div>
-<div class="title">Figure 11. Delete The Course Sequence</div>
+<div class="title">Figure 14. Delete The Course Sequence</div>
 </div>
 <hr>
 <div class="ulist">
@@ -634,7 +686,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.RegisterCourse.registerToCourse.puml.png.png" alt="Education.RegisterCourse.registerToCourse.puml" width="517" height="1073">
 </div>
-<div class="title">Figure 12. Register Student to The Course Sequence</div>
+<div class="title">Figure 15. Register Student to The Course Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -647,7 +699,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.RegisterCourse.unRegisterCourse.puml.png.png" alt="Education.RegisterCourse.unRegisterCourse.puml" width="517" height="1073">
 </div>
-<div class="title">Figure 13. UnRegister Student from The Course Sequence</div>
+<div class="title">Figure 16. UnRegister Student from The Course Sequence</div>
 </div>
 <hr>
 <div class="ulist">
@@ -661,7 +713,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findStudent.puml.png.png" alt="Education.Students.findStudent.puml" width="421" height="301">
 </div>
-<div class="title">Figure 14. Find Student By Id Sequence</div>
+<div class="title">Figure 17. Find Student By Id Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -674,7 +726,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findEnrolledTo.puml.png.png" alt="Education.Students.findEnrolledTo.puml" width="294" height="240">
 </div>
-<div class="title">Figure 15. Find Student Enrolled to Course Sequence</div>
+<div class="title">Figure 18. Find Student Enrolled to Course Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -687,7 +739,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findNotEnrolledStudents.puml.png.png" alt="Education.Students.findNotEnrolledStudents.puml" width="294" height="240">
 </div>
-<div class="title">Figure 16. Find Student Not Enrolled to any Course Sequence</div>
+<div class="title">Figure 19. Find Student Not Enrolled to any Course Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -700,7 +752,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.createStudent.puml.png.png" alt="Education.Students.createStudent.puml" width="421" height="301">
 </div>
-<div class="title">Figure 17. Create New Student Sequence</div>
+<div class="title">Figure 20. Create New Student Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -713,7 +765,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.updateStudent.puml.png.png" alt="Education.Students.updateStudent.puml" width="499" height="448">
 </div>
-<div class="title">Figure 18. Update Exists Student Sequence</div>
+<div class="title">Figure 21. Update Exists Student Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -726,13 +778,14 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.deleteStudent.puml.png.png" alt="Education.Students.deleteStudent.puml" width="294" height="153">
 </div>
-<div class="title">Figure 19. Delete Exists Student Sequence</div>
+<div class="title">Figure 22. Delete Exists Student Sequence</div>
 </div>
 </div>
 </details>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_school_organization_and_staff_controllers_sequences">2.4. School Organization and Staff Controllers Sequences</h3>
+<h3 id="_school_organization_and_staff_controllers_sequences">2.6. School Organization and Staff Controllers Sequences</h3>
 <details>
 <summary class="title">Organization and Staff</summary>
 <div class="content">
@@ -747,7 +800,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.findById.puml.png.png" alt="Organization.Faculty.findById.puml" width="412" height="301">
 </div>
-<div class="title">Figure 20. Faculty Find by Id Sequence</div>
+<div class="title">Figure 23. Faculty Find by Id Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -760,7 +813,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.findAll.puml.png.png" alt="Organization.Faculty.findAll.puml" width="285" height="240">
 </div>
-<div class="title">Figure 21. Faculty Find All Sequence</div>
+<div class="title">Figure 24. Faculty Find All Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -773,7 +826,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.create.puml.png.png" alt="Organization.Faculty.create.puml" width="489" height="362">
 </div>
-<div class="title">Figure 22. Faculty Create New Sequence</div>
+<div class="title">Figure 25. Faculty Create New Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -786,7 +839,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.update.puml.png.png" alt="Organization.Faculty.update.puml" width="489" height="448">
 </div>
-<div class="title">Figure 23. Faculty Update Exists Sequence</div>
+<div class="title">Figure 26. Faculty Update Exists Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -799,7 +852,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.delete.puml.png.png" alt="Organization.Faculty.delete.puml" width="526" height="422">
 </div>
-<div class="title">Figure 24. Faculty Delete Exists Sequence</div>
+<div class="title">Figure 27. Faculty Delete Exists Sequence</div>
 </div>
 <hr>
 <div class="ulist">
@@ -813,7 +866,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.findById.puml.png.png" alt="Organization.StudentsGroup.findById.puml" width="506" height="301">
 </div>
-<div class="title">Figure 25. Students Group Find by Id Sequence</div>
+<div class="title">Figure 28. Students Group Find by Id Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -826,7 +879,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.findAll.puml.png.png" alt="Organization.StudentsGroup.findAll.puml" width="379" height="240">
 </div>
-<div class="title">Figure 26. Students Group Find All Sequence</div>
+<div class="title">Figure 29. Students Group Find All Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -839,7 +892,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.create.puml.png.png" alt="Organization.StudentsGroup.create.puml" width="589" height="362">
 </div>
-<div class="title">Figure 27. Students Group Create New Sequence</div>
+<div class="title">Figure 30. Students Group Create New Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -852,7 +905,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.update.puml.png.png" alt="Organization.StudentsGroup.update.puml" width="589" height="448">
 </div>
-<div class="title">Figure 28. Students Group Update Exists Sequence</div>
+<div class="title">Figure 31. Students Group Update Exists Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -865,7 +918,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.delete.puml.png.png" alt="Organization.StudentsGroup.delete.puml" width="379" height="240">
 </div>
-<div class="title">Figure 29. Students Group Delete Exists Sequence</div>
+<div class="title">Figure 32. Students Group Delete Exists Sequence</div>
 </div>
 <hr>
 <div class="ulist">
@@ -879,7 +932,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.login.puml.png.png" alt="Organization.AuthorityPerson.login.puml" width="517" height="301">
 </div>
-<div class="title">Figure 30. Authority Person (Principal) Log In Sequence</div>
+<div class="title">Figure 33. Authority Person (Principal) Log In Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -892,7 +945,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.logout.puml.png.png" alt="Organization.AuthorityPerson.logout.puml" width="482" height="214">
 </div>
-<div class="title">Figure 31. Authority Person (Principal) Log Out Sequence</div>
+<div class="title">Figure 34. Authority Person (Principal) Log Out Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -905,7 +958,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.findById.puml.png.png" alt="Organization.AuthorityPerson.findById.puml" width="517" height="301">
 </div>
-<div class="title">Figure 32. Authority Person (Principal) Find by Id Sequence</div>
+<div class="title">Figure 35. Authority Person (Principal) Find by Id Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -918,7 +971,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.findAll.puml.png.png" alt="Organization.AuthorityPerson.findAll.puml" width="390" height="240">
 </div>
-<div class="title">Figure 33. Authority Person (Principal) Find All Sequence</div>
+<div class="title">Figure 36. Authority Person (Principal) Find All Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -931,7 +984,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.createPerson.puml.png.png" alt="Organization.AuthorityPerson.createPerson.puml" width="517" height="301">
 </div>
-<div class="title">Figure 34. Authority Person (Principal) Create New Sequence</div>
+<div class="title">Figure 37. Authority Person (Principal) Create New Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -944,7 +997,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.updatePerson.puml.png.png" alt="Organization.AuthorityPerson.updatePerson.puml" width="602" height="448">
 </div>
-<div class="title">Figure 35. Authority Person (Principal) Update Exists Sequence</div>
+<div class="title">Figure 38. Authority Person (Principal) Update Exists Sequence</div>
 </div>
 <div class="ulist">
 <ul>
@@ -957,17 +1010,18 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.deletePerson.puml.png.png" alt="Organization.AuthorityPerson.deletePerson.puml" width="390" height="240">
 </div>
-<div class="title">Figure 36. Authority Person (Principal) Delete Exists Sequence</div>
+<div class="title">Figure 39. Authority Person (Principal) Delete Exists Sequence</div>
 </div>
 </div>
 </details>
+<hr>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-25 12:29:55 +0200
+Last updated 2026-01-26 13:25:11 +0200
 </div>
 </div>
 </body>

@@ -1,0 +1,31 @@
+[plantuml,UnKnownExceptionHandling.puml.png,png]
+----
+@startuml
+
+participant RestResponseEntityExceptionHandler
+participant ActionErrorMessage
+participant HttpStatus
+participant WebRequest
+
+activate RestResponseEntityExceptionHandler
+	RestResponseEntityExceptionHandler -> RestResponseEntityExceptionHandler : errorMessageFor
+	activate RestResponseEntityExceptionHandler
+		RestResponseEntityExceptionHandler -> ActionErrorMessage : builder
+		activate ActionErrorMessage
+			ActionErrorMessage --> RestResponseEntityExceptionHandler : ActionErrorMessage$ActionErrorMessageBuilder
+		deactivate ActionErrorMessage
+		RestResponseEntityExceptionHandler -> HttpStatus : value
+		activate HttpStatus
+			HttpStatus --> RestResponseEntityExceptionHandler : int
+		deactivate HttpStatus
+		RestResponseEntityExceptionHandler -> WebRequest : getDescription
+		activate WebRequest
+			WebRequest --> RestResponseEntityExceptionHandler : String
+		deactivate WebRequest
+		RestResponseEntityExceptionHandler --> RestResponseEntityExceptionHandler : ActionErrorMessage
+	deactivate RestResponseEntityExceptionHandler
+deactivate RestResponseEntityExceptionHandler
+
+@enduml
+
+----
