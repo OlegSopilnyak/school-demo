@@ -15,6 +15,9 @@ import org.springframework.web.context.request.WebRequest;
 
 /**
  * Exception handler advise (wrap all annotated rest-controller methods)
+ *
+ * @see ActionErrorMessage
+ * @see ResponseEntity
  */
 @Slf4j
 @RestControllerAdvice

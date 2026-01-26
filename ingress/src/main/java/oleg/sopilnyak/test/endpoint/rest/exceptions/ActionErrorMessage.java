@@ -5,7 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// inner classes
+/**
+ * Message: Error message type for module errors handler
+ *
+ * @see RestResponseEntityExceptionHandler
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
