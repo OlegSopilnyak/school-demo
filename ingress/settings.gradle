@@ -1,5 +1,5 @@
-include 'common'
-project(':common').projectDir = "$rootDir/../common" as File
+include 'micro-core'
+project(':micro-core').projectDir = "$rootDir/../micro-core" as File
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

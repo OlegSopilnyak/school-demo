@@ -1,7 +1,7 @@
-include 'common'
+include 'micro-core'
 include 'persistence'
 
-project(':common').projectDir = "$rootDir/../common" as File
+project(':micro-core').projectDir = "$rootDir/../micro-core" as File
 project(':persistence').projectDir = "$rootDir/../persistence" as File
 
 dependencyResolutionManagement {

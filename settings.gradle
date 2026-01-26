@@ -1,8 +1,8 @@
 rootProject.name = 'BasicSchool-TestTask'
 
-include 'common'
+include 'micro-core'
 include 'ingress'
 include 'business-logic'
-include 'application'
 include 'persistence'
+include 'bootstrap'
 

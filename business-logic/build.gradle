@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(":common")
+    implementation project(":micro-core")
 
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-json'
@@ -20,7 +20,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     testImplementation project(":persistence")
-    testImplementation testFixtures(project(":common"))
+    testImplementation testFixtures(project(":micro-core"))
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.awaitility:awaitility:4.3.0'
 
