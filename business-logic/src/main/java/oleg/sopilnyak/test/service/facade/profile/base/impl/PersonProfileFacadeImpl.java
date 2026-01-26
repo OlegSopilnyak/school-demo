@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import lombok.Getter;
 
@@ -36,7 +35,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     private final CommandActionExecutor actionExecutor;
     //
     // setting up actions by command-id
-    private final Map<String, Function<Object, Object>> actions = Map.of(
+    private final Map<String, UnaryOperator<Object>> actions = Map.of(
             findByIdCommandId(), this::internalFindById,
             createOrUpdateCommandId(), this::internalCreateOrUpdate,
             deleteByIdCommandId(), this::internalDeleteById
@@ -186,7 +185,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
 
     // private methods
     //
-    private Function<Object, Object> throwsUnknownActionId(final String actionId) {
+    private UnaryOperator<Object> throwsUnknownActionId(final String actionId) {
         final String expectedTypes =
                 String.join(" or ", List.of(findByIdCommandId(), createOrUpdateCommandId(), deleteByIdCommandId()));
         throw new InvalidParameterTypeException(expectedTypes, actionId);
