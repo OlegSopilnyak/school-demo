@@ -2,8 +2,10 @@ package oleg.sopilnyak.test.school.common.business.facade.profile;
 
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -62,7 +64,11 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
             case FIND_BY_ID,
                  CREATE_OR_UPDATE,
                  DELETE_BY_ID -> concreteAction(actionId, actionParameters);
-            case null, default -> throw new IllegalArgumentException("Unknown actionId: " + actionId);
+            case null, default -> {
+                final String expectedTypes =
+                        String.join(" or ", List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID));
+                throw new InvalidParameterTypeException(expectedTypes, actionId);
+            }
         };
     }
 
