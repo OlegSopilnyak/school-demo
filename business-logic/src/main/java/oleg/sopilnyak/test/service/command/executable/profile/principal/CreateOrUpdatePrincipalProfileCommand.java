@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
@@ -45,7 +46,7 @@ public class CreateOrUpdatePrincipalProfileCommand extends CreateOrUpdateProfile
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return PrincipalProfileFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdatePrincipalProfileCommand(

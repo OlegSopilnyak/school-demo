@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * Service-BaseFacade: Service for manage person profiles in the school
  *
- * @see BusinessFacade
+ * @see BusinessFacade#doActionAndResult(String, Object...)
  */
 public interface PersonProfileFacade extends BusinessFacade {
     /**
@@ -35,28 +35,14 @@ public interface PersonProfileFacade extends BusinessFacade {
     String deleteByIdActionId();
 
     /**
-     * Facade depended, action's execution
+     * Facade depends on the action's execution
      *
      * @param actionId         the id of the action
      * @param actionParameters the parameters of action to execute
      * @param <T>              type of action execution result
      * @return action execution result value
      */
-    @SuppressWarnings("unchecked")
-    default <T> T concreteAction(String actionId, Object... actionParameters) {
-        if (actionId.equals(findByIdActionId())) {
-            final Long id = (Long) actionParameters[0];
-            return (T) findById(id);
-        } else if (actionId.equals(createOrUpdateActionId())) {
-            final PersonProfile profile = (PersonProfile) actionParameters[0];
-            return (T) createOrUpdate(profile);
-        } else if (actionId.equals(deleteByIdActionId())) {
-            final Long id = (Long) actionParameters[0];
-            deleteById(id);
-            return null;
-        }
-        throw new IllegalArgumentException("Unknown actionId: " + actionId);
-    }
+    <T> T concreteAction(String actionId, Object... actionParameters);
 
     /**
      * To get the person's profile by ID
@@ -67,7 +53,9 @@ public interface PersonProfileFacade extends BusinessFacade {
      * @see PersonProfile#getId()
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<PersonProfile> findById(Long id);
 
     /**
@@ -78,7 +66,9 @@ public interface PersonProfileFacade extends BusinessFacade {
      * @see PersonProfile
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<PersonProfile> createOrUpdate(PersonProfile profile);
 
     /**
@@ -86,7 +76,9 @@ public interface PersonProfileFacade extends BusinessFacade {
      *
      * @param id value of system-id
      * @throws ProfileNotFoundException throws if profile with id does not exist
+     * @deprecated
      */
+    @Deprecated
     void deleteById(Long id) throws ProfileNotFoundException;
 
     /**
@@ -95,7 +87,9 @@ public interface PersonProfileFacade extends BusinessFacade {
      * @param profile instance to delete
      * @throws ProfileNotFoundException throws if profile with id does not exist
      * @see PersonProfile
+     * @deprecated
      */
+    @Deprecated
     default void delete(PersonProfile profile) throws ProfileNotFoundException {
         if (PersistenceFacadeUtilities.isInvalid(profile)) {
             throw new ProfileNotFoundException("Wrong " + profile + " to delete");

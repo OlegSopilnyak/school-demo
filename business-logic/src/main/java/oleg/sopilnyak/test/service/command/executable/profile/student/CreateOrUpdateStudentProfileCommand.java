@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
@@ -45,7 +46,7 @@ public class CreateOrUpdateStudentProfileCommand extends CreateOrUpdateProfileCo
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return StudentProfileFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateStudentProfileCommand(

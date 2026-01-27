@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
@@ -42,7 +43,7 @@ public class FindStudentProfileCommand extends FindProfileCommand<StudentProfile
      */
     @Override
     public String getId() {
-        return CommandId.FIND_BY_ID;
+        return StudentProfileFacade.FIND_BY_ID;
     }
 
     public FindStudentProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {

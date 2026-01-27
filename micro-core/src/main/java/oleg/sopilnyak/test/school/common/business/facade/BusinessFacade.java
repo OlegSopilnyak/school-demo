@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.facade;
 
+import java.util.List;
+
 /**
  * Service-Facade: The parent of any Service Facades (has name of the facade)
  */
@@ -14,6 +16,15 @@ public interface BusinessFacade {
      * @return action execution result value
      */
     default <T> T doActionAndResult(String actionId, Object... actionParameters) {
+        throw new UnsupportedOperationException("Please implement method in BusinessFacade's descendant.");
+    }
+
+    /**
+     * To get the list of valid action-ids
+     *
+     * @return valid action-ids for concrete descendant-facade
+     */
+    default List<String> validActions() {
         throw new UnsupportedOperationException("Please implement method in BusinessFacade's descendant.");
     }
 

@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.facade.profile.impl;
 
-import static oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand.CommandId;
-
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -21,23 +19,8 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
 
     public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
                                     final BusinessMessagePayloadMapper payloadMapper,
-                                    CommandActionExecutor actionExecutor) {
+                                    final CommandActionExecutor actionExecutor) {
         super(factory, payloadMapper, actionExecutor);
-    }
-
-    @Override
-    protected final String findByIdCommandId() {
-        return CommandId.FIND_BY_ID;
-    }
-
-    @Override
-    protected final String createOrUpdateCommandId() {
-        return CommandId.CREATE_OR_UPDATE;
-    }
-
-    @Override
-    protected final String deleteByIdCommandId() {
-        return CommandId.DELETE_BY_ID;
     }
 
     /**

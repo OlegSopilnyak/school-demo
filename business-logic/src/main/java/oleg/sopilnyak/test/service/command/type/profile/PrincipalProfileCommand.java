@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -22,9 +23,9 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
         private CommandId() {
         }
 
-        public static final String FIND_BY_ID = "profile.principal.findById";
-        public static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
-        public static final String DELETE_BY_ID = "profile.principal.deleteById";
+        public static final String FIND_BY_ID = PrincipalProfileFacade.FIND_BY_ID;
+        public static final String CREATE_OR_UPDATE = PrincipalProfileFacade.CREATE_OR_UPDATE;
+        public static final String DELETE_BY_ID = PrincipalProfileFacade.DELETE_BY_ID;
     }
 
     // the name of factory in Spring Beans Factory
@@ -75,11 +76,13 @@ public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
         final String[] extraKeys = profile.getExtraKeys();
         final int extraLength = isNull(extraKeys) ? 0 : extraKeys.length;
         getLog().debug("In principal person profile entity with id={} has {} extra keys", entity.getId(), extraLength);
-        return (E) (profile instanceof PrincipalProfilePayload entityPayload
-                // no needed transformation
-                ? entityPayload
-                // transforms using payload-mapper
-                : getPayloadMapper().toPayload(profile));
+        return (E) (
+                profile instanceof PrincipalProfilePayload profilePayload
+                        // not needed transformation
+                        ? profilePayload
+                        // transforms using payload-mapper
+                        : getPayloadMapper().toPayload(profile)
+        );
     }
 
 // For commands playing Nested Command Role

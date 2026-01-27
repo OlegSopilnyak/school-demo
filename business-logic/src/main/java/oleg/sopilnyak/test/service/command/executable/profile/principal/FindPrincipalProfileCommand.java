@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
@@ -42,7 +43,7 @@ public class FindPrincipalProfileCommand extends FindProfileCommand<PrincipalPro
      */
     @Override
     public String getId() {
-        return CommandId.FIND_BY_ID;
+        return PrincipalProfileFacade.FIND_BY_ID;
     }
 
     public FindPrincipalProfileCommand(ProfilePersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {

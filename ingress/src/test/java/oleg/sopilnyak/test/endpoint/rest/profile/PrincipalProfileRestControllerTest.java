@@ -1,6 +1,9 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -49,6 +52,8 @@ import org.mapstruct.factory.Mappers;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class PrincipalProfileRestControllerTest extends TestModelFactory {
+    private static final String FIND_BY_ID = "profile.principal.findById";
+    private static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
@@ -89,7 +94,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findPrincipalProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertThat(dto.getId()).isEqualTo(id);
         assertProfilesEquals(profile, dto);
@@ -110,6 +115,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(Long.toString(id));
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
@@ -130,6 +136,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id + "!");
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
@@ -141,11 +148,11 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(id);
         doAnswer(invocation -> {
-            PrincipalProfile received = invocation.getArgument(0);
+            PrincipalProfile received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
             assertProfilesEquals(profile, received);
             return Optional.of(received);
-        }).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
+        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
@@ -158,8 +165,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(PrincipalProfile.class));
-
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
         checkControllerAspect();
@@ -180,8 +186,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(PrincipalProfile.class));
-
+        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
@@ -204,8 +209,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(PrincipalProfile.class));
-
+        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-406'");
@@ -219,7 +223,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update principal profile: '406!'";
         Exception exception = new RuntimeException(message);
-        doThrow(exception).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
+        doThrow(exception).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -232,8 +236,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(PrincipalProfile.class));
-
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
         assertThat(error.getErrorMessage()).isEqualTo(message);

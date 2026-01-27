@@ -15,10 +15,25 @@ import java.util.Optional;
  * @see PersonProfileFacade
  */
 public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFacade {
+    //
+    // action-ids
     String PREFIX = "profile.principal";
     String FIND_BY_ID = PREFIX + ".findById";
     String CREATE_OR_UPDATE = PREFIX + ".createOrUpdate";
     String DELETE_BY_ID = PREFIX + ".deleteById";
+    //
+    // the list of valid action-ids
+    List<String> ACTION_IDS = List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID);
+
+    /**
+     * To get the list of valid action-ids
+     *
+     * @return valid action-ids for concrete descendant-facade
+     */
+    @Override
+    default List<String> validActions() {
+        return ACTION_IDS;
+    }
 
     /**
      * Action ID of find person by id
@@ -60,16 +75,11 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
      */
     @Override
     default <T> T doActionAndResult(String actionId, Object... actionParameters) {
-        return switch (actionId) {
-            case FIND_BY_ID,
-                 CREATE_OR_UPDATE,
-                 DELETE_BY_ID -> concreteAction(actionId, actionParameters);
-            case null, default -> {
-                final String expectedTypes =
-                        String.join(" or ", List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID));
-                throw new InvalidParameterTypeException(expectedTypes, actionId);
-            }
-        };
+        final String validActionId = ACTION_IDS.stream().filter(id -> id.equals(actionId)).findFirst()
+                .orElseThrow(
+                        () -> new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId)
+                );
+        return concreteAction(validActionId, actionParameters);
     }
 
     /**
@@ -91,7 +101,9 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
      * @see PrincipalProfile#getId()
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     default Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
         return findById(id).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
@@ -104,7 +116,9 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
      * @see PrincipalProfile
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input) {
         return createOrUpdate(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }

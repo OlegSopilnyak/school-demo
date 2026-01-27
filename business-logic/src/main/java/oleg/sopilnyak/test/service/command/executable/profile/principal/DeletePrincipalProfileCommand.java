@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
@@ -43,7 +44,7 @@ public class DeletePrincipalProfileCommand extends DeleteProfileCommand<Principa
      */
     @Override
     public String getId() {
-        return CommandId.DELETE_BY_ID;
+        return PrincipalProfileFacade.DELETE_BY_ID;
     }
 
     /**

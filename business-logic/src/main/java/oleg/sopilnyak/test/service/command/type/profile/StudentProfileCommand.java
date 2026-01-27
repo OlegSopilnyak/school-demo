@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -22,9 +23,9 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
         private CommandId() {
         }
 
-        public static final String FIND_BY_ID = "profile.student.findById";
-        public static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
-        public static final String DELETE_BY_ID = "profile.student.deleteById";
+        public static final String FIND_BY_ID = StudentProfileFacade.FIND_BY_ID;
+        public static final String CREATE_OR_UPDATE = StudentProfileFacade.CREATE_OR_UPDATE;
+        public static final String DELETE_BY_ID = StudentProfileFacade.DELETE_BY_ID;
     }
 
     // the name of factory in Spring Beans Factory
@@ -66,7 +67,7 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
     default <E extends PersonProfile> E adoptEntity(final E entity) {
         return switch (entity) {
             case StudentProfile profile -> adoptProfile(entity, profile);
-            default -> throw new UnsupportedOperationException("Entity to adopt is not a principal-profile type");
+            default -> throw new UnsupportedOperationException("Entity to adopt is not a student-profile type");
         };
     }
 
@@ -75,11 +76,13 @@ public interface StudentProfileCommand<T> extends ProfileCommand<T> {
         final String[] extraKeys = profile.getExtraKeys();
         final int extraLength = isNull(extraKeys) ? 0 : extraKeys.length;
         getLog().debug("In student profile entity with id={} has {} extra keys", entity.getId(), extraLength);
-        return (E) (profile instanceof StudentProfilePayload entityPayload
-                // no needed transformation
-                ? entityPayload
-                // transforms using payload-mapper
-                : getPayloadMapper().toPayload(profile));
+        return (E) (
+                profile instanceof StudentProfilePayload profilePayload
+                        // not needed transformation
+                        ? profilePayload
+                        // transforms using payload-mapper
+                        : getPayloadMapper().toPayload(profile)
+        );
     }
 
 // For commands playing Nested Command Role
