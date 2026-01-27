@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -63,6 +65,8 @@ import org.mapstruct.factory.Mappers;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
 class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
+    private static final String FIND_BY_ID = "profile.principal.findById";
+    private static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
@@ -131,7 +135,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(String.valueOf(id));
-        verify(facade).findPrincipalProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
         checkControllerAspect();
@@ -151,7 +155,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(Long.toString(id));
-        verify(facade).findPrincipalProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
@@ -172,7 +176,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id + "!");
-        verify(facade, never()).findPrincipalProfileById(anyLong());
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
@@ -196,7 +200,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(PrincipalProfile.class));
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
         assertThat(originalEmail).isNotEqualTo(dto.getEmail());
@@ -219,7 +223,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(PrincipalProfile.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
@@ -242,7 +246,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(PrincipalProfile.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '" + profile.getId() + "'");
@@ -255,7 +259,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update principal profile: '406!'";
         Exception exception = new RuntimeException(message);
-        doThrow(exception).when(facade).createOrUpdateProfile(any(PrincipalProfile.class));
+        doThrow(exception).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -268,7 +272,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(PrincipalProfile.class));
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
         assertThat(error.getErrorMessage()).isEqualTo(message);
