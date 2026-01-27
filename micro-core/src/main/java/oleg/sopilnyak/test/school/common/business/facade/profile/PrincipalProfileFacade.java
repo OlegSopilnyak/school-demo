@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.school.common.business.facade.profile;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
 import java.util.List;
@@ -73,13 +74,17 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
      * @param <T>              type of action execution result
      * @return action execution result value
      */
+    @SuppressWarnings("unchecked")
     @Override
-    default <T> T doActionAndResult(String actionId, Object... actionParameters) {
-        final String validActionId = ACTION_IDS.stream().filter(id -> id.equals(actionId)).findFirst()
-                .orElseThrow(
-                        () -> new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId)
-                );
-        return concreteAction(validActionId, actionParameters);
+    default <T> T doActionAndResult(final String actionId, final Object... actionParameters) {
+        return switch (actionId) {
+            case FIND_BY_ID, CREATE_OR_UPDATE -> {
+                final Optional<PersonProfile> result = concreteAction(actionId, actionParameters);
+                yield (T) result.map(p -> p instanceof PrincipalProfile profile ? profile : null);
+            }
+            case  DELETE_BY_ID -> concreteAction(actionId, actionParameters);
+            case null, default -> throw new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId);
+        };
     }
 
     /**
@@ -90,36 +95,5 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
     @Override
     default String getName() {
         return "PrincipalProfileFacade";
-    }
-
-    /**
-     * To get the principal's profile by ID
-     *
-     * @param id system-id of the principal profile
-     * @return profile instance or empty() if not exists
-     * @see PrincipalProfile
-     * @see PrincipalProfile#getId()
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    default Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
-        return findById(id).map(p -> p instanceof PrincipalProfile profile ? profile : null);
-    }
-
-    /**
-     * To create principal-profile
-     *
-     * @param input instance to create
-     * @return created instance or Optional#empty()
-     * @see PrincipalProfile
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    default Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile input) {
-        return createOrUpdate(input).map(p -> p instanceof PrincipalProfile profile ? profile : null);
     }
 }

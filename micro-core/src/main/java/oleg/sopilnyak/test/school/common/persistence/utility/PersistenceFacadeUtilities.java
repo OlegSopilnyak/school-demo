@@ -2,8 +2,6 @@ package oleg.sopilnyak.test.school.common.persistence.utility;
 
 import oleg.sopilnyak.test.school.common.model.BaseType;
 
-import static java.util.Objects.isNull;
-
 /**
  * Class-Utility for persistence facades
  */
@@ -15,16 +13,16 @@ public interface PersistenceFacadeUtilities {
      * @return true if invalid
      */
     static boolean isInvalid(final BaseType instance) {
-        return isNull(instance) || isInvalidId(instance.getId());
+        return instance == null || isInvalidId(instance.getId());
     }
 
     /**
      * To check is instanceId has valid value
      *
-     * @param instanceId system-id of the entity
+     * @param id system-id of the entity
      * @return true if invalid
      */
-    static boolean isInvalidId(final Long instanceId) {
-        return isNull(instanceId) || instanceId <= 0L;
+    static boolean isInvalidId(final Long id) {
+        return id == null || id <= 0L;
     }
 }

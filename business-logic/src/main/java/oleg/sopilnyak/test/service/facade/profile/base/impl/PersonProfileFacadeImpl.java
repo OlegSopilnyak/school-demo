@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProf
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import org.springframework.lang.Nullable;
 import lombok.Getter;
 
 /**
@@ -38,7 +40,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
             Map.of(
                     findByIdActionId(), this::internalFindById,
                     createOrUpdateActionId(), this::internalCreateOrUpdate,
-                    deleteByIdActionId(), this::internalDeleteById
+                    deleteByIdActionId(), this::internalDelete
             )
     );
 
@@ -124,29 +126,42 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         }
     }
 
-    // To delete person-profile
-    public Void internalDeleteById(final Object argument) throws ProfileNotFoundException {
-        if (argument instanceof Long id) {
-            final String commandId = deleteByIdActionId();
-            final Consumer<Exception> doOnError = exception -> {
-                switch (exception) {
-                    case ProfileNotFoundException profileNotFoundException -> {
-                        logSomethingWentWrong(exception, commandId);
-                        throw profileNotFoundException;
-                    }
-                    case null, default -> defaultDoOnError(commandId).accept(exception);
+    // To delete person-profile by id or profile
+    public Void internalDelete(final Object argument) throws ProfileNotFoundException {
+        return switch (argument) {
+            // delete by id
+            case Long id -> internalDeleteById(id);
+            // delete by profile (invalid profile)
+            case PersonProfile profile when PersistenceFacadeUtilities.isInvalid(profile) ->
+                    throw new ProfileNotFoundException("Wrong " + profile + " to delete");
+            // delete by profile (valid profile)
+            case PersonProfile profile -> internalDeleteById(profile.getId());
+            // invalid argument type
+            case null, default -> throw new InvalidParameterTypeException("Long or PersonProfile", argument);
+        };
+    }
+
+    // To delete person-profile by profile-id
+    @Nullable
+    private Void internalDeleteById(Long id) {
+        final String commandId = deleteByIdActionId();
+        // prepare execution custom error-handler
+        final Consumer<Exception> doOnError = exception -> {
+            switch (exception) {
+                case ProfileNotFoundException profileNotFoundException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw profileNotFoundException;
                 }
-            };
-            // running command execution
-            getLogger().debug("Deleting profile with ID:{}", id);
-            final Input<Long> input = Input.of(id);
-            final Optional<Boolean> result = executeCommand(commandId, factory, input, doOnError);
-            result.ifPresent(success ->
-                    getLogger().debug("Deleted profile with ID:{} successfully:{} .", id, success)
-            );
-            return null;
-        } else {
-            throw new InvalidParameterTypeException("Long", argument);
-        }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
+            }
+        };
+        // running command execution
+        getLogger().debug("Deleting profile with ID:{}", id);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doOnError);
+        result.ifPresent(success ->
+                getLogger().debug("Deleted profile with ID:{} successfully:{} .", id, success)
+        );
+        // returns nothing
+        return null;
     }
 }

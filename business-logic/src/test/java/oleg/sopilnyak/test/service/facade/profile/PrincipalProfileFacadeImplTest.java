@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -86,10 +85,9 @@ class PrincipalProfileFacadeImplTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         doReturn(Optional.of(profile)).when(persistence).findProfileById(id);
 
-        Optional<PrincipalProfile> result = facade.findPrincipalProfileById(id);
+        Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
         assertThat(result).contains(payload);
-        verify(facade).findById(id);
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
@@ -102,10 +100,9 @@ class PrincipalProfileFacadeImplTest {
         doReturn(findCommand).when(applicationContext).getBean("profilePrincipalFind", PrincipalProfileCommand.class);
         Long id = 610L;
 
-        Optional<PrincipalProfile> faculty = facade.findPrincipalProfileById(id);
+        Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(faculty).isEmpty();
-        verify(facade).findById(id);
+        assertThat(result).isEmpty();
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
@@ -119,10 +116,9 @@ class PrincipalProfileFacadeImplTest {
         doCallRealMethod().when(persistence).findPrincipalProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(mock(StudentProfile.class)));
 
-        Optional<PrincipalProfile> profileFromDb = facade.findPrincipalProfileById(id);
+        Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(profileFromDb).isEmpty();
-        verify(facade).findById(id);
+        assertThat(result).isEmpty();
         verify(factory).command(PROFILE_FIND_BY_ID);
         verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
         verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
@@ -135,15 +131,14 @@ class PrincipalProfileFacadeImplTest {
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         when(persistence.save(payload)).thenReturn(Optional.of(payload));
 
-        Optional<PrincipalProfile> result = facade.createOrUpdateProfile(profile);
+        Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", payload);
 
         assertThat(result).contains(payload);
-        verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
-        verify(payloadMapper).toPayload(any(PersonProfile.class));
+        verify(payloadMapper, never()).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -151,15 +146,14 @@ class PrincipalProfileFacadeImplTest {
         doReturn(updateCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
 
-        Optional<PrincipalProfile> result = facade.createOrUpdateProfile(profile);
+        Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", payload);
 
         assertThat(result).isEmpty();
-        verify(facade).createOrUpdate(profile);
         verify(factory).command(PROFILE_CREATE_OR_UPDATE);
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
         verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
         verify(persistence).save(payload);
-        verify(payloadMapper).toPayload(any(PersonProfile.class));
+        verify(payloadMapper, never()).toPayload(any(PersonProfile.class));
     }
 
     @Test
@@ -170,7 +164,7 @@ class PrincipalProfileFacadeImplTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
-        facade.deleteById(id);
+        ReflectionTestUtils.invokeMethod(facade, "internalDelete", id);
 
         verify(factory).command(PROFILE_DELETE);
         verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
@@ -185,9 +179,11 @@ class PrincipalProfileFacadeImplTest {
         doReturn(deleteCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         Long id = 615L;
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", id)
+        );
 
-        assertThat(exception.getMessage()).isEqualTo("Profile with ID:615 is not exists.");
+        assertThat(thrown.getMessage()).isEqualTo("Profile with ID:615 is not exists.");
         verify(factory).command(PROFILE_DELETE);
         verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
@@ -199,7 +195,10 @@ class PrincipalProfileFacadeImplTest {
     void shouldNotDeleteProfileById_ProfileNotExists() {
         doReturn(deleteCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         Long id = 603L;
-        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
+
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:603 is not exists.");
         verify(factory).command(PROFILE_DELETE);
@@ -219,9 +218,8 @@ class PrincipalProfileFacadeImplTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
-        facade.delete(profile);
+        ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile);
 
-        verify(facade).deleteById(id);
         verify(factory).command(PROFILE_DELETE);
         verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
@@ -236,10 +234,11 @@ class PrincipalProfileFacadeImplTest {
         Long id = 716L;
         when(profile.getId()).thenReturn(id);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
-        assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
-        verify(facade).deleteById(id);
+        assertThat(thrown.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
         verify(factory).command(PROFILE_DELETE);
         verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
         verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
@@ -253,22 +252,23 @@ class PrincipalProfileFacadeImplTest {
         Long id = -716L;
         when(profile.getId()).thenReturn(id);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
-        assertThat(exception.getMessage()).startsWith("Wrong ");
-        verify(facade, never()).deleteById(anyLong());
+        assertThat(thrown.getMessage()).startsWith("Wrong ");
         verify(factory, never()).command(PROFILE_DELETE);
     }
 
     @Test
     void shouldNotDeleteProfileInstance_NullId() {
         reset(actionExecutor);
-        when(profile.getId()).thenReturn(null);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
-        assertThat(exception.getMessage()).startsWith("Wrong ");
-        verify(facade, never()).deleteById(anyLong());
+        assertThat(thrown.getMessage()).startsWith("Wrong ");
         verify(factory, never()).command(PROFILE_DELETE);
     }
 

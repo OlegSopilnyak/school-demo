@@ -1,12 +1,14 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
+import static oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade.CREATE_OR_UPDATE;
+import static oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade.FIND_BY_ID;
+
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
 import java.util.Optional;
@@ -68,14 +70,14 @@ public class PrincipalProfileRestController {
     }
 
     // private methods
-    private Optional<PrincipalProfile> findPrincipalProfileById(Long id) {
-        final Optional<PersonProfile> result = facade.doActionAndResult(PrincipalProfileFacade.FIND_BY_ID, id);
-        return result.map(p -> p instanceof PrincipalProfile profile ? profile : null);
+    // find profile by id
+    private Optional<PrincipalProfile> findPrincipalProfileById(final Long id) {
+        return facade.doActionAndResult(FIND_BY_ID, id);
     }
 
-    private Optional<PrincipalProfile> createOrUpdateProfile(PrincipalProfile profileDto) {
-        final Optional<PersonProfile> result = facade.doActionAndResult(PrincipalProfileFacade.CREATE_OR_UPDATE, profileDto);
-        return result.map(p -> p instanceof PrincipalProfile profile ? profile : null);
+    // create or update the profile
+    private Optional<PrincipalProfile> createOrUpdateProfile(final PrincipalProfile profile) {
+        return facade.doActionAndResult(CREATE_OR_UPDATE, profile);
     }
 
     private static PrincipalProfileDto toDto(Long profileId, Optional<PrincipalProfile> profile) {
