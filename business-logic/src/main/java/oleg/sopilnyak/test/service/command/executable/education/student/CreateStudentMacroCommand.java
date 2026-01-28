@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
@@ -259,7 +260,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
 
     // is update profile command-id
     private static boolean isUpdateProfileCommand(final String commandId) {
-        return StudentProfileCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+        return StudentProfileFacade.CREATE_OR_UPDATE.equals(commandId);
     }
 
     // is update profile nested command

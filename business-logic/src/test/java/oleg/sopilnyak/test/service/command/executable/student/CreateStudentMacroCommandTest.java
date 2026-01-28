@@ -163,7 +163,7 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains(StudentProfileCommand.CommandId.CREATE_OR_UPDATE);
+        assertThat(context.getException().getMessage()).contains("profile.student.createOrUpdate");
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);

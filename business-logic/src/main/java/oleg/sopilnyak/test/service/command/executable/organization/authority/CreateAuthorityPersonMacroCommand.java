@@ -1,11 +1,12 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
@@ -272,7 +273,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
 
     // is update profile command-id
     private static boolean isUpdateProfileCommand(final String commandId) {
-        return PrincipalProfileCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+        return PrincipalProfileFacade.CREATE_OR_UPDATE.equals(commandId);
     }
 
     // is update profile nested command

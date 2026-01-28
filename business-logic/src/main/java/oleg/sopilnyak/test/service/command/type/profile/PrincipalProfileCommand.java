@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -18,19 +17,9 @@ import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
  * Type for school-principal-profile commands
  */
 public interface PrincipalProfileCommand<T> extends ProfileCommand<T> {
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String FIND_BY_ID = PrincipalProfileFacade.FIND_BY_ID;
-        public static final String CREATE_OR_UPDATE = PrincipalProfileFacade.CREATE_OR_UPDATE;
-        public static final String DELETE_BY_ID = PrincipalProfileFacade.DELETE_BY_ID;
-    }
-
-    // the name of factory in Spring Beans Factory
+    // the name of factory singleton in Spring Beans Factory
     String FACTORY_BEAN_NAME = "principalProfileCommandsFactory";
-
+    //
     // spring-bean component names of the commands family
     final class Component {
         private Component() {

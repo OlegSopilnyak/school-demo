@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -157,7 +158,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> mainInput) {
         return mainInput.value() instanceof Long personId
                 &&
-                PrincipalProfileCommand.CommandId.DELETE_BY_ID.equals(command.getId())
+                PrincipalProfileFacade.DELETE_BY_ID.equals(command.getId())
                 // creating nested command-context in the transaction
                 ? transactional().createPrincipalProfileContext(command, personId)
                 // cannot create the nested command-context

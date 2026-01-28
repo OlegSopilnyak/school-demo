@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
@@ -153,7 +154,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
     public <N> Context<N> prepareContext(final StudentProfileCommand<N> command, final Input<?> mainInput) {
         return mainInput.value() instanceof Long studentId
                 &&
-                StudentProfileCommand.CommandId.DELETE_BY_ID.equals(command.getId())
+                StudentProfileFacade.DELETE_BY_ID.equals(command.getId())
                 ?
                 transactional().createStudentProfileContext(command, studentId)
                 :

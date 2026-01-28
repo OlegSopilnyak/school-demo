@@ -205,7 +205,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains(StudentProfileCommand.CommandId.DELETE_BY_ID);
+        assertThat(context.getException().getMessage()).contains("profile.student.deleteById");
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, wrongInput);
