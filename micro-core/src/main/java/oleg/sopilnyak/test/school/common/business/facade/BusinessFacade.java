@@ -8,14 +8,14 @@ import java.util.List;
 public interface BusinessFacade {
 
     /**
-     * To do action and return the result
+     * Unified facade's entry-point to do action and return the result
      *
-     * @param actionId the id of the action
-     * @param actionParameters the parameters of action to execute
-     * @param <T> type of action execution result
+     * @param actionId   the id of the action
+     * @param parameters the parameters of the action to execute
+     * @param <T>        type of action execution result
      * @return action execution result value
      */
-    default <T> T doActionAndResult(String actionId, Object... actionParameters) {
+    default <T> T doActionAndResult(String actionId, Object... parameters) {
         throw new UnsupportedOperationException("Please implement method in BusinessFacade's descendant.");
     }
 

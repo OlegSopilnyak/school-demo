@@ -3,10 +3,12 @@ package oleg.sopilnyak.test.school.common.business.facade.profile;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.model.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Service-Facade: Service for manage student profiles in the school
@@ -24,6 +26,10 @@ public interface StudentProfileFacade extends PersonProfileFacade, BusinessFacad
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID);
+    //
+    // function to adopt person-profile result to principal-profile one, if it's possible
+    Function<PersonProfile, StudentProfile> STRICT_CASTING =
+            p -> p instanceof StudentProfile profile ? profile : null;
 
     /**
      * To get the list of valid action-ids
@@ -69,17 +75,20 @@ public interface StudentProfileFacade extends PersonProfileFacade, BusinessFacad
      * To do action and return the result
      *
      * @param actionId         the id of the action
-     * @param actionParameters the parameters of action to execute
+     * @param parameters the parameters of action to execute
      * @param <T>              type of action execution result
      * @return action execution result value
      */
     @Override
-    default <T> T doActionAndResult(String actionId, Object... actionParameters) {
-        final String validActionId = ACTION_IDS.stream().filter(id -> id.equals(actionId)).findFirst()
-                .orElseThrow(
-                        () -> new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId)
-                );
-        return concreteAction(validActionId, actionParameters);
+    default <T> T doActionAndResult(String actionId, Object... parameters) {
+        return switch (actionId) {
+            case FIND_BY_ID, CREATE_OR_UPDATE -> {
+                final Optional<PersonProfile> result = personProfileAction(actionId, parameters);
+                yield (T) result.map(STRICT_CASTING);
+            }
+            case  DELETE_BY_ID -> personProfileAction(actionId, parameters);
+            case null, default -> throw new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId);
+        };
     }
 
     /**
@@ -90,36 +99,5 @@ public interface StudentProfileFacade extends PersonProfileFacade, BusinessFacad
     @Override
     default String getName() {
         return "StudentProfileFacade";
-    }
-
-    /**
-     * To get the student's profile by ID
-     *
-     * @param id system-id of the student profile
-     * @return profile instance or empty() if not exists
-     * @see StudentProfile
-     * @see StudentProfile#getId()
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    default Optional<StudentProfile> findStudentProfileById(Long id) {
-        return findById(id).map(p -> p instanceof StudentProfile profile ? profile : null);
-    }
-
-    /**
-     * To create student-profile
-     *
-     * @param input instance to create
-     * @return created instance or Optional#empty()
-     * @see StudentProfile
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    default Optional<StudentProfile> createOrUpdateProfile(StudentProfile input) {
-        return createOrUpdate(input).map(p -> p instanceof StudentProfile profile ? profile : null);
     }
 }

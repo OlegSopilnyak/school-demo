@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Service-Facade: Service for manage principal profiles in the school
@@ -25,6 +26,10 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID);
+    //
+    // function to adopt person-profile result to principal-profile one, if it's possible
+    Function<PersonProfile, PrincipalProfile> STRICT_CASTING =
+            p -> p instanceof PrincipalProfile profile ? profile : null;
 
     /**
      * To get the list of valid action-ids
@@ -70,19 +75,19 @@ public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFac
      * To do action and return the result
      *
      * @param actionId         the id of the action
-     * @param actionParameters the parameters of action to execute
+     * @param parameters the parameters of action to execute
      * @param <T>              type of action execution result
      * @return action execution result value
      */
     @SuppressWarnings("unchecked")
     @Override
-    default <T> T doActionAndResult(final String actionId, final Object... actionParameters) {
+    default <T> T doActionAndResult(final String actionId, final Object... parameters) {
         return switch (actionId) {
             case FIND_BY_ID, CREATE_OR_UPDATE -> {
-                final Optional<PersonProfile> result = concreteAction(actionId, actionParameters);
-                yield (T) result.map(p -> p instanceof PrincipalProfile profile ? profile : null);
+                final Optional<PersonProfile> result = personProfileAction(actionId, parameters);
+                yield (T) result.map(STRICT_CASTING);
             }
-            case  DELETE_BY_ID -> concreteAction(actionId, actionParameters);
+            case  DELETE_BY_ID -> personProfileAction(actionId, parameters);
             case null, default -> throw new InvalidParameterTypeException(String.join(" or ", ACTION_IDS), actionId);
         };
     }

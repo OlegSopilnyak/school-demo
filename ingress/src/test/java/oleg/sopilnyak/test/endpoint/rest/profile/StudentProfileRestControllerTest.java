@@ -1,6 +1,9 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -18,6 +21,7 @@ import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
+import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -48,6 +52,8 @@ import org.mapstruct.factory.Mappers;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class StudentProfileRestControllerTest extends TestModelFactory {
+    private static final String FIND_BY_ID = "profile.student.findById";
+    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String ROOT = "/profiles/students";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
@@ -89,7 +95,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findStudentProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(profile, dto);
         checkControllerAspect();
@@ -109,6 +115,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(Long.toString(id));
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -401 is not found");
@@ -129,6 +136,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id + "!");
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '401!'");
@@ -140,11 +148,11 @@ class StudentProfileRestControllerTest extends TestModelFactory {
         Long id = 404L;
         StudentProfile profile = makeStudentProfile(id);
         doAnswer(invocation -> {
-            StudentProfile received = invocation.getArgument(0);
+            StudentProfile received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
             assertProfilesEquals(received, profile);
             return Optional.of(received);
-        }).when(facade).createOrUpdateProfile(any(StudentProfile.class));
+        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
@@ -157,8 +165,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(StudentProfile.class));
-
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(dto, profile);
         checkControllerAspect();
@@ -179,8 +186,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(StudentProfile.class));
-
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: 'null'");
@@ -203,8 +209,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(StudentProfile.class));
-
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '-404'");
@@ -217,7 +222,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
         StudentProfile profile = makeStudentProfile(id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update student profile: '404!'";
-        doThrow(new RuntimeException(message)).when(facade).createOrUpdateProfile(any(StudentProfile.class));
+        doThrow(new RuntimeException(message)).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -230,8 +235,7 @@ class StudentProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(StudentProfile.class));
-
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
         assertThat(error.getErrorMessage()).isEqualTo(message);

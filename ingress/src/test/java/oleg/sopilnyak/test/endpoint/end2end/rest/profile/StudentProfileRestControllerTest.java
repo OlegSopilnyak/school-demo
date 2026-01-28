@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -60,6 +62,8 @@ import org.mapstruct.factory.Mappers;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class StudentProfileRestControllerTest extends MysqlTestModelFactory {
+    private static final String FIND_BY_ID = "profile.student.findById";
+    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
     private static final String ROOT = "/profiles/students";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
@@ -128,7 +132,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(String.valueOf(id));
-        verify(facade).findStudentProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(profile, dto);
         checkControllerAspect();
@@ -148,7 +152,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findStudentProfileById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -401 is not found");
@@ -169,7 +173,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id + "!");
-        verify(facade, never()).findStudentProfileById(anyLong());
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '401!'");
@@ -193,7 +197,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(StudentProfile.class));
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
         assertProfilesEquals(dto, profile);
         assertThat(originalEmail).isNotEqualTo(dto.getEmail());
@@ -216,7 +220,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(StudentProfile.class));
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: 'null'");
@@ -240,7 +244,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade, never()).createOrUpdateProfile(any(StudentProfile.class));
+        verify(facade, never()).doActionAndResult(anyString(), anyLong());
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
         assertThat(error.getErrorMessage()).isEqualTo("Wrong student profile-id: '-" + id + "'");
@@ -252,7 +256,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update student profile: '404!'";
-        doThrow(new RuntimeException(message)).when(facade).createOrUpdateProfile(any(StudentProfile.class));
+        doThrow(new RuntimeException(message)).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -265,8 +269,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentProfileDto.class));
-        verify(facade).createOrUpdateProfile(any(StudentProfile.class));
-
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(StudentProfile.class));
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(500);
         assertThat(error.getErrorMessage()).isEqualTo(message);

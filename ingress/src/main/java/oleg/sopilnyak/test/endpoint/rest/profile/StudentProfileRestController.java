@@ -1,11 +1,9 @@
 package oleg.sopilnyak.test.endpoint.rest.profile;
 
 import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade.CREATE_OR_UPDATE;
+import static oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade.FIND_BY_ID;
 
-import java.util.Optional;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
@@ -13,7 +11,8 @@ import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileF
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
-import org.mapstruct.factory.Mappers;
+
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +21,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.factory.Mappers;
 
 @Slf4j
 @AllArgsConstructor
@@ -42,7 +45,7 @@ public class StudentProfileRestController {
             final Long id = Long.parseLong(personId);
             log.debug("Getting student-profile for id: {}", id);
 
-            return toDto(id, facade.findStudentProfileById(id));
+            return toDto(id, findStudentProfileById(id));
         } catch (NumberFormatException _) {
             throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + personId + "'");
         } catch (Exception e) {
@@ -58,11 +61,22 @@ public class StudentProfileRestController {
             if (isInvalid(id)) {
                 throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + id + "'");
             }
-            return toDto(id, facade.createOrUpdateProfile(profileDto));
+            return toDto(id, createOrUpdateProfile(profileDto));
         } catch (Exception e) {
             log.error("Cannot update student-profile {}", profileDto.toString(), e);
             throw new CannotProcessActionException("Cannot update student-profile " + profileDto, e);
         }
+    }
+
+    // private methods
+    // find profile by id
+    private Optional<StudentProfile> findStudentProfileById(final Long id) {
+        return facade.doActionAndResult(FIND_BY_ID, id);
+    }
+
+    // create or update the profile
+    private Optional<StudentProfile> createOrUpdateProfile(final StudentProfile profile) {
+        return facade.doActionAndResult(CREATE_OR_UPDATE, profile);
     }
 
     private static StudentProfileDto toDto(Long profileId, Optional<StudentProfile> profile) {

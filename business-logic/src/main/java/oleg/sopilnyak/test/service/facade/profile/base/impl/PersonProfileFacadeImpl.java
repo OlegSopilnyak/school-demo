@@ -58,33 +58,15 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      * Facade depends on the action's execution
      *
      * @param actionId         the id of the action
-     * @param actionParameters the parameters of action to execute
+     * @param parameters the parameters of action to execute
      * @return action execution result value
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T concreteAction(final String actionId, final Object... actionParameters) {
-        final Object argument = actionParameters.length > 0 ? actionParameters[0] : null;
+    public <T> T personProfileAction(final String actionId, final Object... parameters) {
+        final Object argument = parameters.length > 0 ? parameters[0] : null;
         getLogger().debug("Trying to execute command {} with arguments {}", actionId, argument);
         return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(argument);
-    }
-
-    @Deprecated
-    @Override
-    public Optional<PersonProfile> findById(Long id) {
-        throw new UnsupportedOperationException("Deprecated method isn't supported already.");
-    }
-
-    @Deprecated
-    @Override
-    public Optional<PersonProfile> createOrUpdate(PersonProfile instance) {
-        throw new UnsupportedOperationException("Deprecated method isn't supported already.");
-    }
-
-    @Deprecated
-    @Override
-    public void deleteById(Long id) throws ProfileNotFoundException {
-        throw new UnsupportedOperationException("Deprecated method isn't supported already.");
     }
 
     // private methods

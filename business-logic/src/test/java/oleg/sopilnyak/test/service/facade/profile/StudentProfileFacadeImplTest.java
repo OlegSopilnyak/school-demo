@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -47,9 +46,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class StudentProfileFacadeImplTest {
-    private static final String PROFILE_FIND_BY_ID = "profile.student.findById";
-    private static final String PROFILE_CREATE_OR_UPDATE = "profile.student.createOrUpdate";
-    private static final String PROFILE_DELETE = "profile.student.deleteById";
+    private static final String FIND_BY_ID = "profile.student.findById";
+    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
+    private static final String DELETE_BY_ID = "profile.student.deleteById";
 
     @Mock
     ProfilePersistenceFacade persistence;
@@ -79,20 +78,40 @@ class StudentProfileFacadeImplTest {
     }
 
     @Test
-    void shouldFindProfileById() {
+    void shouldFindProfileById_Unified() {
+        String commandId = FIND_BY_ID;
         doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 700L;
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
 
-        Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
+        Optional<StudentProfile> result = facade.doActionAndResult(commandId, id);
 
-        assertThat(faculty).contains(payload);
-        verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        assertThat(result).contains(payload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(payloadMapper).toPayload(profile);
+    }
+
+    @Test
+    void shouldFindProfileById() {
+        String commandId = FIND_BY_ID;
+        doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
+        Long id = 700L;
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+
+        Optional<StudentProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
+
+        assertThat(result).contains(payload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(payloadMapper).toPayload(profile);
@@ -100,78 +119,98 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotFindProfileById() {
+        String commandId = FIND_BY_ID;
         doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 710L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
-        Optional<StudentProfile> faculty = facade.findStudentProfileById(id);
+        Optional<StudentProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(faculty).isEmpty();
-        verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        assertThat(result).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
     void shouldNotFindProfileById_WrongProfileType() {
+        String commandId = FIND_BY_ID;
         doReturn(findCommand).when(applicationContext).getBean("profileStudentFind", StudentProfileCommand.class);
         Long id = 711L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
         when(persistence.findProfileById(id)).thenReturn(Optional.of(mock(PrincipalProfile.class)));
 
-        Optional<StudentProfile> profileFromDb = facade.findStudentProfileById(id);
+        Optional<StudentProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(profileFromDb).isEmpty();
-        verify(facade).findById(id);
-        verify(factory).command(PROFILE_FIND_BY_ID);
-        verify(factory.command(PROFILE_FIND_BY_ID)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_FIND_BY_ID)).doCommand(any(Context.class));
+        assertThat(result).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
     }
 
     @Test
-    void shouldCreateOrUpdateProfile() {
+    void shouldCreateOrUpdateProfile_Unified() {
+        String commandId = CREATE_OR_UPDATE;
         doReturn(updateCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).save(payload);
         when(persistence.saveProfile(payload)).thenReturn(Optional.of(payload));
 
-        Optional<StudentProfile> result = facade.createOrUpdateProfile(profile);
+        Optional<StudentProfile> result = facade.doActionAndResult(commandId, payload);
 
         assertThat(result).contains(payload);
-        verify(facade).createOrUpdate(profile);
-        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(payload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
-        verify(payloadMapper).toPayload(any(PersonProfile.class));
+        verify(payloadMapper, never()).toPayload(any(PersonProfile.class));
+    }
+
+    @Test
+    void shouldCreateOrUpdateProfile() {
+        String commandId = CREATE_OR_UPDATE;
+        doReturn(updateCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
+        when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
+        doCallRealMethod().when(persistence).save(payload);
+        when(persistence.saveProfile(payload)).thenReturn(Optional.of(payload));
+
+        Optional<StudentProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", payload);
+
+        assertThat(result).contains(payload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(payload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).save(payload);
+        verify(persistence).saveProfile(payload);
+        verify(payloadMapper, never()).toPayload(any(PersonProfile.class));
     }
 
     @Test
     void shouldNotCreateOrUpdateProfile() {
+        String commandId = CREATE_OR_UPDATE;
         doReturn(updateCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
         doCallRealMethod().when(persistence).save(payload);
 
-        Optional<StudentProfile> result = facade.createOrUpdateProfile(profile);
+        Optional<StudentProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", payload);
 
         assertThat(result).isEmpty();
-        verify(facade).createOrUpdate(profile);
-        verify(factory).command(PROFILE_CREATE_OR_UPDATE);
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).createContext(Input.of(payload));
-        verify(factory.command(PROFILE_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(payload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(payload);
         verify(persistence).saveProfile(payload);
-        verify(payloadMapper).toPayload(any(PersonProfile.class));
+        verify(payloadMapper, never()).toPayload(any(PersonProfile.class));
     }
 
     @Test
-    void shouldDeleteProfileById() {
+    void shouldDeleteProfileById_Unified() {
+        String commandId = DELETE_BY_ID;
         doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 702L;
         when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
@@ -180,11 +219,35 @@ class StudentProfileFacadeImplTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
-        facade.deleteById(id);
+        Object result = facade.doActionAndResult(commandId, id);
 
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        assertThat(result).isNull();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(payloadMapper).toPayload(profile);
+        verify(persistence).deleteProfileById(id);
+    }
+
+    @Test
+    void shouldDeleteProfileById() {
+        String commandId = DELETE_BY_ID;
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
+        Long id = 702L;
+        when(payloadMapper.toPayload(any(PersonProfile.class))).thenReturn(payload);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
+
+        ReflectionTestUtils.invokeMethod(facade, "internalDelete", id);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
@@ -194,16 +257,19 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfile_ProfileNotExists() throws ProfileNotFoundException {
+        String commandId = DELETE_BY_ID;
         doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 715L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", id)
+        );
 
-        assertThat(exception.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        assertThat(thrown.getMessage()).isEqualTo("Profile with ID:715 is not exists.");
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(id);
@@ -211,23 +277,27 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileById_ProfileNotExists() {
+        String commandId = DELETE_BY_ID;
         doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 703L;
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
-        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class, () -> facade.deleteById(id));
+        ProfileNotFoundException thrown = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:703 is not exists.");
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(id);
     }
 
     @Test
-    void shouldDeleteProfileInstance() throws ProfileNotFoundException {
+    void shouldDeleteProfileInstance_Unified() throws ProfileNotFoundException {
+        String commandId = DELETE_BY_ID;
         doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 714L;
         when(profile.getId()).thenReturn(id);
@@ -236,12 +306,34 @@ class StudentProfileFacadeImplTest {
         when(persistence.toEntity(profile)).thenReturn(profile);
         when(payloadMapper.toPayload(profile)).thenReturn(payload);
 
-        facade.delete(profile);
+        Object result = facade.doActionAndResult(commandId, profile);
 
-        verify(facade).deleteById(id);
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        assertThat(result).isNull();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findStudentProfileById(id);
+        verify(persistence).findProfileById(id);
+        verify(persistence).toEntity(profile);
+        verify(persistence).deleteProfileById(id);
+    }
+
+    @Test
+    void shouldDeleteProfileInstance() throws ProfileNotFoundException {
+        String commandId = DELETE_BY_ID;
+        doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
+        Long id = 714L;
+        when(profile.getId()).thenReturn(id);
+        doCallRealMethod().when(persistence).findStudentProfileById(id);
+        when(persistence.findProfileById(id)).thenReturn(Optional.of(profile));
+        when(persistence.toEntity(profile)).thenReturn(profile);
+        when(payloadMapper.toPayload(profile)).thenReturn(payload);
+
+        ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(profile);
@@ -250,18 +342,20 @@ class StudentProfileFacadeImplTest {
 
     @Test
     void shouldNotDeleteProfileInstance_ProfileNotExists() throws ProfileNotFoundException {
+        String commandId = DELETE_BY_ID;
         doReturn(deleteCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         Long id = 716L;
         when(profile.getId()).thenReturn(id);
         doCallRealMethod().when(persistence).findStudentProfileById(id);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:716 is not exists.");
-        verify(facade).deleteById(id);
-        verify(factory).command(PROFILE_DELETE);
-        verify(factory.command(PROFILE_DELETE)).createContext(Input.of(id));
-        verify(factory.command(PROFILE_DELETE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findStudentProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).deleteProfileById(id);
@@ -273,11 +367,12 @@ class StudentProfileFacadeImplTest {
         Long id = -716L;
         when(profile.getId()).thenReturn(id);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
-        verify(facade, never()).deleteById(anyLong());
-        verify(factory, never()).command(PROFILE_DELETE);
+        verify(factory, never()).command(DELETE_BY_ID);
     }
 
     @Test
@@ -285,13 +380,15 @@ class StudentProfileFacadeImplTest {
         reset(actionExecutor);
         when(profile.getId()).thenReturn(null);
 
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class, () -> facade.delete(profile));
+        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile)
+        );
 
         assertThat(exception.getMessage()).startsWith("Wrong ");
-        verify(facade, never()).deleteById(anyLong());
-        verify(factory, never()).command(PROFILE_DELETE);
+        verify(factory, never()).command(DELETE_BY_ID);
     }
 
+    // private methods
     private CommandsFactory<StudentProfileCommand<?>> buildFactory() {
         findCommand = spy(new FindStudentProfileCommand(persistence, payloadMapper));
         updateCommand = spy(new CreateOrUpdateStudentProfileCommand(persistence, payloadMapper));
