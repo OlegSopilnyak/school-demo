@@ -19,12 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentProfileCommand<?>>
         implements StudentProfileFacade {
-
-    public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
-                                    final BusinessMessagePayloadMapper payloadMapper,
-                                    final CommandActionExecutor actionExecutor) {
-        super(factory, payloadMapper, actionExecutor);
-    }
     //
     // semantic data to payload converter
     private UnaryOperator<PersonProfile> toPayloadMapperFunction;
@@ -52,6 +46,11 @@ public class StudentProfileFacadeImpl extends PersonProfileFacadeImpl<StudentPro
         this.toPayloadMapperFunction = profile -> profile instanceof StudentProfilePayload ? profile : mapper.toPayload(profile);
     }
 
+    public StudentProfileFacadeImpl(final CommandsFactory<StudentProfileCommand<?>> factory,
+                                    final BusinessMessagePayloadMapper payloadMapper,
+                                    final CommandActionExecutor actionExecutor) {
+        super(factory, payloadMapper, actionExecutor);
+    }
 
     /**
      * To get the logger of the facade
