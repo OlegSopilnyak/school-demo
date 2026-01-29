@@ -15,6 +15,7 @@ public class ActionContext implements Serializable {
     private static final ThreadLocal<ActionContext> CONTEXT = new ThreadLocal<>();
     private String facadeName;
     private String actionName;
+    private String actionId;
     @Builder.Default
     private Instant startedAt = Instant.now();
     @Builder.Default

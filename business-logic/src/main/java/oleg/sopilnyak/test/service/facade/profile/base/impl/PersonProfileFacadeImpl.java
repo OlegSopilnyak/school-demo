@@ -11,13 +11,13 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import org.springframework.lang.Nullable;
 import lombok.Getter;
 
@@ -30,17 +30,18 @@ import lombok.Getter;
 public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> implements PersonProfileFacade, ActionFacade {
 
     private final CommandsFactory<P> factory;
-    // semantic data to payload converter
-    private final UnaryOperator<PersonProfile> toPayload;
     @Getter
     private final CommandActionExecutor actionExecutor;
     //
     // setting up action-methods by action-id
-    private final Map<String, UnaryOperator<Object>> actions = new HashMap<>(
-            Map.of(
-                    findByIdActionId(), this::internalFindById,
-                    createOrUpdateActionId(), this::internalCreateOrUpdate,
-                    deleteByIdActionId(), this::internalDelete
+    private final Map<String, UnaryOperator<Object>> actions = Map.<String, UnaryOperator<Object>>of(
+            findByIdActionId(), this::internalFindById,
+            createOrUpdateActionId(), this::internalCreateOrUpdate,
+            deleteByIdActionId(), this::internalDelete
+    ).entrySet().stream().collect(Collectors.toMap(
+                    Map.Entry::getKey, Map.Entry::getValue,
+                    (existing, _) -> existing,
+                    HashMap::new
             )
     );
 
@@ -51,13 +52,34 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     ) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;
-        this.toPayload = profile -> profile instanceof BaseProfilePayload ? profile : mapper.toPayload(profile);
+        prepareToPayloadFunction(mapper);
+    }
+
+    /**
+     * To prepare the operator to convert entity to payload
+     *
+     * @param mapper layer's data mapper
+     * @see this#toPayload()
+     * @see BusinessMessagePayloadMapper
+     */
+    protected void prepareToPayloadFunction(final BusinessMessagePayloadMapper mapper) {
+        throw new UnsupportedOperationException("Please implement method in PersonProfileFacadeImpl's descendant.");
+    }
+
+    /**
+     * To get the operator to convert entity to payload
+     *
+     * @return unary operator
+     * @see UnaryOperator#apply(Object)
+     */
+    protected UnaryOperator<PersonProfile> toPayload() {
+        throw new UnsupportedOperationException("Please implement method in PersonProfileFacadeImpl's descendant.");
     }
 
     /**
      * Facade depends on the action's execution
      *
-     * @param actionId         the id of the action
+     * @param actionId   the id of the action
      * @param parameters the parameters of action to execute
      * @return action execution result value
      */
@@ -85,7 +107,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
             final Optional<Optional<PersonProfile>> result = executeCommand(findByIdActionId(), factory, input);
             return result.flatMap(profile -> {
                 getLogger().debug("Found profile {}", profile);
-                return profile.map(toPayload);
+                return profile.map(toPayload());
             });
         } else {
             throw new InvalidParameterTypeException("Long", argument);
@@ -97,11 +119,11 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         if (argument instanceof PersonProfile instance) {
             getLogger().debug("Creating or Updating profile {}", instance);
             // running command execution
-            final var input = Input.of(toPayload.apply(instance));
+            final var input = Input.of(toPayload().apply(instance));
             final Optional<Optional<PersonProfile>> result = executeCommand(createOrUpdateActionId(), factory, input);
             return result.flatMap(profile -> {
                 getLogger().debug("Changed profile {}", profile);
-                return profile.map(toPayload);
+                return profile.map(toPayload());
             });
         } else {
             throw new InvalidParameterTypeException("PersonProfile", argument);
