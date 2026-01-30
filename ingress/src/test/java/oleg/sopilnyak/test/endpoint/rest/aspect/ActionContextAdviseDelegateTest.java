@@ -44,8 +44,8 @@ class ActionContextAdviseDelegateTest {
 
         ActionContext context = ActionContext.current();
         assertThat(context).isNotNull();
-        assertThat(context.getActionName()).isEqualTo(controllerMethodName);
-        assertThat(context.getFacadeName()).isEqualTo(facade.getName());
+        assertThat(context.getEntryPointMethod()).isEqualTo(controllerMethodName);
+        assertThat(context.getActionProcessorFacade()).isEqualTo(facade.getName());
         assertThat(context.getStartedAt()).isNotNull();
         assertThat(context.getLasts()).isEqualTo(Duration.ZERO);
     }
@@ -57,8 +57,8 @@ class ActionContextAdviseDelegateTest {
         String controllerMethodName = "controller-method-name";
         ActionContext context = spy(ActionContext.setup(facadeName, controllerMethodName));
         assertThat(ActionContext.current()).isNotNull();
-        assertThat(context.getActionName()).isEqualTo(controllerMethodName);
-        assertThat(context.getFacadeName()).isEqualTo(facadeName);
+        assertThat(context.getEntryPointMethod()).isEqualTo(controllerMethodName);
+        assertThat(context.getActionProcessorFacade()).isEqualTo(facadeName);
         ActionContext.install(context , true);
 
         delegate.afterCall(jp);

@@ -8,16 +8,23 @@ import lombok.Data;
 
 /**
  * Type : context of facade action
+ *
+ * @see BusinessFacade#getName()
  */
 @Data
 @Builder
 public class ActionContext implements Serializable {
     private static final ThreadLocal<ActionContext> CONTEXT = new ThreadLocal<>();
-    private String facadeName;
-    private String actionName;
+    // the name of method of the entry-point container (rest-controller, message-listener, etc.)
+    private String entryPointMethod;
+    // the name of facade which processed the action
+    private String actionProcessorFacade;
+    // the id of the action
     private String actionId;
+    // the time when action processing is started
     @Builder.Default
     private Instant startedAt = Instant.now();
+    // the duration of the action (how long it was proceeded)
     @Builder.Default
     private Duration lasts = Duration.ZERO;
 
@@ -76,7 +83,7 @@ public class ActionContext implements Serializable {
     public static ActionContext setup(final String facade, final String action) {
         if (facade == null || facade.isBlank()) throw new AssertionError("facade name is empty");
         if (action == null || action.isBlank()) throw new AssertionError("action name is empty");
-        CONTEXT.set(ActionContext.builder().facadeName(facade.trim()).actionName(action.trim()).build());
+        CONTEXT.set(ActionContext.builder().actionProcessorFacade(facade.trim()).entryPointMethod(action.trim()).build());
         return CONTEXT.get();
     }
 }

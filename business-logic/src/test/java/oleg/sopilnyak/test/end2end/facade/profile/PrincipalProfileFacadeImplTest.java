@@ -64,7 +64,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
+@ContextConfiguration(classes = {
+        SchoolCommandsConfiguration.class,
+        PersistenceConfiguration.class,
+        TestConfig.class
+})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {

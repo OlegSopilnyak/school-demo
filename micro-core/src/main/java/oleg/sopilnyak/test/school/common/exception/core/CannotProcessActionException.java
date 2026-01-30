@@ -18,15 +18,15 @@ public class CannotProcessActionException extends RuntimeException {
     }
 
     public CannotProcessActionException(ActionContext context) {
-        this(context.getFacadeName(), context.getActionName());
+        this(context.getActionProcessorFacade(), context.getEntryPointMethod());
     }
 
     public CannotProcessActionException(ActionContext context, String message) {
-        this(context.getFacadeName(), context.getActionName(), message);
+        this(context.getActionProcessorFacade(), context.getEntryPointMethod(), message);
     }
 
     public CannotProcessActionException(ActionContext context, String message, Throwable cause) {
-        this(context.getFacadeName(), context.getActionName(), message, cause);
+        this(context.getActionProcessorFacade(), context.getEntryPointMethod(), message, cause);
     }
 
     public CannotProcessActionException(String message) {

@@ -32,7 +32,7 @@ public interface BusinessFacade {
      * To get the name of the facade
      *
      * @return facade's name
-     * @see ActionContext#getFacadeName()
+     * @see ActionContext#getActionProcessorFacade()
      */
     String getName();
 }

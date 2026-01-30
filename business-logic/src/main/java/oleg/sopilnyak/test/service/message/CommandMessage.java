@@ -24,8 +24,8 @@ public interface CommandMessage<T> extends Serializable {
      * the processing context of command's execution
      *
      * @return the value
-     * @see ActionContext#getFacadeName()
-     * @see ActionContext#getActionName()
+     * @see ActionContext#getActionProcessorFacade()
+     * @see ActionContext#getEntryPointMethod()
      */
     ActionContext getActionContext();
 

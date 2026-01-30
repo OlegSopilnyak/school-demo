@@ -83,8 +83,8 @@ class UndoCommandMessageTest {
         assertThat(restored).isInstanceOf(UndoCommandMessage.class);
         assertThat(restored.getCorrelationId()).isEqualTo(correlationId);
         assertThat(restored.getActionContext()).isNotNull();
-        assertThat(restored.getActionContext().getActionName()).isNotNull().isEqualTo(TEST_ACTION);
-        assertThat(restored.getActionContext().getFacadeName()).isNotNull().isEqualTo(TEST_FACADE);
+        assertThat(restored.getActionContext().getEntryPointMethod()).isNotNull().isEqualTo(TEST_ACTION);
+        assertThat(restored.getActionContext().getActionProcessorFacade()).isNotNull().isEqualTo(TEST_FACADE);
         assertThat(restored.getContext()).isNotNull();
         assertThat(restored.getContext().getUndoParameter().isEmpty()).isFalse();
         assertThat(restored.getContext().getUndoParameter().value()).isEqualTo(id);
@@ -158,7 +158,7 @@ class UndoCommandMessageTest {
         commandContext.setCommand(command);
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(1, ChronoUnit.SECONDS)));
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build();
 
         // Create a UndoCommandMessage instance
         // Set the command ID, action context and command context
@@ -192,7 +192,7 @@ class UndoCommandMessageTest {
         doReturn(VoidCommand.class).when(command).commandFamily();
         CommandContext<Void> commandContext = CommandContext.<Void>builder().build();
         commandContext.setCommand(command);
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a UndoCommandMessage instance
@@ -222,7 +222,7 @@ class UndoCommandMessageTest {
         long id = 6;
         Context.State state = Context.State.DONE;
         CommandContext<Void> commandContext = CommandContext.<Void>builder().command(farm.command(commandId)).build();
-        ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod("test-action").actionProcessorFacade("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
@@ -264,7 +264,7 @@ class UndoCommandMessageTest {
         return UndoCommandMessage.builder()
                 .correlationId(correlationId)
                 .context(context)
-                .actionContext(ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build())
+                .actionContext(ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build())
                 .build();
     }
 }

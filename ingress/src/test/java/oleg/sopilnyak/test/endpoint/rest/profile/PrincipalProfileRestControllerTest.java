@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
@@ -80,10 +82,24 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldFindPrincipalProfile() throws Exception {
+        String commandId = FIND_BY_ID;
         Long id = 402L;
         PrincipalProfile profile = makePrincipalProfile(id);
         doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileById(id);
         String requestPath = ROOT + "/" + id;
+        ActionContext context = ActionContext.current();
+        assertThat(context).isNull();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            ActionContext context1 = ActionContext.current();
+            assertThat(context1).isNotNull();
+            context1.finish();
+            assertThat(context1.getEntryPointMethod()).isEqualTo("findById");
+            assertThat(context1.getActionProcessorFacade()).isEqualTo(facade.getName());
+            assertThat(context1.getActionId()).isEqualTo(commandId);
+            invocationOnMock.callRealMethod();
+            return null;
+        }).when(delegate).afterCall(any(JoinPoint.class));
+
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
@@ -94,7 +110,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).doActionAndResult(FIND_BY_ID, id);
+        verify(facade).doActionAndResult(commandId, id);
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertThat(dto.getId()).isEqualTo(id);
         assertProfilesEquals(profile, dto);

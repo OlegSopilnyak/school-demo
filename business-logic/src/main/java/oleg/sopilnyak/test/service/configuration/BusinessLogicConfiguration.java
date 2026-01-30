@@ -34,7 +34,10 @@ import lombok.RequiredArgsConstructor;
 import org.mapstruct.factory.Mappers;
 
 @Configuration
-@Import({SchoolCommandsConfiguration.class})
+@Import({
+        SchoolCommandsConfiguration.class,
+        AspectFacadeConfiguration.class
+})
 @RequiredArgsConstructor
 public class BusinessLogicConfiguration {
     private final CommandActionExecutor actionExecutor;

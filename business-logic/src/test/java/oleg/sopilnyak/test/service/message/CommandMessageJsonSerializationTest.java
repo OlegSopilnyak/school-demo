@@ -46,7 +46,7 @@ class CommandMessageJsonSerializationTest {
     void shouldDeserializeActionContextUsingActionContextDeserializer() throws IOException {
         String facadeName = "contextNodeTree.get(\"facadeName\")";
         String actionName = "contextNodeTree.get(\"actionName\"))";
-        ActionContext context = ActionContext.builder().facadeName(facadeName).actionName(actionName).build();
+        ActionContext context = ActionContext.builder().actionProcessorFacade(facadeName).entryPointMethod(actionName).build();
         context.finish();
         String json = objectMapper.writeValueAsString(context);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -54,8 +54,8 @@ class CommandMessageJsonSerializationTest {
         ActionContext restored = new IOBase.ActionContextDeserializer().deserialize(parser, null);
 
         assertThat(restored).isNotNull().isInstanceOf(ActionContext.class).isEqualTo(context);
-        assertThat(restored.getFacadeName()).isEqualTo(facadeName);
-        assertThat(restored.getActionName()).isEqualTo(actionName);
+        assertThat(restored.getActionProcessorFacade()).isEqualTo(facadeName);
+        assertThat(restored.getEntryPointMethod()).isEqualTo(actionName);
     }
 
     @Test

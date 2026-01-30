@@ -249,6 +249,12 @@ public interface IOBase<P> extends Serializable {
      */
     class ActionContextDeserializer extends StdDeserializer<ActionContext> {
 
+        public static final String FACADE_NAME_KEY = "actionProcessorFacade";
+        public static final String ACTION_NAME_KEY = "entryPointMethod";
+        public static final String ACTION_ID_KEY = "actionId";
+        public static final String STARTED_AT_KEY = "startedAt";
+        public static final String LASTS_KEY = "lasts";
+
         public ActionContextDeserializer() {
             this(ActionContext.class);
         }
@@ -262,11 +268,13 @@ public interface IOBase<P> extends Serializable {
                                          final DeserializationContext deserializationContext) throws IOException {
             final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final TreeNode contextNodeTree = jsonParser.readValueAsTree();
-            final String facadeName = restoreString(contextNodeTree.get("facadeName"));
-            final String actionName = restoreString(contextNodeTree.get("actionName"));
-            final Instant startedAt = restoreValue(contextNodeTree.get("startedAt"), mapper, Instant.class);
-            final Duration lasts = restoreValue(contextNodeTree.get("lasts"), mapper, Duration.class);
-            return ActionContext.builder().facadeName(facadeName).actionName(actionName)
+            final String facadeName = restoreString(contextNodeTree.get(FACADE_NAME_KEY));
+            final String actionName = restoreString(contextNodeTree.get(ACTION_NAME_KEY));
+            final String actionId = restoreString(contextNodeTree.get(ACTION_ID_KEY));
+            final Instant startedAt = restoreValue(contextNodeTree.get(STARTED_AT_KEY), mapper, Instant.class);
+            final Duration lasts = restoreValue(contextNodeTree.get(LASTS_KEY), mapper, Duration.class);
+            return ActionContext.builder()
+                    .actionProcessorFacade(facadeName).entryPointMethod(actionName).actionId(actionId)
                     .startedAt(startedAt).lasts(lasts).build();
         }
 

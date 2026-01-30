@@ -75,8 +75,8 @@ class DoCommandMessageTest {
         assertThat(restored).isInstanceOf(DoCommandMessage.class);
         assertThat(restored.getCorrelationId()).isEqualTo(correlationId);
         assertThat(restored.getActionContext()).isNotNull();
-        assertThat(restored.getActionContext().getActionName()).isNotNull().isEqualTo(TEST_ACTION);
-        assertThat(restored.getActionContext().getFacadeName()).isNotNull().isEqualTo(TEST_FACADE);
+        assertThat(restored.getActionContext().getEntryPointMethod()).isNotNull().isEqualTo(TEST_ACTION);
+        assertThat(restored.getActionContext().getActionProcessorFacade()).isNotNull().isEqualTo(TEST_FACADE);
         assertThat(restored.getContext()).isNotNull();
         assertThat(restored.getContext().getRedoParameter().isEmpty()).isFalse();
         assertThat(restored.getContext().getRedoParameter().value()).isEqualTo(1L);
@@ -146,7 +146,7 @@ class DoCommandMessageTest {
         commandContext.setCommand(command);
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(1, ChronoUnit.SECONDS)));
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build();
 
         // Create a DoCommandMessage instance
         // Set the command ID, action context and command context
@@ -182,7 +182,7 @@ class DoCommandMessageTest {
         doReturn(BooleanCommand.class).when(command).commandFamily();
         CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().build();
         commandContext.setCommand(command);
-        ActionContext actionContext = ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
         // Create a DoCommandMessage instance
@@ -213,7 +213,7 @@ class DoCommandMessageTest {
         boolean resultValue = false;
         Context.State state = Context.State.DONE;
         CommandContext<Boolean> commandContext = CommandContext.<Boolean>builder().command(farm.command(commandId)).build();
-        ActionContext actionContext = ActionContext.builder().actionName("test-action").facadeName("test-facade").build();
+        ActionContext actionContext = ActionContext.builder().entryPointMethod("test-action").actionProcessorFacade("test-facade").build();
         Instant startedAt = Instant.now();
         Duration duration = Duration.ofMillis(ChronoUnit.MILLIS.between(startedAt, Instant.now().plus(100, ChronoUnit.MILLIS)));
 
@@ -255,7 +255,7 @@ class DoCommandMessageTest {
         return DoCommandMessage.<T>builder()
                 .correlationId(correlationId)
                 .context(context)
-                .actionContext(ActionContext.builder().actionName(TEST_ACTION).facadeName(TEST_FACADE).build())
+                .actionContext(ActionContext.builder().entryPointMethod(TEST_ACTION).actionProcessorFacade(TEST_FACADE).build())
                 .build();
     }
 }

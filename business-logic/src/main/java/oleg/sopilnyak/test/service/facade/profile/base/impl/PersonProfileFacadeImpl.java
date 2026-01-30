@@ -87,12 +87,12 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     @Override
     public <T> T personProfileAction(final String actionId, final Object... parameters) {
         final Object argument = parameters.length > 0 ? parameters[0] : null;
-        getLogger().debug("Trying to execute command {} with arguments {}", actionId, argument);
+        getLogger().debug("Trying to execute action '{}' with arguments {}", actionId, argument);
         return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(argument);
     }
 
     // private methods
-    // throws exception if actio-id is invalid
+    // throws exception if action-id is invalid
     private UnaryOperator<Object> throwsUnknownActionId(final String actionId) {
         final String expectedTypes = String.join(" or ", validActions());
         throw new InvalidParameterTypeException(expectedTypes, actionId);

@@ -14,7 +14,7 @@ import lombok.Getter;
  * Base Service: To process commands for school's organization structure
  */
 @AllArgsConstructor
-public class OrganizationFacadeImpl<T extends OrganizationCommand<?>> implements OrganizationFacade, ActionFacade {
+public abstract class OrganizationFacadeImpl<T extends OrganizationCommand<?>> implements OrganizationFacade, ActionFacade {
     protected final CommandsFactory<T> factory;
     @Getter
     private final CommandActionExecutor actionExecutor;

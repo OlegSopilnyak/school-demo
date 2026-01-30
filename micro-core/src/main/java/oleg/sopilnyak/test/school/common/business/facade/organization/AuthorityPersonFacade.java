@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,6 +17,31 @@ import java.util.Optional;
  * @see AuthorityPerson
  */
 public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacade {
+    //
+    // action-ids
+    String PREFIX = "organization.authority.person";
+    String LOGIN = PREFIX + ".login";
+    String LOGOUT = PREFIX + ".logout";
+    String FIND_ALL = PREFIX + ".findAll";
+    String FIND_BY_ID = PREFIX + ".findById";
+    String CREATE_OR_UPDATE = PREFIX + ".createOrUpdate";
+    String CREATE_NEW = PREFIX + ".create.Macro";
+    String DELETE = PREFIX + ".delete";
+    String DELETE_ALL = PREFIX + ".delete.Macro";
+    //
+    // the list of valid action-ids
+    List<String> ACTION_IDS = List.of(LOGIN, LOGOUT, FIND_ALL, FIND_BY_ID, CREATE_OR_UPDATE, CREATE_NEW, DELETE, DELETE_ALL);
+
+    /**
+     * To get the list of valid action-ids
+     *
+     * @return valid action-ids for concrete descendant-facade
+     */
+    @Override
+    default List<String> validActions() {
+        return ACTION_IDS;
+    }
+
     /**
      * To get the name of the facade
      *
@@ -32,14 +58,18 @@ public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacad
      * @param username the value of person's username (login)
      * @param password the value of person's password
      * @return logged in person's instance or exception will be thrown
+     * @deprecated
      */
+    @Deprecated
     Optional<AuthorityPerson> login(String username, String password);
 
     /**
      * To log out the person
      *
      * @param token logged in person's authorization token (see Authorization: Bearer <token>)
+     * @deprecated
      */
+    @Deprecated
     void logout(String token);
 
     /**
@@ -47,7 +77,9 @@ public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacad
      *
      * @return list of persons
      * @see AuthorityPerson
+     * @deprecated
      */
+    @Deprecated
     Collection<AuthorityPerson> findAllAuthorityPersons();
 
     /**
@@ -58,7 +90,9 @@ public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacad
      * @see AuthorityPerson
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<AuthorityPerson> findAuthorityPersonById(Long id);
 
     /**
@@ -69,7 +103,9 @@ public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacad
      * @see AuthorityPerson
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance);
 
     /**
@@ -80,20 +116,25 @@ public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacad
      * @see AuthorityPerson
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<AuthorityPerson> create(AuthorityPerson instance);
 
     /**
      * To delete authorityPerson from the school
      *
      * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonNotFoundException      throws when authorityPerson is not exists
+     * @throws AuthorityPersonNotFoundException       throws when authorityPerson is not exists
      * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
+     * @deprecated
      */
+    @Deprecated
     void deleteAuthorityPersonById(Long id)
             throws AuthorityPersonNotFoundException,
             AuthorityPersonManagesFacultyException;
 
+    @Deprecated
     default void deleteAuthorityPerson(AuthorityPerson instance)
             throws AuthorityPersonNotFoundException,
             AuthorityPersonManagesFacultyException {
