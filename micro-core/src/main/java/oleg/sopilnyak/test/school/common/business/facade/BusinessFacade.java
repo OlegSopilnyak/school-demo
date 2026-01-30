@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.facade;
 
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+
 import java.util.List;
 
 /**
@@ -26,6 +28,16 @@ public interface BusinessFacade {
      */
     default List<String> validActions() {
         throw new UnsupportedOperationException("Please implement method in BusinessFacade's descendant.");
+    }
+
+    /**
+     * To throw invalid action-id exception
+     *
+     * @param actionId wrong action-id
+     * @see InvalidParameterTypeException
+     */
+    default void throwInvalidActionId(final String actionId) {
+        throw new InvalidParameterTypeException("Valid '" + getName() + "' Action-ID", actionId);
     }
 
     /**

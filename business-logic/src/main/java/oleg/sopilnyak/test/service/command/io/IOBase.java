@@ -248,12 +248,11 @@ public interface IOBase<P> extends Serializable {
      * @see ActionContext#builder()
      */
     class ActionContextDeserializer extends StdDeserializer<ActionContext> {
-
-        public static final String FACADE_NAME_KEY = "actionProcessorFacade";
-        public static final String ACTION_NAME_KEY = "entryPointMethod";
-        public static final String ACTION_ID_KEY = "actionId";
-        public static final String STARTED_AT_KEY = "startedAt";
-        public static final String LASTS_KEY = "lasts";
+        private static final String FACADE_NAME_KEY = "actionProcessorFacade";
+        private static final String ACTION_NAME_KEY = "entryPointMethod";
+        private static final String ACTION_ID_KEY = "actionId";
+        private static final String STARTED_AT_KEY = "startedAt";
+        private static final String LASTS_KEY = "lasts";
 
         public ActionContextDeserializer() {
             this(ActionContext.class);
@@ -278,15 +277,20 @@ public interface IOBase<P> extends Serializable {
                     .startedAt(startedAt).lasts(lasts).build();
         }
 
+        // private methods
         private static String restoreString(final TreeNode propertyValueNode) throws IOException {
-            if (propertyValueNode instanceof TextNode valueNode) {
+            if (propertyValueNode == null || propertyValueNode instanceof NullNode) {
+                return null;
+            } else if (propertyValueNode instanceof TextNode valueNode) {
                 return valueNode.asText();
             } else {
                 throw new IOException("Wrong node-type of propertyValueNode: " + propertyValueNode.getClass().getName());
             }
         }
 
-        private static <T> T restoreValue(final TreeNode propertyValueNode, final ObjectMapper mapper, final Class<T> valueClass) throws IOException {
+        private static <T> T restoreValue(
+                final TreeNode propertyValueNode, final ObjectMapper mapper, final Class<T> valueClass
+        ) throws IOException {
             final String propertyStringValue = propertyValueNode.toString();
             return mapper.readValue(mapper.getFactory().createParser(propertyStringValue), valueClass);
         }

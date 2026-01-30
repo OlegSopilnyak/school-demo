@@ -77,11 +77,12 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     }
 
     /**
-     * Facade depends on the action's execution
+     * PersonProfile action processing facade method
      *
      * @param actionId   the id of the action
      * @param parameters the parameters of action to execute
      * @return action execution result value
+     * @see PersonProfileFacade#doActionAndResult(String, Object...)
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -93,41 +94,36 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
 
     // private methods
     // throws exception if action-id is invalid
+    // @see InvalidParameterTypeException
     private UnaryOperator<Object> throwsUnknownActionId(final String actionId) {
-        final String expectedTypes = String.join(" or ", validActions());
-        throw new InvalidParameterTypeException(expectedTypes, actionId);
+        throwInvalidActionId(actionId);
+        return null;
     }
 
     // To get the person's profile by ID
     private Optional<PersonProfile> internalFindById(final Object argument) {
-        if (argument instanceof Long id) {
-            getLogger().debug("Getting profile by ID:{}", id);
-            // running command execution
-            final Input<Long> input = Input.of(id);
-            final Optional<Optional<PersonProfile>> result = executeCommand(findByIdActionId(), factory, input);
-            return result.flatMap(profile -> {
-                getLogger().debug("Found profile {}", profile);
-                return profile.map(toPayload());
-            });
-        } else {
-            throw new InvalidParameterTypeException("Long", argument);
-        }
+        final Long id = toLong(argument);
+        getLogger().debug("Getting profile by ID:{}", id);
+        // running command execution
+        final Input<Long> input = Input.of(id);
+        final Optional<Optional<PersonProfile>> result = executeCommand(findByIdActionId(), factory, input);
+        return result.flatMap(profile -> {
+            getLogger().debug("Found profile {}", profile);
+            return profile.map(toPayload());
+        });
     }
 
     // To create or update person-profile
     private Optional<PersonProfile> internalCreateOrUpdate(final Object argument) {
-        if (argument instanceof PersonProfile instance) {
-            getLogger().debug("Creating or Updating profile {}", instance);
-            // running command execution
-            final var input = Input.of(toPayload().apply(instance));
-            final Optional<Optional<PersonProfile>> result = executeCommand(createOrUpdateActionId(), factory, input);
-            return result.flatMap(profile -> {
-                getLogger().debug("Changed profile {}", profile);
-                return profile.map(toPayload());
-            });
-        } else {
-            throw new InvalidParameterTypeException("PersonProfile", argument);
-        }
+        final PersonProfile instance = toPersonProfile(argument);
+        getLogger().debug("Creating or Updating profile {}", instance);
+        // running command execution
+        final var input = Input.of(toPayload().apply(instance));
+        final Optional<Optional<PersonProfile>> result = executeCommand(createOrUpdateActionId(), factory, input);
+        return result.flatMap(profile -> {
+            getLogger().debug("Changed profile {}", profile);
+            return profile.map(toPayload());
+        });
     }
 
     // To delete person-profile by id or profile
@@ -167,5 +163,22 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         );
         // returns nothing
         return null;
+    }
+
+    // convert argument to particular type
+    private static Long toLong(final Object argument) {
+        if (argument instanceof Long id) {
+            return id;
+        } else {
+            throw new InvalidParameterTypeException("Long", argument);
+        }
+    }
+
+    private static PersonProfile toPersonProfile(final Object argument) {
+        if (argument instanceof PersonProfile profile) {
+            return profile;
+        } else {
+            throw new InvalidParameterTypeException("PersonProfile", argument);
+        }
     }
 }

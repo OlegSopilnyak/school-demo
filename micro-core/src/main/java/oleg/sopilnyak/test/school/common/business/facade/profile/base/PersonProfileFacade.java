@@ -29,6 +29,18 @@ public interface PersonProfileFacade extends BusinessFacade {
     String deleteByIdActionId();
 
     /**
+     * Unified facade's entry-point to do action and return the result
+     *
+     * @param actionId   the id of the action
+     * @param parameters the parameters of the action to execute
+     * @return action execution result value
+     */
+    @Override
+    default <T> T doActionAndResult(String actionId, Object... parameters) {
+        return personProfileAction(actionId, parameters);
+    }
+
+    /**
      * Facade depends on the action's execution (profiles related action)
      *
      * @param actionId   the id of the action

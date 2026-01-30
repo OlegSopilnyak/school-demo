@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.service.facade.aspect.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.service.facade.aspect.AdviseDelegate;
 
 import org.aspectj.lang.JoinPoint;
@@ -38,22 +37,28 @@ public class BusinessFacadeAdviseDelegate implements AdviseDelegate {
     }
 
     // private method
-    private void applyActionContext(JoinPoint joinPoint, BusinessFacade facade) {
+    private void applyActionContext(final JoinPoint joinPoint, final BusinessFacade facade) {
         final Object[] args = joinPoint.getArgs();
         if (args == null || args.length == 0) {
             log.warn("Empty args array");
         } else {
-            final String actionId = args[0].toString();
-            facade.validActions().stream().filter(id -> id.equals(actionId)).findFirst()
-                    .ifPresentOrElse(id -> log.debug("Valid action-id = '{}'", id),
-                            () -> {
-                                log.error("Invalid action-id '{}'", actionId);
-                                throw new InvalidParameterTypeException("Valid BusinessFacade Action-ID", actionId);
-                            }
-                    );
-            // store action-id to thread's action-context
-            ActionContext.current().setActionId(actionId);
+            updateActionContext(facade, args);
         }
+    }
+
+    // to update ActionContext.action-id by valid one from call's arguments
+    private static void updateActionContext(final BusinessFacade facade, final Object[] args) {
+        final String actionId = args[0].toString();
+        final String facadeName = facade.getName();
+        facade.validActions().stream().filter(id -> id.equals(actionId)).findFirst()
+                .ifPresentOrElse(id -> log.debug("Valid action-id = '{}' of the facade '{}'", id, facadeName),
+                        () -> {
+                            log.error("Invalid action-id '{}' of the facade '{}'", actionId, facadeName);
+                            facade.throwInvalidActionId(actionId);
+                        }
+                );
+        // store action-id to thread's action-context
+        ActionContext.current().setActionId(actionId);
     }
 
     private BusinessFacade getFacadeReference(final JoinPoint joinPoint) {
