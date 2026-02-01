@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,7 +33,6 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
@@ -66,6 +66,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
+    private static final String LOGOUT = "organization.authority.person.logout";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
 
@@ -135,7 +136,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andReturn();
 
         verify(controller).logout(bearer);
-        verify(facade).logout(token);
+        verify(facade).doActionAndResult(LOGOUT, token);
         checkControllerAspect();
     }
 
@@ -156,7 +157,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andReturn();
 
         verify(controller).logout(bearer);
-        verify(facade, never()).logout(anyString());
+        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
         checkControllerAspect();
     }
 
@@ -177,7 +178,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                 .andReturn();
 
         verify(controller, never()).logout(anyString());
-        verify(facade, never()).logout(anyString());
+        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
     }
 
     @Test

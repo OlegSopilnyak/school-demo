@@ -94,9 +94,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
 
     // private methods
     // throws exception if action-id is invalid
-    // @see InvalidParameterTypeException
+    // @see throwInvalidActionId(actionId)
     private UnaryOperator<Object> throwsUnknownActionId(final String actionId) {
-        throwInvalidActionId(actionId);
+        this.throwInvalidActionId(actionId);
         return null;
     }
 

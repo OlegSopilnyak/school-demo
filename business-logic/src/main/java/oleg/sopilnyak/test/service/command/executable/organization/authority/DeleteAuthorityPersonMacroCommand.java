@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -87,7 +88,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      */
     @Override
     public String getId() {
-        return CommandId.DELETE_ALL;
+        return AuthorityPersonFacade.DELETE_MACRO;
     }
 
     /**

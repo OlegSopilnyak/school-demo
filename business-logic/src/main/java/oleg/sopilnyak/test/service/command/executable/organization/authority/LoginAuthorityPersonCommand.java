@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
@@ -52,7 +53,7 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<Authority
      */
     @Override
     public String getId() {
-        return CommandId.LOGIN;
+        return AuthorityPersonFacade.LOGIN;
     }
 
     public LoginAuthorityPersonCommand(PersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {

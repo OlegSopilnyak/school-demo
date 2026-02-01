@@ -37,7 +37,7 @@ public interface BusinessFacade {
      * @see InvalidParameterTypeException
      */
     default void throwInvalidActionId(final String actionId) {
-        throw new InvalidParameterTypeException("Valid '" + getName() + "' Action-ID", actionId);
+        throw new InvalidParameterTypeException("Valid Action-ID of [" + getName() + "]", actionId);
     }
 
     /**

@@ -20,21 +20,6 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     // template of error message
     String PERSON_WITH_ID_PREFIX = "AuthorityPerson with ID:";
 
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String LOGIN = "organization.authority.person.login";
-        public static final String LOGOUT = "organization.authority.person.logout";
-        public static final String FIND_ALL = "organization.authority.person.findAll";
-        public static final String FIND_BY_ID = "organization.authority.person.findById";
-        public static final String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-        public static final String CREATE_NEW = "organization.authority.person.create.macro";
-        public static final String DELETE = "organization.authority.person.delete";
-        public static final String DELETE_ALL = "organization.authority.person.delete.macro";
-    }
-
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "authorityCommandsFactory";
 

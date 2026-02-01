@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -40,7 +41,7 @@ public class LogoutAuthorityPersonCommand extends BasicCommand<Boolean> implemen
      */
     @Override
     public String getId() {
-        return CommandId.LOGOUT;
+        return AuthorityPersonFacade.LOGOUT;
     }
 
     /**

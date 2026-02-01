@@ -1,6 +1,13 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static java.util.Objects.isNull;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.CREATE_MACRO;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.CREATE_OR_UPDATE;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.DELETE_MACRO;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.FIND_ALL;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.FIND_BY_ID;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.LOGIN;
+import static oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade.LOGOUT;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -54,7 +61,7 @@ public class AuthorityPersonsRestController {
                                     @RequestParam(PASS_NAME) String password) {
         log.debug("Trying to login authority person with login: '{}'", username);
         try {
-            return resultToDto(username, facade.login(username, password));
+            return resultToDto(username, facade.doActionAndResult(LOGIN, username, password));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot login authority person for login: " + username, e);
         }
@@ -67,7 +74,7 @@ public class AuthorityPersonsRestController {
             final String token = authorization.substring(7);
             log.debug("Trying to logout authority person with token: '{}'", token);
 
-            facade.logout(token);
+            facade.doActionAndResult(LOGOUT, token);
 
             log.debug("Authority person is logged out.");
         }
@@ -77,7 +84,7 @@ public class AuthorityPersonsRestController {
     public List<AuthorityPersonDto> findAll() {
         log.debug("Trying to get all school's authorities");
         try {
-            return resultToDto(facade.findAllAuthorityPersons());
+            return resultToDto(facade.<Collection<AuthorityPerson>>doActionAndResult(FIND_ALL));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot get all school's authorities", e);
         }
@@ -90,7 +97,7 @@ public class AuthorityPersonsRestController {
             final long id = Long.parseLong(personId);
             log.debug("Getting authority person for id: {}", id);
 
-            return resultToDto(personId, facade.findAuthorityPersonById(id));
+            return resultToDto(personId, facade.doActionAndResult(FIND_BY_ID, id));
         } catch (NumberFormatException | AuthorityPersonNotFoundException _) {
             throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");
         } catch (Exception e) {
@@ -103,7 +110,7 @@ public class AuthorityPersonsRestController {
     public AuthorityPersonDto createPerson(@RequestBody AuthorityPersonDto person) {
         log.debug("Trying to create the authority person {}", person);
         try {
-            return resultToDto(facade.create(person));
+            return resultToDto(facade.<Optional<AuthorityPerson>>doActionAndResult(CREATE_MACRO, person));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot create new authority person " + person.toString(), e);
         }
@@ -117,7 +124,7 @@ public class AuthorityPersonsRestController {
             if (isInvalid(id)) {
                 throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + id + "'");
             }
-            return resultToDto(facade.createOrUpdateAuthorityPerson(person));
+            return resultToDto(facade.<Optional<AuthorityPerson>>doActionAndResult(CREATE_OR_UPDATE, person));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot update authority person " + person.toString(), e);
         }
@@ -133,7 +140,7 @@ public class AuthorityPersonsRestController {
                 throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + id + "'");
             }
 
-            facade.deleteAuthorityPersonById(id);
+            facade.doActionAndResult(DELETE_MACRO, id);
 
         } catch (NumberFormatException | AuthorityPersonNotFoundException _) {
             throw new AuthorityPersonNotFoundException(WRONG_AUTHORITY_PERSON_ID_MESSAGE + personId + "'");

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
@@ -58,7 +59,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      */
     @Override
     public String getId() {
-        return CommandId.DELETE;
+        return AuthorityPersonFacade.DELETE;
     }
 
     public DeleteAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
@@ -69,7 +70,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
      */
     @Override
     public String getId() {
-        return AuthorityPersonCommand.CommandId.CREATE_NEW;
+        return AuthorityPersonFacade.CREATE_MACRO;
     }
 
     public CreateAuthorityPersonMacroCommand(
@@ -268,7 +269,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     // to check the command types
     // is update person command-id
     private static boolean isUpdatePersonCommand(final String commandId) {
-        return AuthorityPersonCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+        return AuthorityPersonFacade.CREATE_OR_UPDATE.equals(commandId);
     }
 
     // is update profile command-id
@@ -290,7 +291,8 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     // to check is context for create or update the person
     private static boolean hasPerson(Context<?> context) {
         final RootCommand<?> command = context.getCommand();
-        return command instanceof AuthorityPersonCommand<?> && CommandId.CREATE_OR_UPDATE.equals(command.getId());
+        return command instanceof AuthorityPersonCommand<?>
+                && AuthorityPersonFacade.CREATE_OR_UPDATE.equals(command.getId());
     }
 
     private static <T> Context<T> cannotCreateNestedContextFor(RootCommand<T> command) {

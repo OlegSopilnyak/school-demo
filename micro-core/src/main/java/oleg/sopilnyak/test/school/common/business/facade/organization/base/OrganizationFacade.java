@@ -3,7 +3,6 @@ package oleg.sopilnyak.test.school.common.business.facade.organization.base;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
-import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 
 /**
@@ -15,17 +14,16 @@ public interface OrganizationFacade extends BusinessFacade {
 
     /**
      * Unified facade's entry-point to do action and return the result
+     * delegate to facade's main entry-point method
      *
      * @param actionId   the id of the action
      * @param parameters the parameters of the action to execute
      * @return action execution result value
+     * @see OrganizationFacade#organizationAction(String, Object...)
      */
-    @SuppressWarnings("unchecked")
     @Override
     default <T> T doActionAndResult(final String actionId, final Object... parameters) {
-        return (T) validActions().stream().filter(id -> id.equals(actionId))
-                .findFirst().map(id -> organizationAction(id, parameters))
-                .orElseThrow(() -> new InvalidParameterTypeException(String.join(" or ", validActions()), actionId));
+        return organizationAction(actionId, parameters);
     }
 
     /**

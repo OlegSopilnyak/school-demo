@@ -88,9 +88,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
     private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.Macro";
     private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.Macro";
 
     @Autowired
     ConfigurableApplicationContext context;
@@ -156,15 +156,17 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldLogoutAuthorityPerson() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGOUT;
         String token = "logged_in_person_token";
 
-        facade.logout(token);
+        facade.doActionAndResult(commandId, token);
 
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGOUT, Input.of(token));
+        verifyAfterCommand(commandId, Input.of(token));
     }
 
     @Test
     void shouldLoginAuthorityPerson() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGIN;
         String username = "test-login";
         String password = "test-password";
         AuthorityPersonPayload person = createPerson();
@@ -172,16 +174,17 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(findAuthorityPersonByProfileId(person.getProfileId())).isEqualTo(person.getOriginal());
         setPersonPermissions(person, username, password);
 
-        Optional<AuthorityPerson> loggedIn = facade.login(username, password);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, username, password);
 
-        assertThat(loggedIn).isPresent().contains(person);
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGIN, Input.of(username, password));
+        assertThat(result).isPresent().contains(person);
+        verifyAfterCommand(commandId, Input.of(username, password));
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(person.getProfileId());
     }
 
     @Test
     void shouldNotLoginAuthorityPerson_WrongPassword() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGIN;
         String username = "test-login";
         String password = "test-password";
         AuthorityPersonPayload person = createPerson();
@@ -189,69 +192,77 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(findAuthorityPersonByProfileId(person.getProfileId())).isEqualTo(person.getOriginal());
         setPersonPermissions(person, username, password);
 
-        var thrown = assertThrows(SchoolAccessDeniedException.class, () -> facade.login(username, "password"));
+        var thrown = assertThrows(SchoolAccessDeniedException.class,
+                () -> facade.doActionAndResult(commandId, username, "password")
+//                        facade.login(username, "password")
+        );
 
         assertThat(thrown).isInstanceOf(SchoolAccessDeniedException.class);
         assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
 
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_LOGIN, Input.of(username, "password"));
+        verifyAfterCommand(commandId, Input.of(username, "password"));
         verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(person.getProfileId());
     }
 
     @Test
     void shouldFindAllAuthorityPersons_Empty() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_ALL;
 
-        Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
+        Collection<AuthorityPerson> persons = facade.doActionAndResult(commandId);
 
         assertThat(persons).isEmpty();
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistence).findAllAuthorityPersons();
     }
 
     @Test
     void shouldFindAllAuthorityPersons_ExistsInstance() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_ALL;
         AuthorityPersonPayload person = createPerson();
         assertThat(findAuthorityPersonById(person.getId())).isEqualTo(person.getOriginal());
 
-        Collection<AuthorityPerson> persons = facade.findAllAuthorityPersons();
+        Collection<AuthorityPerson> persons = facade.doActionAndResult(commandId);
 
         assertThat(persons).contains(payloadMapper.toPayload(person));
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_ALL, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistence).findAllAuthorityPersons();
     }
 
     @Test
     void shouldNotFindAuthorityPersonById_NotFound() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID;
         Long id = 300L;
 
-        Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, id);
 
-        assertThat(person).isEmpty();
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID, Input.of(id));
+        assertThat(result).isEmpty();
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
     }
 
     @Test
     void shouldFindAuthorityPersonById() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID;
         AuthorityPerson authorityPerson = createPerson();
         Long id = authorityPerson.getId();
 
-        Optional<AuthorityPerson> person = facade.findAuthorityPersonById(id);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, id);
 
-        assertThat(person).isPresent().contains(authorityPerson);
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID, Input.of(id));
+        assertThat(result).isPresent().contains(authorityPerson);
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
     }
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Create() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW;
         AuthorityPerson authorityPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
 
-        Optional<AuthorityPerson> person = facade.create(authorityPerson);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, authorityPerson);
 
-        assertThat(person).isPresent();
-        assertAuthorityPersonEquals(authorityPerson, person.get(), false);
+        assertThat(result).isPresent();
+        assertAuthorityPersonEquals(authorityPerson, result.get(), false);
         verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW, Input.of(authorityPerson));
         ArgumentCaptor<AuthorityPerson> captor = ArgumentCaptor.forClass(AuthorityPerson.class);
         verify(persistence).save(captor.capture());
@@ -260,64 +271,72 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Update() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE;
         AuthorityPerson authorityPerson = createPerson();
 
-        Optional<AuthorityPerson> person = facade.createOrUpdateAuthorityPerson(authorityPerson);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, authorityPerson);
 
-        assertThat(person).isPresent();
-        assertAuthorityPersonEquals(authorityPerson, person.get(), true);
+        assertThat(result).isPresent();
+        assertAuthorityPersonEquals(authorityPerson, result.get(), true);
         verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE, Input.of(authorityPerson));
         verify(persistence).save(authorityPerson);
     }
 
     @Test
     void shouldNotCreateOrUpdateFaculty() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE;
         Long id = 301L;
         AuthorityPersonPayload authorityPersonSource = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
         authorityPersonSource.setId(id);
         reset(payloadMapper);
 
 
-        UnableExecuteCommandException thrown = assertThrows(
-                UnableExecuteCommandException.class,
-                () -> facade.createOrUpdateAuthorityPerson(authorityPersonSource)
+        UnableExecuteCommandException thrown = assertThrows(UnableExecuteCommandException.class,
+                () -> facade.doActionAndResult(commandId, authorityPersonSource)
+//                        facade.createOrUpdateAuthorityPerson(authorityPersonSource)
         );
 
-        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE);
+        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(commandId);
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(AuthorityPersonNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is not exists.");
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE, Input.of(authorityPersonSource));
+        verifyAfterCommand(commandId, Input.of(authorityPersonSource));
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence, never()).save(any(AuthorityPerson.class));
     }
 
     @Test
     void shouldDeleteAuthorityPersonById() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL;
         Long id = createPerson().getId();
 
-        facade.deleteAuthorityPersonById(id);
+        facade.doActionAndResult(commandId, id);
 
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence).deleteAuthorityPerson(id);
     }
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL;
         Long id = 303L;
 
-        var thrown = assertThrows(AuthorityPersonNotFoundException.class, () -> facade.deleteAuthorityPersonById(id));
+        var thrown = assertThrows(AuthorityPersonNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, id)
+//                        facade.deleteAuthorityPersonById(id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("AuthorityPerson with ID:303 is not exists.");
 
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }
 
     @Test
     void shouldNotDeleteAuthorityPersonById_PersonManageFaculty() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
+        String commandId = ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL;
         AuthorityPerson authorityPersonSource = makeCleanAuthorityPerson(2);
         if (authorityPersonSource instanceof FakeAuthorityPerson person) {
             person.setFaculties(List.of(makeCleanFacultyNoDean(2)));
@@ -325,10 +344,14 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         AuthorityPerson authorityPerson = createPerson(authorityPersonSource);
         Long id = authorityPerson.getId();
 
-        var thrown = assertThrows(AuthorityPersonManagesFacultyException.class, () -> facade.deleteAuthorityPersonById(id));
+        var thrown = assertThrows(AuthorityPersonManagesFacultyException.class,
+                () -> facade.doActionAndResult(commandId, id)
+//                        facade.deleteAuthorityPersonById(id)
+//                () -> facade.deleteAuthorityPersonById(id)
+        );
 
         assertThat(thrown.getMessage()).startsWith("AuthorityPerson with ID:").endsWith(" is managing faculties.");
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence, atLeastOnce()).findAuthorityPersonById(id);
         verify(persistence, never()).deleteAuthorityPerson(id);
     }

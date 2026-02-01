@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.service.facade.organization.impl;
 
-import static oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand.CommandId;
-
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
@@ -47,8 +45,14 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     private final UnaryOperator<AuthorityPerson> toPayload;
     //
     // setting up action-methods by action-id
-    private final Map<String, Function<Object[], Object>> actions = Map.<String,  Function<Object[], Object>>of(
-            AuthorityPersonFacade.LOGIN, this::internalLogin
+    private final Map<String, Function<Object[], Object>> actions = Map.<String, Function<Object[], Object>>of(
+            AuthorityPersonFacade.LOGIN, this::internalLogin,
+            AuthorityPersonFacade.LOGOUT, this::internalLogout,
+            AuthorityPersonFacade.FIND_ALL, this::internalFindAll,
+            AuthorityPersonFacade.FIND_BY_ID, this::internalFindById,
+            AuthorityPersonFacade.CREATE_OR_UPDATE, this::internalCreateOrUpdate,
+            AuthorityPersonFacade.CREATE_MACRO, this::internalCreateComposite,
+            AuthorityPersonFacade.DELETE_MACRO, this::internalDeleteComposite
     ).entrySet().stream().collect(Collectors.toMap(
                     Map.Entry::getKey, Map.Entry::getValue,
                     (existing, _) -> existing,
@@ -81,181 +85,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     /**
-     * To log in AuthorityPerson by it valid login and password
-     *
-     * @param username the value of person's username (login)
-     * @param password the value of person's password
-     * @return logged in person's instance or exception will be thrown
-     * @see AuthorityPersonFacade#LOGIN
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<AuthorityPerson> login(String username, String password) {
-        final String commandId = CommandId.LOGIN;
-        final Consumer<Exception> doThisOnError = exception -> {
-            switch (exception) {
-                case ProfileNotFoundException notFoundException -> {
-                    logSomethingWentWrong(exception, commandId);
-                    throw notFoundException;
-                }
-                case SchoolAccessDeniedException accessIsDeniedException -> {
-                    logSomethingWentWrong(exception, commandId);
-                    throw accessIsDeniedException;
-                }
-                case null, default -> defaultDoOnError(commandId).accept(exception);
-            }
-        };
-
-        log.debug("Trying to log in using: '{}'", username);
-        final var input = Input.of(username, password);
-        final Optional<Optional<AuthorityPerson>> result = executeCommand(commandId, factory, input, doThisOnError);
-        if (result.isPresent()) {
-            final Optional<AuthorityPerson> loggedIn = result.get();
-            log.debug("Person is logged in: {}", loggedIn);
-            return loggedIn.map(toPayload);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * To log out the AuthorityPerson
-     *
-     * @param token logged in person's authorization token (see Authorization: Bearer <token>)
-     * @see AuthorityPersonCommand.CommandId#LOGOUT
-     */
-    @Override
-    public void logout(String token) {
-        log.debug("Logging out person using token: {}", token);
-        final Optional<Boolean> result = executeCommand(CommandId.LOGOUT, factory, Input.of(token));
-        result.ifPresent(executionResult ->
-                log.debug("Person is logged out: {}", executionResult)
-        );
-    }
-
-    /**
-     * To get all authorityPerson
-     *
-     * @return list of persons
-     * @see AuthorityPerson
-     * @see AuthorityPersonPayload
-     * @see AuthorityPersonCommand.CommandId#FIND_ALL
-     */
-    @Override
-    public Collection<AuthorityPerson> findAllAuthorityPersons() {
-        log.debug("Finding all authority persons");
-        final Optional<Set<AuthorityPerson>> result;
-        result = executeCommand(CommandId.FIND_ALL, factory, Input.empty());
-        if (result.isPresent()) {
-            final Set<AuthorityPerson> personSet = result.get();
-            log.debug("Found all authority persons {}", personSet);
-            return personSet.stream().map(toPayload).collect(Collectors.toSet());
-        }
-        return Set.of();
-    }
-
-    /**
-     * To get the authorityPerson by ID
-     *
-     * @param id system-id of the authorityPerson
-     * @return AuthorityPerson instance or empty() if not exists
-     * @see AuthorityPerson
-     * @see AuthorityPersonPayload
-     * @see Optional
-     * @see Optional#empty()
-     */
-    @Override
-    public Optional<AuthorityPerson> findAuthorityPersonById(Long id) {
-        log.debug("Finding authority person by ID:{}", id);
-        final Optional<Optional<AuthorityPerson>> result;
-        result = executeCommand(CommandId.FIND_BY_ID, factory, Input.of(id));
-        if (result.isPresent()) {
-            final Optional<AuthorityPerson> person = result.get();
-            log.debug("Found authority person {}", person);
-            return person.map(toPayload);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * To create or update authorityPerson instance
-     *
-     * @param instance authorityPerson should be created or updated
-     * @return AuthorityPerson instance or empty() if not exists
-     * @see AuthorityPerson
-     * @see AuthorityPersonPayload
-     * @see Optional
-     * @see Optional#empty()
-     */
-    @Override
-    public Optional<AuthorityPerson> createOrUpdateAuthorityPerson(AuthorityPerson instance) {
-        log.debug("Creating or Updating authority person {}", instance);
-        final var input = Input.of(toPayload.apply(instance));
-        final Optional<Optional<AuthorityPerson>> result;
-        result = executeCommand(CommandId.CREATE_OR_UPDATE, factory, input);
-        if (result.isPresent()) {
-            final Optional<AuthorityPerson> person = result.get();
-            log.debug("Changed authority person {}", person);
-            return person.map(toPayload);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * To create person instance + it's profile
-     *
-     * @param instance person should be created
-     * @return person instance or empty() if it cannot do
-     * @see AuthorityPerson
-     * @see Optional
-     * @see Optional#empty()
-     */
-    @Override
-    public Optional<AuthorityPerson> create(AuthorityPerson instance) {
-        log.debug("Creating authority person with new profile {}", instance);
-        final var input = Input.of(toPayload.apply(instance));
-        final Optional<Optional<AuthorityPerson>> result;
-        result = executeCommand(CommandId.CREATE_NEW, factory, input);
-        if (result.isPresent()) {
-            final Optional<AuthorityPerson> person = result.get();
-            log.debug("Created authority person {}", person);
-            return person.map(toPayload);
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * To delete authorityPerson from the school (with profile at once)
-     *
-     * @param id system-id of the authorityPerson to delete
-     * @throws AuthorityPersonNotFoundException       throws when authorityPerson is not exists
-     * @throws AuthorityPersonManagesFacultyException throws when authorityPerson takes place in a faculty as a dean
-     */
-    @Override
-    public void deleteAuthorityPersonById(Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
-        final String commandId = CommandId.DELETE_ALL;
-        final Consumer<Exception> doThisOnError = exception -> {
-            switch (exception) {
-                case AuthorityPersonNotFoundException noPersonException -> {
-                    logSomethingWentWrong(exception, commandId);
-                    throw noPersonException;
-                }
-                case AuthorityPersonManagesFacultyException managesFacultyException -> {
-                    logSomethingWentWrong(exception, commandId);
-                    throw managesFacultyException;
-                }
-                case null, default -> defaultDoOnError(commandId).accept(exception);
-            }
-        };
-
-        log.debug("Deleting authority person with ID:{} and it's profile", id);
-        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doThisOnError);
-        result.ifPresent(executionResult ->
-                log.debug("Deleted authority person with ID:{} successfully:{} .", id, executionResult)
-        );
-    }
-
-    /**
      * To get the logger of the facade
      *
      * @return logger instance
@@ -272,9 +101,33 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         throw new InvalidParameterTypeException(expectedTypes, actionId);
     }
 
-    // to decode logi/password from parameters array
+    // to decode string parameter from parameters array
+    private static String decodeStringArgument(final Object... parameters) {
+        if (parameters == null || parameters.length < 1) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[0] instanceof String value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("String", parameters[0]);
+        }
+    }
+
+    // to decode long parameter from parameters array
+    private static Long decodeLongArgument(final Object... parameters) {
+        if (parameters == null || parameters.length < 1) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[0] instanceof Long value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("Long", parameters[0]);
+        }
+    }
+
+    // to decode login/password from parameters array
     private static Map<String, String> decodeAuthentication(final Object... parameters) {
-        if (parameters.length != 2) {
+        if (parameters == null || parameters.length != 2) {
             throw new IllegalArgumentException("Wrong number of parameters for the login action");
         }
         final Map<String, String> result = new HashMap<>();
@@ -291,11 +144,26 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         return result;
     }
 
+    // to decode authority person from parameters array
+    private static AuthorityPerson decodePersonArgument(final Object... parameters) {
+        if (parameters == null || parameters.length < 1) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[0] instanceof AuthorityPerson value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("AuthorityPerson", parameters[0]);
+        }
+    }
+
     // To log in AuthorityPerson by it valid login and password
     private Optional<AuthorityPerson> internalLogin(final Object... parameters) {
-        final Map<String, String> authentication = decodeAuthentication(parameters);
-        final String username = authentication.get(LOGIN_KEY);
-        final String password = authentication.get(PASSWORD_KEY);
+        final Map<String, String> auth = decodeAuthentication(parameters);
+        return internalLogin(auth.get(LOGIN_KEY), auth.get(PASSWORD_KEY));
+    }
+
+    // To log in AuthorityPerson by it valid username and password
+    private Optional<AuthorityPerson> internalLogin(final String username, final String password) {
         // doing login action business logic
         final String commandId = AuthorityPersonFacade.LOGIN;
         // declaring custom error handler
@@ -315,12 +183,122 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
             }
         };
 
+        // logging in the person
         log.debug("Trying to log in person using: '{}'", username);
         final var input = Input.of(username, password);
         final Optional<Optional<AuthorityPerson>> result = executeCommand(commandId, factory, input, doOnError);
         return result.flatMap(person -> {
+            // logged in successfully
             log.debug("AuthorityPerson is logged in: {}", person);
             return person.map(toPayload);
         });
+    }
+
+    // To log out the AuthorityPerson (for entry-point)
+    private Void internalLogout(final Object... parameters) {
+        internalLogout(decodeStringArgument(parameters));
+        return null;
+    }
+
+    // To log out the AuthorityPerson (for internal usage)
+    private void internalLogout(final String token) {
+        log.debug("Logging out person using token: {}", token);
+        final Optional<Boolean> result = executeCommand(AuthorityPersonFacade.LOGOUT, factory, Input.of(token));
+        result.ifPresent(executionResult ->
+                log.debug("Person is logged out: {}", executionResult)
+        );
+    }
+
+    // To get all authority persons (for entry-point)
+    private Collection<AuthorityPerson> internalFindAll(final Object... parameters) {
+        return internalFindAll();
+    }
+
+    // To get all authority persons (for internal usage)
+    private Collection<AuthorityPerson> internalFindAll() {
+        log.debug("Finding all authority persons");
+        final Optional<Set<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.FIND_ALL, factory, Input.empty());
+        return result.map(entities -> {
+            log.debug("Found all authority persons {}", entities);
+            return entities.stream().map(toPayload).collect(Collectors.toSet());
+        }).orElseGet(Set::of);
+    }
+
+    // To get the authority person by ID (for entry-point)
+    private Optional<AuthorityPerson> internalFindById(final Object... parameters) {
+        return internalFindById(decodeLongArgument(parameters));
+    }
+
+    // To get the authority person by ID (for internal usage)
+    private Optional<AuthorityPerson> internalFindById(final Long id) {
+        log.debug("Finding authority person by ID:{}", id);
+        final Optional<Optional<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.FIND_BY_ID, factory, Input.of(id));
+        return result.flatMap(person -> {
+            log.debug("Found authority person {}", person);
+            return person.map(toPayload);
+        });
+    }
+
+    // To create or update authority person instance (for entry-point)
+    private Optional<AuthorityPerson> internalCreateOrUpdate(final Object... parameters) {
+        return internalCreateOrUpdate(decodePersonArgument(parameters));
+    }
+
+    // To create or update authority person instance (for internal usage)
+    private Optional<AuthorityPerson> internalCreateOrUpdate(final AuthorityPerson instance) {
+        log.debug("Creating or Updating authority person {}", instance);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.CREATE_OR_UPDATE, factory, input);
+        return result.flatMap(person -> {
+            log.debug("Changed authority person {}", person);
+            return person.map(toPayload);
+        });
+    }
+
+    // To create person instance + it's profile (for entry-point)
+    private Optional<AuthorityPerson> internalCreateComposite(final Object... parameters) {
+        return internalCreateComposite(decodePersonArgument(parameters));
+    }
+
+    // To create person instance + it's profile (for internal usage)
+    private Optional<AuthorityPerson> internalCreateComposite(final AuthorityPerson instance) {
+        log.debug("Creating authority person with new profile {}", instance);
+        final var input = Input.of(toPayload.apply(instance));
+        final Optional<Optional<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.CREATE_MACRO, factory, input);
+        return result.flatMap( person ->{
+            log.debug("Created authority person {}", person);
+            return person.map(toPayload);
+        });
+    }
+
+
+    // To delete authorityPerson from the school (with profile at once) (for entry-point)
+    private Void internalDeleteComposite(final Object... parameters) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
+        internalDeleteComposite(decodeLongArgument(parameters));
+        return null;
+    }
+
+    // To delete authorityPerson from the school (with profile at once) (for internal usage)
+    private void internalDeleteComposite(final Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
+        final String commandId = AuthorityPersonFacade.DELETE_MACRO;
+        final Consumer<Exception> doOnError = exception -> {
+            switch (exception) {
+                case AuthorityPersonNotFoundException noPersonException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw noPersonException;
+                }
+                case AuthorityPersonManagesFacultyException managesFacultyException -> {
+                    logSomethingWentWrong(exception, commandId);
+                    throw managesFacultyException;
+                }
+                case null, default -> defaultDoOnError(commandId).accept(exception);
+            }
+        };
+        // deleting person and it's profile at once
+        log.debug("Deleting authority person with ID:{} and it's profile", id);
+        final Optional<Boolean> result = executeCommand(commandId, factory, Input.of(id), doOnError);
+        result.ifPresent(executionResult ->
+                log.debug("Deleted authority person with ID:{} successfully:{} .", id, executionResult)
+        );
     }
 }

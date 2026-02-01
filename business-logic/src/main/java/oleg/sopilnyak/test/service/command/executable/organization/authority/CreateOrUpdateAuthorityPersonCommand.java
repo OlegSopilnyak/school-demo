@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
@@ -56,7 +57,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return AuthorityPersonFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateAuthorityPersonCommand(final AuthorityPersonPersistenceFacade persistence,

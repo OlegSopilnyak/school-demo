@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -51,7 +52,7 @@ public class FindAllAuthorityPersonsCommand extends BasicCommand<Set<AuthorityPe
      */
     @Override
     public String getId() {
-        return CommandId.FIND_ALL;
+        return AuthorityPersonFacade.FIND_ALL;
     }
 
     /**

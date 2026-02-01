@@ -48,6 +48,12 @@ public class BusinessFacadeAdviseDelegate implements AdviseDelegate {
 
     // to update ActionContext.action-id by valid one from call's arguments
     private static void updateActionContext(final BusinessFacade facade, final Object[] args) {
+        if (args[0] == null) {
+            // could be from controller's tests
+            log.debug("Empty actionId");
+            return;
+        }
+        // processing action-id
         final String actionId = args[0].toString();
         final String facadeName = facade.getName();
         facade.validActions().stream().filter(id -> id.equals(actionId)).findFirst()
