@@ -54,6 +54,7 @@ import org.mapstruct.factory.Mappers;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
+    private static final String PROFILE_CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
     @Mock
     PersistenceFacade persistence;
     @Spy
@@ -156,7 +157,7 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains("profile.principal.createOrUpdate");
+        assertThat(context.getException().getMessage()).contains(PROFILE_CREATE_OR_UPDATE);
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);

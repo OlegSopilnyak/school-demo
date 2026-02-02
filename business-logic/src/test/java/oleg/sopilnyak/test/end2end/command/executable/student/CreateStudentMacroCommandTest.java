@@ -64,6 +64,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
+    private static final String PROFILE_CREATE_OR_UPDATE = "school::person::profile::student:create.Or.Update";
     @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
@@ -169,7 +170,7 @@ class CreateStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains("profile.student.createOrUpdate");
+        assertThat(context.getException().getMessage()).contains(PROFILE_CREATE_OR_UPDATE);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(nestedProfileCommand).acceptPreparedContext(command, wrongInput);

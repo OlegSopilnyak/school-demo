@@ -54,8 +54,8 @@ import org.mapstruct.factory.Mappers;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class PrincipalProfileRestControllerTest extends TestModelFactory {
-    private static final String FIND_BY_ID = "profile.principal.findById";
-    private static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
+    private static final String FIND_BY_ID = "school::person::profile::principal:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);

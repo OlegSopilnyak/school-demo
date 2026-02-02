@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
  *
  */
 public interface PersonProfileFacade extends BusinessFacade {
+    String NAMESPACE = "school::person::profile";
     /**
      * Action ID of find person by id
      *

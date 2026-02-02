@@ -45,9 +45,12 @@ class StudentProfileCommandsFactorySpringTest {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "profile.student.findById",
-                "profile.student.deleteById",
-                "profile.student.createOrUpdate"
+                "school::person::profile::student:find.By.Id",
+                "school::person::profile::student:create.Or.Update",
+                "school::person::profile::student:delete.By.Id"
+//                "profile.student.findById",
+//                "profile.student.deleteById",
+//                "profile.student.createOrUpdate"
         );
     }
 

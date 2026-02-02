@@ -66,7 +66,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
-    private static final String LOGOUT = "organization.authority.person.logout";
+    private static final String LOGOUT = "school::organization::authority::person:logout";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
 

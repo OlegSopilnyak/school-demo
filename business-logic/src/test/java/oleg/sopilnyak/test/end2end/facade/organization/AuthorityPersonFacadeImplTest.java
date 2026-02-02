@@ -84,13 +84,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
-    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.Macro";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.Macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "school::organization::authority::person:login";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "school::organization::authority::person:logout";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "school::organization::authority::person:find.All";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "school::organization::authority::person:find.By.Id";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "school::organization::authority::person:create.Macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "school::organization::authority::person:create.Or.Update";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "school::organization::authority::person:delete.Macro";
 
     @Autowired
     ConfigurableApplicationContext context;

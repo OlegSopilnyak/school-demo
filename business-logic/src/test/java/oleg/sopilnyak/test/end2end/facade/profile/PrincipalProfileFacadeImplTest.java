@@ -72,9 +72,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
-    private static final String PROFILE_FIND_BY_ID = "profile.principal.findById";
-    private static final String PROFILE_CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
-    private static final String PROFILE_DELETE = "profile.principal.deleteById";
+    private static final String FIND_BY_ID = "school::person::profile::principal:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
+    private static final String DELETE_BY_ID = "school::person::profile::principal:delete.By.Id";
 
     @MockitoSpyBean
     @Autowired
@@ -142,7 +142,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isPresent();
         assertProfilesEquals(result.orElseThrow(), profile, true);
-        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
+        verifyAfterCommand(FIND_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
     }
@@ -154,7 +154,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
         assertThat(result).isEmpty();
-        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
+        verifyAfterCommand(FIND_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
     }
@@ -166,7 +166,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         Optional<PrincipalProfile> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
         assertThat(result).isEmpty();
-        verifyAfterCommand(PROFILE_FIND_BY_ID, Input.of(id));
+        verifyAfterCommand(FIND_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
     }
@@ -179,7 +179,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isPresent();
         assertProfilesEquals(result.orElseThrow(), profileSource, false);
-        verifyAfterCommand(PROFILE_CREATE_OR_UPDATE, Input.of(profileSource));
+        verifyAfterCommand(CREATE_OR_UPDATE, Input.of(profileSource));
         verify(persistence).save(profileSource);
         verify(persistence).saveProfile(profileSource);
     }
@@ -193,7 +193,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isPresent();
         assertProfilesEquals(result.orElseThrow(), profile, false);
-        verifyAfterCommand(PROFILE_CREATE_OR_UPDATE, Input.of(profile));
+        verifyAfterCommand(CREATE_OR_UPDATE, Input.of(profile));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).toEntity(any(PrincipalProfileEntity.class));
@@ -203,7 +203,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotCreateOrUpdateProfile_Create() {
-        String commandId = PROFILE_CREATE_OR_UPDATE;
+        String commandId = CREATE_OR_UPDATE;
         Long id = 611L;
         PrincipalProfile profileSource = payloadMapper.toPayload(makePrincipalProfile(id));
 
@@ -228,7 +228,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         ReflectionTestUtils.invokeMethod(facade, "internalDelete", id);
 
-        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
+        verifyAfterCommand(DELETE_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).deleteProfileById(id);
@@ -242,7 +242,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
 
         ReflectionTestUtils.invokeMethod(facade, "internalDelete", profile);
 
-        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
+        verifyAfterCommand(DELETE_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence).deleteProfileById(id);
@@ -259,7 +259,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         );
 
         assertThat(exception.getMessage()).isEqualTo("Profile with ID:615 is not exists.");
-        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
+        verifyAfterCommand(DELETE_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).toEntity(any(PrincipalProfile.class));
@@ -275,7 +275,7 @@ class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
         );
 
         assertThat(thrown.getMessage()).isEqualTo("Profile with ID:603 is not exists.");
-        verifyAfterCommand(PROFILE_DELETE, Input.of(id));
+        verifyAfterCommand(DELETE_BY_ID, Input.of(id));
         verify(persistence).findPrincipalProfileById(id);
         verify(persistence).findProfileById(id);
         verify(persistence, never()).toEntity(any(PrincipalProfile.class));

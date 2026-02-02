@@ -46,9 +46,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class PrincipalProfileFacadeImplTest {
-    private static final String FIND_BY_ID = "profile.principal.findById";
-    private static final String CREATE_OR_UPDATE = "profile.principal.createOrUpdate";
-    private static final String DELETE_BY_ID = "profile.principal.deleteById";
+    private static final String FIND_BY_ID = "school::person::profile::principal:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
+    private static final String DELETE_BY_ID = "school::person::profile::principal:delete.By.Id";
 
     @Mock
     ProfilePersistenceFacade persistence;

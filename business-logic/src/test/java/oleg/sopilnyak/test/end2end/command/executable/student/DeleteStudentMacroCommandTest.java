@@ -71,6 +71,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 })
 @SuppressWarnings("unchecked")
 class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
+    private static final String PROFILE_DELETE_BY_ID = "school::person::profile::student:delete.By.Id";
     @Autowired
     ApplicationContext applicationContext;
     @MockitoSpyBean
@@ -205,7 +206,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains("profile.student.deleteById");
+        assertThat(context.getException().getMessage()).contains(PROFILE_DELETE_BY_ID);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, wrongInput);

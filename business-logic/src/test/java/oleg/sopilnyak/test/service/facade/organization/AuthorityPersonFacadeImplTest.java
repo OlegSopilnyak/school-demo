@@ -72,13 +72,13 @@ import org.springframework.util.ReflectionUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class AuthorityPersonFacadeImplTest {
-    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "organization.authority.person.login";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "organization.authority.person.logout";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "organization.authority.person.findAll";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "organization.authority.person.findById";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "organization.authority.person.create.Macro";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "organization.authority.person.delete.Macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "school::organization::authority::person:login";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "school::organization::authority::person:logout";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "school::organization::authority::person:find.All";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "school::organization::authority::person:find.By.Id";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "school::organization::authority::person:create.Macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "school::organization::authority::person:create.Or.Update";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "school::organization::authority::person:delete.Macro";
 
     CommandActionExecutor actionExecutor = mock(CommandActionExecutor.class);
     @Mock

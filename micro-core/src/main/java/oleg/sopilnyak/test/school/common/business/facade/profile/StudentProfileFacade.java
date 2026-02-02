@@ -15,10 +15,9 @@ import java.util.List;
 public interface StudentProfileFacade extends PersonProfileFacade, BusinessFacade {
     //
     // action-ids
-    String PREFIX = "profile.student";
-    String FIND_BY_ID = PREFIX + ".findById";
-    String CREATE_OR_UPDATE = PREFIX + ".createOrUpdate";
-    String DELETE_BY_ID = PREFIX + ".deleteById";
+    String FIND_BY_ID = NAMESPACE + "::student:find.By.Id";
+    String CREATE_OR_UPDATE = NAMESPACE + "::student:create.Or.Update";
+    String DELETE_BY_ID = NAMESPACE + "::student:delete.By.Id";
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID);

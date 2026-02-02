@@ -44,7 +44,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,9 +68,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
-    private static final String FIND_BY_ID = "profile.student.findById";
-    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
-    private static final String DELETE_BY_ID = "profile.student.deleteById";
+    private static final String FIND_BY_ID = "school::person::profile::student:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::student:create.Or.Update";
+    private static final String DELETE_BY_ID = "school::person::profile::student:delete.By.Id";
 
     @MockitoSpyBean
     @Autowired

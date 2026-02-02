@@ -62,8 +62,8 @@ import org.mapstruct.factory.Mappers;
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 class StudentProfileRestControllerTest extends MysqlTestModelFactory {
-    private static final String FIND_BY_ID = "profile.student.findById";
-    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
+    private static final String FIND_BY_ID = "school::person::profile::student:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::student:create.Or.Update";
     private static final String ROOT = "/profiles/students";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);

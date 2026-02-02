@@ -15,15 +15,14 @@ import java.util.List;
 public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacade {
     //
     // action-ids
-    String PREFIX = "organization.authority.person";
-    String LOGIN = PREFIX + ".login";
-    String LOGOUT = PREFIX + ".logout";
-    String FIND_ALL = PREFIX + ".findAll";
-    String FIND_BY_ID = PREFIX + ".findById";
-    String CREATE_OR_UPDATE = PREFIX + ".createOrUpdate";
-    String CREATE_MACRO = PREFIX + ".create.Macro";
-    String DELETE = PREFIX + ".delete";
-    String DELETE_MACRO = PREFIX + ".delete.Macro";
+    String LOGIN = NAMESPACE + ":login";
+    String LOGOUT = NAMESPACE + ":logout";
+    String FIND_ALL = NAMESPACE + ":find.All";
+    String FIND_BY_ID = NAMESPACE + ":find.By.Id";
+    String CREATE_OR_UPDATE = NAMESPACE + ":create.Or.Update";
+    String CREATE_MACRO = NAMESPACE + ":create.Macro";
+    String DELETE = NAMESPACE + ":delete";
+    String DELETE_MACRO = NAMESPACE + ":delete.Macro";
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(

@@ -60,6 +60,7 @@ import org.mapstruct.factory.Mappers;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class DeleteStudentMacroCommandTest extends TestModelFactory {
+    private static final String PROFILE_DELETE_BY_ID = "school::person::profile::student:delete.By.Id";
     @Mock
     PersistenceFacade persistence;
     @Spy
@@ -206,7 +207,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
         assertThat(context).isNotNull();
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(CannotCreateCommandContextException.class);
-        assertThat(context.getException().getMessage()).contains("profile.student.deleteById");
+        assertThat(context.getException().getMessage()).contains(PROFILE_DELETE_BY_ID);
         assertThat(context.getRedoParameter().isEmpty()).isTrue();
 
         verify(personCommand).acceptPreparedContext(command, wrongInput);

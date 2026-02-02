@@ -11,6 +11,8 @@ import oleg.sopilnyak.test.school.common.model.BaseType;
  * @see BaseType
  */
 public interface OrganizationFacade extends BusinessFacade {
+    // actions name-space
+    String NAMESPACE = "school::organization::authority::person";
 
     /**
      * Unified facade's entry-point to do action and return the result

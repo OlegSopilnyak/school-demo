@@ -57,13 +57,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class AuthorityPersonsRestControllerTest extends TestModelFactory {
-    private static final String LOGIN = "organization.authority.person.login";
-    private static final String LOGOUT = "organization.authority.person.logout";
-    private static final String FIND_ALL = "organization.authority.person.findAll";
-    private static final String FIND_BY_ID = "organization.authority.person.findById";
-    private static final String CREATE_OR_UPDATE = "organization.authority.person.createOrUpdate";
-    private static final String CREATE_NEW = "organization.authority.person.create.Macro";
-    private static final String DELETE_ALL = "organization.authority.person.delete.Macro";
+    private static final String LOGIN = "school::organization::authority::person:login";
+    private static final String LOGOUT = "school::organization::authority::person:logout";
+    private static final String FIND_ALL = "school::organization::authority::person:find.All";
+    private static final String FIND_BY_ID = "school::organization::authority::person:find.By.Id";
+    private static final String CREATE_NEW = "school::organization::authority::person:create.Macro";
+    private static final String CREATE_OR_UPDATE = "school::organization::authority::person:create.Or.Update";
+    private static final String DELETE_ALL = "school::organization::authority::person:delete.Macro";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
     @MockitoBean
@@ -98,7 +98,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
-                                .header("Authorization",bearer)
+                                .header("Authorization", bearer)
                                 .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())

@@ -57,14 +57,22 @@ class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "organization.authority.person.login",
-                "organization.authority.person.logout",
-                "organization.authority.person.findAll",
-                "organization.authority.person.findById",
-                "organization.authority.person.createOrUpdate",
-                "organization.authority.person.create.Macro",
-                "organization.authority.person.delete",
-                "organization.authority.person.delete.Macro"
+        "school::organization::authority::person:login",
+        "school::organization::authority::person:logout",
+        "school::organization::authority::person:find.All",
+        "school::organization::authority::person:find.By.Id",
+        "school::organization::authority::person:create.Macro",
+        "school::organization::authority::person:create.Or.Update",
+                "school::organization::authority::person:delete",
+        "school::organization::authority::person:delete.Macro"
+//                "organization.authority.person.login",
+//                "organization.authority.person.logout",
+//                "organization.authority.person.findAll",
+//                "organization.authority.person.findById",
+//                "organization.authority.person.createOrUpdate",
+//                "organization.authority.person.create.Macro",
+//                "organization.authority.person.delete",
+//                "organization.authority.person.delete.Macro"
         );
     }
 

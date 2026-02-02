@@ -21,7 +21,6 @@ import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -52,8 +51,8 @@ import org.mapstruct.factory.Mappers;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class StudentProfileRestControllerTest extends TestModelFactory {
-    private static final String FIND_BY_ID = "profile.student.findById";
-    private static final String CREATE_OR_UPDATE = "profile.student.createOrUpdate";
+    private static final String FIND_BY_ID = "school::person::profile::student:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::person::profile::student:create.Or.Update";
     private static final String ROOT = "/profiles/students";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
