@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.school.common.business.facade.organization;
 
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
 
@@ -12,17 +11,18 @@ import java.util.List;
  * @see OrganizationFacade
  * @see AuthorityPerson
  */
-public interface AuthorityPersonFacade extends OrganizationFacade, BusinessFacade {
+public interface AuthorityPersonFacade extends OrganizationFacade {
     //
     // action-ids
-    String LOGIN = NAMESPACE + ":login";
-    String LOGOUT = NAMESPACE + ":logout";
-    String FIND_ALL = NAMESPACE + ":find.All";
-    String FIND_BY_ID = NAMESPACE + ":find.By.Id";
-    String CREATE_OR_UPDATE = NAMESPACE + ":create.Or.Update";
-    String CREATE_MACRO = NAMESPACE + ":create.Macro";
-    String DELETE = NAMESPACE + ":delete";
-    String DELETE_MACRO = NAMESPACE + ":delete.Macro";
+    String SUBSPACE = "::authority::person";
+    String LOGIN = NAMESPACE + SUBSPACE + ":login";
+    String LOGOUT = NAMESPACE + SUBSPACE + ":logout";
+    String FIND_ALL = NAMESPACE + SUBSPACE + ":find.All";
+    String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
+    String CREATE_OR_UPDATE = NAMESPACE + SUBSPACE + ":create.Or.Update";
+    String CREATE_MACRO = NAMESPACE + SUBSPACE + ":create.Macro";
+    String DELETE = NAMESPACE + SUBSPACE + ":delete";
+    String DELETE_MACRO = NAMESPACE + SUBSPACE + ":delete.Macro";
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(

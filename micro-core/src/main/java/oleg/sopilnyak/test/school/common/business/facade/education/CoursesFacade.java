@@ -1,18 +1,17 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
-import static java.util.Objects.isNull;
-
-import java.util.Optional;
-import java.util.Set;
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
+import oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
-import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Service-Facade: Service for manage courses in the school
@@ -20,7 +19,31 @@ import oleg.sopilnyak.test.school.common.model.Student;
  * @see Student
  * @see Course
  */
-public interface CoursesFacade extends BusinessFacade {
+public interface CoursesFacade extends EducationFacade {
+    String SUBSPACE = "::course";
+    String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
+    String FIND_REGISTERED = NAMESPACE + SUBSPACE + ":find.Registered.To.Students";
+    String FIND_NOT_REGISTERED = NAMESPACE + SUBSPACE + ":find.Without.Students";
+    String CREATE_OR_UPDATE = NAMESPACE + SUBSPACE + ":create.Or.Update";
+    String DELETE = NAMESPACE + SUBSPACE + ":delete";
+    String REGISTER = NAMESPACE + SUBSPACE + ":register";
+    String UN_REGISTER = NAMESPACE + SUBSPACE + ":unregister";
+    //
+    // the list of valid action-ids
+    List<String> ACTION_IDS = List.of(
+            FIND_BY_ID, FIND_REGISTERED, FIND_NOT_REGISTERED, CREATE_OR_UPDATE, DELETE, REGISTER, UN_REGISTER
+    );
+
+    /**
+     * To get the list of valid action-ids
+     *
+     * @return valid action-ids for concrete descendant-facade
+     */
+    @Override
+    default List<String> validActions() {
+        return ACTION_IDS;
+    }
+
     /**
      * To get the name of the facade
      *
@@ -107,7 +130,7 @@ public interface CoursesFacade extends BusinessFacade {
      * @param courseId  system-id of the course
      * @throws StudentNotFoundException      throws when student is not exists
      * @throws CourseNotFoundException       throws if course is not exists
-     * @throws CourseHasNoRoomException    throws when there is no free slots for student
+     * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     void register(Long studentId, Long courseId) throws
@@ -121,7 +144,7 @@ public interface CoursesFacade extends BusinessFacade {
      * @param course  course instance
      * @throws StudentNotFoundException      throws when student is not exists
      * @throws CourseNotFoundException       throws if course is not exists
-     * @throws CourseHasNoRoomException    throws when there is no free slots for student
+     * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
      */
     default void register(Student student, Course course) throws
@@ -160,10 +183,6 @@ public interface CoursesFacade extends BusinessFacade {
             throw new CourseNotFoundException("Wrong course " + course + " for un-registration.");
         }
         unRegister(student.getId(), course.getId());
-    }
-
-    private static boolean isInvalid(BaseType item) {
-        return isNull(item) || isNull(item.getId());
     }
 }
 

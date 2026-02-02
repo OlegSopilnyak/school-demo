@@ -97,8 +97,8 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     // private methods
     // throws exception if action-id is invalid
     private Function<Object[], Object> throwsUnknownActionId(final String actionId) {
-        final String expectedTypes = String.join(" or ", validActions());
-        throw new InvalidParameterTypeException(expectedTypes, actionId);
+        throwInvalidActionId(actionId);
+        return null;
     }
 
     // to decode string parameter from parameters array

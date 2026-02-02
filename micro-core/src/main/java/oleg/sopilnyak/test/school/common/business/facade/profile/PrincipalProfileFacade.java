@@ -1,6 +1,5 @@
 package oleg.sopilnyak.test.school.common.business.facade.profile;
 
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade;
 import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
 
@@ -12,12 +11,13 @@ import java.util.List;
  * @see PrincipalProfile
  * @see PersonProfileFacade
  */
-public interface PrincipalProfileFacade extends PersonProfileFacade, BusinessFacade {
+public interface PrincipalProfileFacade extends PersonProfileFacade {
     //
     // action-ids
-    String FIND_BY_ID = NAMESPACE + "::principal:find.By.Id";
-    String CREATE_OR_UPDATE = NAMESPACE + "::principal:create.Or.Update";
-    String DELETE_BY_ID = NAMESPACE + "::principal:delete.By.Id";
+    String SUBSPACE = "::principal";
+    String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
+    String CREATE_OR_UPDATE = NAMESPACE+ SUBSPACE  + ":create.Or.Update";
+    String DELETE_BY_ID = NAMESPACE+ SUBSPACE  + ":delete.By.Id";
     //
     // the list of valid action-ids
     List<String> ACTION_IDS = List.of(FIND_BY_ID, CREATE_OR_UPDATE, DELETE_BY_ID);

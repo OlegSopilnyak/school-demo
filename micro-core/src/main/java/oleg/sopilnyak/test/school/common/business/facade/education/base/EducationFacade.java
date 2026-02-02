@@ -1,16 +1,18 @@
-package oleg.sopilnyak.test.school.common.business.facade.organization.base;
+package oleg.sopilnyak.test.school.common.business.facade.education.base;
+
 
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
+import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 
 /**
- * Service-Facade: Service for manage organization in the school
+ * Service-Facade: Service for manage education courses and students in the school
  *
  * @see BaseType
  */
-public interface OrganizationFacade extends BusinessFacade {
+public interface EducationFacade extends BusinessFacade {
     // actions name-space
-    String NAMESPACE = "school::organization";
+    String NAMESPACE = "school::education";
 
     /**
      * Unified facade's entry-point to do action and return the result
@@ -23,7 +25,7 @@ public interface OrganizationFacade extends BusinessFacade {
      */
     @Override
     default <T> T doActionAndResult(final String actionId, final Object... parameters) {
-        return organizationAction(actionId, parameters);
+        return educationAction(actionId, parameters);
     }
 
     /**
@@ -35,7 +37,7 @@ public interface OrganizationFacade extends BusinessFacade {
      * @return action execution result value
      * @see BusinessFacade#doActionAndResult(String, Object...)
      */
-    default <T> T organizationAction(String actionId, Object... parameters) {
-        throw new UnsupportedOperationException("Please implement method in OrganizationFacade's descendant.");
+    default <T> T educationAction(String actionId, Object... parameters) {
+        throw new UnsupportedOperationException("Please implement method in EducationFacade's descendant.");
     }
 }

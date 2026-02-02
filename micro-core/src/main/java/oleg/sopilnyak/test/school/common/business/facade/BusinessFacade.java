@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.facade;
 
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.model.BaseType;
 
 import java.util.List;
 
@@ -47,4 +48,14 @@ public interface BusinessFacade {
      * @see ActionContext#getActionProcessorFacade()
      */
     String getName();
+
+    /**
+     * To check the state of model's item
+     *
+     * @param item instance to check
+     * @return true if instance is invalid (empty or has invalid system-id)
+     */
+    default boolean isInvalid(final BaseType item) {
+        return item == null || item.getId() == null;
+    }
 }

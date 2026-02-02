@@ -1,22 +1,19 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
+import oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentWithCoursesException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.model.BaseType;
 
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.Objects.isNull;
-
 /**
  * Service-Facade: Service for manage students in the school
  */
-public interface StudentsFacade extends BusinessFacade {
+public interface StudentsFacade extends EducationFacade {
     /**
      * To get the name of the facade
      *
@@ -35,7 +32,9 @@ public interface StudentsFacade extends BusinessFacade {
      * @see Student
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<Student> findById(Long id);
 
     /**
@@ -43,7 +42,9 @@ public interface StudentsFacade extends BusinessFacade {
      *
      * @param courseId system-id of the course
      * @return set of students
+     * @deprecated
      */
+    @Deprecated
     Set<Student> findEnrolledTo(Long courseId);
 
     /**
@@ -51,7 +52,9 @@ public interface StudentsFacade extends BusinessFacade {
      *
      * @param course course instance
      * @return set of students
+     * @deprecated
      */
+    @Deprecated
     default Set<Student> findEnrolledTo(Course course) {
         return isInvalid(course) ? Collections.emptySet() : findEnrolledTo(course.getId());
     }
@@ -60,7 +63,9 @@ public interface StudentsFacade extends BusinessFacade {
      * To get students not enrolled to any course
      *
      * @return set of students
+     * @deprecated
      */
+    @Deprecated
     Set<Student> findNotEnrolled();
 
     /**
@@ -71,7 +76,9 @@ public interface StudentsFacade extends BusinessFacade {
      * @see Student
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<Student> createOrUpdate(Student student);
 
     /**
@@ -82,7 +89,9 @@ public interface StudentsFacade extends BusinessFacade {
      * @see Student
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<Student> create(Student student);
 
     /**
@@ -92,7 +101,9 @@ public interface StudentsFacade extends BusinessFacade {
      * @return true if success
      * @throws StudentNotFoundException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
+     * @deprecated
      */
+    @Deprecated
     boolean delete(Long studentId) throws StudentNotFoundException, StudentWithCoursesException;
 
     /**
@@ -102,12 +113,10 @@ public interface StudentsFacade extends BusinessFacade {
      * @return true if success
      * @throws StudentNotFoundException    throws when student it not exists
      * @throws StudentWithCoursesException throws when student is not empty (has enrolled courses)
+     * @deprecated
      */
+    @Deprecated
     default boolean delete(Student student) throws StudentNotFoundException, StudentWithCoursesException {
         return !isInvalid(student) && delete(student.getId());
-    }
-
-    private static boolean isInvalid(BaseType item) {
-        return isNull(item) || isNull(item.getId());
     }
 }
