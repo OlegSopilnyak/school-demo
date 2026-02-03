@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -50,7 +51,7 @@ public class FindAllStudentsGroupsCommand extends BasicCommand<Set<StudentsGroup
      */
     @Override
     public String getId() {
-        return CommandId.FIND_ALL;
+        return StudentsGroupFacade.FIND_ALL;
     }
 
     /**

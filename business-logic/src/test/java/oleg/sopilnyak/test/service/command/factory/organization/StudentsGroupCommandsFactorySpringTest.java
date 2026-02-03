@@ -26,6 +26,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = StudentsGroupCommandsFactorySpringTest.FactoryConfiguration.class)
 class StudentsGroupCommandsFactorySpringTest {
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "school::organization::student::groups:find.All";
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "school::organization::student::groups:find.By.Id";
+    private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "school::organization::student::groups:create.Or.Update";
+    private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "school::organization::student::groups:delete";
     private static final String FACTORY_NAME = "Organization.StudentsGroups";
     private static final String SPRING_NAME = "groupCommandsFactory";
     private Collection<String> commandsId;
@@ -45,10 +49,14 @@ class StudentsGroupCommandsFactorySpringTest {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "organization.students.group.findAll",
-                "organization.students.group.findById",
-                "organization.students.group.createOrUpdate",
-                "organization.students.group.delete"
+                ORGANIZATION_STUDENTS_GROUP_FIND_ALL,
+                ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID,
+                ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE,
+                ORGANIZATION_STUDENTS_GROUP_DELETE
+//                "organization.students.group.findAll",
+//                "organization.students.group.findById",
+//                "organization.students.group.createOrUpdate",
+//                "organization.students.group.delete"
         );
     }
 

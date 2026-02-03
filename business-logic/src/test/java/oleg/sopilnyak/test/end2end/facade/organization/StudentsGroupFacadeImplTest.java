@@ -69,10 +69,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
-    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "organization.students.group.findAll";
-    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "organization.students.group.findById";
-    private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
-    private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "organization.students.group.delete";
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "school::organization::student::groups:find.All";
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "school::organization::student::groups:find.By.Id";
+    private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "school::organization::student::groups:create.Or.Update";
+    private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "school::organization::student::groups:delete";
 
     @MockitoSpyBean
     @Autowired
@@ -133,88 +133,96 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldFindAllStudentsGroup() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_ALL;
         StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
 
-        Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
+        Collection<StudentsGroup> groups = facade.doActionAndResult(commandId);
 
         assertThat(groups).contains(group);
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_ALL, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistence).findAllStudentsGroups();
     }
 
     @Test
     void shouldNotFindAllStudentsGroup() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_ALL;
 
-        Collection<StudentsGroup> groups = facade.findAllStudentsGroups();
+        Collection<StudentsGroup> groups = facade.doActionAndResult(commandId);
 
         assertThat(groups).isEmpty();
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_ALL, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistence).findAllStudentsGroups();
     }
 
     @Test
     void shouldFindStudentsGroupById() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID;
         StudentsGroup group = persistStudentsGroup();
         Long id = group.getId();
 
-        Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
+        Optional<StudentsGroup> faculty = facade.doActionAndResult(commandId, id);
 
         assertThat(faculty).isPresent();
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
     }
 
     @Test
     void shouldNotFindStudentsGroupById() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID;
         Long id = 510L;
 
-        Optional<StudentsGroup> faculty = facade.findStudentsGroupById(id);
+        Optional<StudentsGroup> faculty = facade.doActionAndResult(commandId, id);
 
         assertThat(faculty).isEmpty();
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
     }
 
     @Test
     void shouldNotCreateOrUpdateStudentsGroup_Create() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE;
         Long id = 511L;
         StudentsGroup group = payloadMapper.toPayload(makeTestStudentsGroup(id));
 
-        UnableExecuteCommandException thrown =
-                assertThrows(UnableExecuteCommandException.class, () -> facade.createOrUpdateStudentsGroup(group));
+        UnableExecuteCommandException thrown = assertThrows(UnableExecuteCommandException.class,
+                () -> facade.doActionAndResult(commandId, group)
+        );
 
-        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE);
+        assertThat(thrown.getMessage()).startsWith("Cannot execute command").contains(commandId);
         Throwable cause = thrown.getCause();
         assertThat(cause).isInstanceOf(StudentsGroupNotFoundException.class);
         assertThat(cause.getMessage()).startsWith("Students Group with ID:").endsWith(" is not exists.");
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
+        verifyAfterCommand(commandId, Input.of(group));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }
 
     @Test
     void shouldCreateOrUpdateStudentsGroup_Create() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE;
         StudentsGroup group = payloadMapper.toPayload(makeCleanStudentsGroup(3));
 
-        Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(group);
+        Optional<StudentsGroup> faculty = facade.doActionAndResult(commandId, group);
 
         assertThat(faculty).isPresent();
         assertStudentsGroupEquals(group, faculty.get(), false);
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
+        verifyAfterCommand(commandId, Input.of(group));
         verify(persistence).save(group);
     }
 
     @Test
     void shouldCreateOrUpdateStudentsGroup_Update() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE;
         StudentsGroup group = payloadMapper.toPayload(persistStudentsGroup());
         reset(payloadMapper);
         Long id = group.getId();
 
-        Optional<StudentsGroup> faculty = facade.createOrUpdateStudentsGroup(group);
+        Optional<StudentsGroup> faculty = facade.doActionAndResult(commandId, group);
 
         assertThat(faculty).isPresent();
         assertStudentsGroupEquals(group, faculty.get());
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE, Input.of(group));
+        verifyAfterCommand(commandId, Input.of(group));
         verify(persistence).findStudentsGroupById(id);
         verify(payloadMapper, times(2)).toPayload(any(StudentsGroupEntity.class));
         verify(persistence).save(group);
@@ -222,12 +230,13 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDeleteStudentsGroupById() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
         StudentsGroup group = persistStudentsGroup();
         Long id = group.getId();
 
-        facade.deleteStudentsGroupById(id);
+        facade.doActionAndResult(commandId, id);
 
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence).deleteStudentsGroup(id);
         assertThat(findStudentsGroupById(id)).isNull();
@@ -235,18 +244,21 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotExists() {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
         Long id = 503L;
-        StudentsGroupNotFoundException thrown =
-                assertThrows(StudentsGroupNotFoundException.class, () -> facade.deleteStudentsGroupById(id));
+        StudentsGroupNotFoundException thrown = assertThrows(StudentsGroupNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("Students Group with ID:503 is not exists.");
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).deleteStudentsGroup(anyLong());
     }
 
     @Test
     void shouldNotDeleteStudentsGroupById_GroupNotEmpty() throws StudentGroupWithStudentsException, StudentsGroupNotFoundException {
+        String commandId = ORGANIZATION_STUDENTS_GROUP_DELETE;
         StudentsGroup studentsGroup = makeCleanStudentsGroup(3);
         if (studentsGroup instanceof FakeStudentsGroup fake) {
             fake.setStudents(List.of(makeClearStudent(1)));
@@ -254,10 +266,12 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         StudentsGroup group = persist(studentsGroup);
         Long id = group.getId();
 
-        var thrown = assertThrows(StudentGroupWithStudentsException.class, () -> facade.deleteStudentsGroupById(id));
+        var thrown = assertThrows(StudentGroupWithStudentsException.class,
+                () -> facade.doActionAndResult(commandId, id)
+        );
 
         assertThat(thrown.getMessage()).startsWith("Students Group with ID:").endsWith(" has students.");
-        verifyAfterCommand(ORGANIZATION_STUDENTS_GROUP_DELETE, Input.of(id));
+        verifyAfterCommand(commandId, Input.of(id));
         verify(persistence).findStudentsGroupById(id);
         verify(persistence, never()).deleteStudentsGroup(anyLong());
     }

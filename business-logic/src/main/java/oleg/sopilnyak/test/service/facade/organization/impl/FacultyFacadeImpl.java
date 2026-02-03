@@ -154,6 +154,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     // to delete the faculty by ID (for internal usage)
     private void internalDeleteById(final Long id) {
         final String commandId = FacultyFacade.DELETE;
+        // setting up customized errors handler
         final Consumer<Exception> doOnError = exception -> {
             switch (exception) {
                 case FacultyNotFoundException noFacultyException -> {

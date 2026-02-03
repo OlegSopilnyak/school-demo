@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.StudentsGroupPersistenceFacade;
@@ -56,7 +57,7 @@ public class CreateOrUpdateStudentsGroupCommand extends SchoolCommandCache<Stude
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return StudentsGroupFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,

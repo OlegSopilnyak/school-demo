@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.group;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
@@ -57,7 +58,7 @@ public class DeleteStudentsGroupCommand extends SchoolCommandCache<StudentsGroup
      */
     @Override
     public String getId() {
-        return CommandId.DELETE;
+        return StudentsGroupFacade.DELETE;
     }
 
     public DeleteStudentsGroupCommand(final StudentsGroupPersistenceFacade persistence,

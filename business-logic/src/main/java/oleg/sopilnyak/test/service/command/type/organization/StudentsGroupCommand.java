@@ -19,18 +19,6 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 public interface StudentsGroupCommand<T> extends OrganizationCommand<T> {
     // template of error message
     String GROUP_WITH_ID_PREFIX = "Students Group with ID:";
-
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String FIND_ALL = "organization.students.group.findAll";
-        public static final String FIND_BY_ID = "organization.students.group.findById";
-        public static final String CREATE_OR_UPDATE = "organization.students.group.createOrUpdate";
-        public static final String DELETE = "organization.students.group.delete";
-    }
-
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "groupCommandsFactory";
 

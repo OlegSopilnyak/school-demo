@@ -16,7 +16,7 @@ import java.util.Optional;
  * @see StudentsGroup
  */
 public interface StudentsGroupFacade extends OrganizationFacade {
-    String SUBSPACE = "::students::group";
+    String SUBSPACE = "::student::groups";
     String FIND_ALL = NAMESPACE + SUBSPACE + ":find.All";
     String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
     String CREATE_OR_UPDATE = NAMESPACE + SUBSPACE + ":create.Or.Update";
@@ -94,6 +94,7 @@ public interface StudentsGroupFacade extends OrganizationFacade {
             throws StudentsGroupNotFoundException,
             StudentGroupWithStudentsException;
 
+    @Deprecated
     default void deleteStudentsGroup(StudentsGroup instance)
             throws StudentsGroupNotFoundException,
             StudentGroupWithStudentsException {
