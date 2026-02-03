@@ -95,36 +95,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     // private methods
-    // throws exception if action-id is invalid
-    private Function<Object[], Object> throwsUnknownActionId(final String actionId) {
-        throwInvalidActionId(actionId);
-        return null;
-    }
-
-    // to decode string parameter from parameters array
-    private static String decodeStringArgument(final Object... parameters) {
-        if (parameters == null || parameters.length < 1) {
-            throw new IllegalArgumentException("Wrong number of parameters");
-        }
-        if (parameters[0] instanceof String value) {
-            return value;
-        } else {
-            throw new InvalidParameterTypeException("String", parameters[0]);
-        }
-    }
-
-    // to decode long parameter from parameters array
-    private static Long decodeLongArgument(final Object... parameters) {
-        if (parameters == null || parameters.length < 1) {
-            throw new IllegalArgumentException("Wrong number of parameters");
-        }
-        if (parameters[0] instanceof Long value) {
-            return value;
-        } else {
-            throw new InvalidParameterTypeException("Long", parameters[0]);
-        }
-    }
-
     // to decode login/password from parameters array
     private static Map<String, String> decodeAuthentication(final Object... parameters) {
         if (parameters == null || parameters.length != 2) {
@@ -156,13 +126,13 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         }
     }
 
-    // To log in AuthorityPerson by it valid login and password
+    // To log in AuthorityPerson by it valid login and password (for entry-point)
     private Optional<AuthorityPerson> internalLogin(final Object... parameters) {
         final Map<String, String> auth = decodeAuthentication(parameters);
         return internalLogin(auth.get(LOGIN_KEY), auth.get(PASSWORD_KEY));
     }
 
-    // To log in AuthorityPerson by it valid username and password
+    // To log in AuthorityPerson by it valid username and password (for internal usage)
     private Optional<AuthorityPerson> internalLogin(final String username, final String password) {
         // doing login action business logic
         final String commandId = AuthorityPersonFacade.LOGIN;

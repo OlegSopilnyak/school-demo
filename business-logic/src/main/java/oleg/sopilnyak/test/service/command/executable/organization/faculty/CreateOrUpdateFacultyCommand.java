@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
@@ -56,7 +57,7 @@ public class CreateOrUpdateFacultyCommand extends SchoolCommandCache<Faculty, Op
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return FacultyFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateFacultyCommand(final FacultyPersistenceFacade persistence,

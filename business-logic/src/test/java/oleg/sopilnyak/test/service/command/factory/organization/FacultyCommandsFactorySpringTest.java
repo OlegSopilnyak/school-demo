@@ -26,6 +26,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = FacultyCommandsFactorySpringTest.FactoryConfiguration.class)
 class FacultyCommandsFactorySpringTest {
+    private static final String ORGANIZATION_FACULTY_FIND_ALL = "school::organization::faculties:find.All";
+    private static final String ORGANIZATION_FACULTY_FIND_BY_ID = "school::organization::faculties:find.By.Id";
+    private static final String ORGANIZATION_FACULTY_CREATE_OR_UPDATE = "school::organization::faculties:create.Or.Update";
+    private static final String ORGANIZATION_FACULTY_DELETE = "school::organization::faculties:delete";
     private static final String FACTORY_NAME = "Organization.Faculties";
     private static final String SPRING_NAME = "facultyCommandsFactory";
     private Collection<String> commandsId;
@@ -45,10 +49,14 @@ class FacultyCommandsFactorySpringTest {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "organization.faculty.findAll",
-                "organization.faculty.findById",
-                "organization.faculty.createOrUpdate",
-                "organization.faculty.delete"
+                ORGANIZATION_FACULTY_FIND_ALL,
+                ORGANIZATION_FACULTY_FIND_BY_ID,
+                ORGANIZATION_FACULTY_CREATE_OR_UPDATE,
+                ORGANIZATION_FACULTY_DELETE
+//                "organization.faculty.findAll",
+//                "organization.faculty.findById",
+//                "organization.faculty.createOrUpdate",
+//                "organization.faculty.delete"
         );
     }
 

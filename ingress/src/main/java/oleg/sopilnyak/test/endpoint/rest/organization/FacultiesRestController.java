@@ -47,7 +47,7 @@ public class FacultiesRestController {
     public List<FacultyDto> findAll() {
         log.debug("Trying to get all school's faculties");
         try {
-            return resultToDto(facade.findAllFaculties());
+            return resultToDto(findAllFaculties());
         } catch (Exception e) {
             log.error("Cannot get all school's faculties", e);
             throw new CannotProcessActionException("Cannot get all school's faculties", e);
@@ -61,7 +61,7 @@ public class FacultiesRestController {
             final Long id = Long.parseLong(facultyId);
             log.debug("Getting faculty for id: {}", id);
 
-            return resultToDto(facultyId, facade.findFacultyById(id));
+            return resultToDto(facultyId, findFacultyById(id));
         } catch (NumberFormatException _) {
             throw new FacultyNotFoundException(WRONG_FACULTY_ID + facultyId + "'");
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class FacultiesRestController {
         log.debug("Trying to create the faculty {}", facultyDto);
         try {
             facultyDto.setId(null);
-            return resultToDto(facade.createOrUpdateFaculty(facultyDto));
+            return resultToDto(createOrUpdateFaculty(facultyDto));
         } catch (Exception e) {
             log.error("Cannot create new faculty {}", facultyDto, e);
             throw new CannotProcessActionException("Cannot create new faculty " + facultyDto, e);
@@ -91,7 +91,7 @@ public class FacultiesRestController {
             if (isInvalid(id)) {
                 throw new FacultyNotFoundException(WRONG_FACULTY_ID + id + "'");
             }
-            return resultToDto(facade.createOrUpdateFaculty(facultyDto));
+            return resultToDto(createOrUpdateFaculty(facultyDto));
         } catch (Exception e) {
             log.error("Cannot update new faculty {}", facultyDto, e);
             throw new CannotProcessActionException("Cannot update faculty " + facultyDto, e);
@@ -104,7 +104,7 @@ public class FacultiesRestController {
         try {
             log.debug("Deleting faculty {}", facultyDto);
 
-            facade.deleteFaculty(facultyDto);
+            deleteFaculty(facultyDto);
         } catch (Exception e) {
             log.error("Cannot delete faculty {}", facultyDto, e);
             throw new CannotProcessActionException("Cannot delete faculty " + facultyDto, e);
@@ -121,7 +121,7 @@ public class FacultiesRestController {
                 throw new FacultyNotFoundException(WRONG_FACULTY_ID + id + "'");
             }
 
-            facade.deleteFacultyById(id);
+            deleteFaculty(id);
         } catch (NumberFormatException e) {
             throw new FacultyNotFoundException(WRONG_FACULTY_ID + facultyId + "'", e);
         } catch (Exception e) {
@@ -155,4 +155,23 @@ public class FacultiesRestController {
         return isNull(id) || id <= 0;
     }
 
+    private Collection<Faculty> findAllFaculties() {
+        return facade.doActionAndResult(FacultyFacade.FIND_ALL);
+    }
+
+    private Optional<Faculty> findFacultyById(Long id) {
+        return facade.doActionAndResult(FacultyFacade.FIND_BY_ID, id);
+    }
+
+    private Optional<Faculty> createOrUpdateFaculty(Faculty instance) {
+        return facade.doActionAndResult(FacultyFacade.CREATE_OR_UPDATE, instance);
+    }
+
+    private void deleteFaculty(FacultyDto facultyDto) {
+        deleteFaculty(facultyDto.getId());
+    }
+
+    private void deleteFaculty(Long id) {
+        facade.doActionAndResult(FacultyFacade.DELETE,  id);
+    }
 }

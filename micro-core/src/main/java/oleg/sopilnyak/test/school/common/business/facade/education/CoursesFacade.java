@@ -20,7 +20,7 @@ import java.util.Set;
  * @see Course
  */
 public interface CoursesFacade extends EducationFacade {
-    String SUBSPACE = "::course";
+    String SUBSPACE = "::courses";
     String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
     String FIND_REGISTERED = NAMESPACE + SUBSPACE + ":find.Registered.To.Students";
     String FIND_NOT_REGISTERED = NAMESPACE + SUBSPACE + ":find.Without.Students";

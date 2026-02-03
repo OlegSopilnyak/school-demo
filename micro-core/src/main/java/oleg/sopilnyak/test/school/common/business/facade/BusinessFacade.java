@@ -58,4 +58,40 @@ public interface BusinessFacade {
     default boolean isInvalid(final BaseType item) {
         return item == null || item.getId() == null;
     }
+
+    /**
+     * To decode first string parameter from parameters array
+     *
+     * @param parameters input parameters
+     * @return long value or throws exception
+     * @see InvalidParameterTypeException
+     */
+    default String decodeStringArgument(final Object... parameters) {
+        if (parameters == null || parameters.length < 1) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[0] instanceof String value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("String", parameters[0]);
+        }
+    }
+
+    /**
+     * To decode first long parameter from parameters array
+     *
+     * @param parameters input parameters
+     * @return long value or throws exception
+     * @see InvalidParameterTypeException
+     */
+    default Long decodeLongArgument(final Object... parameters) {
+        if (parameters == null || parameters.length < 1) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[0] instanceof Long value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("Long", parameters[0]);
+        }
+    }
 }

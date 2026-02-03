@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.model.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -49,7 +50,7 @@ public class FindFacultyCommand extends BasicCommand<Optional<Faculty>> implemen
      */
     @Override
     public String getId() {
-        return CommandId.FIND_BY_ID;
+        return FacultyFacade.FIND_BY_ID;
     }
 
     /**

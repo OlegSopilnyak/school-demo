@@ -50,10 +50,10 @@ import org.springframework.util.ReflectionUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class FacultyFacadeImplTest {
-    private static final String ORGANIZATION_FACULTY_FIND_ALL = "organization.faculty.findAll";
-    private static final String ORGANIZATION_FACULTY_FIND_BY_ID = "organization.faculty.findById";
-    private static final String ORGANIZATION_FACULTY_CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
-    private static final String ORGANIZATION_FACULTY_DELETE = "organization.faculty.delete";
+    private static final String ORGANIZATION_FACULTY_FIND_ALL = "school::organization::faculties:find.All";
+    private static final String ORGANIZATION_FACULTY_FIND_BY_ID = "school::organization::faculties:find.By.Id";
+    private static final String ORGANIZATION_FACULTY_CREATE_OR_UPDATE = "school::organization::faculties:create.Or.Update";
+    private static final String ORGANIZATION_FACULTY_DELETE = "school::organization::faculties:delete";
     FacultyPersistenceFacade persistence = mock(FacultyPersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
 
@@ -79,15 +79,31 @@ class FacultyFacadeImplTest {
     }
 
     @Test
+    void shouldFindAllFaculties_EmptySet_Unified() {
+        String commandId = ORGANIZATION_FACULTY_FIND_ALL;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFindAll", FacultyCommand.class);
+
+        Collection<Faculty> result = facade.doActionAndResult(commandId);
+
+        assertThat(result).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findAllFaculties();
+    }
+
+    @Test
     void shouldFindAllFaculties_EmptySet() {
         String commandId = ORGANIZATION_FACULTY_FIND_ALL;
         FacultyCommand<?> command = factory.command(commandId);
         reset(factory);
         doReturn(command).when(applicationContext).getBean("facultyFindAll", FacultyCommand.class);
 
-        Collection<Faculty> faculties = facade.findAllFaculties();
+        Collection<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalFindAll");
 
-        assertThat(faculties).isEmpty();
+        assertThat(result).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.empty());
         verify(factory.command(commandId)).doCommand(any(Context.class));
@@ -102,13 +118,30 @@ class FacultyFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("facultyFindAll", FacultyCommand.class);
         when(persistence.findAllFaculties()).thenReturn(Set.of(mockFaculty));
 
-        Collection<Faculty> faculties = facade.findAllFaculties();
+        Collection<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalFindAll");
 
-        assertThat(faculties).hasSize(1);
+        assertThat(result).hasSize(1);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.empty());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findAllFaculties();
+    }
+
+    @Test
+    void shouldNotFindFacultyById_Unified() {
+        String commandId = ORGANIZATION_FACULTY_FIND_BY_ID;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyFind", FacultyCommand.class);
+        Long id = 400L;
+
+        Optional<Faculty> result = facade.doActionAndResult(commandId, id);
+
+        assertThat(result).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findFacultyById(id);
     }
 
     @Test
@@ -117,11 +150,11 @@ class FacultyFacadeImplTest {
         FacultyCommand<?> command = factory.command(commandId);
         reset(factory);
         doReturn(command).when(applicationContext).getBean("facultyFind", FacultyCommand.class);
-        Long id = 400L;
+        Long id = 401L;
 
-        Optional<Faculty> faculty = facade.findFacultyById(id);
+        Optional<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(faculty).isEmpty();
+        assertThat(result).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(id));
         verify(factory.command(commandId)).doCommand(any(Context.class));
@@ -138,13 +171,32 @@ class FacultyFacadeImplTest {
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
 
-        Optional<Faculty> faculty = facade.findFacultyById(id);
+        Optional<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalFindById", id);
 
-        assertThat(faculty).contains(mockFacultyPayload);
+        assertThat(result).contains(mockFacultyPayload);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(id));
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).findFacultyById(id);
+    }
+
+    @Test
+    void shouldCreateOrUpdateFaculty_Unified() {
+        String commandId = ORGANIZATION_FACULTY_CREATE_OR_UPDATE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyUpdate", FacultyCommand.class);
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
+        when(payloadMapper.toPayload(mockFacultyPayload)).thenReturn(mockFacultyPayload);
+        when(persistence.save(mockFacultyPayload)).thenReturn(Optional.of(mockFacultyPayload));
+
+        Optional<Faculty> result = facade.doActionAndResult(commandId, mockFaculty);
+
+        assertThat(result).isPresent();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockFacultyPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).save(mockFacultyPayload);
     }
 
     @Test
@@ -157,9 +209,9 @@ class FacultyFacadeImplTest {
         when(payloadMapper.toPayload(mockFacultyPayload)).thenReturn(mockFacultyPayload);
         when(persistence.save(mockFacultyPayload)).thenReturn(Optional.of(mockFacultyPayload));
 
-        Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
+        Optional<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockFaculty);
 
-        assertThat(faculty).isPresent();
+        assertThat(result).isPresent();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(mockFacultyPayload));
         verify(factory.command(commandId)).doCommand(any(Context.class));
@@ -174,13 +226,32 @@ class FacultyFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("facultyUpdate", FacultyCommand.class);
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
 
-        Optional<Faculty> faculty = facade.createOrUpdateFaculty(mockFaculty);
+        Optional<Faculty> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockFaculty);
 
-        assertThat(faculty).isEmpty();
+        assertThat(result).isEmpty();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(mockFacultyPayload));
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistence).save(mockFacultyPayload);
+    }
+
+    @Test
+    void shouldDeleteFacultyById_Unified() throws FacultyNotFoundException, FacultyIsNotEmptyException {
+        String commandId = ORGANIZATION_FACULTY_DELETE;
+        FacultyCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("facultyDelete", FacultyCommand.class);
+        Long id = 402L;
+        when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
+        when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
+
+        facade.doActionAndResult(commandId, id);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(id));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistence).findFacultyById(id);
+        verify(persistence).deleteFaculty(id);
     }
 
     @Test
@@ -193,7 +264,7 @@ class FacultyFacadeImplTest {
         when(persistence.findFacultyById(id)).thenReturn(Optional.of(mockFaculty));
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
 
-        facade.deleteFacultyById(id);
+        ReflectionTestUtils.invokeMethod(facade, "internalDeleteById", id);
 
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(id));
@@ -210,7 +281,9 @@ class FacultyFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("facultyDelete", FacultyCommand.class);
         Long id = 403L;
 
-        FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class, () -> facade.deleteFacultyById(id));
+        FacultyNotFoundException thrown = assertThrows(FacultyNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteById", id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:403 is not exists.");
         verify(factory).command(commandId);
@@ -231,7 +304,9 @@ class FacultyFacadeImplTest {
         when(payloadMapper.toPayload(mockFaculty)).thenReturn(mockFacultyPayload);
         when(mockFacultyPayload.getCourses()).thenReturn(List.of(mock(Course.class)));
 
-        FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class, () -> facade.deleteFacultyById(id));
+        FacultyIsNotEmptyException thrown = assertThrows(FacultyIsNotEmptyException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteById", id)
+        );
 
         assertThat(thrown.getMessage()).isEqualTo("Faculty with ID:404 has courses.");
         verify(factory).command(commandId);

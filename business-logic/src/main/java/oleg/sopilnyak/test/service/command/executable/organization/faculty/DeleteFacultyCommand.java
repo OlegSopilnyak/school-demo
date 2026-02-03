@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
+import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
@@ -56,7 +57,7 @@ public class DeleteFacultyCommand extends SchoolCommandCache<Faculty, Boolean> i
      */
     @Override
     public String getId() {
-        return CommandId.DELETE;
+        return FacultyFacade.DELETE;
     }
 
     public DeleteFacultyCommand(final FacultyPersistenceFacade persistence,

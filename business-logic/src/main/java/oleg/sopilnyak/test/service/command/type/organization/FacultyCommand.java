@@ -18,18 +18,6 @@ import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 public interface FacultyCommand<T> extends OrganizationCommand<T> {
     // template of error message
     String FACULTY_WITH_ID_PREFIX = "Faculty with ID:";
-
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String FIND_ALL = "organization.faculty.findAll";
-        public static final String FIND_BY_ID = "organization.faculty.findById";
-        public static final String CREATE_OR_UPDATE = "organization.faculty.createOrUpdate";
-        public static final String DELETE = "organization.faculty.delete";
-    }
-
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "facultyCommandsFactory";
 

@@ -3,6 +3,8 @@ package oleg.sopilnyak.test.school.common.business.facade.organization.base;
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 
+import java.util.function.Function;
+
 /**
  * Service-Facade: Service for manage organization in the school
  *
@@ -38,4 +40,17 @@ public interface OrganizationFacade extends BusinessFacade {
     default <T> T organizationAction(String actionId, Object... parameters) {
         throw new UnsupportedOperationException("Please implement method in OrganizationFacade's descendant.");
     }
+
+    /**
+     * Throws exception if action-id is invalid
+     *
+     * @param actionId   the id of the action
+     * @return nothing
+     * @see BusinessFacade#throwInvalidActionId(String)
+     */
+    default Function<Object[], Object> throwsUnknownActionId(final String actionId) {
+        throwInvalidActionId(actionId);
+        return null;
+    }
+
 }

@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -53,6 +55,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class FacultiesRestControllerTest extends TestModelFactory {
+    private static final String FIND_ALL = "school::organization::faculties:find.All";
+    private static final String FIND_BY_ID = "school::organization::faculties:find.By.Id";
+    private static final String CREATE_OR_UPDATE = "school::organization::faculties:create.Or.Update";
+    private static final String DELETE = "school::organization::faculties:delete";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/faculties";
 
@@ -94,7 +100,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).findAllFaculties();
+        verify(facade).doActionAndResult(FIND_ALL);
 
         List<Faculty> facultyList =
                 MAPPER.readValue(result.getResponse().getContentAsString(),
@@ -122,7 +128,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findFacultyById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
@@ -144,7 +150,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findFacultyById(id);
+        verify(facade).doActionAndResult(FIND_BY_ID, id);
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
@@ -157,11 +163,11 @@ class FacultiesRestControllerTest extends TestModelFactory {
     void shouldCreateFaculty() throws Exception {
         Faculty faculty = makeTestFaculty(null);
         doAnswer(invocation -> {
-            Faculty received = invocation.getArgument(0);
+            Faculty received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
             assertFacultyEquals(faculty, received);
             return Optional.of(faculty);
-        }).when(facade).createOrUpdateFaculty(any(Faculty.class));
+        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(Faculty.class));
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
@@ -175,7 +181,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).create(any(FacultyDto.class));
-        verify(facade).createOrUpdateFaculty(any(Faculty.class));
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(Faculty.class));
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
@@ -187,11 +193,11 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = 402L;
         Faculty faculty = makeTestFaculty(id);
         doAnswer(invocation -> {
-            Faculty received = invocation.getArgument(0);
+            Faculty received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
             assertFacultyEquals(faculty, received);
             return Optional.of(faculty);
-        }).when(facade).createOrUpdateFaculty(any(Faculty.class));
+        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(Faculty.class));
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
@@ -205,7 +211,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(FacultyDto.class));
-        verify(facade).createOrUpdateFaculty(any(Faculty.class));
+        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(Faculty.class));
 
         Faculty facultyDto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, facultyDto);
@@ -229,7 +235,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
 
         verify(controller).update(any(FacultyDto.class));
-        verify(facade, never()).createOrUpdateFaculty(any(Faculty.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(Faculty.class));
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
@@ -256,7 +262,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
 
         verify(controller).update(any(FacultyDto.class));
-        verify(facade, never()).createOrUpdateFaculty(any(Faculty.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(Faculty.class));
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
@@ -277,7 +283,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 .andDo(print());
 
         verify(controller).delete(id.toString());
-        verify(facade).deleteFacultyById(id);
+        verify(facade).doActionAndResult(DELETE, id);
         checkControllerAspect();
     }
 
@@ -344,7 +350,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 .andDo(print());
 
         verify(controller).delete(any(FacultyDto.class));
-        verify(facade).deleteFaculty(any(FacultyDto.class));
+        verify(facade).doActionAndResult(DELETE, id);
         checkControllerAspect();
     }
 
@@ -353,8 +359,8 @@ class FacultiesRestControllerTest extends TestModelFactory {
         Long id = 410L;
         Faculty faculty = makeTestFaculty(id);
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String errorMessage = "Faculty '" + id + "' not exists.";
-        doThrow(new FacultyNotFoundException(errorMessage)).when(facade).deleteFaculty(any(FacultyDto.class));
+        String errorMessage = "Faculty with ID:" + id + " is not exists.";
+        doThrow(new FacultyNotFoundException(errorMessage)).when(facade).doActionAndResult(eq(DELETE), any(FacultyDto.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -367,7 +373,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).delete(any(FacultyDto.class));
-        verify(facade).deleteFaculty(any(FacultyDto.class));
+        verify(facade).doActionAndResult(DELETE, id);
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
