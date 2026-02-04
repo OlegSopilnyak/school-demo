@@ -52,5 +52,4 @@ public interface OrganizationFacade extends BusinessFacade {
         throwInvalidActionId(actionId);
         return null;
     }
-
 }

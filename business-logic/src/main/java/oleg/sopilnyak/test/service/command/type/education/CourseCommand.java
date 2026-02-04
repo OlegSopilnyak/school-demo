@@ -18,21 +18,7 @@ import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 public interface CourseCommand<T> extends RootCommand<T> {
     // template of error message
     String COURSE_WITH_ID_PREFIX = "Course with ID:";
-
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String FIND_BY_ID = "course.findById";
-        public static final String FIND_REGISTERED = "course.findRegisteredFor";
-        public static final String FIND_NOT_REGISTERED = "course.findWithoutStudents";
-        public static final String CREATE_OR_UPDATE = "course.createOrUpdate";
-        public static final String DELETE = "course.delete";
-        public static final String REGISTER = "course.register";
-        public static final String UN_REGISTER = "course.unRegister";
-    }
-
+    //
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "courseCommandsFactory";
 
@@ -42,7 +28,7 @@ public interface CourseCommand<T> extends RootCommand<T> {
         }
 
         public static final String FIND_BY_ID = "courseFind";
-        public static final String FIND_REGISTERED = "courseFindWithStudents";
+        public static final String FIND_REGISTERED = "courseFindWithStudent";
         public static final String FIND_NOT_REGISTERED = "courseFindNoStudents";
         public static final String CREATE_OR_UPDATE = "courseUpdate";
         public static final String DELETE = "courseDelete";

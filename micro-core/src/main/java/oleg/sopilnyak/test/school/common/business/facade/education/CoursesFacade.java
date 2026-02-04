@@ -22,8 +22,8 @@ import java.util.Set;
 public interface CoursesFacade extends EducationFacade {
     String SUBSPACE = "::courses";
     String FIND_BY_ID = NAMESPACE + SUBSPACE + ":find.By.Id";
-    String FIND_REGISTERED = NAMESPACE + SUBSPACE + ":find.Registered.To.Students";
-    String FIND_NOT_REGISTERED = NAMESPACE + SUBSPACE + ":find.Without.Students";
+    String FIND_REGISTERED = NAMESPACE + SUBSPACE + ":find.Registered.To.The.Student";
+    String FIND_NOT_REGISTERED = NAMESPACE + SUBSPACE + ":find.Without.Any.Student";
     String CREATE_OR_UPDATE = NAMESPACE + SUBSPACE + ":create.Or.Update";
     String DELETE = NAMESPACE + SUBSPACE + ":delete";
     String REGISTER = NAMESPACE + SUBSPACE + ":register";
@@ -62,7 +62,9 @@ public interface CoursesFacade extends EducationFacade {
      * @see Course
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<Course> findById(Long id);
 
     /**
@@ -70,7 +72,9 @@ public interface CoursesFacade extends EducationFacade {
      *
      * @param studentId system-id of the student
      * @return set of courses
+     * @deprecated
      */
+    @Deprecated
     Set<Course> findRegisteredFor(Long studentId);
 
     /**
@@ -78,7 +82,9 @@ public interface CoursesFacade extends EducationFacade {
      *
      * @param student student instance
      * @return set of courses
+     * @deprecated
      */
+    @Deprecated
     default Set<Course> findRegisteredFor(final Student student) {
         return isInvalid(student) ? Set.of() : findRegisteredFor(student.getId());
     }
@@ -87,7 +93,9 @@ public interface CoursesFacade extends EducationFacade {
      * To get courses without registered students
      *
      * @return set of courses
+     * @deprecated
      */
+    @Deprecated
     Set<Course> findWithoutStudents();
 
     /**
@@ -97,7 +105,9 @@ public interface CoursesFacade extends EducationFacade {
      * @return student instance or empty() if not exists
      * @see Optional
      * @see Optional#empty()
+     * @deprecated
      */
+    @Deprecated
     Optional<Course> createOrUpdate(Course course);
 
     /**
@@ -106,7 +116,9 @@ public interface CoursesFacade extends EducationFacade {
      * @param courseId system-id of the course to delete
      * @throws CourseNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
+     * @deprecated
      */
+    @Deprecated
     void delete(Long courseId) throws CourseNotFoundException, CourseWithStudentsException;
 
     /**
@@ -115,7 +127,9 @@ public interface CoursesFacade extends EducationFacade {
      * @param course course instance to delete
      * @throws CourseNotFoundException     throws when course it not exists
      * @throws CourseWithStudentsException throws when course is not empty (has registered students)
+     * @deprecated
      */
+    @Deprecated
     default void delete(Course course) throws CourseNotFoundException, CourseWithStudentsException {
         if (isInvalid(course)) {
             throw new CourseNotFoundException("Wrong " + course + " to delete.");
@@ -132,7 +146,9 @@ public interface CoursesFacade extends EducationFacade {
      * @throws CourseNotFoundException       throws if course is not exists
      * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
+     * @deprecated
      */
+    @Deprecated
     void register(Long studentId, Long courseId) throws
             StudentNotFoundException, CourseNotFoundException,
             CourseHasNoRoomException, StudentCoursesExceedException;
@@ -146,7 +162,9 @@ public interface CoursesFacade extends EducationFacade {
      * @throws CourseNotFoundException       throws if course is not exists
      * @throws CourseHasNoRoomException      throws when there is no free slots for student
      * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
+     * @deprecated
      */
+    @Deprecated
     default void register(Student student, Course course) throws
             StudentNotFoundException, CourseNotFoundException,
             CourseHasNoRoomException, StudentCoursesExceedException {
@@ -165,7 +183,9 @@ public interface CoursesFacade extends EducationFacade {
      * @param courseId  system-id of the course
      * @throws StudentNotFoundException throws when student is not exists
      * @throws CourseNotFoundException  throws if course is not exists
+     * @deprecated
      */
+    @Deprecated
     void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException;
 
     /**
@@ -175,7 +195,9 @@ public interface CoursesFacade extends EducationFacade {
      * @param course  course instance
      * @throws StudentNotFoundException throws when student is not exists
      * @throws CourseNotFoundException  throws if course is not exists
+     * @deprecated
      */
+    @Deprecated
     default void unRegister(Student student, Course course) throws StudentNotFoundException, CourseNotFoundException {
         if (isInvalid(student)) {
             throw new StudentNotFoundException("Wrong student " + student + " for un-registration.");

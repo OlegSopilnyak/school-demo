@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -43,7 +44,7 @@ public class FindCoursesWithoutStudentsCommand extends BasicCommand<Set<Course>>
      */
     @Override
     public String getId() {
-        return CommandId.FIND_NOT_REGISTERED;
+        return CoursesFacade.FIND_NOT_REGISTERED;
     }
 
     public FindCoursesWithoutStudentsCommand(RegisterPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {

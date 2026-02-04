@@ -77,14 +77,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
-
-    public static final String COURSE_FIND_BY_ID = "course.findById";
-    public static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
-    public static final String COURSE_FIND_WITHOUT_STUDENTS = "course.findWithoutStudents";
-    public static final String COURSE_CREATE_OR_UPDATE = "course.createOrUpdate";
-    public static final String COURSE_DELETE = "course.delete";
-    public static final String COURSE_REGISTER = "course.register";
-    public static final String COURSE_UN_REGISTER = "course.unRegister";
+    private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
+    private static final String COURSE_FIND_REGISTERED_FOR = "school::education::courses:find.Registered.To.The.Student";
+    private static final String COURSE_FIND_WITHOUT_STUDENTS = "school::education::courses:find.Without.Any.Student";
+    private static final String COURSE_CREATE_OR_UPDATE = "school::education::courses:create.Or.Update";
+    private static final String COURSE_DELETE = "school::education::courses:delete";
+    private static final String COURSE_REGISTER = "school::education::courses:register";
+    private static final String COURSE_UN_REGISTER = "school::education::courses:unregister";
 
     @Autowired
     ConfigurableApplicationContext context;
@@ -145,102 +144,111 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotFindById() {
+        String commandId = COURSE_FIND_BY_ID;
         Long courseId = 100L;
         ActionContext.setup("test-facade", "test-action");
 
-        Optional<Course> course = facade.findById(courseId);
+        Optional<Course> course = facade.doActionAndResult(commandId, courseId);
 
         assertThat(course).isEmpty();
-        verifyAfterCommand(COURSE_FIND_BY_ID, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findCourseById(courseId);
     }
 
     @Test
     void shouldFindById() {
+        String commandId = COURSE_FIND_BY_ID;
         Course newCourse = makeClearTestCourse();
         Long courseId = persist(newCourse).getId();
         ActionContext.setup("test-facade", "test-action");
 
-        Optional<Course> course = facade.findById(courseId);
+        Optional<Course> course = facade.doActionAndResult(commandId, courseId);
 
         assertThat(course).isNotEmpty();
         assertCourseEquals(newCourse, course.orElseThrow(), false);
-        verifyAfterCommand(COURSE_FIND_BY_ID, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findCourseById(courseId);
     }
 
     @Test
     void shouldNotFindRegisteredFor() {
+        String commandId = COURSE_FIND_REGISTERED_FOR;
         Long studentId = 200L;
 
-        Set<Course> courses = facade.findRegisteredFor(studentId);
+        Set<Course> courses = facade.doActionAndResult(commandId, studentId);
 
         assertThat(courses).isEmpty();
-        verifyAfterCommand(COURSE_FIND_REGISTERED_FOR, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
     }
 
     @Test
     void shouldFindRegisteredFor() {
+        String commandId = COURSE_FIND_REGISTERED_FOR;
         Course newCourse = makeClearTestCourse();
         Course savedCourse = persist(newCourse);
         Long studentId = savedCourse.getStudents().get(0).getId();
         assertThat(studentId).isNotNull();
 
-        Set<Course> courses = facade.findRegisteredFor(studentId);
+        Set<Course> courses = facade.doActionAndResult(commandId, studentId);
 
         assertThat(courses).isNotEmpty();
         assertCourseEquals(newCourse, courses.iterator().next(), false);
         assertThat(courses).hasSize(1);
-        verifyAfterCommand(COURSE_FIND_REGISTERED_FOR, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
     }
 
     @Test
     void shouldNotFindWithoutStudents() {
-        Set<Course> courses = facade.findWithoutStudents();
+        String commandId = COURSE_FIND_WITHOUT_STUDENTS;
+
+        Set<Course> courses = facade.doActionAndResult(commandId);
 
         assertThat(courses).isEmpty();
-        verifyAfterCommand(COURSE_FIND_WITHOUT_STUDENTS, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 
     @Test
     void shouldFindWithoutStudents() {
+        String commandId = COURSE_FIND_WITHOUT_STUDENTS;
         Course newCourse = makeClearCourse(0);
         persist(newCourse);
 
-        Set<Course> courses = facade.findWithoutStudents();
+        Set<Course> courses = facade.doActionAndResult(commandId);
 
         assertThat(courses).isNotEmpty();
         assertCourseEquals(newCourse, courses.iterator().next(), false);
         assertThat(courses).hasSize(1);
-        verifyAfterCommand(COURSE_FIND_WITHOUT_STUDENTS, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 
     @Test
     void shouldCreateOrUpdate() {
+        String commandId = COURSE_CREATE_OR_UPDATE;
         Course newCourse = makeClearCourse(1);
         Course courseToUpdate = persist(newCourse);
 
-        Optional<Course> course = facade.createOrUpdate(courseToUpdate);
+        Optional<Course> course = facade.doActionAndResult(commandId, courseToUpdate);
 
         assertThat(course).isPresent();
         assertCourseEquals(courseToUpdate, course.get(), false);
-        verifyAfterCommand(COURSE_CREATE_OR_UPDATE, Input.of(courseToUpdate));
+        verifyAfterCommand(commandId, Input.of(courseToUpdate));
         verify(persistenceFacade).save(any(Course.class));
     }
 
     @Test
     void shouldDelete() throws CourseNotFoundException, CourseWithStudentsException, InterruptedException {
+        String commandId = COURSE_DELETE;
         Long courseId = persist(makeClearCourse(0)).getId();
         assertThat(findCourseById(courseId)).isPresent();
 
-        facade.delete(courseId);
+        facade.doActionAndResult(commandId, courseId);
         Awaitility.await().atMost(200, TimeUnit.MILLISECONDS).until(() -> findCourseById(courseId).isEmpty());
 
-        verifyAfterCommand(COURSE_DELETE, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).deleteCourse(courseId);
         assertThat(findCourseById(courseId)).isEmpty();
@@ -248,38 +256,45 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDelete_CourseNotExists() {
+        String commandId = COURSE_DELETE;
         Long courseId = 101L;
 
-        CourseNotFoundException exception = assertThrows(CourseNotFoundException.class, () -> facade.delete(courseId));
+        CourseNotFoundException exception = assertThrows(CourseNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:101 is not exists.");
-        verifyAfterCommand(COURSE_DELETE, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).deleteCourse(anyLong());
     }
 
     @Test
     void shouldNotDelete_CourseWithStudents() {
+        String commandId = COURSE_DELETE;
         Course newCourse = makeClearTestCourse();
         Long courseId = persist(newCourse).getId();
         assertThat(findCourseById(courseId)).isPresent();
 
-        var exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
+        var exception = assertThrows(CourseWithStudentsException.class,
+                () -> facade.doActionAndResult(commandId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:" + courseId + " has enrolled students.");
-        verifyAfterCommand(COURSE_DELETE, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).deleteCourse(anyLong());
     }
 
     @Test
     void shouldRegister() throws CourseNotFoundException, CourseHasNoRoomException, StudentCoursesExceedException, StudentNotFoundException, InterruptedException {
+        String commandId = COURSE_REGISTER;
         Student student = makeClearStudent(0);
         Long studentId = persist(student).getId();
         Course course = makeClearCourse(0);
         Long courseId = persist(course).getId();
 
-        facade.register(studentId, courseId);
+        facade.doActionAndResult(commandId, studentId, courseId);
         Awaitility.await().atMost(200, TimeUnit.MILLISECONDS)
                 .until(() -> findStudentById(studentId).orElseThrow().getCourses().contains(findCourseById(courseId).orElseThrow()));
 
@@ -292,7 +307,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
 
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).link(studentEntity.orElseThrow(), courseEntity.orElseThrow());
@@ -300,6 +315,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldRegister_AlreadyLinked() throws CourseNotFoundException, CourseHasNoRoomException, StudentCoursesExceedException, StudentNotFoundException {
+        String commandId = COURSE_REGISTER;
         Student student = persist(makeClearStudent(0));
         Course course = persist(makeClearCourse(0));
         assertThat(((StudentEntity) student).add(course)).isTrue();
@@ -315,9 +331,9 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
 
-        facade.register(studentId, courseId);
+        facade.doActionAndResult(commandId, studentId, courseId);
 
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
@@ -325,13 +341,16 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotRegister_StudentNotExists() {
+        String commandId = COURSE_REGISTER;
         Long studentId = 202L;
         Long courseId = 102L;
 
-        var exception = assertThrows(StudentNotFoundException.class, () -> facade.register(studentId, courseId));
+        var exception = assertThrows(StudentNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:202 is not exists.");
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade, never()).link(any(), any());
@@ -339,15 +358,18 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotRegister_NoRoomInTheCourse() {
+        String commandId = COURSE_REGISTER;
         Student student = makeClearStudent(0);
         Long studentId = persist(student).getId();
         Course course = makeClearTestCourse();
         Long courseId = persist(course).getId();
 
-        var exception = assertThrows(CourseHasNoRoomException.class, () -> facade.register(studentId, courseId));
+        var exception = assertThrows(CourseHasNoRoomException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:" + courseId + " does not have enough rooms.");
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
@@ -355,16 +377,19 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotRegister_StudentCoursesExceed() {
+        String commandId = COURSE_REGISTER;
         Student student = makeClearTestStudent();
         Long studentId = persist(student).getId();
         Course course = makeClearCourse(0);
         Long courseId = persist(course).getId();
 
 
-        var exception = assertThrows(StudentCoursesExceedException.class, () -> facade.register(studentId, courseId));
+        var exception = assertThrows(StudentCoursesExceedException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:" + studentId + " exceeds maximum courses.");
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
@@ -372,14 +397,17 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotRegister_CourseNotExists() {
+        String commandId = COURSE_REGISTER;
         Student student = makeClearStudent(0);
         Long studentId = persist(student).getId();
         Long courseId = 102L;
 
-        var exception = assertThrows(CourseNotFoundException.class, () -> facade.register(studentId, courseId));
+        var exception = assertThrows(CourseNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:102 is not exists.");
-        verifyAfterCommand(COURSE_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).link(any(), any());
@@ -387,10 +415,11 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldUnRegister_NotLinked() throws CourseNotFoundException, StudentNotFoundException {
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = persist(makeClearStudent(0)).getId();
         Long courseId = persist(makeClearCourse(0)).getId();
 
-        facade.unRegister(studentId, courseId);
+        facade.doActionAndResult(commandId, studentId, courseId);
 
         Optional<Course> courseEntity = findCourseById(courseId);
         assertThat(courseEntity).isNotEmpty();
@@ -400,7 +429,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity).isNotEmpty();
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses()).isEmpty();
-        verifyAfterCommand(COURSE_UN_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).unLink(studentEntity.get(), courseEntity.get());
@@ -408,6 +437,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldUnRegister_Linked() throws CourseNotFoundException, StudentNotFoundException {
+        String commandId = COURSE_UN_REGISTER;
         Student student = persist(makeClearStudent(0));
         Course course = persist(makeClearCourse(0));
         assertThat(((StudentEntity) student).add(course)).isTrue();
@@ -423,7 +453,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses().get(0).getId()).isEqualTo(courseId);
 
-        facade.unRegister(studentId, courseId);
+        facade.doActionAndResult(commandId, studentId, courseId);
         Awaitility.await().atMost(200, TimeUnit.MILLISECONDS)
                 .until(() -> !findStudentById(studentId).orElseThrow().getCourses().contains(course));
 
@@ -435,7 +465,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(studentEntity).isNotEmpty();
         assertThat(studentEntity.get().getId()).isEqualTo(studentId);
         assertThat(studentEntity.get().getCourses()).isEmpty();
-        verifyAfterCommand(COURSE_UN_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade).unLink(studentEntity.get(), courseEntity.get());
@@ -443,13 +473,16 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotUnRegister_StudentNotExists() {
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = 203L;
         Long courseId = 103L;
 
-        Exception exception = assertThrows(StudentNotFoundException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(StudentNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:203 is not exists.");
-        verifyAfterCommand(COURSE_UN_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).findCourseById(any());
         verify(persistenceFacade, never()).unLink(any(), any());
@@ -457,13 +490,16 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotUnRegister_CourseNotExists() {
+        String commandId = COURSE_UN_REGISTER;
         Long studentId = persist(makeClearStudent(0)).getId();
         Long courseId = 103L;
 
-        Exception exception = assertThrows(CourseNotFoundException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(CourseNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:103 is not exists.");
-        verifyAfterCommand(COURSE_UN_REGISTER, Input.of(studentId, courseId));
+        verifyAfterCommand(commandId, Input.of(studentId, courseId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).unLink(any(), any());

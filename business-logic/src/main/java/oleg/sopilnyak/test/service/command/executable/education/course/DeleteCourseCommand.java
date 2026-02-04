@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsException;
@@ -56,7 +57,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> imp
      */
     @Override
     public String getId() {
-        return CommandId.DELETE;
+        return CoursesFacade.DELETE;
     }
 
     public DeleteCourseCommand(final CoursesPersistenceFacade persistenceFacade,

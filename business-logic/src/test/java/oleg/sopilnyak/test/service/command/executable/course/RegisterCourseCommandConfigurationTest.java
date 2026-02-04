@@ -26,7 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(properties = {"school.courses.maximum.rooms=20", "school.students.maximum.courses=15"})
 @DirtiesContext
 class RegisterCourseCommandConfigurationTest {
-    static final String REGISTER_COMMAND_ID = "course.register";
+    static final String REGISTER_COMMAND_ID = "school::education::courses:register";
     @MockitoBean
     PersistenceFacade persistence;
     @MockitoBean
@@ -34,13 +34,6 @@ class RegisterCourseCommandConfigurationTest {
 
     @Autowired(required = false)
     CommandsFactory<CourseCommand<?>> factory;
-//    @Autowired
-//    CommandThroughMessageService messagesExchangeService;
-//
-//    @AfterEach
-//    void tearDown() {
-//        messagesExchangeService.shutdown();
-//    }
 
     @Test
     void shouldBuildCourseCommandsFactory() {

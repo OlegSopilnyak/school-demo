@@ -242,13 +242,13 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
 
-    // To delete authorityPerson from the school (with profile at once) (for entry-point)
+    // To delete authority person from the school (with profile at once) (for entry-point)
     private Void internalDeleteComposite(final Object... parameters) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         internalDeleteComposite(decodeLongArgument(parameters));
         return null;
     }
 
-    // To delete authorityPerson from the school (with profile at once) (for internal usage)
+    // To delete authority person from the school (with profile at once) (for internal usage)
     private void internalDeleteComposite(final Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         final String commandId = AuthorityPersonFacade.DELETE_MACRO;
         final Consumer<Exception> doOnError = exception -> {

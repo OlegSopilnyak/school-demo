@@ -57,13 +57,13 @@ import org.springframework.util.ReflectionUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class CoursesFacadeImplTest {
-    private static final String COURSE_FIND_BY_ID = "course.findById";
-    private static final String COURSE_FIND_REGISTERED_FOR = "course.findRegisteredFor";
-    private static final String COURSE_FIND_WITHOUT_STUDENTS = "course.findWithoutStudents";
-    private static final String COURSE_CREATE_OR_UPDATE = "course.createOrUpdate";
-    private static final String COURSE_DELETE = "course.delete";
-    private static final String COURSE_REGISTER = "course.register";
-    private static final String COURSE_UN_REGISTER = "course.unRegister";
+    private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
+    private static final String COURSE_FIND_REGISTERED_FOR = "school::education::courses:find.Registered.To.The.Student";
+    private static final String COURSE_FIND_WITHOUT_STUDENTS = "school::education::courses:find.Without.Any.Student";
+    private static final String COURSE_CREATE_OR_UPDATE = "school::education::courses:create.Or.Update";
+    private static final String COURSE_DELETE = "school::education::courses:delete";
+    private static final String COURSE_REGISTER = "school::education::courses:register";
+    private static final String COURSE_UN_REGISTER = "school::education::courses:unregister";
 
     CommandActionExecutor actionExecutor = mock(CommandActionExecutor.class);
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
@@ -90,21 +90,23 @@ class CoursesFacadeImplTest {
     }
 
     @Test
-    void shouldNotFindById() {
+    void shouldFindById_Unified() {
         String commandId = COURSE_FIND_BY_ID;
         CourseCommand<?> command = factory.command(commandId);
         reset(factory);
         doReturn(command).when(applicationContext).getBean("courseFind", CourseCommand.class);
-        Long courseId = 200L;
+        Long courseId = 201L;
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+        when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
-        Optional<Course> course = facade.findById(courseId);
+        Optional<Course> course = facade.doActionAndResult(commandId, courseId);
 
-        assertThat(course).isEmpty();
+        assertThat(course).isPresent().contains(mockedCoursePayload);
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(courseId));
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findCourseById(courseId);
-        verify(payloadMapper, never()).toPayload(any(Course.class));
+        verify(payloadMapper).toPayload(mockedCourse);
     }
 
     @Test
@@ -117,7 +119,7 @@ class CoursesFacadeImplTest {
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
-        Optional<Course> course = facade.findById(courseId);
+        Optional<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindById", courseId);
 
         assertThat(course).isPresent().contains(mockedCoursePayload);
         verify(factory).command(commandId);
@@ -128,15 +130,52 @@ class CoursesFacadeImplTest {
     }
 
     @Test
+    void shouldNotFindById() {
+        String commandId = COURSE_FIND_BY_ID;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseFind", CourseCommand.class);
+        Long courseId = 200L;
+
+        Optional<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindById", courseId);
+
+        assertThat(course).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper, never()).toPayload(any(Course.class));
+    }
+
+    @Test
+    void shouldFindRegisteredFor_Unified() {
+        String commandId = COURSE_FIND_REGISTERED_FOR;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseFindWithStudent", CourseCommand.class);
+        Long studentId = 100L;
+        when(persistenceFacade.findCoursesRegisteredForStudent(studentId)).thenReturn(Set.of(mockedCourse));
+
+        Set<Course> course = facade.doActionAndResult(commandId, studentId);
+
+        assertThat(course).hasSize(1);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findCoursesRegisteredForStudent(studentId);
+        verify(payloadMapper).toPayload(mockedCourse);
+    }
+
+    @Test
     void shouldFindRegisteredFor() {
         String commandId = COURSE_FIND_REGISTERED_FOR;
         CourseCommand<?> command = factory.command(commandId);
         reset(factory);
-        doReturn(command).when(applicationContext).getBean("courseFindWithStudents", CourseCommand.class);
+        doReturn(command).when(applicationContext).getBean("courseFindWithStudent", CourseCommand.class);
         Long studentId = 100L;
         when(persistenceFacade.findCoursesRegisteredForStudent(studentId)).thenReturn(Set.of(mockedCourse));
 
-        Set<Course> course = facade.findRegisteredFor(studentId);
+        Set<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindRegisteredFor", studentId);
 
         assertThat(course).hasSize(1);
         verify(factory).command(commandId);
@@ -151,10 +190,10 @@ class CoursesFacadeImplTest {
         String commandId = COURSE_FIND_REGISTERED_FOR;
         CourseCommand<?> command = factory.command(commandId);
         reset(factory);
-        doReturn(command).when(applicationContext).getBean("courseFindWithStudents", CourseCommand.class);
+        doReturn(command).when(applicationContext).getBean("courseFindWithStudent", CourseCommand.class);
         Long studentId = 101L;
 
-        Set<Course> course = facade.findRegisteredFor(studentId);
+        Set<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindRegisteredFor", studentId);
 
         assertThat(course).isEmpty();
         verify(factory).command(commandId);
@@ -165,6 +204,24 @@ class CoursesFacadeImplTest {
     }
 
     @Test
+    void shouldFindWithoutStudents_Unified() {
+        String commandId = COURSE_FIND_WITHOUT_STUDENTS;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseFindNoStudents", CourseCommand.class);
+        when(persistenceFacade.findCoursesWithoutStudents()).thenReturn(Set.of(mockedCourse));
+
+        Set<Course> course = facade.doActionAndResult(commandId);
+
+        assertThat(course).hasSize(1);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findCoursesWithoutStudents();
+        verify(payloadMapper).toPayload(mockedCourse);
+    }
+
+    @Test
     void shouldFindWithoutStudents() {
         String commandId = COURSE_FIND_WITHOUT_STUDENTS;
         CourseCommand<?> command = factory.command(commandId);
@@ -172,7 +229,7 @@ class CoursesFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("courseFindNoStudents", CourseCommand.class);
         when(persistenceFacade.findCoursesWithoutStudents()).thenReturn(Set.of(mockedCourse));
 
-        Set<Course> course = facade.findWithoutStudents();
+        Set<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindWithoutStudents");
 
         assertThat(course).hasSize(1);
         verify(factory).command(commandId);
@@ -189,7 +246,7 @@ class CoursesFacadeImplTest {
         reset(factory);
         doReturn(command).when(applicationContext).getBean("courseFindNoStudents", CourseCommand.class);
 
-        Set<Course> course = facade.findWithoutStudents();
+        Set<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalFindWithoutStudents");
 
         assertThat(course).isEmpty();
         verify(factory).command(commandId);
@@ -197,6 +254,27 @@ class CoursesFacadeImplTest {
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findCoursesWithoutStudents();
         verify(payloadMapper, never()).toPayload(any(Course.class));
+    }
+
+    @Test
+    void shouldCreateOrUpdate_Unified() {
+        String commandId = COURSE_CREATE_OR_UPDATE;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseUpdate", CourseCommand.class);
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+        when(payloadMapper.toPayload(mockedCoursePayload)).thenReturn(mockedCoursePayload);
+        when(persistenceFacade.save(mockedCoursePayload)).thenReturn(Optional.of(mockedCoursePayload));
+
+        Optional<Course> course = facade.doActionAndResult(commandId, mockedCourse);
+
+        assertThat(course).isPresent().contains(mockedCoursePayload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedCoursePayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedCourse);
+        verify(persistenceFacade, never()).findCourseById(anyLong());
+        verify(persistenceFacade).save(mockedCoursePayload);
     }
 
     @Test
@@ -209,7 +287,7 @@ class CoursesFacadeImplTest {
         when(payloadMapper.toPayload(mockedCoursePayload)).thenReturn(mockedCoursePayload);
         when(persistenceFacade.save(mockedCoursePayload)).thenReturn(Optional.of(mockedCoursePayload));
 
-        Optional<Course> course = facade.createOrUpdate(mockedCourse);
+        Optional<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockedCourse);
 
         assertThat(course).isPresent().contains(mockedCoursePayload);
         verify(factory).command(commandId);
@@ -228,7 +306,7 @@ class CoursesFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("courseUpdate", CourseCommand.class);
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
-        Optional<Course> course = facade.createOrUpdate(mockedCourse);
+        Optional<Course> course = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockedCourse);
 
         assertThat(course).isEmpty();
         verify(factory).command(commandId);
@@ -237,6 +315,26 @@ class CoursesFacadeImplTest {
         verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade, never()).findCourseById(anyLong());
         verify(persistenceFacade).save(mockedCoursePayload);
+    }
+
+    @Test
+    void shouldDelete_Unified() throws CourseNotFoundException, CourseWithStudentsException {
+        String commandId = COURSE_DELETE;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseDelete", CourseCommand.class);
+        Long courseId = 202L;
+        when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+        when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
+
+        facade.doActionAndResult(commandId, courseId);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(payloadMapper).toPayload(mockedCourse);
+        verify(persistenceFacade).deleteCourse(courseId);
     }
 
     @Test
@@ -249,7 +347,7 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
-        facade.delete(courseId);
+        ReflectionTestUtils.invokeMethod(facade, "internalDelete", courseId);
 
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(courseId));
@@ -267,7 +365,9 @@ class CoursesFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("courseDelete", CourseCommand.class);
         Long courseId = 203L;
 
-        CourseNotFoundException exception = assertThrows(CourseNotFoundException.class, () -> facade.delete(courseId));
+        CourseNotFoundException exception = assertThrows(CourseNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:203 is not exists.");
         verify(factory).command(commandId);
@@ -289,7 +389,9 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(payloadMapper.toPayload(mockedCourse)).thenReturn(mockedCoursePayload);
 
-        CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class, () -> facade.delete(courseId));
+        CourseWithStudentsException exception = assertThrows(CourseWithStudentsException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDelete", courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:204 has enrolled students.");
         verify(factory).command(commandId);
@@ -298,6 +400,28 @@ class CoursesFacadeImplTest {
         verify(persistenceFacade).findCourseById(courseId);
         verify(payloadMapper).toPayload(mockedCourse);
         verify(persistenceFacade, never()).deleteCourse(courseId);
+    }
+
+    @Test
+    void shouldRegister_Unified() {
+        String commandId = COURSE_REGISTER;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseRegisterStudent", CourseCommand.class);
+        Long studentId = 102L;
+        when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        Long courseId = 205L;
+        when(mockedCourse.getId()).thenReturn(courseId);
+        when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+
+        facade.doActionAndResult(commandId, studentId, courseId);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId, courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(persistenceFacade).link(mockedStudent, mockedCourse);
     }
 
     @Test
@@ -312,7 +436,7 @@ class CoursesFacadeImplTest {
         when(mockedCourse.getId()).thenReturn(courseId);
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
-        facade.register(studentId, courseId);
+        ReflectionTestUtils.invokeMethod(facade, "internalRegister", studentId, courseId);
 
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(studentId, courseId));
@@ -331,7 +455,9 @@ class CoursesFacadeImplTest {
         Long studentId = 103L;
         Long courseId = 206L;
 
-        Exception exception = assertThrows(StudentNotFoundException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(StudentNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 is not exists.");
         verify(factory).command(commandId);
@@ -352,7 +478,9 @@ class CoursesFacadeImplTest {
         Long courseId = 207L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Exception exception = assertThrows(CourseNotFoundException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(CourseNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:207 is not exists.");
         verify(factory).command(commandId);
@@ -376,7 +504,9 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(mockedStudent.getCourses()).thenReturn(IntStream.range(1, 10).mapToObj(_ -> mockedCourse).toList());
 
-        Exception exception = assertThrows(StudentCoursesExceedException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(StudentCoursesExceedException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:105 exceeds maximum courses.");
         verify(factory).command(commandId);
@@ -400,7 +530,9 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
         when(mockedCourse.getStudents()).thenReturn(IntStream.range(1, 51).mapToObj(_ -> mockedStudent).toList());
 
-        Exception exception = assertThrows(CourseHasNoRoomException.class, () -> facade.register(studentId, courseId));
+        Exception exception = assertThrows(CourseHasNoRoomException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:209 does not have enough rooms.");
         verify(factory).command(commandId);
@@ -409,6 +541,27 @@ class CoursesFacadeImplTest {
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade).findCourseById(courseId);
         verify(persistenceFacade, never()).link(any(Student.class), any(Course.class));
+    }
+
+    @Test
+    void shouldUnRegister_Unified() {
+        String commandId = COURSE_UN_REGISTER;
+        CourseCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("courseUnRegisterStudent", CourseCommand.class);
+        Long studentId = 107L;
+        Long courseId = 210L;
+        when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
+
+        facade.doActionAndResult(commandId, studentId, courseId);
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId, courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+        verify(persistenceFacade).findCourseById(courseId);
+        verify(persistenceFacade).unLink(mockedStudent, mockedCourse);
     }
 
     @Test
@@ -422,7 +575,7 @@ class CoursesFacadeImplTest {
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
         when(persistenceFacade.findCourseById(courseId)).thenReturn(Optional.of(mockedCourse));
 
-        facade.unRegister(studentId, courseId);
+        ReflectionTestUtils.invokeMethod(facade, "internalUnRegister", studentId, courseId);
 
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(studentId, courseId));
@@ -441,7 +594,9 @@ class CoursesFacadeImplTest {
         Long studentId = 108L;
         Long courseId = 211L;
 
-        Exception exception = assertThrows(StudentNotFoundException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(StudentNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalUnRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:108 is not exists.");
         verify(factory).command(commandId);
@@ -462,7 +617,9 @@ class CoursesFacadeImplTest {
         Long courseId = 212L;
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Exception exception = assertThrows(CourseNotFoundException.class, () -> facade.unRegister(studentId, courseId));
+        Exception exception = assertThrows(CourseNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalUnRegister", studentId, courseId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Course with ID:212 is not exists.");
         verify(factory).command(commandId);
@@ -476,7 +633,7 @@ class CoursesFacadeImplTest {
     private CommandsFactory<CourseCommand<?>> buildFactory() {
         Map<CourseCommand<?>, String> commands = Map.of(
                 spy(new FindCourseCommand(persistenceFacade, payloadMapper)), "courseFind",
-                spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)),"courseFindWithStudents",
+                spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)),"courseFindWithStudent",
                 spy(new FindCoursesWithoutStudentsCommand(persistenceFacade, payloadMapper)),"courseFindNoStudents",
                 spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),"courseUpdate",
                 spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),"courseDelete",

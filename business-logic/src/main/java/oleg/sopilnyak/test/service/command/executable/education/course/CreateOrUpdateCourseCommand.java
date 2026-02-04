@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.course;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -59,7 +60,7 @@ public class CreateOrUpdateCourseCommand extends SchoolCommandCache<Course, Opti
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return CoursesFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateCourseCommand(final CoursesPersistenceFacade persistenceFacade,

@@ -41,6 +41,15 @@ import org.springframework.transaction.annotation.Transactional;
 })
 @Rollback
 class CourseCommandsFactoryTest extends MysqlTestModelFactory {
+    // command ids
+    private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
+    private static final String COURSE_FIND_REGISTERED_FOR = "school::education::courses:find.Registered.To.The.Student";
+    private static final String COURSE_FIND_WITHOUT_STUDENTS = "school::education::courses:find.Without.Any.Student";
+    private static final String COURSE_CREATE_OR_UPDATE = "school::education::courses:create.Or.Update";
+    private static final String COURSE_DELETE = "school::education::courses:delete";
+    private static final String COURSE_REGISTER = "school::education::courses:register";
+    private static final String COURSE_UN_REGISTER = "school::education::courses:unregister";
+    // factory meta-names
     private static final String FACTORY_NAME = "Courses";
     private static final String SPRING_NAME = "courseCommandsFactory";
     private Collection<String> commandsId;
@@ -57,13 +66,13 @@ class CourseCommandsFactoryTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "course.findById",
-                "course.findRegisteredFor",
-                "course.findWithoutStudents",
-                "course.createOrUpdate",
-                "course.delete",
-                "course.register",
-                "course.unRegister"
+                COURSE_FIND_BY_ID,
+                COURSE_FIND_REGISTERED_FOR,
+                COURSE_FIND_WITHOUT_STUDENTS,
+                COURSE_CREATE_OR_UPDATE,
+                COURSE_DELETE,
+                COURSE_REGISTER,
+                COURSE_UN_REGISTER
         );
     }
 

@@ -47,7 +47,7 @@ class FindRegisteredCoursesCommandTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
-        doReturn(command).when(applicationContext).getBean("courseFindWithStudents", CourseCommand.class);
+        doReturn(command).when(applicationContext).getBean("courseFindWithStudent", CourseCommand.class);
     }
 
     @Test

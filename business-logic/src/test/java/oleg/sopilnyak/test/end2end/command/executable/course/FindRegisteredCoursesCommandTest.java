@@ -44,6 +44,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@SuppressWarnings("unchecked")
 class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
@@ -56,7 +57,7 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     BusinessMessagePayloadMapper payloadMapper;
     @MockitoSpyBean
     @Autowired
-    @Qualifier("courseFindWithStudents")
+    @Qualifier("courseFindWithStudent")
     CourseCommand command;
 
     @AfterEach
@@ -169,15 +170,12 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
 
     private CourseEntity persist(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getStudentSet().forEach(em::persist);
             em.getTransaction().commit();
             return em.find(CourseEntity.class, entity.getId());
-        } finally {
-            em.close();
         }
     }
 
@@ -196,21 +194,17 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
 
     private StudentEntity persist(Student newInstance) {
         StudentEntity entity = entityMapper.toEntity(newInstance);
-        EntityManager em = emf.createEntityManager();
-        try {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getCourseSet().forEach(em::persist);
             em.getTransaction().commit();
             return em.find(StudentEntity.class, entity.getId());
-        } finally {
-            em.close();
         }
     }
 
     private boolean link(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -224,14 +218,11 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
 
     private boolean unlink(Long studentId, Long courseId) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             StudentEntity student = em.find(StudentEntity.class, studentId);
@@ -245,8 +236,6 @@ class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
             em.clear();
             transaction.commit();
             return true;
-        } finally {
-            em.close();
         }
     }
 }

@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.education.course;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
@@ -48,7 +49,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
      */
     @Override
     public String getId() {
-        return CommandId.UN_REGISTER;
+        return CoursesFacade.UN_REGISTER;
     }
 
     public UnRegisterStudentFromCourseCommand(EducationPersistenceFacade persistenceFacade, BusinessMessagePayloadMapper payloadMapper) {

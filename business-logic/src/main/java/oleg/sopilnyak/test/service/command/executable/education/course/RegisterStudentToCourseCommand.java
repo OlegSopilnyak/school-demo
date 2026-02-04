@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.exception.education.CourseHasNoRoomException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.model.Course;
@@ -58,7 +59,7 @@ public class RegisterStudentToCourseCommand extends BasicCommand<Boolean> implem
      */
     @Override
     public String getId() {
-        return CommandId.REGISTER;
+        return CoursesFacade.REGISTER;
     }
 
     public RegisterStudentToCourseCommand(final EducationPersistenceFacade persistenceFacade,

@@ -40,8 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class ContextInputParameterTest {
     private static final String STUDENT_FIND_BY_ID = "student.findById";
     private static final String STUDENT_FIND_ENROLLED = "student.findEnrolledTo";
-    private static final String COURSE_FIND_BY_ID = "course.findById";
-    private static final String COURSE_FIND_REGISTERED = "course.findRegisteredFor";
+    private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
+    private static final String COURSE_FIND_REGISTERED = "school::education::courses:find.Registered.To.The.Student";
     @MockitoBean
     private PersistenceFacade persistenceFacade;
     @MockitoBean
