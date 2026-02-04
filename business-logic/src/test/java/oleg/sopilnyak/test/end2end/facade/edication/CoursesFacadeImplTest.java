@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -72,9 +73,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        SchoolCommandsConfiguration.class,PersistenceConfiguration.class, TestConfig.class
+        SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class
 })
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SuppressWarnings("unchecked")
 class CoursesFacadeImplTest extends MysqlTestModelFactory {
     private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
@@ -554,12 +556,12 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
     private CommandsFactory<CourseCommand<?>> buildFactory(PersistenceFacade persistenceFacade) {
         Map<CourseCommand<?>, String> commands = Map.of(
                 spy(new FindCourseCommand(persistenceFacade, payloadMapper)), "courseFind",
-                spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)),"courseFindWithStudents",
-                spy(new FindCoursesWithoutStudentsCommand(persistenceFacade, payloadMapper)),"courseFindNoStudents",
-                spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)),"courseUpdate",
-                spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)),"courseDelete",
-                spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)),"courseRegisterStudent",
-                spy(new UnRegisterStudentFromCourseCommand(persistenceFacade, payloadMapper)),"courseUnRegisterStudent"
+                spy(new FindRegisteredCoursesCommand(persistenceFacade, payloadMapper)), "courseFindWithStudents",
+                spy(new FindCoursesWithoutStudentsCommand(persistenceFacade, payloadMapper)), "courseFindNoStudents",
+                spy(new CreateOrUpdateCourseCommand(persistenceFacade, payloadMapper)), "courseUpdate",
+                spy(new DeleteCourseCommand(persistenceFacade, payloadMapper)), "courseDelete",
+                spy(new RegisterStudentToCourseCommand(persistenceFacade, payloadMapper, 50, 5)), "courseRegisterStudent",
+                spy(new UnRegisterStudentFromCourseCommand(persistenceFacade, payloadMapper)), "courseUnRegisterStudent"
         );
         String acName = "applicationContext";
         commands.entrySet().forEach(entry -> {
