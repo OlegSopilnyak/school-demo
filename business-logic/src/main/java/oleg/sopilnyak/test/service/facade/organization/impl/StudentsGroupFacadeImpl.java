@@ -75,65 +75,6 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     }
 
     /**
-     * To get all students groups
-     *
-     * @return list of students groups
-     * @see StudentsGroup
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Collection<StudentsGroup> findAllStudentsGroups() {
-        throw new IllegalArgumentException("Deprecated method, please use doActionAndResult(FIND_ALL, ...) instead");
-    }
-
-    /**
-     * To get the students group by ID
-     *
-     * @param id system-id of the students group
-     * @return StudentsGroup instance or empty() if not exists
-     * @see StudentsGroup
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<StudentsGroup> findStudentsGroupById(Long id) {
-        throw new IllegalArgumentException("Deprecated method, please use doActionAndResult(FIND_ALL, ...) instead");
-    }
-
-    /**
-     * To create or update students group instance
-     *
-     * @param instance students group should be created or updated
-     * @return students group instance or empty() if not exists
-     * @see StudentsGroup
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
-        throw new IllegalArgumentException("Deprecated method, please use doActionAndResult(CREATE_OR_UPDATE, ...) instead");
-    }
-
-    /**
-     * To delete students group instance from the school
-     *
-     * @param id system-id of the students group to delete
-     * @throws StudentsGroupNotFoundException    throws when students group is not exists
-     * @throws StudentGroupWithStudentsException throws when students group has students
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public void deleteStudentsGroupById(Long id) throws StudentsGroupNotFoundException, StudentGroupWithStudentsException {
-        throw new IllegalArgumentException("Deprecated method, please use doActionAndResult(DELETE, ...) instead");
-    }
-
-    /**
      * To get the logger of the facade
      *
      * @return logger instance
