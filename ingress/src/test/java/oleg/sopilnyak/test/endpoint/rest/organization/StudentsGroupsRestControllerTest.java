@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -49,6 +50,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class StudentsGroupsRestControllerTest extends TestModelFactory {
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "school::organization::student::groups:find.All";
+    private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "school::organization::student::groups:find.By.Id";
+    private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "school::organization::student::groups:create.Or.Update";
+    private static final String ORGANIZATION_STUDENTS_GROUP_DELETE = "school::organization::student::groups:delete";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/student-groups";
     @MockitoBean
@@ -89,7 +94,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).findAllStudentsGroups();
+        verify(facade).doActionAndResult(ORGANIZATION_STUDENTS_GROUP_FIND_ALL);
         String responseString = result.getResponse().getContentAsString();
 
         List<StudentsGroup> studentsGroupList = MAPPER.readValue(responseString, new TypeReference<List<StudentsGroupDto>>() {
@@ -116,7 +121,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).findStudentsGroupById(id);
+        verify(facade).doActionAndResult(ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID, id);
         String responseString = result.getResponse().getContentAsString();
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
@@ -128,11 +133,11 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     void shouldCreateStudentsGroup() throws Exception {
         StudentsGroup studentsGroup = makeTestStudentsGroup(null);
         doAnswer(invocation -> {
-            StudentsGroup received = invocation.getArgument(0);
+            StudentsGroup received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
             assertStudentsGroupEquals(studentsGroup, received);
             return Optional.of(studentsGroup);
-        }).when(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
+        }).when(facade).doActionAndResult(eq(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE), any(StudentsGroup.class));
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
@@ -146,7 +151,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).create(any(StudentsGroupDto.class));
-        verify(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
+        verify(facade).doActionAndResult(eq(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE), any(StudentsGroup.class));
         String responseString = result.getResponse().getContentAsString();
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
@@ -159,11 +164,11 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         Long id = 501L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
         doAnswer(invocation -> {
-            StudentsGroup received = invocation.getArgument(0);
+            StudentsGroup received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
             assertStudentsGroupEquals(studentsGroup, received);
             return Optional.of(studentsGroup);
-        }).when(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
+        }).when(facade).doActionAndResult(eq(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE), any(StudentsGroup.class));
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
@@ -177,7 +182,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(StudentsGroupDto.class));
-        verify(facade).createOrUpdateStudentsGroup(any(StudentsGroup.class));
+        verify(facade).doActionAndResult(eq(ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE), any(StudentsGroup.class));
         String responseString = result.getResponse().getContentAsString();
         StudentsGroup studentsGroupDto = MAPPER.readValue(responseString, StudentsGroupDto.class);
 
@@ -246,7 +251,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
                 .andDo(print());
 
         verify(controller).delete(id.toString());
-        verify(facade).deleteStudentsGroupById(id);
+        verify(facade).doActionAndResult(ORGANIZATION_STUDENTS_GROUP_DELETE, id);
         checkControllerAspect();
     }
 

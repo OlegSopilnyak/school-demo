@@ -46,7 +46,7 @@ public class StudentsGroupsRestController {
     public List<StudentsGroupDto> findAll() {
         log.debug("Trying to get all school's students groups");
         try {
-            return resultToDto(facade.findAllStudentsGroups());
+            return resultToDto(findAllStudentsGroups());
         } catch (Exception e) {
             log.error("Cannot get all school's students groups", e);
             throw new CannotProcessActionException("Cannot get all school's students groups", e);
@@ -60,7 +60,7 @@ public class StudentsGroupsRestController {
             final Long id = Long.parseLong(groupId);
             log.debug("Getting students group for id: {}", id);
 
-            return resultToDto(groupId, facade.findStudentsGroupById(id));
+            return resultToDto(groupId, findStudentsGroupById(id));
         } catch (NumberFormatException _) {
             throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class StudentsGroupsRestController {
         log.debug("Trying to create the students group {}", studentsGroupDto);
         try {
             studentsGroupDto.setId(null);
-            return resultToDto(facade.createOrUpdateStudentsGroup(studentsGroupDto));
+            return resultToDto(createOrUpdateStudentsGroup(studentsGroupDto));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot create new students group " + studentsGroupDto, e);
         }
@@ -89,7 +89,7 @@ public class StudentsGroupsRestController {
             if (isInvalid(id)) {
                 throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + id + "'");
             }
-            return resultToDto(facade.createOrUpdateStudentsGroup(studentsGroupDto));
+            return resultToDto(createOrUpdateStudentsGroup(studentsGroupDto));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot update students group " + studentsGroupDto, e);
         }
@@ -105,7 +105,7 @@ public class StudentsGroupsRestController {
                 throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + id + "'");
             }
 
-            facade.deleteStudentsGroupById(id);
+            deleteStudentsGroupById(id);
         } catch (NumberFormatException _) {
             throw new StudentsGroupNotFoundException(WRONG_STUDENTS_GROUP_ID + groupId + "'");
         } catch (Exception e) {
@@ -115,6 +115,22 @@ public class StudentsGroupsRestController {
     }
 
     // private methods
+    private Collection<StudentsGroup> findAllStudentsGroups() {
+        return facade.doActionAndResult(StudentsGroupFacade.FIND_ALL);
+    }
+
+    private Optional<StudentsGroup> findStudentsGroupById(final Long id) {
+        return facade.doActionAndResult(StudentsGroupFacade.FIND_BY_ID, id);
+    }
+
+    private Optional<StudentsGroup> createOrUpdateStudentsGroup(StudentsGroup instance) {
+        return facade.doActionAndResult(StudentsGroupFacade.CREATE_OR_UPDATE, instance);
+    }
+
+    private void deleteStudentsGroupById(final Long id) {
+        facade.doActionAndResult(StudentsGroupFacade.DELETE, id);
+    }
+
     private StudentsGroupDto resultToDto(Optional<StudentsGroup> course) {
         log.debug("Converting {} to DTO", course);
         return mapper.toDto(
@@ -138,5 +154,4 @@ public class StudentsGroupsRestController {
     private static boolean isInvalid(Long id) {
         return isNull(id) || id <= 0L;
     }
-
 }
