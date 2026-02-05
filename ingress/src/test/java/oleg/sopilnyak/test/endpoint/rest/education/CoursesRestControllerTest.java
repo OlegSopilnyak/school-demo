@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -54,6 +55,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class CoursesRestControllerTest extends TestModelFactory {
+    private static final String COURSE_CREATE_OR_UPDATE = "school::education::courses:create.Or.Update";
+    private static final String COURSE_DELETE = "school::education::courses:delete";
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @MockitoBean
@@ -81,7 +85,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldFindCourse() throws Exception {
         Long id = 100L;
         Course course = makeTestCourse(id);
-        doReturn(Optional.of(course)).when(facade).findById(id);
+        doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(id);
         String requestPath = "/courses/" + id;
 
         MvcResult result =
@@ -109,7 +113,7 @@ class CoursesRestControllerTest extends TestModelFactory {
         Long studentId = 200L;
         long coursesAmount = 10L;
         Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
-        doReturn(courses).when(facade).findRegisteredFor(studentId);
+        doReturn(courses).when(persistenceFacade).findCoursesRegisteredForStudent(studentId);
         List<Course> selectedCoursesList = courses.stream().sorted(Comparator.comparing(Course::getId)).toList();
         String requestPath = "/courses/registered/" + studentId;
 
@@ -137,7 +141,7 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldFindEmptyCourses() throws Exception {
         long coursesAmount = 5L;
         Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
-        doReturn(courses).when(facade).findWithoutStudents();
+        doReturn(courses).when(persistenceFacade).findCoursesWithoutStudents();
         List<Course> selectedCoursesList = courses.stream().sorted(Comparator.comparing(Course::getId)).toList();
         String requestPath = "/courses/empty";
 
@@ -165,12 +169,12 @@ class CoursesRestControllerTest extends TestModelFactory {
     void shouldCreateCourse() throws Exception {
         Course course = makeTestCourse(null);
         doAnswer(invocation -> {
-            Course received = invocation.getArgument(0);
+            Course received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
             assertCourseEquals(course, received);
             assertStudentLists(course.getStudents(), received.getStudents());
             return Optional.of(course);
-        }).when(facade).createOrUpdate(any(Course.class));
+        }).when(facade).doActionAndResult(eq(COURSE_CREATE_OR_UPDATE), any(Course.class));
         String requestPath = "/courses";
         String jsonContent = MAPPER.writeValueAsString(course);
 
@@ -199,12 +203,12 @@ class CoursesRestControllerTest extends TestModelFactory {
         Long id = 101L;
         Course course = makeTestCourse(id);
         doAnswer(invocation -> {
-            Course received = invocation.getArgument(0);
+            Course received = invocation.getArgument(1);
             assertThat(id).isEqualTo(received.getId());
             assertCourseEquals(course, received);
             assertStudentLists(course.getStudents(), received.getStudents());
             return Optional.of(course);
-        }).when(facade).createOrUpdate(any(Course.class));
+        }).when(facade).doActionAndResult(eq(COURSE_CREATE_OR_UPDATE), any(Course.class));
         String requestPath = "/courses";
         String jsonContent = MAPPER.writeValueAsString(course);
 
@@ -301,7 +305,7 @@ class CoursesRestControllerTest extends TestModelFactory {
         Long id = 103L;
         String requestPath = "/courses/" + id;
         var exception = new CourseNotFoundException("Wrong course");
-        doThrow(exception).when(facade).delete(id);
+        doThrow(exception).when(persistenceFacade).findCourseById(id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -326,7 +330,7 @@ class CoursesRestControllerTest extends TestModelFactory {
         String requestPath = "/courses/" + id;
         String errorMessage = "Wrong course";
         var exception = new CourseWithStudentsException(errorMessage);
-        doThrow(exception).when(facade).delete(id);
+        doThrow(exception).when(facade).doActionAndResult(COURSE_DELETE, id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)

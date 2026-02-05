@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.education.CourseWithStudentsE
 import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExceedException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -86,132 +87,6 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
     }
 
     /**
-     * To get the course by ID
-     *
-     * @param id system-id of the course
-     * @return course instance or empty() if not exists
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
-     * @see Course
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<Course> findById(final Long id) {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(FIND_BY_ID,...)");
-    }
-
-    /**
-     * To get courses registered for the student
-     *
-     * @param id system-id of the student
-     * @return set of courses
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
-     * @see Course
-     * @see Set
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Set<Course> findRegisteredFor(final Long id) {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(FIND_REGISTERED,...)");
-    }
-
-    /**
-     * To get courses without registered students
-     *
-     * @return set of courses
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
-     * @see Course
-     * @see Set
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Set<Course> findWithoutStudents() {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(FIND_NOT_REGISTERED,...)");
-    }
-
-    /**
-     * To create or update course instance
-     *
-     * @param instance course should be created or updated
-     * @return student instance or empty() if not exists
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input)
-     * @see Course
-     * @see Optional
-     * @see Optional#empty()
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public Optional<Course> createOrUpdate(final Course instance) {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(CREATE_OR_UPDATE,...)");
-    }
-
-    /**
-     * To delete course from the school
-     *
-     * @param id system-id of the course to delete
-     * @throws CourseNotFoundException     throws when course it not exists
-     * @throws CourseWithStudentsException throws when course is not empty (has registered students)
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
-     * @see Consumer
-     * @see Optional
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public void delete(Long id) throws CourseNotFoundException, CourseWithStudentsException {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(DELETE,...)");
-    }
-
-    /**
-     * To register the student to the school course
-     *
-     * @param studentId system-id of the student
-     * @param courseId  system-id of the course
-     * @throws StudentNotFoundException      throws when student is not exists
-     * @throws CourseNotFoundException       throws if course is not exists
-     * @throws CourseHasNoRoomException      throws when there is no free slots for student
-     * @throws StudentCoursesExceedException throws when student already registered to a lot ot courses
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
-     * @see Consumer
-     * @see Optional
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public void register(Long studentId, Long courseId)
-            throws StudentNotFoundException, CourseNotFoundException,
-            CourseHasNoRoomException, StudentCoursesExceedException {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(REGISTER,...)");
-    }
-
-    /**
-     * To un-register the student from the school course
-     *
-     * @param studentId system-id of the student
-     * @param courseId  system-id of the course
-     * @throws StudentNotFoundException throws when student is not exists
-     * @throws CourseNotFoundException  throws if course is not exists
-     * @see ActionFacade#executeCommand(String, CommandsFactory, Input, Consumer)
-     * @see Consumer
-     * @see Optional
-     * @deprecated
-     */
-    @Deprecated
-    @Override
-    public void unRegister(Long studentId, Long courseId) throws StudentNotFoundException, CourseNotFoundException {
-        throw new UnsupportedOperationException("Deprecated method, use instead doActionAndResult(UN_REGISTER,...)");
-    }
-
-    /**
      * To get the logger of the facade
      *
      * @return logger instance
@@ -230,11 +105,15 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
         final Map<String, Long> result = new HashMap<>();
         if (parameters[0] instanceof Long studentId) {
             result.put(STUDENT_ID_KEY, studentId);
+        } else if (parameters[0] instanceof Student student) {
+            result.put(STUDENT_ID_KEY, student.getId());
         } else {
             throw new InvalidParameterTypeException("String", parameters[0]);
         }
         if (parameters[1] instanceof Long courseId) {
             result.put(COURSE_ID_KEY, courseId);
+        } else if (parameters[1] instanceof Course course) {
+            result.put(COURSE_ID_KEY, course.getId());
         } else {
             throw new InvalidParameterTypeException("String", parameters[1]);
         }

@@ -45,7 +45,7 @@ public class StudentsRestController {
     private final StudentsFacade facade;
 
     @GetMapping("/{" + STUDENT_ID_VAR_NAME + "}")
-    public StudentDto findStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
+    public StudentDto findStudent(@PathVariable String studentId) {
         log.debug("Trying to get student by Id: '{}'", studentId);
         try {
             final long id = Long.parseLong(studentId);

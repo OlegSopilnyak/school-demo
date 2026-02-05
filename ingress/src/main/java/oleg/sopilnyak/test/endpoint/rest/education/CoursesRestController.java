@@ -46,13 +46,13 @@ public class CoursesRestController {
     private final CoursesFacade facade;
 
     @GetMapping("/{" + COURSE_VAR_NAME + "}")
-    public CourseDto findCourse(@PathVariable(COURSE_VAR_NAME) String courseId) {
+    public CourseDto findCourse(@PathVariable String courseId) {
         log.debug("Trying to get course by Id: '{}'", courseId);
         try {
             final long id = Long.parseLong(courseId);
             log.debug("Getting course for id: {}", id);
 
-            return resultToDto(courseId, facade.findById(id));
+            return resultToDto(courseId, findById(id));
         } catch (NumberFormatException | CourseNotFoundException e) {
             throw new CourseNotFoundException(WRONG_COURSE_ID + courseId + "'", e);
         } catch (Exception e) {
@@ -61,13 +61,13 @@ public class CoursesRestController {
     }
 
     @GetMapping("/registered/{" + STUDENT_VAR_NAME + "}")
-    public List<CourseDto> findRegisteredFor(@PathVariable(STUDENT_VAR_NAME) String studentId) {
+    public List<CourseDto> findRegisteredFor(@PathVariable String studentId) {
         log.debug("Trying to get courses for student Id: '{}'", studentId);
         try {
             final long id = Long.parseLong(studentId);
             log.debug("Getting courses for student Id: '{}'", studentId);
 
-            return resultToDto(facade.findRegisteredFor(id));
+            return resultToDto(findRegisteredFor(id));
         } catch (NumberFormatException _) {
             throw new StudentNotFoundException("Wrong student-id: '" + studentId + "'");
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public class CoursesRestController {
     public List<CourseDto> findEmptyCourses() {
         log.debug("Trying to get empty courses");
         try {
-            return resultToDto(facade.findWithoutStudents());
+            return resultToDto(findWithoutStudents());
         } catch (Exception e) {
             throw new CannotProcessActionException(e);
         }
@@ -91,7 +91,7 @@ public class CoursesRestController {
         log.debug("Trying to create the course {}", courseDto);
         try {
             courseDto.setId(null);
-            return resultToDto("new-id", facade.createOrUpdate(courseDto));
+            return resultToDto("new-id", createOrUpdate(courseDto));
         } catch (Exception e) {
             throw new CannotProcessActionException(e);
         }
@@ -106,7 +106,7 @@ public class CoursesRestController {
                 throw new CourseNotFoundException(WRONG_COURSE_ID + id + "'");
             }
 
-            return resultToDto(String.valueOf(id), facade.createOrUpdate(courseDto));
+            return resultToDto(String.valueOf(id), createOrUpdate(courseDto));
         } catch (Exception e) {
             throw new CannotProcessActionException(e);
         }
@@ -122,7 +122,7 @@ public class CoursesRestController {
                 throw new CourseNotFoundException(WRONG_COURSE_ID + id + "'");
             }
 
-            facade.delete(id);
+            delete(id);
 
         } catch (NumberFormatException | CourseNotFoundException _) {
             throw new CourseNotFoundException(WRONG_COURSE_ID + courseId + "'");
@@ -147,5 +147,25 @@ public class CoursesRestController {
 
     private static boolean isInvalid(Long id) {
         return isNull(id) || id <= 0L;
+    }
+
+    private Optional<Course> findById(final Long id) {
+        return facade.doActionAndResult(CoursesFacade.FIND_BY_ID, id);
+    }
+
+    private Set<Course> findRegisteredFor(final Long studentId) {
+        return facade.doActionAndResult(CoursesFacade.FIND_REGISTERED, studentId);
+    }
+
+    private Set<Course> findWithoutStudents() {
+        return facade.doActionAndResult(CoursesFacade.FIND_NOT_REGISTERED);
+    }
+
+    private Optional<Course> createOrUpdate(final Course course) {
+        return facade.doActionAndResult(CoursesFacade.CREATE_OR_UPDATE, course);
+    }
+
+    private void delete(final Long courseId) {
+        facade.doActionAndResult(CoursesFacade.DELETE, courseId);
     }
 }

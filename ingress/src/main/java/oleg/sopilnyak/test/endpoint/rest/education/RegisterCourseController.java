@@ -13,6 +13,8 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentCoursesExcee
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Course;
 import oleg.sopilnyak.test.school.common.model.Student;
+
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -43,7 +45,7 @@ public class RegisterCourseController {
         try {
             log.debug("Registering student: {} to course: {}", student, course);
 
-            coursesFacade.register(student, course);
+            coursesFacade.doActionAndResult(CoursesFacade.REGISTER, student, course);
 
             log.debug("Linked student-id: {} to course-id: {}", studentId, courseId);
         } catch (CourseHasNoRoomException e) {
@@ -67,7 +69,7 @@ public class RegisterCourseController {
         try {
             log.debug("Un-Registering student: {} to course: {}", student, course);
 
-            coursesFacade.unRegister(student, course);
+            coursesFacade.doActionAndResult(CoursesFacade.UN_REGISTER, student, course);
 
             log.debug("Un-Registered student: {} to course: {}", studentId, courseId);
         } catch (Exception e) {
@@ -91,8 +93,8 @@ public class RegisterCourseController {
     private static Course restoreEntity(final String strId, final CoursesFacade owner) {
         try {
             final Long entityId = Long.parseLong(strId);
-            return owner.findById(entityId)
-                    .orElseThrow(() -> new CourseNotFoundException("Course with id: " + entityId + " not found"));
+            final Optional<Course> course = owner.doActionAndResult(CoursesFacade.FIND_BY_ID, entityId);
+            return course.orElseThrow(() -> new CourseNotFoundException("Course with id: " + entityId + " not found"));
         } catch (NumberFormatException | NullPointerException _) {
             log.error("Wrong course-id: '{}'", strId);
             throw new CourseNotFoundException("Wrong course-id: '" + strId + "'");

@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -46,6 +47,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class RegisterCourseControllerTest {
+    private static final String COURSE_REGISTER = "school::education::courses:register";
+    private static final String COURSE_UN_REGISTER = "school::education::courses:unregister";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/register/";
     @Mock
@@ -87,6 +90,7 @@ class RegisterCourseControllerTest {
         doReturn(Optional.of(student)).when(persistenceFacade).findStudentById(studentId);
         doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
         String requestPath = ROOT + studentId + "/to/" + courseId;
+
         mockMvc.perform(
                         MockMvcRequestBuilders.put(requestPath)
                 )
@@ -94,10 +98,9 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
-        verify(coursesFacade).register(studentId, courseId);
         checkControllerAspect();
     }
 
@@ -111,7 +114,7 @@ class RegisterCourseControllerTest {
         doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
         String errorMessage = "No free rooms for the student";
         var exception = new CourseHasNoRoomException(errorMessage);
-        doThrow(exception).when(coursesFacade).register(studentId, courseId);
+        doThrow(exception).when(persistenceFacade).link(student, course);
         String requestPath = ROOT + studentId + "/to/" + courseId;
 
         MvcResult result =
@@ -123,7 +126,7 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
 
@@ -144,7 +147,7 @@ class RegisterCourseControllerTest {
         doReturn(Optional.of(course)).when(persistenceFacade).findCourseById(courseId);
         String errorMessage = "Too many courses for the student";
         var exception = new StudentCoursesExceedException(errorMessage);
-        doThrow(exception).when(coursesFacade).register(studentId, courseId);
+        doThrow(exception).when(persistenceFacade).link(student, course);
 
         String requestPath = ROOT + studentId + "/to/" + courseId;
         MvcResult result =
@@ -156,7 +159,7 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).register(studentCapture.capture(), courseCapture.capture());
+        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
 
@@ -184,10 +187,9 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).unRegisterCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).unRegister(studentCapture.capture(), courseCapture.capture());
+        verify(coursesFacade).doActionAndResult(eq(COURSE_UN_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
-        verify(coursesFacade).unRegister(studentId, courseId);
         checkControllerAspect();
     }
 
