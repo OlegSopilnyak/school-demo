@@ -51,7 +51,8 @@ public class StudentsRestController {
             final long id = Long.parseLong(studentId);
             log.debug("Getting student for id: {}", id);
 
-            return resultToDto(studentId, facade.findById(id));
+            return resultToDto(studentId, facade.doActionAndResult(StudentsFacade.FIND_BY_ID ,id));
+//                    .findById(id));
         } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {
@@ -61,13 +62,15 @@ public class StudentsRestController {
     }
 
     @GetMapping("/enrolled/{" + COURSE_ID_VAR_NAME + "}")
-    public List<StudentDto> findEnrolledTo(@PathVariable(COURSE_ID_VAR_NAME) String courseId) {
+    public List<StudentDto> findEnrolledTo(@PathVariable String courseId) {
         log.debug("Trying to get students for course Id: '{}'", courseId);
         try {
             final long id = Long.parseLong(courseId);
             log.debug("Getting students for course Id: {}", id);
 
-            return resultToDto(facade.findEnrolledTo(id));
+            final Set<Student> students = facade.doActionAndResult(StudentsFacade.FIND_ENROLLED, id);
+//            return resultToDto(facade.findEnrolledTo(id));
+            return resultToDto(students);
         } catch (NumberFormatException _) {
             throw new CourseNotFoundException("Wrong course id: '" + courseId + "'");
         } catch (Exception e) {
@@ -79,7 +82,9 @@ public class StudentsRestController {
     public List<StudentDto> findNotEnrolledStudents() {
         log.debug("Trying to get not enrolled students");
         try {
-            return resultToDto(facade.findNotEnrolled());
+            final Set<Student> students = facade.doActionAndResult(StudentsFacade.FIND_NOT_ENROLLED);
+//            return resultToDto(facade.findNotEnrolled());
+            return resultToDto(students);
         } catch (Exception _) {
             throw new CannotProcessActionException("Cannot get not enrolled students");
         }
@@ -90,7 +95,9 @@ public class StudentsRestController {
     public StudentDto createStudent(@RequestBody StudentDto studentDto) {
         log.debug("Trying to create the student {}", studentDto);
         try {
-            return resultToDto(facade.create(studentDto));
+            final Optional<Student> student = facade.doActionAndResult(StudentsFacade.CREATE_MACRO, studentDto);
+//            return resultToDto(facade.create(studentDto));
+            return resultToDto(student);
         } catch (Exception _) {
             throw new CannotProcessActionException("Cannot create the student: " + studentDto.toString());
         }
@@ -104,7 +111,9 @@ public class StudentsRestController {
             if (isInvalid(id)) {
                 throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + id + "'");
             }
-            return resultToDto(facade.createOrUpdate(studentDto));
+            final Optional<Student> student = facade.doActionAndResult(StudentsFacade.CREATE_OR_UPDATE, studentDto);
+//            return resultToDto(facade.createOrUpdate(studentDto));
+            return resultToDto(student);
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot update student " + studentDto, e);
         }
@@ -117,7 +126,8 @@ public class StudentsRestController {
             final long id = Long.parseLong(studentId);
             log.debug("Deleting student for id: {}", id);
 
-            facade.delete(id);
+            facade.doActionAndResult(StudentsFacade.DELETE_MACRO, id);
+//            facade.delete(id);
         } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {

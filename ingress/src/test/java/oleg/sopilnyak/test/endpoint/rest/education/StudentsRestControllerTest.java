@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -56,6 +57,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class StudentsRestControllerTest extends TestModelFactory {
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_ENROLLED_TO = "school::education::students:find.Enrolled.To.The.Course";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+    private static final String STUDENT_CREATE_OR_UPDATE = "school::education::students:create.Or.Update";
+    private static final String STUDENT_CREATE_NEW = "school::education::students:create.Macro";
+    private static final String STUDENT_DELETE_ALL = "school::education::students:delete.Macro";
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/students";
 
@@ -84,7 +92,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldFindStudent() throws Exception {
         Long id = 100L;
         Student student = makeTestStudent(id);
-        doReturn(Optional.of(student)).when(facade).findById(id);
+        doReturn(Optional.of(student)).when(facade).doActionAndResult(STUDENT_FIND_BY_ID ,id);
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -115,7 +123,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 40L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         List<Student> selectedStudentsList = students.stream().sorted(Comparator.comparing(Student::getId)).toList();
-        doReturn(students).when(facade).findEnrolledTo(courseId);
+        doReturn(students).when(facade).doActionAndResult(STUDENT_FIND_ENROLLED_TO, courseId);
         String requestPath = ROOT + "/enrolled/" + courseId;
 
         MvcResult result =
@@ -142,7 +150,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         long studentsAmount = 5L;
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         List<Student> selectedStudentsList = students.stream().sorted(Comparator.comparing(Student::getId)).toList();
-        doReturn(students).when(facade).findNotEnrolled();
+        doReturn(students).when(facade).doActionAndResult(STUDENT_FIND_NOT_ENROLLED);
         String requestPath = ROOT + "/empty";
 
         MvcResult result =
@@ -168,12 +176,12 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldCreateStudent() throws Exception {
         Student student = makeTestStudent(null);
         doAnswer(invocation -> {
-            Student received = invocation.getArgument(0);
+            Student received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
             assertStudentEquals(student, received);
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
-        }).when(facade).create(any(Student.class));
+        }).when(facade).doActionAndResult(eq(STUDENT_CREATE_NEW), any(Student.class));
         String jsonContent = MAPPER.writeValueAsString(student);
 
         MvcResult result =
@@ -202,12 +210,12 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long id = 101L;
         Student student = makeTestStudent(id);
         doAnswer(invocation -> {
-            Student received = invocation.getArgument(0);
+            Student received = invocation.getArgument(1);
             assertThat(id).isEqualTo(student.getId());
             assertStudentEquals(student, received);
             assertCourseLists(student.getCourses(), received.getCourses());
             return Optional.of(student);
-        }).when(facade).createOrUpdate(any(Student.class));
+        }).when(facade).doActionAndResult(eq(STUDENT_CREATE_OR_UPDATE), any(Student.class));
         String jsonContent = MAPPER.writeValueAsString(student);
 
 
@@ -308,7 +316,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldNotDeleteStudentValidId_StudentNotExistsException() throws Exception {
         Long id = 103L;
         String requestPath = ROOT + "/" + id;
-        doThrow(new StudentNotFoundException("Wrong student")).when(facade).delete(id);
+        doThrow(new StudentNotFoundException("Wrong student")).when(facade).doActionAndResult(STUDENT_DELETE_ALL, id);
 
         MvcResult result =
                 mockMvc.perform(
@@ -332,7 +340,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Long id = 104L;
         String requestPath = ROOT + "/" + id;
         String errorMessage = "Not empty courses set";
-        doThrow(new StudentWithCoursesException(errorMessage)).when(facade).delete(id);
+        doThrow(new StudentWithCoursesException(errorMessage)).when(facade).doActionAndResult(STUDENT_DELETE_ALL, id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
