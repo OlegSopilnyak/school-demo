@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import static java.util.Objects.isNull;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
@@ -98,7 +99,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      */
     @Override
     public String getId() {
-        return CommandId.DELETE_ALL;
+        return StudentsFacade.DELETE_MACRO;
     }
 
     public DeleteStudentMacroCommand(

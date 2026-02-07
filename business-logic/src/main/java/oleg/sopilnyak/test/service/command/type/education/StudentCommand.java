@@ -18,21 +18,7 @@ import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 public interface StudentCommand<T> extends RootCommand<T> {
     // template of error message
     String STUDENT_WITH_ID_PREFIX = "Student with ID:";
-
-    // command-ids of the command family
-    final class CommandId {
-        private CommandId() {
-        }
-
-        public static final String FIND_BY_ID = "student.findById";
-        public static final String FIND_ENROLLED = "student.findEnrolledTo";
-        public static final String FIND_NOT_ENROLLED = "student.findNotEnrolled";
-        public static final String CREATE_OR_UPDATE = "student.createOrUpdate";
-        public static final String CREATE_NEW = "student.create.macro";
-        public static final String DELETE = "student.delete";
-        public static final String DELETE_ALL = "student.delete.macro";
-    }
-
+    //
     // the name of factory in Spring Beans Factory
     String FACTORY_BEAN_NAME = "studentCommandsFactory";
 

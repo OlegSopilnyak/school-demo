@@ -38,8 +38,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @DirtiesContext
 @SuppressWarnings("unchecked")
 class ContextInputParameterTest {
-    private static final String STUDENT_FIND_BY_ID = "student.findById";
-    private static final String STUDENT_FIND_ENROLLED = "student.findEnrolledTo";
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_ENROLLED = "school::education::students:find.Enrolled.To.The.Course";
     private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
     private static final String COURSE_FIND_REGISTERED = "school::education::courses:find.Registered.To.The.Student";
     @MockitoBean
@@ -216,7 +216,7 @@ class ContextInputParameterTest {
         } else if (expected.getResult().isEmpty()) {
             assertThat(actual.getResult()).isEmpty();
         } else {
-            assertThat(actual.getResult().get()).isEqualTo(expected.getResult().get());
+            assertThat(actual.getResult().orElseThrow()).isEqualTo(expected.getResult().get());
         }
         // error
         if (isNull(expected.getException())) {

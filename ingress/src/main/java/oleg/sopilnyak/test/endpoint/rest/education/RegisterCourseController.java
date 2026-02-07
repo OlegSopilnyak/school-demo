@@ -82,8 +82,8 @@ public class RegisterCourseController {
     private static Student restoreEntity(final String strId, final StudentsFacade owner) {
         try {
             final Long entityId = Long.parseLong(strId);
-            return owner.findById(entityId)
-                    .orElseThrow(() -> new StudentNotFoundException("Student with id: " + entityId + " not found"));
+            final Optional<Student> student = owner.doActionAndResult(StudentsFacade.FIND_BY_ID, entityId);
+            return student.orElseThrow(() -> new StudentNotFoundException("Student with id: " + entityId + " not found"));
         } catch (NumberFormatException | NullPointerException _) {
             log.error("Wrong student-id: '{}'", strId);
             throw new StudentNotFoundException("Wrong student-id: '" + strId + "'");

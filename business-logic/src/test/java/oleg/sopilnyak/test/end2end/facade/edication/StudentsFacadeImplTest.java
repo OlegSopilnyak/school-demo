@@ -81,12 +81,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @SuppressWarnings("unchecked")
 class StudentsFacadeImplTest extends MysqlTestModelFactory {
-    private static final String STUDENT_FIND_BY_ID = "student.findById";
-    private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
-    private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
-    private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
-    private static final String STUDENT_CREATE_NEW = "student.create.macro";
-    private static final String STUDENT_DELETE = "student.delete.macro";
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_ENROLLED_TO = "school::education::students:find.Enrolled.To.The.Course";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+    private static final String STUDENT_CREATE_OR_UPDATE = "school::education::students:create.Or.Update";
+    private static final String STUDENT_CREATE_NEW = "school::education::students:create.Macro";
+    private static final String STUDENT_DELETE_ALL = "school::education::students:delete.Macro";
 
     @Autowired
     ConfigurableApplicationContext context;
@@ -152,130 +152,141 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotFindById() {
+        String commandId = STUDENT_FIND_BY_ID;
         Long studentId = 100L;
 
-        Optional<Student> student = facade.findById(studentId);
+        Optional<Student> student = facade.doActionAndResult(commandId, studentId);
 
         assertThat(student).isEmpty();
-        verifyAfterCommand(STUDENT_FIND_BY_ID, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldFindById() {
+        String commandId = STUDENT_FIND_BY_ID;
         Student newStudent = makeClearTestStudent();
         Long studentId = getPersistentStudent(newStudent).getId();
 
-        Optional<Student> student = facade.findById(studentId);
+        Optional<Student> student = facade.doActionAndResult(commandId, studentId);
 
         assertThat(student).isNotEmpty();
         assertStudentEquals(newStudent, student.get(), false);
-        verifyAfterCommand(STUDENT_FIND_BY_ID, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
     }
 
     @Test
     void shouldFindEnrolledTo() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
         Student newStudent = makeClearTestStudent();
         Student saved = getPersistentStudent(newStudent);
         Long courseId = saved.getCourses().get(0).getId();
 
-        Set<Student> students = facade.findEnrolledTo(courseId);
+        Set<Student> students = facade.doActionAndResult(commandId, courseId);
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldNotFindEnrolledTo_NoCourseById() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
         Long courseId = 200L;
 
-        Set<Student> students = facade.findEnrolledTo(courseId);
+        Set<Student> students = facade.doActionAndResult(commandId, courseId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldNotFindEnrolledTo_NoEnrolledStudents() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
         Course course = makeClearCourse(0);
         Long courseId = getPersistentCourse(course).getId();
 
-        Set<Student> students = facade.findEnrolledTo(courseId);
+        Set<Student> students = facade.doActionAndResult(commandId, courseId);
 
         assertCourseEquals(course, findCourseById(courseId), false);
         assertThat(students).isEmpty();
-        verifyAfterCommand(STUDENT_FIND_ENROLLED_TO, Input.of(courseId));
+        verifyAfterCommand(commandId, Input.of(courseId));
         verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
     }
 
     @Test
     void shouldFindNotEnrolled() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
         }
         getPersistentStudent(newStudent);
 
-        Set<Student> students = facade.findNotEnrolled();
+        Set<Student> students = facade.doActionAndResult(commandId);
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldNotFindNotEnrolled_StudentNotExists() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
 
-        Set<Student> students = facade.findNotEnrolled();
+        Set<Student> students = facade.doActionAndResult(commandId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldNotFindNotEnrolled_StudentHasCourses() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
         getPersistentStudent(makeClearTestStudent());
 
-        Set<Student> students = facade.findNotEnrolled();
+        Set<Student> students = facade.doActionAndResult(commandId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(STUDENT_FIND_NOT_ENROLLED, Input.empty());
+        verifyAfterCommand(commandId, Input.empty());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
     @Test
     void shouldCreateOrUpdate_Create() {
+        String commandId = STUDENT_CREATE_NEW;
         Student student = makeClearTestStudent();
 
-        Optional<Student> result = facade.create(student);
+        Optional<Student> result = facade.doActionAndResult(commandId, student);
 
         assertStudentEquals(student, result.orElseThrow(), false);
-        verifyAfterCommand(STUDENT_CREATE_NEW, Input.of(student));
+        verifyAfterCommand(commandId, Input.of(student));
         verify(persistenceFacade).save(any(StudentPayload.class));
     }
 
     @Test
     void shouldCreateOrUpdate_Update() {
+        String commandId = STUDENT_CREATE_OR_UPDATE;
         StudentPayload student = createStudent(makeClearTestStudent());
         student.setFirstName(student.getFirstName() + "-newOne");
 
-        Optional<Student> result = facade.createOrUpdate(student);
+        Optional<Student> result = facade.doActionAndResult(commandId, student);
 
         assertThat(result).isNotEmpty();
         assertStudentEquals(student, result.orElseThrow());
-        verifyAfterCommand(STUDENT_CREATE_OR_UPDATE, Input.of(student));
+        verifyAfterCommand(commandId, Input.of(student));
         verify(persistenceFacade).findStudentById(student.getId());
         verify(persistenceFacade).save(student);
     }
 
     @Test
     void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
+        String commandId = STUDENT_DELETE_ALL;
         Student newStudent = makeClearTestStudent();
         if (newStudent instanceof FakeStudent student) {
             student.setCourses(List.of());
@@ -286,11 +297,11 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         assertThat(findStudentById(studentId)).isNotNull();
         assertThat(findStudentProfileById(profileId)).isNotNull();
 
-        facade.delete(studentId);
+        facade.doActionAndResult(commandId, studentId);
 
         assertThat(findStudentById(studentId)).isNull();
         assertThat(findStudentProfileById(profileId)).isNull();
-        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).deleteStudent(studentId);
         verify(persistenceFacade).deleteProfileById(profileId);
         // 1. building context for delete
@@ -301,25 +312,31 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
+        String commandId = STUDENT_DELETE_ALL;
         Long studentId = 101L;
 
-        var exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
+        var exception = assertThrows(StudentNotFoundException.class,
+                () -> facade.doActionAndResult(commandId, studentId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:101 is not exists.");
-        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         verify(persistenceFacade).findStudentById(studentId);
         verify(persistenceFacade, never()).deleteStudent(anyLong());
     }
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
+        String commandId = STUDENT_DELETE_ALL;
         Long studentId = createStudent(makeClearTestStudent()).getId();
         assertThat(studentId).isNotNull();
 
-        var exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
+        var exception = assertThrows(StudentWithCoursesException.class,
+                () -> facade.doActionAndResult(commandId, studentId)
+        );
 
         assertThat("Student with ID:" + studentId + " has registered courses.").isEqualTo(exception.getMessage());
-        verifyAfterCommand(STUDENT_DELETE, Input.of(studentId));
+        verifyAfterCommand(commandId, Input.of(studentId));
         // 1. building context for delete
         // 2. deleting student
         verify(persistenceFacade, times(2)).findStudentById(studentId);

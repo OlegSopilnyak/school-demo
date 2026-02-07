@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,12 +37,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class})
 @SuppressWarnings("unchecked")
 class UndoCommandMessageTest {
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
     private static final String TEST_ACTION = "test-action";
     private static final String TEST_FACADE = "test-facade";
-    @MockitoBean
-    PlatformTransactionManager platformTransactionManager;
     @MockitoBean
     private PersistenceFacade persistenceFacade;
     @Autowired
@@ -67,7 +67,7 @@ class UndoCommandMessageTest {
     @Test
     void shouldStoreAndRestoreFailedMessage_SimpleException() throws JsonProcessingException {
         long id = 1L;
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         String correlationId = "test-correlation-id";
         UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         message.getContext().setState(Context.State.WORK);
@@ -97,7 +97,7 @@ class UndoCommandMessageTest {
     @Test
     void shouldStoreAndRestoreFailedMessage_CannotProcessActionException() throws JsonProcessingException {
         long id = 2L;
-        String commandId = "student.findNotEnrolled";
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
         String correlationId = "test-correlation-id";
         UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         String errorMessage = "IO exception message";
@@ -126,7 +126,7 @@ class UndoCommandMessageTest {
     @Test
     void shouldRestoreUndoCommandMessageWithFail_SimpleException() throws IOException {
         long id = 3L;
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         String correlationId = "test-correlation-id";
         UndoCommandMessage message = createMessage(correlationId, commandId, Input.of(id));
         message.getContext().setState(Context.State.WORK);
@@ -218,7 +218,7 @@ class UndoCommandMessageTest {
 
     @Test
     void shouldRestoreCommandMessageLongBoolean() throws JsonProcessingException {
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         long id = 6;
         Context.State state = Context.State.DONE;
         CommandContext<Void> commandContext = CommandContext.<Void>builder().command(farm.command(commandId)).build();

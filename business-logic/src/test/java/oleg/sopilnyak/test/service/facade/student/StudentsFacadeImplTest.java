@@ -62,12 +62,12 @@ import org.springframework.util.ReflectionUtils;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class StudentsFacadeImplTest {
-    private static final String STUDENT_FIND_BY_ID = "student.findById";
-    private static final String STUDENT_FIND_ENROLLED_TO = "student.findEnrolledTo";
-    private static final String STUDENT_FIND_NOT_ENROLLED = "student.findNotEnrolled";
-    private static final String STUDENT_CREATE_OR_UPDATE = "student.createOrUpdate";
-    private static final String STUDENT_CREATE_NEW = "student.create.macro";
-    private static final String STUDENT_DELETE_ALL = "student.delete.macro";
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_ENROLLED_TO = "school::education::students:find.Enrolled.To.The.Course";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+    private static final String STUDENT_CREATE_OR_UPDATE = "school::education::students:create.Or.Update";
+    private static final String STUDENT_CREATE_NEW = "school::education::students:create.Macro";
+    private static final String STUDENT_DELETE_ALL = "school::education::students:delete.Macro";
 
     PersistenceFacade persistenceFacade = mock(PersistenceFacade.class);
     BusinessMessagePayloadMapper payloadMapper = mock(BusinessMessagePayloadMapper.class);
@@ -108,20 +108,23 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldNotFindById() {
+    void shouldFindById_Unified() {
         String commandId = STUDENT_FIND_BY_ID;
         StudentCommand<?> command = factory.command(commandId);
         reset(factory);
         doReturn(command).when(applicationContext).getBean("studentFind", StudentCommand.class);
-        Long studentId = 100L;
+        Long studentId = 1011L;
+        when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Optional<Student> student = facade.findById(studentId);
+        Optional<Student> student = facade.doActionAndResult(commandId, studentId);
 
-        assertThat(student).isEmpty();
+        assertThat(student).isPresent();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(studentId));
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
+        verify(payloadMapper).toPayload(mockedStudent);
     }
 
     @Test
@@ -134,13 +137,70 @@ class StudentsFacadeImplTest {
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
 
-        Optional<Student> student = facade.findById(studentId);
+        Optional<Student> student = ReflectionTestUtils.invokeMethod(facade, "internalFindById", studentId);
 
         assertThat(student).isPresent();
         verify(factory).command(commandId);
         verify(factory.command(commandId)).createContext(Input.of(studentId));
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
+        verify(payloadMapper).toPayload(mockedStudent);
+    }
+
+    @Test
+    void shouldNotFindById() {
+        String commandId = STUDENT_FIND_BY_ID;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFind", StudentCommand.class);
+        Long studentId = 100L;
+
+        Optional<Student> student = ReflectionTestUtils.invokeMethod(facade, "internalFindById", studentId);
+
+        assertThat(student).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findStudentById(studentId);
+    }
+
+    @Test
+    void shouldFindEnrolledTo_Unified() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
+        Long courseId = 210L;
+        when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
+        doReturn(mockedStudentPayload).when(payloadMapper).toPayload(mockedStudent);
+
+        Set<Student> students = facade.doActionAndResult(commandId, courseId);
+
+        assertThat(students).hasSize(1).contains(mockedStudentPayload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+        verify(payloadMapper).toPayload(mockedStudent);
+    }
+
+    @Test
+    void shouldFindEnrolledTo() {
+        String commandId = STUDENT_FIND_ENROLLED_TO;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
+        Long courseId = 210L;
+        when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
+        doReturn(mockedStudentPayload).when(payloadMapper).toPayload(mockedStudent);
+
+        Set<Student> students = ReflectionTestUtils.invokeMethod(facade, "internalEnrolledTo", courseId);
+
+        assertThat(students).hasSize(1).contains(mockedStudentPayload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
         verify(payloadMapper).toPayload(mockedStudent);
     }
 
@@ -152,7 +212,7 @@ class StudentsFacadeImplTest {
         doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
         Long courseId = 200L;
 
-        Set<Student> students = facade.findEnrolledTo(courseId);
+        Set<Student> students = ReflectionTestUtils.invokeMethod(facade, "internalEnrolledTo", courseId);
 
         assertThat(students).isEmpty();
         verify(factory).command(commandId);
@@ -162,21 +222,40 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldFindEnrolledTo() {
-        String commandId = STUDENT_FIND_ENROLLED_TO;
+    void shouldFindNotEnrolled_Unified() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
         StudentCommand<?> command = factory.command(commandId);
         reset(factory);
-        doReturn(command).when(applicationContext).getBean("studentFindEnrolled", StudentCommand.class);
-        Long courseId = 210L;
-        when(persistenceFacade.findEnrolledStudentsByCourseId(courseId)).thenReturn(Set.of(mockedStudent));
+        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
+        when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
+        doReturn(mockedStudentPayload).when(payloadMapper).toPayload(mockedStudent);
 
-        Set<Student> students = facade.findEnrolledTo(courseId);
+        Set<Student> students = facade.doActionAndResult(commandId);
 
-        assertThat(students).hasSize(1);
+        assertThat(students).hasSize(1).contains(mockedStudentPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(courseId));
+        verify(factory.command(commandId)).createContext(Input.empty());
         verify(factory.command(commandId)).doCommand(any(Context.class));
-        verify(persistenceFacade).findEnrolledStudentsByCourseId(courseId);
+        verify(persistenceFacade).findNotEnrolledStudents();
+        verify(payloadMapper).toPayload(mockedStudent);
+    }
+
+    @Test
+    void shouldFindNotEnrolled() {
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
+        StudentCommand<?> command = factory.command(commandId);
+        reset(factory);
+        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
+        when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
+        doReturn(mockedStudentPayload).when(payloadMapper).toPayload(mockedStudent);
+
+        Set<Student> students = ReflectionTestUtils.invokeMethod(facade, "internalFindNotEnrolled");
+
+        assertThat(students).hasSize(1).contains(mockedStudentPayload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade).findNotEnrolledStudents();
         verify(payloadMapper).toPayload(mockedStudent);
     }
 
@@ -187,7 +266,7 @@ class StudentsFacadeImplTest {
         reset(factory);
         doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
 
-        Set<Student> students = facade.findNotEnrolled();
+        Set<Student> students = ReflectionTestUtils.invokeMethod(facade, "internalFindNotEnrolled");
 
         assertThat(students).isEmpty();
         verify(factory).command(commandId);
@@ -197,41 +276,61 @@ class StudentsFacadeImplTest {
     }
 
     @Test
-    void shouldFindNotEnrolled() {
-        String commandId = STUDENT_FIND_NOT_ENROLLED;
-        StudentCommand<?> command = factory.command(commandId);
-        reset(factory);
-        doReturn(command).when(applicationContext).getBean("studentFindNotEnrolled", StudentCommand.class);
-        when(persistenceFacade.findNotEnrolledStudents()).thenReturn(Set.of(mockedStudent));
-
-        Set<Student> students = facade.findNotEnrolled();
-
-        assertThat(students).hasSize(1);
-        verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
-        verify(factory.command(commandId)).doCommand(any(Context.class));
-        verify(persistenceFacade).findNotEnrolledStudents();
-        verify(payloadMapper).toPayload(mockedStudent);
-    }
-
-    @Test
-    void shouldNotCreateOrUpdate() {
+    void shouldNotCreateOrUpdate_Unified() {
+        String commandId = STUDENT_CREATE_OR_UPDATE;
         doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
 
-        Optional<Student> result = facade.createOrUpdate(mockedStudent);
+        Optional<Student> result = facade.doActionAndResult(commandId, mockedStudent);
 
         assertThat(result).isEmpty();
-        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
         verify(payloadMapper, never()).toPayload(mockedStudentPayload);
     }
 
     @Test
-    void shouldCreateNewStudent() {
+    void shouldNotCreateOrUpdate() {
+        String commandId = STUDENT_CREATE_OR_UPDATE;
+        doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
+        when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+
+        Optional<Student> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockedStudent);
+
+        assertThat(result).isEmpty();
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(persistenceFacade).save(mockedStudentPayload);
+        verify(payloadMapper, never()).toPayload(mockedStudentPayload);
+    }
+
+    @Test
+    void shouldCreateOrUpdateStudent() {
+        String commandId = STUDENT_CREATE_OR_UPDATE;
+        doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
+        when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
+        when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
+
+        Optional<Student> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateOrUpdate", mockedStudent);
+
+        assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(persistenceFacade).save(mockedStudentPayload);
+        verify(payloadMapper, never()).toPayload(mockedStudentPayload);
+    }
+
+    @Test
+    void shouldCreateNewStudent_Unified() {
+        String commandId = STUDENT_CREATE_NEW;
         doReturn(createProfileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
         when(mockedStudentPayload.getFirstName()).thenReturn("John");
@@ -241,37 +340,43 @@ class StudentsFacadeImplTest {
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
         when(persistenceFacade.save(any(StudentProfilePayload.class))).thenReturn(Optional.of(mockedStudentProfilePayload));
 
-        Optional<Student> result = facade.create(mockedStudent);
+        Optional<Student> result = facade.doActionAndResult(commandId, mockedStudent);
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
-        verify(factory).command(STUDENT_CREATE_NEW);
-        verify(factory.command(STUDENT_CREATE_NEW)).createContext(Input.of(mockedStudentPayload));
-        verify(factory.command(STUDENT_CREATE_NEW)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
         verify(payloadMapper, never()).toPayload(mockedStudentPayload);
     }
 
     @Test
-    void shouldCreateOrUpdateStudent() {
+    void shouldCreateNewStudent() {
+        String commandId = STUDENT_CREATE_NEW;
+        doReturn(createProfileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);
         doReturn(createStudentCommand).when(applicationContext).getBean("studentUpdate", StudentCommand.class);
+        when(mockedStudentPayload.getFirstName()).thenReturn("John");
+        when(mockedStudentPayload.getLastName()).thenReturn("Doe");
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedStudentPayload)).thenReturn(mockedStudentPayload);
         when(persistenceFacade.save(mockedStudentPayload)).thenReturn(Optional.of(mockedStudentPayload));
+        when(persistenceFacade.save(any(StudentProfilePayload.class))).thenReturn(Optional.of(mockedStudentProfilePayload));
 
-        Optional<Student> result = facade.createOrUpdate(mockedStudent);
+        Optional<Student> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateComposite", mockedStudent);
 
         assertThat(result.orElseThrow()).isEqualTo(mockedStudentPayload);
-        verify(factory).command(STUDENT_CREATE_OR_UPDATE);
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).createContext(Input.of(mockedStudentPayload));
-        verify(factory.command(STUDENT_CREATE_OR_UPDATE)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(mockedStudentPayload));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade).save(mockedStudentPayload);
         verify(payloadMapper, never()).toPayload(mockedStudentPayload);
     }
 
     @Test
-    void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
+    void shouldDelete_Unified() throws StudentWithCoursesException, StudentNotFoundException {
+        String commandId = STUDENT_DELETE_ALL;
         doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doReturn(deleteProfileCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
         doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
@@ -290,12 +395,48 @@ class StudentsFacadeImplTest {
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
 
-        facade.delete(studentId);
+        facade.doActionAndResult(commandId, studentId);
         threadPoolTaskExecutor.shutdown();
 
-        verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
-        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
+        verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
+        verify(persistenceFacade).findStudentProfileById(profileId);
+        verify(persistenceFacade).toEntity(mockedProfile);
+        verify(payloadMapper).toPayload(mockedStudent);
+        verify(payloadMapper).toPayload(mockedProfile);
+        verify(persistenceFacade).deleteStudent(studentId);
+        verify(persistenceFacade).deleteProfileById(profileId);
+    }
+
+    @Test
+    void shouldDelete() throws StudentWithCoursesException, StudentNotFoundException {
+        String commandId = STUDENT_DELETE_ALL;
+        doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
+        doReturn(deleteProfileCommand).when(applicationContext).getBean("profileStudentDelete", StudentProfileCommand.class);
+        doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.initialize();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));
+            return null;
+        }).when(schedulingTaskExecutor).execute(any(Runnable.class));
+        Long studentId = 101L;
+        Long profileId = 1001L;
+        when(mockedStudent.getProfileId()).thenReturn(profileId);
+        when(persistenceFacade.findStudentById(studentId)).thenReturn(Optional.of(mockedStudent));
+        when(persistenceFacade.findStudentProfileById(profileId)).thenReturn(Optional.of(mockedProfile));
+        when(persistenceFacade.toEntity(mockedProfile)).thenReturn(mockedProfile);
+        when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
+        when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
+
+        ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", studentId);
+        threadPoolTaskExecutor.shutdown();
+
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
         verify(persistenceFacade).findStudentProfileById(profileId);
         verify(persistenceFacade).toEntity(mockedProfile);
@@ -307,15 +448,18 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotDelete_StudentNotExists() {
+        String commandId = STUDENT_DELETE_ALL;
         doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         Long studentId = 102L;
 
-        StudentNotFoundException exception = assertThrows(StudentNotFoundException.class, () -> facade.delete(studentId));
+        StudentNotFoundException exception = assertThrows(StudentNotFoundException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", studentId)
+        );
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:" + studentId + " is not exists.");
-        verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
-        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findStudentById(studentId);
         verify(payloadMapper, never()).toPayload(any(Student.class));
         verify(persistenceFacade, never()).deleteStudent(studentId);
@@ -323,6 +467,7 @@ class StudentsFacadeImplTest {
 
     @Test
     void shouldNotDelete_StudentWithCourses() {
+        String commandId = STUDENT_DELETE_ALL;
         doReturn(deleteStudentCommand).when(applicationContext).getBean("studentDelete", StudentCommand.class);
         doReturn(deleteStudentMacroCommand).when(applicationContext).getBean("studentMacroDelete", MacroDeleteStudent.class);
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
@@ -341,18 +486,21 @@ class StudentsFacadeImplTest {
         when(payloadMapper.toPayload(mockedStudent)).thenReturn(mockedStudentPayload);
         when(payloadMapper.toPayload(mockedProfile)).thenReturn(mockedStudentProfilePayload);
 
-        StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class, () -> facade.delete(studentId));
+        StudentWithCoursesException exception = assertThrows(StudentWithCoursesException.class,
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", studentId)
+        );
         threadPoolTaskExecutor.shutdown();
 
         assertThat(exception.getMessage()).isEqualTo("Student with ID:103 has registered courses.");
-        verify(factory).command(STUDENT_DELETE_ALL);
-        verify(factory.command(STUDENT_DELETE_ALL)).createContext(Input.of(studentId));
-        verify(factory.command(STUDENT_DELETE_ALL)).doCommand(any(Context.class));
+        verify(factory).command(commandId);
+        verify(factory.command(commandId)).createContext(Input.of(studentId));
+        verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade, atLeastOnce()).findStudentById(studentId);
         verify(payloadMapper).toPayload(mockedStudent);
         verify(persistenceFacade, never()).deleteStudent(studentId);
     }
 
+    // private methods
     private CommandsFactory<StudentCommand<?>> buildFactory() {
         String acName = "applicationContext";
         createProfileCommand = spy(new CreateOrUpdateStudentProfileCommand(persistenceFacade, payloadMapper));

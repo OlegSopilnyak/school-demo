@@ -41,6 +41,14 @@ import org.springframework.transaction.annotation.Transactional;
 })
 @Rollback
 class StudentCommandsFactoryTest extends MysqlTestModelFactory {
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_ENROLLED_TO = "school::education::students:find.Enrolled.To.The.Course";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+    private static final String STUDENT_CREATE_OR_UPDATE = "school::education::students:create.Or.Update";
+    private static final String STUDENT_CREATE_NEW = "school::education::students:create.Macro";
+    private static final String STUDENT_DELETE = "school::education::students:delete";
+    private static final String STUDENT_DELETE_ALL = "school::education::students:delete.Macro";
+
     private static final String FACTORY_NAME = "Students";
     private static final String SPRING_NAME = "studentCommandsFactory";
     private Collection<String> commandsId;
@@ -57,13 +65,13 @@ class StudentCommandsFactoryTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "student.findById",
-                "student.findEnrolledTo",
-                "student.findNotEnrolled",
-                "student.createOrUpdate",
-                "student.create.macro",
-                "student.delete",
-                "student.delete.macro"
+                STUDENT_FIND_BY_ID,
+                STUDENT_FIND_ENROLLED_TO,
+                STUDENT_FIND_NOT_ENROLLED,
+                STUDENT_CREATE_OR_UPDATE,
+                STUDENT_CREATE_NEW,
+                STUDENT_DELETE,
+                STUDENT_DELETE_ALL
         );
     }
 

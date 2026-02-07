@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.model.StudentProfile;
@@ -66,7 +67,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_NEW;
+        return StudentsFacade.CREATE_MACRO;
     }
 
     public CreateStudentMacroCommand(
@@ -255,7 +256,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     // to check the command types
     // is update person command-id
     private static boolean isUpdatePersonCommand(final String commandId) {
-        return StudentCommand.CommandId.CREATE_OR_UPDATE.equals(commandId);
+        return StudentsFacade.CREATE_OR_UPDATE.equals(commandId);
     }
 
     // is update profile command-id
@@ -277,7 +278,7 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     // to check is context for create or update the person
     private static boolean hasPerson(Context<?> context) {
         final RootCommand<?> command = context.getCommand();
-        return command instanceof StudentCommand<?> && CommandId.CREATE_OR_UPDATE.equals(command.getId());
+        return command instanceof StudentCommand<?> && StudentsFacade.CREATE_OR_UPDATE.equals(command.getId());
     }
 
     // to throw CannotCreateCommandContextException exception

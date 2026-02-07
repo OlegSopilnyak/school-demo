@@ -38,6 +38,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 @ContextConfiguration(classes = {BusinessLogicConfiguration.class})
 @SuppressWarnings("unchecked")
 class DoCommandMessageTest {
+    private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
+    private static final String STUDENT_FIND_NOT_ENROLLED = "school::education::students:find.Not.Enrolled.To.Any.Course";
+
     private static final String COMMAND_ID = "command.id";
     private static final String CORRELATION_ID = "correlation-id";
     private static final String TEST_ACTION = "test-action";
@@ -58,7 +61,7 @@ class DoCommandMessageTest {
 
     @Test
     void shouldStoreAndRestoreFailedMessage_SimpleException() throws JsonProcessingException {
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         String correlationId = "test-correlation-id";
         DoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(1L));
         message.getContext().setState(Context.State.WORK);
@@ -87,7 +90,7 @@ class DoCommandMessageTest {
 
     @Test
     void shouldStoreAndRestoreFailedMessage_CannotProcessActionException() throws JsonProcessingException {
-        String commandId = "student.findNotEnrolled";
+        String commandId = STUDENT_FIND_NOT_ENROLLED;
         String correlationId = "test-correlation-id";
         DoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(2L));
         String errorMessage = "IO exception message";
@@ -113,7 +116,7 @@ class DoCommandMessageTest {
 
     @Test
     void shouldRestoreDoCommandMessageWithFail_SimpleException() throws IOException {
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         String correlationId = "test-correlation-id";
         DoCommandMessage<Optional<Student>> message = createMessage(correlationId, commandId, Input.of(3L));
         message.getContext().setState(Context.State.WORK);
@@ -208,7 +211,7 @@ class DoCommandMessageTest {
 
     @Test
     void shouldRestoreCommandMessageLongBoolean() throws JsonProcessingException {
-        String commandId = "student.findById";
+        String commandId = STUDENT_FIND_BY_ID;
         long id = 3;
         boolean resultValue = false;
         Context.State state = Context.State.DONE;

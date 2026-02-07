@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
@@ -57,7 +58,7 @@ public class CreateOrUpdateStudentCommand extends SchoolCommandCache<Student, Op
      */
     @Override
     public String getId() {
-        return CommandId.CREATE_OR_UPDATE;
+        return StudentsFacade.CREATE_OR_UPDATE;
     }
 
     public CreateOrUpdateStudentCommand(final StudentsPersistenceFacade persistence,

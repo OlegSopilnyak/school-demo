@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
+import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
 import oleg.sopilnyak.test.school.common.model.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
@@ -45,7 +46,7 @@ public class FindStudentCommand extends BasicCommand<Optional<Student>> implemen
      */
     @Override
     public String getId() {
-        return CommandId.FIND_BY_ID;
+        return StudentsFacade.FIND_BY_ID;
     }
 
     /**
