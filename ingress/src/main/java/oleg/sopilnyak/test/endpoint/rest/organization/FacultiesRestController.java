@@ -112,7 +112,7 @@ public class FacultiesRestController {
     }
 
     @DeleteMapping("/{" + VAR_NAME + "}")
-    public void delete(@PathVariable(VAR_NAME) String facultyId) {
+    public void deleteById(@PathVariable String facultyId) {
         log.debug("Trying to delete faculty for Id: '{}'", facultyId);
         try {
             final Long id = Long.parseLong(facultyId);

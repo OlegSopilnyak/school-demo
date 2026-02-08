@@ -87,74 +87,74 @@ Process **Education** related HTTP Requests by Categories
 
 * Find Education Course By Id
 
-.Course Find by Id Sequence
+.*[GET]* /school/courses/{courseId}
 include::../puml/sequence-diagrams/Education.Courses.findCourse.puml[]
 
 * Find Empty Education Courses
 
-.Find Courses Without Students Sequence
+.*[GET]* /school/courses/empty
 include::../puml/sequence-diagrams/Education.Courses.findEmptyCourses.puml[]
 
 * Find Education Courses for the Student
 
-.Find Courses For The Student Sequence
+.*[GET]* /school/courses/registered/{studentId}
 include::../puml/sequence-diagrams/Education.Courses.findRegisteredFor.puml[]
 
 * Create Education Course
 
-.Create The Course Sequence
+.*[POST]* /school/courses
 include::../puml/sequence-diagrams/Education.Courses.createCourse.puml[]
 
 * Update Education Course
 
-.Update The Course Sequence
+.*[PUT]* /school/courses
 include::../puml/sequence-diagrams/Education.Courses.updateCourse.puml[]
 
 * Delete Education Course
 
-.Delete The Course Sequence
+.*[DELETE]* /school/courses/{courseId}
 include::../puml/sequence-diagrams/Education.Courses.deleteCourse.puml[]
 '''
 
 * Education Register the Student to the Course
 
-.Register Student to The Course Sequence
+.*[PUT]* /school/register/{studentId}/to/{courseId}
 include::../puml/sequence-diagrams/Education.RegisterCourse.registerToCourse.puml[]
 
 * Education UnRegister the Student from the Course
 
-.UnRegister Student from The Course Sequence
+.*[DELETE]* /school/register/{studentId}/to/{courseId}
 include::../puml/sequence-diagrams/Education.RegisterCourse.unRegisterCourse.puml[]
 '''
 
 * Education Find Student By Id
 
-.Find Student By Id Sequence
+.*[GET]* /school/students/{studentId}
 include::../puml/sequence-diagrams/Education.Students.findStudent.puml[]
 
 * Education Find Enrolled to Course Students
 
-.Find Student Enrolled to Course Sequence
+.*[GET]* /school/students/enrolled/{courseId}
 include::../puml/sequence-diagrams/Education.Students.findEnrolledTo.puml[]
 
 * Education Find Students Not Enrolled to any Course
 
-.Find Student Not Enrolled to any Course Sequence
+.*[GET]* /school/students/empty
 include::../puml/sequence-diagrams/Education.Students.findNotEnrolledStudents.puml[]
 
 * Education Create New Student
 
-.Create New Student Sequence
+.*[POST]* /school/students
 include::../puml/sequence-diagrams/Education.Students.createStudent.puml[]
 
 * Education Update Exists Student
 
-.Update Exists Student Sequence
+.*[PUT]* /school/students
 include::../puml/sequence-diagrams/Education.Students.updateStudent.puml[]
 
 * Education Delete Exists Student
 
-.Delete Exists Student Sequence
+.*[DELETE]* /school/students/{studentId}
 include::../puml/sequence-diagrams/Education.Students.deleteStudent.puml[]
 ====
 '''
@@ -167,89 +167,94 @@ include::../puml/sequence-diagrams/Education.Students.deleteStudent.puml[]
 
 * Faculty Find by Id
 
-.Faculty Find by Id Sequence
+.*[GET]* /school/faculties/{facultyId}
 include::../puml/sequence-diagrams/Organization.Faculty.findById.puml[]
 
 * Faculty Find All
 
-.Faculty Find All Sequence
+.*[GET]* /school/faculties
 include::../puml/sequence-diagrams/Organization.Faculty.findAll.puml[]
 
 * Faculty Create New
 
-.Faculty Create New Sequence
+.*[POST]* /school/faculties
 include::../puml/sequence-diagrams/Organization.Faculty.create.puml[]
 
 * Faculty Update Exists
 
-.Faculty Update Exists Sequence
+.*[PUT]* /school/faculties
 include::../puml/sequence-diagrams/Organization.Faculty.update.puml[]
 
-* Faculty Delete Exists
+* Faculty Delete Exists by Instance
 
-.Faculty Delete Exists Sequence
+.*[DELETE]* /school/faculties
 include::../puml/sequence-diagrams/Organization.Faculty.delete.puml[]
+
+* Faculty Delete Exists by ID
+
+.*[DELETE]* /school/faculties/{facultyId}
+include::../puml/sequence-diagrams/Organization.Faculty.deleteById.puml[]
 '''
 
 * Students Group Find by Id
 
-.Students Group Find by Id Sequence
+.*[GET]* /school/student-groups/{groupId}
 include::../puml/sequence-diagrams/Organization.StudentsGroup.findById.puml[]
 
 * Students Group Find All
 
-.Students Group Find All Sequence
+.*[GET]* /school/student-groups
 include::../puml/sequence-diagrams/Organization.StudentsGroup.findAll.puml[]
 
 * Students Group Create New
 
-.Students Group Create New Sequence
+.*[POST]* /school/student-groups
 include::../puml/sequence-diagrams/Organization.StudentsGroup.create.puml[]
 
 * Students Group Update Exists
 
-.Students Group Update Exists Sequence
+.*[PUT]* /school/student-groups
 include::../puml/sequence-diagrams/Organization.StudentsGroup.update.puml[]
 
 * Students Group Delete Exists
 
-.Students Group Delete Exists Sequence
+.*[DELETE]* /school/student-groups/{groupId}
 include::../puml/sequence-diagrams/Organization.StudentsGroup.delete.puml[]
 '''
 
 * Authority Person (Principal) Log In
 
-.Authority Person (Principal) Log In Sequence
+.*[POST]* /school/login
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.login.puml[]
 
 * Authority Person (Principal) Log Out
 
-.Authority Person (Principal) Log Out Sequence
+.*[DELETE]* /school/logout
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.logout.puml[]
 
 * Authority Person (Principal) Find by Id
 
-.Authority Person (Principal) Find by Id Sequence
+.*[GET]* /school/authorities/{personId}
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.findById.puml[]
 
 * Authority Person (Principal) Find All
 
-.Authority Person (Principal) Find All Sequence
+.*[GET]* /school/authorities
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.findAll.puml[]
 
 * Authority Person (Principal) Create New
 
-.Authority Person (Principal) Create New Sequence
+.*[POST]* /school/authorities
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.createPerson.puml[]
 
 * Authority Person (Principal) Update Exists
 
-.Authority Person (Principal) Update Exists Sequence
+.*[PUT]* /school/authorities
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.updatePerson.puml[]
 
 * Authority Person (Principal) Delete Exists
 
-.Authority Person (Principal) Delete Exists Sequence
+.*[DELETE]* /school/authorities/{personId}
 include::../puml/sequence-diagrams/Organization.AuthorityPerson.deletePerson.puml[]
 ====
 '''

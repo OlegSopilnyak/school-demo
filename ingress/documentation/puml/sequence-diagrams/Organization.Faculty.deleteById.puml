@@ -1,0 +1,29 @@
+[plantuml,Organization.Faculty.deleteById.puml.png,png]
+----
+@startuml
+
+participant FacultiesRestController
+participant OrganizationFacade
+
+activate FacultiesRestController
+	FacultiesRestController -> FacultiesRestController : isInvalid
+	activate FacultiesRestController
+		FacultiesRestController --> FacultiesRestController : boolean
+	deactivate FacultiesRestController
+	FacultiesRestController -> FacultiesRestController : deleteFaculty
+	activate FacultiesRestController
+		FacultiesRestController -> OrganizationFacade : doActionAndResult
+		activate OrganizationFacade
+			OrganizationFacade -> OrganizationFacade : organizationAction
+			activate OrganizationFacade
+				OrganizationFacade --> OrganizationFacade : Object
+			deactivate OrganizationFacade
+			OrganizationFacade --> FacultiesRestController : Object
+		deactivate OrganizationFacade
+		FacultiesRestController --> FacultiesRestController : void
+	deactivate FacultiesRestController
+deactivate FacultiesRestController
+
+@enduml
+
+----

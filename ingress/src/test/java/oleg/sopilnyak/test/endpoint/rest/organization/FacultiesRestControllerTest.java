@@ -282,7 +282,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(controller).delete(id.toString());
+        verify(controller).deleteById(id.toString());
         verify(facade).doActionAndResult(DELETE, id);
         checkControllerAspect();
     }
@@ -298,7 +298,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete("null");
+        verify(controller).deleteById("null");
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
@@ -320,7 +320,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete(Long.toString(id));
+        verify(controller).deleteById(Long.toString(id));
 
         ActionErrorMessage error =
                 MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);

@@ -26,7 +26,6 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.AfterEach;
@@ -59,8 +58,6 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/faculties";
 
-    @Autowired
-    EntityManagerFactory emf;
     @Autowired
     EntityMapper entityMapper;
     @Autowired
@@ -262,7 +259,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print());
 
-        verify(controller).delete(id.toString());
+        verify(controller).deleteById(id.toString());
         assertThat(findFacultyById(id)).isNull();
     }
 
@@ -278,7 +275,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete("null");
+        verify(controller).deleteById("null");
         String responseString = result.getResponse().getContentAsString();
         var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -299,7 +296,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete(String.valueOf(id));
+        verify(controller).deleteById(String.valueOf(id));
         String responseString = result.getResponse().getContentAsString();
         var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -325,7 +322,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete(id.toString());
+        verify(controller).deleteById(id.toString());
         String responseString = result.getResponse().getContentAsString();
         var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 

@@ -610,7 +610,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-faculty-controller-delete-diagram</id>
+                        <id>generate-faculty-controller-delete-by-instance-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
@@ -620,6 +620,22 @@
                             <outputFilename>Organization.Faculty.delete.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.endpoint.rest.organization.FacultiesRestController</startClass>
                             <startMethod>delete</startMethod>
+                            <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-faculty-controller-delete-by-id-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>Organization.Faculty.deleteById.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.endpoint.rest.organization.FacultiesRestController</startClass>
+                            <startMethod>deleteById</startMethod>
                             <classBlacklistRegexp>.*Logger</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>

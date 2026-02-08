@@ -607,7 +607,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findCourse.puml.png.png" alt="Education.Courses.findCourse.puml" width="425" height="474">
 </div>
-<div class="title">Figure 9. Course Find by Id Sequence</div>
+<div class="title">Figure 9. <strong>[GET]</strong> /school/courses/{courseId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -620,7 +620,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findEmptyCourses.puml.png.png" alt="Education.Courses.findEmptyCourses.puml" width="348" height="414">
 </div>
-<div class="title">Figure 10. Find Courses Without Students Sequence</div>
+<div class="title">Figure 10. <strong>[GET]</strong> /school/courses/empty</div>
 </div>
 <div class="ulist">
 <ul>
@@ -633,7 +633,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.findRegisteredFor.puml.png.png" alt="Education.Courses.findRegisteredFor.puml" width="347" height="414">
 </div>
-<div class="title">Figure 11. Find Courses For The Student Sequence</div>
+<div class="title">Figure 11. <strong>[GET]</strong> /school/courses/registered/{studentId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -646,7 +646,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.createCourse.puml.png.png" alt="Education.Courses.createCourse.puml" width="507" height="535">
 </div>
-<div class="title">Figure 12. Create The Course Sequence</div>
+<div class="title">Figure 12. <strong>[POST]</strong> /school/courses</div>
 </div>
 <div class="ulist">
 <ul>
@@ -659,7 +659,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.updateCourse.puml.png.png" alt="Education.Courses.updateCourse.puml" width="507" height="622">
 </div>
-<div class="title">Figure 13. Update The Course Sequence</div>
+<div class="title">Figure 13. <strong>[PUT]</strong> /school/courses</div>
 </div>
 <div class="ulist">
 <ul>
@@ -672,7 +672,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Courses.deleteCourse.puml.png.png" alt="Education.Courses.deleteCourse.puml" width="347" height="414">
 </div>
-<div class="title">Figure 14. Delete The Course Sequence</div>
+<div class="title">Figure 14. <strong>[DELETE]</strong> /school/courses/{courseId}</div>
 </div>
 <hr>
 <div class="ulist">
@@ -686,7 +686,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.RegisterCourse.registerToCourse.puml.png.png" alt="Education.RegisterCourse.registerToCourse.puml" width="418" height="830">
 </div>
-<div class="title">Figure 15. Register Student to The Course Sequence</div>
+<div class="title">Figure 15. <strong>[PUT]</strong> /school/register/{studentId}/to/{courseId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -699,7 +699,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.RegisterCourse.unRegisterCourse.puml.png.png" alt="Education.RegisterCourse.unRegisterCourse.puml" width="418" height="830">
 </div>
-<div class="title">Figure 16. UnRegister Student from The Course Sequence</div>
+<div class="title">Figure 16. <strong>[DELETE]</strong> /school/register/{studentId}/to/{courseId}</div>
 </div>
 <hr>
 <div class="ulist">
@@ -713,7 +713,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findStudent.puml.png.png" alt="Education.Students.findStudent.puml" width="428" height="388">
 </div>
-<div class="title">Figure 17. Find Student By Id Sequence</div>
+<div class="title">Figure 17. <strong>[GET]</strong> /school/students/{studentId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -726,7 +726,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findEnrolledTo.puml.png.png" alt="Education.Students.findEnrolledTo.puml" width="350" height="327">
 </div>
-<div class="title">Figure 18. Find Student Enrolled to Course Sequence</div>
+<div class="title">Figure 18. <strong>[GET]</strong> /school/students/enrolled/{courseId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -739,7 +739,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.findNotEnrolledStudents.puml.png.png" alt="Education.Students.findNotEnrolledStudents.puml" width="350" height="327">
 </div>
-<div class="title">Figure 19. Find Student Not Enrolled to any Course Sequence</div>
+<div class="title">Figure 19. <strong>[GET]</strong> /school/students/empty</div>
 </div>
 <div class="ulist">
 <ul>
@@ -752,7 +752,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.createStudent.puml.png.png" alt="Education.Students.createStudent.puml" width="428" height="388">
 </div>
-<div class="title">Figure 20. Create New Student Sequence</div>
+<div class="title">Figure 20. <strong>[POST]</strong> /school/students</div>
 </div>
 <div class="ulist">
 <ul>
@@ -765,7 +765,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.updateStudent.puml.png.png" alt="Education.Students.updateStudent.puml" width="506" height="535">
 </div>
-<div class="title">Figure 21. Update Exists Student Sequence</div>
+<div class="title">Figure 21. <strong>[PUT]</strong> /school/students</div>
 </div>
 <div class="ulist">
 <ul>
@@ -778,7 +778,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Education.Students.deleteStudent.puml.png.png" alt="Education.Students.deleteStudent.puml" width="350" height="240">
 </div>
-<div class="title">Figure 22. Delete Exists Student Sequence</div>
+<div class="title">Figure 22. <strong>[DELETE]</strong> /school/students/{studentId}</div>
 </div>
 </div>
 </details>
@@ -800,7 +800,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.findById.puml.png.png" alt="Organization.Faculty.findById.puml" width="448" height="474">
 </div>
-<div class="title">Figure 23. Faculty Find by Id Sequence</div>
+<div class="title">Figure 23. <strong>[GET]</strong> /school/faculties/{facultyId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -813,7 +813,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.findAll.puml.png.png" alt="Organization.Faculty.findAll.puml" width="374" height="414">
 </div>
-<div class="title">Figure 24. Faculty Find All Sequence</div>
+<div class="title">Figure 24. <strong>[GET]</strong> /school/faculties</div>
 </div>
 <div class="ulist">
 <ul>
@@ -826,7 +826,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.create.puml.png.png" alt="Organization.Faculty.create.puml" width="571" height="535">
 </div>
-<div class="title">Figure 25. Faculty Create New Sequence</div>
+<div class="title">Figure 25. <strong>[POST]</strong> /school/faculties</div>
 </div>
 <div class="ulist">
 <ul>
@@ -839,12 +839,12 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.update.puml.png.png" alt="Organization.Faculty.update.puml" width="571" height="622">
 </div>
-<div class="title">Figure 26. Faculty Update Exists Sequence</div>
+<div class="title">Figure 26. <strong>[PUT]</strong> /school/faculties</div>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Faculty Delete Exists</p>
+<p>Faculty Delete Exists by Instance</p>
 </li>
 </ul>
 </div>
@@ -852,7 +852,20 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.Faculty.delete.puml.png.png" alt="Organization.Faculty.delete.puml" width="452" height="474">
 </div>
-<div class="title">Figure 27. Faculty Delete Exists Sequence</div>
+<div class="title">Figure 27. <strong>[DELETE]</strong> /school/faculties</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Faculty Delete Exists by ID</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Organization.Faculty.deleteById.puml.png.png" alt="Organization.Faculty.deleteById.puml" width="374" height="414">
+</div>
+<div class="title">Figure 28. <strong>[DELETE]</strong> /school/faculties/{facultyId}</div>
 </div>
 <hr>
 <div class="ulist">
@@ -866,7 +879,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.findById.puml.png.png" alt="Organization.StudentsGroup.findById.puml" width="494" height="474">
 </div>
-<div class="title">Figure 28. Students Group Find by Id Sequence</div>
+<div class="title">Figure 29. <strong>[GET]</strong> /school/student-groups/{groupId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -879,7 +892,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.findAll.puml.png.png" alt="Organization.StudentsGroup.findAll.puml" width="419" height="414">
 </div>
-<div class="title">Figure 29. Students Group Find All Sequence</div>
+<div class="title">Figure 30. <strong>[GET]</strong> /school/student-groups</div>
 </div>
 <div class="ulist">
 <ul>
@@ -892,7 +905,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.create.puml.png.png" alt="Organization.StudentsGroup.create.puml" width="639" height="535">
 </div>
-<div class="title">Figure 30. Students Group Create New Sequence</div>
+<div class="title">Figure 31. <strong>[POST]</strong> /school/student-groups</div>
 </div>
 <div class="ulist">
 <ul>
@@ -905,7 +918,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.update.puml.png.png" alt="Organization.StudentsGroup.update.puml" width="639" height="622">
 </div>
-<div class="title">Figure 31. Students Group Update Exists Sequence</div>
+<div class="title">Figure 32. <strong>[PUT]</strong> /school/student-groups</div>
 </div>
 <div class="ulist">
 <ul>
@@ -918,7 +931,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.StudentsGroup.delete.puml.png.png" alt="Organization.StudentsGroup.delete.puml" width="420" height="414">
 </div>
-<div class="title">Figure 32. Students Group Delete Exists Sequence</div>
+<div class="title">Figure 33. <strong>[DELETE]</strong> /school/student-groups/{groupId}</div>
 </div>
 <hr>
 <div class="ulist">
@@ -932,7 +945,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.login.puml.png.png" alt="Organization.AuthorityPerson.login.puml" width="499" height="388">
 </div>
-<div class="title">Figure 33. Authority Person (Principal) Log In Sequence</div>
+<div class="title">Figure 34. <strong>[POST]</strong> /school/login</div>
 </div>
 <div class="ulist">
 <ul>
@@ -945,7 +958,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.logout.puml.png.png" alt="Organization.AuthorityPerson.logout.puml" width="516" height="301">
 </div>
-<div class="title">Figure 34. Authority Person (Principal) Log Out Sequence</div>
+<div class="title">Figure 35. <strong>[DELETE]</strong> /school/logout</div>
 </div>
 <div class="ulist">
 <ul>
@@ -958,7 +971,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.findById.puml.png.png" alt="Organization.AuthorityPerson.findById.puml" width="499" height="388">
 </div>
-<div class="title">Figure 35. Authority Person (Principal) Find by Id Sequence</div>
+<div class="title">Figure 36. <strong>[GET]</strong> /school/authorities/{personId}</div>
 </div>
 <div class="ulist">
 <ul>
@@ -971,7 +984,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.findAll.puml.png.png" alt="Organization.AuthorityPerson.findAll.puml" width="425" height="327">
 </div>
-<div class="title">Figure 36. Authority Person (Principal) Find All Sequence</div>
+<div class="title">Figure 37. <strong>[GET]</strong> /school/authorities</div>
 </div>
 <div class="ulist">
 <ul>
@@ -984,7 +997,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.createPerson.puml.png.png" alt="Organization.AuthorityPerson.createPerson.puml" width="499" height="388">
 </div>
-<div class="title">Figure 37. Authority Person (Principal) Create New Sequence</div>
+<div class="title">Figure 38. <strong>[POST]</strong> /school/authorities</div>
 </div>
 <div class="ulist">
 <ul>
@@ -997,7 +1010,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.updatePerson.puml.png.png" alt="Organization.AuthorityPerson.updatePerson.puml" width="584" height="535">
 </div>
-<div class="title">Figure 38. Authority Person (Principal) Update Exists Sequence</div>
+<div class="title">Figure 39. <strong>[PUT]</strong> /school/authorities</div>
 </div>
 <div class="ulist">
 <ul>
@@ -1010,7 +1023,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 <div class="content">
 <img src="./images/Organization.AuthorityPerson.deletePerson.puml.png.png" alt="Organization.AuthorityPerson.deletePerson.puml" width="425" height="327">
 </div>
-<div class="title">Figure 39. Authority Person (Principal) Delete Exists Sequence</div>
+<div class="title">Figure 40. <strong>[DELETE]</strong> /school/authorities/{personId}</div>
 </div>
 </div>
 </details>
@@ -1021,7 +1034,7 @@ delegating them to <strong>business-logic layer</strong> through one&#8217;s fac
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-01-26 13:25:11 +0200
+Last updated 2026-02-08 11:04:30 +0200
 </div>
 </div>
 </body>
