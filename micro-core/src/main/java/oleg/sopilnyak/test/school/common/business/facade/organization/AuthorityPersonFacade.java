@@ -14,7 +14,7 @@ import java.util.List;
 public interface AuthorityPersonFacade extends OrganizationFacade {
     //
     // action-ids
-    String SUBSPACE = "::authority::person";
+    String SUBSPACE = "::authority::persons";
     String LOGIN = NAMESPACE + SUBSPACE + ":login";
     String LOGOUT = NAMESPACE + SUBSPACE + ":logout";
     String FIND_ALL = NAMESPACE + SUBSPACE + ":find.All";
