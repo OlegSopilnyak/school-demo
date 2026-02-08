@@ -130,7 +130,6 @@
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
-<!--                            <hideFields>true</hideFields>-->
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
@@ -148,7 +147,6 @@
                                 <scanPackage>oleg.sopilnyak.test.school.common.persistence</scanPackage>
                             </scanPackages>
                             <blacklistRegexp>.*PersistenceFacadeUtilities.*</blacklistRegexp>
-                            <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
