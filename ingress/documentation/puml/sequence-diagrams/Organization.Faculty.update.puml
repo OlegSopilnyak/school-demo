@@ -4,7 +4,7 @@
 
 participant FacultiesRestController
 participant BaseDto
-participant FacultyFacade
+participant OrganizationFacade
 participant EndpointMapper
 
 activate FacultiesRestController
@@ -16,10 +16,18 @@ activate FacultiesRestController
 	activate FacultiesRestController
 		FacultiesRestController --> FacultiesRestController : boolean
 	deactivate FacultiesRestController
-	FacultiesRestController -> FacultyFacade : createOrUpdateFaculty
-	activate FacultyFacade
-		FacultyFacade --> FacultiesRestController : Optional
-	deactivate FacultyFacade
+	FacultiesRestController -> FacultiesRestController : createOrUpdateFaculty
+	activate FacultiesRestController
+		FacultiesRestController -> OrganizationFacade : doActionAndResult
+		activate OrganizationFacade
+			OrganizationFacade -> OrganizationFacade : organizationAction
+			activate OrganizationFacade
+				OrganizationFacade --> OrganizationFacade : Object
+			deactivate OrganizationFacade
+			OrganizationFacade --> FacultiesRestController : Object
+		deactivate OrganizationFacade
+		FacultiesRestController --> FacultiesRestController : Optional
+	deactivate FacultiesRestController
 	FacultiesRestController -> FacultiesRestController : resultToDto
 	activate FacultiesRestController
 		FacultiesRestController -> EndpointMapper : toDto

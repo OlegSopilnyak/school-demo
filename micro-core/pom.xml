@@ -130,7 +130,7 @@
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
-                            <hideFields>true</hideFields>
+<!--                            <hideFields>true</hideFields>-->
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>

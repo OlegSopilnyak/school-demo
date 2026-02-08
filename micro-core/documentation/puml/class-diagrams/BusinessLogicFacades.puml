@@ -4,137 +4,153 @@
 !pragma layout smetana
 
 interface AuthorityPersonFacade {
-	{method}  {abstract} +create ( instance : AuthorityPerson ) : Optional
-	{method}  {abstract} +createOrUpdateAuthorityPerson ( instance : AuthorityPerson ) : Optional
-	{method} +deleteAuthorityPerson ( instance : AuthorityPerson ) : void
-	{method}  {abstract} +deleteAuthorityPersonById ( id : Long ) : void
-	{method}  {abstract} +findAllAuthorityPersons () : Collection
-	{method}  {abstract} +findAuthorityPersonById ( id : Long ) : Optional
+	{field} {static} +ACTION_IDS : List
+	{field} {static} +CREATE_MACRO : String
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +DELETE_MACRO : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +LOGIN : String
+	{field} {static} +LOGOUT : String
+	{field} {static} +SUBSPACE : String
 	{method} +getName () : String
-	{method}  {abstract} +login ( username : String , password : String ) : Optional
-	{method}  {abstract} +logout ( token : String ) : void
+	{method} +validActions () : List
 }
 
 
 interface BusinessFacade {
-	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
+	{method} +decodeLongArgument ( parameters : Object[] ) : Long
+	{method} +decodeStringArgument ( parameters : Object[] ) : String
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
 	{method}  {abstract} +getName () : String
+	{method} +isInvalid ( item : BaseType ) : boolean
+	{method} +throwInvalidActionId ( actionId : String ) : void
+	{method} +validActions () : List
 }
 
 
 interface CoursesFacade {
-	{method}  {abstract} +createOrUpdate ( course : Course ) : Optional
-	{method} +delete ( course : Course ) : void
-	{method}  {abstract} +delete ( courseId : Long ) : void
-	{method}  {abstract} +findById ( id : Long ) : Optional
-	{method}  {abstract} +findRegisteredFor ( studentId : Long ) : Set
-	{method} +findRegisteredFor ( student : Student ) : Set
-	{method}  {abstract} +findWithoutStudents () : Set
+	{field} {static} +ACTION_IDS : List
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +FIND_NOT_REGISTERED : String
+	{field} {static} +FIND_REGISTERED : String
+	{field} {static} +REGISTER : String
+	{field} {static} +SUBSPACE : String
+	{field} {static} +UN_REGISTER : String
 	{method} +getName () : String
-	{method}  {abstract} +register ( studentId : Long , courseId : Long ) : void
-	{method} +register ( student : Student , course : Course ) : void
-	{method}  {abstract} +unRegister ( studentId : Long , courseId : Long ) : void
-	{method} +unRegister ( student : Student , course : Course ) : void
+	{method} +validActions () : List
+}
+
+
+interface EducationFacade {
+	{field} {static} +NAMESPACE : String
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+	{method} +throwsUnknownActionId ( actionId : String ) : Function
 }
 
 
 interface FacultyFacade {
-	{method}  {abstract} +createOrUpdateFaculty ( instance : Faculty ) : Optional
-	{method} +deleteFaculty ( instance : Faculty ) : void
-	{method}  {abstract} +deleteFacultyById ( id : Long ) : void
-	{method}  {abstract} +findAllFaculties () : Collection
-	{method}  {abstract} +findFacultyById ( id : Long ) : Optional
+	{field} {static} +ACTION_IDS : List
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +SUBSPACE : String
 	{method} +getName () : String
+	{method} +validActions () : List
 }
 
 
 interface OrganizationFacade {
-	{method} +isInvalid ( item : BaseType ) : boolean
+	{field} {static} +NAMESPACE : String
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method} +organizationAction ( actionId : String , parameters : Object[] ) : Object
+	{method} +throwsUnknownActionId ( actionId : String ) : Function
 }
 
 
 interface PersonProfileFacade {
-	{method} +concreteAction ( actionId : String , actionParameters : Object[] ) : Object
-	{method}  {abstract} +createOrUpdate ( profile : PersonProfile ) : Optional
+	{field} {static} +NAMESPACE : String
 	{method}  {abstract} +createOrUpdateActionId () : String
-	{method} +delete ( profile : PersonProfile ) : void
-	{method}  {abstract} +deleteById ( id : Long ) : void
 	{method}  {abstract} +deleteByIdActionId () : String
-	{method}  {abstract} +findById ( id : Long ) : Optional
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
 	{method}  {abstract} +findByIdActionId () : String
+	{method}  {abstract} +personProfileAction ( actionId : String , parameters : Object[] ) : Object
 }
 
 
 interface PrincipalProfileFacade {
+	{field} {static} +ACTION_IDS : List
 	{field} {static} +CREATE_OR_UPDATE : String
 	{field} {static} +DELETE_BY_ID : String
 	{field} {static} +FIND_BY_ID : String
-	{field} {static} +PREFIX : String
+	{field} {static} +SUBSPACE : String
 	{method} +createOrUpdateActionId () : String
-	{method} +createOrUpdateProfile ( input : PrincipalProfile ) : Optional
 	{method} +deleteByIdActionId () : String
-	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
 	{method} +findByIdActionId () : String
-	{method} +findPrincipalProfileById ( id : Long ) : Optional
 	{method} +getName () : String
+	{method} +validActions () : List
 }
 
 
 interface StudentProfileFacade {
+	{field} {static} +ACTION_IDS : List
 	{field} {static} +CREATE_OR_UPDATE : String
 	{field} {static} +DELETE_BY_ID : String
 	{field} {static} +FIND_BY_ID : String
-	{field} {static} +PREFIX : String
+	{field} {static} +SUBSPACE : String
 	{method} +createOrUpdateActionId () : String
-	{method} +createOrUpdateProfile ( input : StudentProfile ) : Optional
 	{method} +deleteByIdActionId () : String
-	{method} +doActionAndResult ( actionId : String , actionParameters : Object[] ) : Object
 	{method} +findByIdActionId () : String
-	{method} +findStudentProfileById ( id : Long ) : Optional
 	{method} +getName () : String
+	{method} +validActions () : List
 }
 
 
 interface StudentsFacade {
-	{method}  {abstract} +create ( student : Student ) : Optional
-	{method}  {abstract} +createOrUpdate ( student : Student ) : Optional
-	{method}  {abstract} +delete ( studentId : Long ) : boolean
-	{method} +delete ( student : Student ) : boolean
-	{method}  {abstract} +findById ( id : Long ) : Optional
-	{method} +findEnrolledTo ( course : Course ) : Set
-	{method}  {abstract} +findEnrolledTo ( courseId : Long ) : Set
-	{method}  {abstract} +findNotEnrolled () : Set
+	{field} {static} +ACTION_IDS : List
+	{field} {static} +CREATE_MACRO : String
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +DELETE_MACRO : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +FIND_ENROLLED : String
+	{field} {static} +FIND_NOT_ENROLLED : String
+	{field} {static} +SUBSPACE : String
 	{method} +getName () : String
+	{method} +validActions () : List
 }
 
 
 interface StudentsGroupFacade {
-	{method}  {abstract} +createOrUpdateStudentsGroup ( instance : StudentsGroup ) : Optional
-	{method} +deleteStudentsGroup ( instance : StudentsGroup ) : void
-	{method}  {abstract} +deleteStudentsGroupById ( id : Long ) : void
-	{method}  {abstract} +findAllStudentsGroups () : Collection
-	{method}  {abstract} +findStudentsGroupById ( id : Long ) : Optional
+	{field} {static} +ACTION_IDS : List
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +SUBSPACE : String
 	{method} +getName () : String
+	{method} +validActions () : List
 }
 
 
 
 
-AuthorityPersonFacade ..|>  BusinessFacade
 AuthorityPersonFacade ..|>  OrganizationFacade
-CoursesFacade ..|>  BusinessFacade
-FacultyFacade ..|>  BusinessFacade
+CoursesFacade ..|>  EducationFacade
+EducationFacade ..|>  BusinessFacade
 FacultyFacade ..|>  OrganizationFacade
+OrganizationFacade ..|>  BusinessFacade
 PersonProfileFacade ..|>  BusinessFacade
-PrincipalProfileFacade ..|>  BusinessFacade
 PrincipalProfileFacade ..|>  PersonProfileFacade
-StudentProfileFacade ..|>  BusinessFacade
 StudentProfileFacade ..|>  PersonProfileFacade
-StudentsFacade ..|>  BusinessFacade
-StudentsGroupFacade ..|>  BusinessFacade
+StudentsFacade ..|>  EducationFacade
 StudentsGroupFacade ..|>  OrganizationFacade
 
-hide fields
 
 @enduml
 ----

@@ -3,13 +3,17 @@
 @startuml
 
 participant AuthorityPersonsRestController
-participant AuthorityPersonFacade
+participant OrganizationFacade
 
 activate AuthorityPersonsRestController
-	AuthorityPersonsRestController -> AuthorityPersonFacade : findAllAuthorityPersons
-	activate AuthorityPersonFacade
-		AuthorityPersonFacade --> AuthorityPersonsRestController : Collection
-	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> OrganizationFacade : doActionAndResult
+	activate OrganizationFacade
+		OrganizationFacade -> OrganizationFacade : organizationAction
+		activate OrganizationFacade
+			OrganizationFacade --> OrganizationFacade : Object
+		deactivate OrganizationFacade
+		OrganizationFacade --> AuthorityPersonsRestController : Object
+	deactivate OrganizationFacade
 	AuthorityPersonsRestController -> AuthorityPersonsRestController : resultToDto
 	activate AuthorityPersonsRestController
 		AuthorityPersonsRestController --> AuthorityPersonsRestController : List

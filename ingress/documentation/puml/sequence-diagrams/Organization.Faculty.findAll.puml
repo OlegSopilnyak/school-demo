@@ -3,13 +3,21 @@
 @startuml
 
 participant FacultiesRestController
-participant FacultyFacade
+participant OrganizationFacade
 
 activate FacultiesRestController
-	FacultiesRestController -> FacultyFacade : findAllFaculties
-	activate FacultyFacade
-		FacultyFacade --> FacultiesRestController : Collection
-	deactivate FacultyFacade
+	FacultiesRestController -> FacultiesRestController : findAllFaculties
+	activate FacultiesRestController
+		FacultiesRestController -> OrganizationFacade : doActionAndResult
+		activate OrganizationFacade
+			OrganizationFacade -> OrganizationFacade : organizationAction
+			activate OrganizationFacade
+				OrganizationFacade --> OrganizationFacade : Object
+			deactivate OrganizationFacade
+			OrganizationFacade --> FacultiesRestController : Object
+		deactivate OrganizationFacade
+		FacultiesRestController --> FacultiesRestController : Collection
+	deactivate FacultiesRestController
 	FacultiesRestController -> FacultiesRestController : resultToDto
 	activate FacultiesRestController
 		FacultiesRestController --> FacultiesRestController : List

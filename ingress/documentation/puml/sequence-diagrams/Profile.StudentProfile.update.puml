@@ -4,7 +4,6 @@
 
 participant StudentProfileRestController
 participant BaseDto
-participant StudentProfileFacade
 participant PersonProfileFacade
 participant EndpointMapper
 
@@ -17,14 +16,18 @@ activate StudentProfileRestController
 	activate StudentProfileRestController
 		StudentProfileRestController --> StudentProfileRestController : boolean
 	deactivate StudentProfileRestController
-	StudentProfileRestController -> StudentProfileFacade : createOrUpdateProfile
-	activate StudentProfileFacade
-		StudentProfileFacade -> PersonProfileFacade : createOrUpdate
+	StudentProfileRestController -> StudentProfileRestController : createOrUpdateProfile
+	activate StudentProfileRestController
+		StudentProfileRestController -> PersonProfileFacade : doActionAndResult
 		activate PersonProfileFacade
-			PersonProfileFacade --> StudentProfileFacade : Optional
+			PersonProfileFacade -> PersonProfileFacade : personProfileAction
+			activate PersonProfileFacade
+				PersonProfileFacade --> PersonProfileFacade : Object
+			deactivate PersonProfileFacade
+			PersonProfileFacade --> StudentProfileRestController : Object
 		deactivate PersonProfileFacade
-		StudentProfileFacade --> StudentProfileRestController : Optional
-	deactivate StudentProfileFacade
+		StudentProfileRestController --> StudentProfileRestController : Optional
+	deactivate StudentProfileRestController
 	StudentProfileRestController -> StudentProfileRestController : toDto
 	activate StudentProfileRestController
 		StudentProfileRestController -> EndpointMapper : toDto

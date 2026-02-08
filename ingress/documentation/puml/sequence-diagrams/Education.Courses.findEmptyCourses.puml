@@ -3,13 +3,21 @@
 @startuml
 
 participant CoursesRestController
-participant CoursesFacade
+participant EducationFacade
 
 activate CoursesRestController
-	CoursesRestController -> CoursesFacade : findWithoutStudents
-	activate CoursesFacade
-		CoursesFacade --> CoursesRestController : Set
-	deactivate CoursesFacade
+	CoursesRestController -> CoursesRestController : findWithoutStudents
+	activate CoursesRestController
+		CoursesRestController -> EducationFacade : doActionAndResult
+		activate EducationFacade
+			EducationFacade -> EducationFacade : educationAction
+			activate EducationFacade
+				EducationFacade --> EducationFacade : Object
+			deactivate EducationFacade
+			EducationFacade --> CoursesRestController : Object
+		deactivate EducationFacade
+		CoursesRestController --> CoursesRestController : Set
+	deactivate CoursesRestController
 	CoursesRestController -> CoursesRestController : resultToDto
 	activate CoursesRestController
 		CoursesRestController --> CoursesRestController : List

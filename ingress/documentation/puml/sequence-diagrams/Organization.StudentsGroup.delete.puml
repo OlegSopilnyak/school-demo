@@ -3,17 +3,25 @@
 @startuml
 
 participant StudentsGroupsRestController
-participant StudentsGroupFacade
+participant OrganizationFacade
 
 activate StudentsGroupsRestController
 	StudentsGroupsRestController -> StudentsGroupsRestController : isInvalid
 	activate StudentsGroupsRestController
 		StudentsGroupsRestController --> StudentsGroupsRestController : boolean
 	deactivate StudentsGroupsRestController
-	StudentsGroupsRestController -> StudentsGroupFacade : deleteStudentsGroupById
-	activate StudentsGroupFacade
-		StudentsGroupFacade --> StudentsGroupsRestController : void
-	deactivate StudentsGroupFacade
+	StudentsGroupsRestController -> StudentsGroupsRestController : deleteStudentsGroupById
+	activate StudentsGroupsRestController
+		StudentsGroupsRestController -> OrganizationFacade : doActionAndResult
+		activate OrganizationFacade
+			OrganizationFacade -> OrganizationFacade : organizationAction
+			activate OrganizationFacade
+				OrganizationFacade --> OrganizationFacade : Object
+			deactivate OrganizationFacade
+			OrganizationFacade --> StudentsGroupsRestController : Object
+		deactivate OrganizationFacade
+		StudentsGroupsRestController --> StudentsGroupsRestController : void
+	deactivate StudentsGroupsRestController
 deactivate StudentsGroupsRestController
 
 @enduml

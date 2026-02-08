@@ -4,7 +4,6 @@
 
 participant PrincipalProfileRestController
 participant BaseDto
-participant PrincipalProfileFacade
 participant PersonProfileFacade
 participant EndpointMapper
 participant PrincipalProfileDto
@@ -19,14 +18,18 @@ activate PrincipalProfileRestController
 	activate PrincipalProfileRestController
 		PrincipalProfileRestController --> PrincipalProfileRestController : boolean
 	deactivate PrincipalProfileRestController
-	PrincipalProfileRestController -> PrincipalProfileFacade : createOrUpdateProfile
-	activate PrincipalProfileFacade
-		PrincipalProfileFacade -> PersonProfileFacade : createOrUpdate
+	PrincipalProfileRestController -> PrincipalProfileRestController : createOrUpdateProfile
+	activate PrincipalProfileRestController
+		PrincipalProfileRestController -> PersonProfileFacade : doActionAndResult
 		activate PersonProfileFacade
-			PersonProfileFacade --> PrincipalProfileFacade : Optional
+			PersonProfileFacade -> PersonProfileFacade : personProfileAction
+			activate PersonProfileFacade
+				PersonProfileFacade --> PersonProfileFacade : Object
+			deactivate PersonProfileFacade
+			PersonProfileFacade --> PrincipalProfileRestController : Object
 		deactivate PersonProfileFacade
-		PrincipalProfileFacade --> PrincipalProfileRestController : Optional
-	deactivate PrincipalProfileFacade
+		PrincipalProfileRestController --> PrincipalProfileRestController : Optional
+	deactivate PrincipalProfileRestController
 	PrincipalProfileRestController -> PrincipalProfileRestController : toDto
 	activate PrincipalProfileRestController
 		PrincipalProfileRestController -> EndpointMapper : toDto

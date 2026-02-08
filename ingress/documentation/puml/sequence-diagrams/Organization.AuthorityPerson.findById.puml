@@ -3,14 +3,18 @@
 @startuml
 
 participant AuthorityPersonsRestController
-participant AuthorityPersonFacade
+participant OrganizationFacade
 participant EndpointMapper
 
 activate AuthorityPersonsRestController
-	AuthorityPersonsRestController -> AuthorityPersonFacade : findAuthorityPersonById
-	activate AuthorityPersonFacade
-		AuthorityPersonFacade --> AuthorityPersonsRestController : Optional
-	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> OrganizationFacade : doActionAndResult
+	activate OrganizationFacade
+		OrganizationFacade -> OrganizationFacade : organizationAction
+		activate OrganizationFacade
+			OrganizationFacade --> OrganizationFacade : Object
+		deactivate OrganizationFacade
+		OrganizationFacade --> AuthorityPersonsRestController : Object
+	deactivate OrganizationFacade
 	AuthorityPersonsRestController -> AuthorityPersonsRestController : resultToDto
 	activate AuthorityPersonsRestController
 		AuthorityPersonsRestController -> EndpointMapper : toDto

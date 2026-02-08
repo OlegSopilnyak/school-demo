@@ -4,17 +4,21 @@
 
 participant AuthorityPersonsRestController
 participant ObjectUtils
-participant AuthorityPersonFacade
+participant OrganizationFacade
 
 activate AuthorityPersonsRestController
 	AuthorityPersonsRestController -> ObjectUtils : isEmpty
 	activate ObjectUtils
 		ObjectUtils --> AuthorityPersonsRestController : boolean
 	deactivate ObjectUtils
-	AuthorityPersonsRestController -> AuthorityPersonFacade : logout
-	activate AuthorityPersonFacade
-		AuthorityPersonFacade --> AuthorityPersonsRestController : void
-	deactivate AuthorityPersonFacade
+	AuthorityPersonsRestController -> OrganizationFacade : doActionAndResult
+	activate OrganizationFacade
+		OrganizationFacade -> OrganizationFacade : organizationAction
+		activate OrganizationFacade
+			OrganizationFacade --> OrganizationFacade : Object
+		deactivate OrganizationFacade
+		OrganizationFacade --> AuthorityPersonsRestController : Object
+	deactivate OrganizationFacade
 deactivate AuthorityPersonsRestController
 
 @enduml

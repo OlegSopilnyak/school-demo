@@ -3,14 +3,22 @@
 @startuml
 
 participant CoursesRestController
-participant CoursesFacade
+participant EducationFacade
 participant EndpointMapper
 
 activate CoursesRestController
-	CoursesRestController -> CoursesFacade : findById
-	activate CoursesFacade
-		CoursesFacade --> CoursesRestController : Optional
-	deactivate CoursesFacade
+	CoursesRestController -> CoursesRestController : findById
+	activate CoursesRestController
+		CoursesRestController -> EducationFacade : doActionAndResult
+		activate EducationFacade
+			EducationFacade -> EducationFacade : educationAction
+			activate EducationFacade
+				EducationFacade --> EducationFacade : Object
+			deactivate EducationFacade
+			EducationFacade --> CoursesRestController : Object
+		deactivate EducationFacade
+		CoursesRestController --> CoursesRestController : Optional
+	deactivate CoursesRestController
 	CoursesRestController -> CoursesRestController : resultToDto
 	activate CoursesRestController
 		CoursesRestController -> EndpointMapper : toDto

@@ -4,7 +4,7 @@
 
 participant StudentsRestController
 participant BaseDto
-participant StudentsFacade
+participant EducationFacade
 participant EndpointMapper
 
 activate StudentsRestController
@@ -16,10 +16,14 @@ activate StudentsRestController
 	activate StudentsRestController
 		StudentsRestController --> StudentsRestController : boolean
 	deactivate StudentsRestController
-	StudentsRestController -> StudentsFacade : createOrUpdate
-	activate StudentsFacade
-		StudentsFacade --> StudentsRestController : Optional
-	deactivate StudentsFacade
+	StudentsRestController -> EducationFacade : doActionAndResult
+	activate EducationFacade
+		EducationFacade -> EducationFacade : educationAction
+		activate EducationFacade
+			EducationFacade --> EducationFacade : Object
+		deactivate EducationFacade
+		EducationFacade --> StudentsRestController : Object
+	deactivate EducationFacade
 	StudentsRestController -> StudentsRestController : resultToDto
 	activate StudentsRestController
 		StudentsRestController -> EndpointMapper : toDto

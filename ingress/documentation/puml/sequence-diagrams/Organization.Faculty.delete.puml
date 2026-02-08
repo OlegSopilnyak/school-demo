@@ -3,31 +3,30 @@
 @startuml
 
 participant FacultiesRestController
-participant FacultyFacade
+participant BaseDto
 participant OrganizationFacade
-participant BaseType
 
 activate FacultiesRestController
-	FacultiesRestController -> FacultyFacade : deleteFaculty
-	activate FacultyFacade
-		FacultyFacade -> OrganizationFacade : isInvalid
-		activate OrganizationFacade
-			OrganizationFacade -> BaseType : getId
-			activate BaseType
-				BaseType --> OrganizationFacade : Long
-			deactivate BaseType
-			OrganizationFacade --> FacultyFacade : boolean
-		deactivate OrganizationFacade
-		FacultyFacade -> BaseType : getId
-		activate BaseType
-			BaseType --> FacultyFacade : Long
-		deactivate BaseType
-		FacultyFacade -> FacultyFacade : deleteFacultyById
-		activate FacultyFacade
-			FacultyFacade --> FacultyFacade : void
-		deactivate FacultyFacade
-		FacultyFacade --> FacultiesRestController : void
-	deactivate FacultyFacade
+	FacultiesRestController -> FacultiesRestController : deleteFaculty
+	activate FacultiesRestController
+		FacultiesRestController -> BaseDto : getId
+		activate BaseDto
+			BaseDto --> FacultiesRestController : Long
+		deactivate BaseDto
+		FacultiesRestController -> FacultiesRestController : deleteFaculty
+		activate FacultiesRestController
+			FacultiesRestController -> OrganizationFacade : doActionAndResult
+			activate OrganizationFacade
+				OrganizationFacade -> OrganizationFacade : organizationAction
+				activate OrganizationFacade
+					OrganizationFacade --> OrganizationFacade : Object
+				deactivate OrganizationFacade
+				OrganizationFacade --> FacultiesRestController : Object
+			deactivate OrganizationFacade
+			FacultiesRestController --> FacultiesRestController : void
+		deactivate FacultiesRestController
+		FacultiesRestController --> FacultiesRestController : void
+	deactivate FacultiesRestController
 deactivate FacultiesRestController
 
 @enduml

@@ -3,13 +3,17 @@
 @startuml
 
 participant StudentsRestController
-participant StudentsFacade
+participant EducationFacade
 
 activate StudentsRestController
-	StudentsRestController -> StudentsFacade : delete
-	activate StudentsFacade
-		StudentsFacade --> StudentsRestController : boolean
-	deactivate StudentsFacade
+	StudentsRestController -> EducationFacade : doActionAndResult
+	activate EducationFacade
+		EducationFacade -> EducationFacade : educationAction
+		activate EducationFacade
+			EducationFacade --> EducationFacade : Object
+		deactivate EducationFacade
+		EducationFacade --> StudentsRestController : Object
+	deactivate EducationFacade
 deactivate StudentsRestController
 
 @enduml

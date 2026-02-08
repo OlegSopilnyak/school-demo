@@ -3,19 +3,22 @@
 @startuml
 
 participant StudentProfileRestController
-participant StudentProfileFacade
 participant PersonProfileFacade
 participant EndpointMapper
 
 activate StudentProfileRestController
-	StudentProfileRestController -> StudentProfileFacade : findStudentProfileById
-	activate StudentProfileFacade
-		StudentProfileFacade -> PersonProfileFacade : findById
+	StudentProfileRestController -> StudentProfileRestController : findStudentProfileById
+	activate StudentProfileRestController
+		StudentProfileRestController -> PersonProfileFacade : doActionAndResult
 		activate PersonProfileFacade
-			PersonProfileFacade --> StudentProfileFacade : Optional
+			PersonProfileFacade -> PersonProfileFacade : personProfileAction
+			activate PersonProfileFacade
+				PersonProfileFacade --> PersonProfileFacade : Object
+			deactivate PersonProfileFacade
+			PersonProfileFacade --> StudentProfileRestController : Object
 		deactivate PersonProfileFacade
-		StudentProfileFacade --> StudentProfileRestController : Optional
-	deactivate StudentProfileFacade
+		StudentProfileRestController --> StudentProfileRestController : Optional
+	deactivate StudentProfileRestController
 	StudentProfileRestController -> StudentProfileRestController : toDto
 	activate StudentProfileRestController
 		StudentProfileRestController -> EndpointMapper : toDto

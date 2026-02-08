@@ -3,25 +3,32 @@
 @startuml
 
 participant RegisterCourseController
-participant StudentsFacade
-participant CoursesFacade
+participant EducationFacade
 participant BaseType
 
 activate RegisterCourseController
 	RegisterCourseController -> RegisterCourseController : restoreEntity
 	activate RegisterCourseController
-		RegisterCourseController -> StudentsFacade : findById
-		activate StudentsFacade
-			StudentsFacade --> RegisterCourseController : Optional
-		deactivate StudentsFacade
+		RegisterCourseController -> EducationFacade : doActionAndResult
+		activate EducationFacade
+			EducationFacade -> EducationFacade : educationAction
+			activate EducationFacade
+				EducationFacade --> EducationFacade : Object
+			deactivate EducationFacade
+			EducationFacade --> RegisterCourseController : Object
+		deactivate EducationFacade
 		RegisterCourseController --> RegisterCourseController : Student
 	deactivate RegisterCourseController
 	RegisterCourseController -> RegisterCourseController : restoreEntity
 	activate RegisterCourseController
-		RegisterCourseController -> CoursesFacade : findById
-		activate CoursesFacade
-			CoursesFacade --> RegisterCourseController : Optional
-		deactivate CoursesFacade
+		RegisterCourseController -> EducationFacade : doActionAndResult
+		activate EducationFacade
+			EducationFacade -> EducationFacade : educationAction
+			activate EducationFacade
+				EducationFacade --> EducationFacade : Object
+			deactivate EducationFacade
+			EducationFacade --> RegisterCourseController : Object
+		deactivate EducationFacade
 		RegisterCourseController --> RegisterCourseController : Course
 	deactivate RegisterCourseController
 	RegisterCourseController -> BaseType : getId
@@ -32,38 +39,14 @@ activate RegisterCourseController
 	activate BaseType
 		BaseType --> RegisterCourseController : Long
 	deactivate BaseType
-	RegisterCourseController -> CoursesFacade : unRegister
-	activate CoursesFacade
-		CoursesFacade -> CoursesFacade : isInvalid
-		activate CoursesFacade
-			CoursesFacade -> BaseType : getId
-			activate BaseType
-				BaseType --> CoursesFacade : Long
-			deactivate BaseType
-			CoursesFacade --> CoursesFacade : boolean
-		deactivate CoursesFacade
-		CoursesFacade -> CoursesFacade : isInvalid
-		activate CoursesFacade
-			CoursesFacade -> BaseType : getId
-			activate BaseType
-				BaseType --> CoursesFacade : Long
-			deactivate BaseType
-			CoursesFacade --> CoursesFacade : boolean
-		deactivate CoursesFacade
-		CoursesFacade -> BaseType : getId
-		activate BaseType
-			BaseType --> CoursesFacade : Long
-		deactivate BaseType
-		CoursesFacade -> BaseType : getId
-		activate BaseType
-			BaseType --> CoursesFacade : Long
-		deactivate BaseType
-		CoursesFacade -> CoursesFacade : unRegister
-		activate CoursesFacade
-			CoursesFacade --> CoursesFacade : void
-		deactivate CoursesFacade
-		CoursesFacade --> RegisterCourseController : void
-	deactivate CoursesFacade
+	RegisterCourseController -> EducationFacade : doActionAndResult
+	activate EducationFacade
+		EducationFacade -> EducationFacade : educationAction
+		activate EducationFacade
+			EducationFacade --> EducationFacade : Object
+		deactivate EducationFacade
+		EducationFacade --> RegisterCourseController : Object
+	deactivate EducationFacade
 deactivate RegisterCourseController
 
 @enduml
