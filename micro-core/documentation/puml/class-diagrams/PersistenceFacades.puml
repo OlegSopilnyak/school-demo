@@ -95,7 +95,6 @@ PersistenceFacade ..|>  EducationPersistenceFacade
 PersistenceFacade ..|>  OrganizationPersistenceFacade
 PersistenceFacade ..|>  ProfilePersistenceFacade
 
-hide fields
 
 @enduml
 ----

@@ -1,0 +1,16 @@
+[plantuml,EducationFacade.EntryPoint.puml.png,png]
+----
+@startuml
+
+participant EducationFacade
+
+activate EducationFacade
+	EducationFacade -> EducationFacade : educationAction
+	activate EducationFacade
+		EducationFacade --> EducationFacade : Object
+	deactivate EducationFacade
+deactivate EducationFacade
+
+@enduml
+
+----

@@ -1,0 +1,16 @@
+[plantuml,OrganizationFacade.EntryPoint.puml.png,png]
+----
+@startuml
+
+participant OrganizationFacade
+
+activate OrganizationFacade
+	OrganizationFacade -> OrganizationFacade : organizationAction
+	activate OrganizationFacade
+		OrganizationFacade --> OrganizationFacade : Object
+	deactivate OrganizationFacade
+deactivate OrganizationFacade
+
+@enduml
+
+----

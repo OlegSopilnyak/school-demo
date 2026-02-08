@@ -61,31 +61,24 @@ include::../puml/class-diagrams/BusinessLogicFacades.puml[]
 
 '''
 
-* Authority Person Facade Sequences
+* Education Facade Sequences
 
-.AuthorityPersonFacade.deleteAuthorityPerson(...) [Delete Authority Person Entity]
-include::../puml/sequence-diagrams/AuthorityPersonFacade.deleteAuthorityPerson.puml[]
-
-'''
-
-* Common Person Profile Facade Sequences
-
-.PersonProfileFacade.delete(...) [Delete Common Person Entity]
-include::../puml/sequence-diagrams/PersonProfileFacade.delete.puml[]
+.doActionAndResult(actionId, ...) [Unified Facade Entity Point]
+include::../puml/sequence-diagrams/EducationFacade.EntryPoint.puml[]
 
 '''
 
-* Faculty Facade Sequences
+* Organization Facade Sequences
 
-.FacultyFacade.deleteFaculty(...) [Delete Faculty Entity]
-include::../puml/sequence-diagrams/FacultyFacade.deleteFaculty.puml[]
+.doActionAndResult(actionId, ...) [Unified Facade Entity Point]
+include::../puml/sequence-diagrams/OrganizationFacade.EntryPoint.puml[]
 
 '''
 
-* Students Group Facade Sequences
+* Person Profile Facade Sequences
 
-.StudentsGroupFacade.deleteStudentsGroup(...) [ Delete Students Group Entity]
-include::../puml/sequence-diagrams/StudentsGroupFacade.deleteStudentsGroup.puml[]
+.doActionAndResult(actionId, ...) [Unified Facade Entity Point]
+include::../puml/sequence-diagrams/PersonProfileFacade.EntryPoint.puml[]
 ====
 
 '''

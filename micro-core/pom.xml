@@ -222,68 +222,52 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-authority-person-facade-deleteAuthorityPerson-diagram</id>
+                        <id>generate-education-facade-entry-point-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>AuthorityPersonFacade.deleteAuthorityPerson.puml</outputFilename>
+                            <outputFilename>EducationFacade.EntryPoint.puml</outputFilename>
                             <startClass>
-                                oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade
+                                oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade
                             </startClass>
-                            <startMethod>deleteAuthorityPerson</startMethod>
+                            <startMethod>doActionAndResult</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-faculty-facade-deleteFaculty-diagram</id>
+                        <id>generate-organization-facade-entry-point-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>FacultyFacade.deleteFaculty.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade
-                            </startClass>
-                            <startMethod>deleteFaculty</startMethod>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
-                            <showReturnTypes>true</showReturnTypes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-students-group-facade-deleteFaculty-diagram</id>
-                        <goals>
-                            <goal>generateSequenceDiagram</goal>
-                        </goals>
-                        <phase>generate-test-resources</phase>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>StudentsGroupFacade.deleteStudentsGroup.puml</outputFilename>
+                            <outputFilename>OrganizationFacade.EntryPoint.puml</outputFilename>
                             <startClass>
-                                oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade
+                                oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade
                             </startClass>
-                            <startMethod>deleteStudentsGroup</startMethod>
+                            <startMethod>doActionAndResult</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-base-profile-facade-delete-diagram</id>
+                        <id>generate-base-profile-facade-entry-point-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
                         <phase>generate-test-resources</phase>
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>PersonProfileFacade.delete.puml</outputFilename>
+                            <outputFilename>PersonProfileFacade.EntryPoint.puml</outputFilename>
                             <startClass>
                                 oleg.sopilnyak.test.school.common.business.facade.profile.base.PersonProfileFacade
                             </startClass>
-                            <startMethod>delete</startMethod>
+                            <startMethod>doActionAndResult</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
