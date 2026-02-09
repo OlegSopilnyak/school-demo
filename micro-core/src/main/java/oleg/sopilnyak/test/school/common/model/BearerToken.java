@@ -4,8 +4,6 @@ package oleg.sopilnyak.test.school.common.model;
  * Model: Type for school's services access token
  */
 public interface BearerToken {
-    String BEARER_TOKEN = "Bearer ";
-
     /**
      * To get access token
      *

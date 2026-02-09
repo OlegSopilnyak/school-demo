@@ -9,6 +9,9 @@ plugins {
 }
 
 dependencies {
+    //  Web-Filter dependency
+    compileOnly 'org.apache.tomcat:tomcat-servlet-api:+'
+    // testing stuff
     testFixturesApi "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
     testFixturesApi "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testFixturesApi "org.testcontainers:testcontainers:${testcontainersVersion}"

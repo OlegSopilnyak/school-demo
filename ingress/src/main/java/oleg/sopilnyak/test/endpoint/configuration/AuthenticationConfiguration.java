@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.endpoint.rest.security.service.UserService;
 import oleg.sopilnyak.test.endpoint.rest.security.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.endpoint.rest.security.service.impl.UserServiceImpl;
 
+import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +21,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -37,7 +37,7 @@ public class AuthenticationConfiguration {
     }
 
     @Bean
-    public OncePerRequestFilter jwtAuthenticationFilter() {
+    public Filter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtService(), userService());
     }
 
@@ -59,8 +59,7 @@ public class AuthenticationConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService().userDetailsService());
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService().userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
