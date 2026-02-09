@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version "${springDependencyVersion}"
+    id "io.freefair.lombok" version "${lombokPluginVersion}"
+}
+
+dependencies {
+    dependencies {
+        implementation project(":micro-core")
+
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-aop'
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        // JWT libraries
+        implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
+        implementation "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
+        implementation "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+        // this version of mockito-core works properly with doCallRealMethod().when(
+        implementation 'org.mockito:mockito-core:4.5.1'
+
+        implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+        compileOnly "org.mapstruct:mapstruct-jdk8:${mapstructVersion}"
+        compileOnly "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+        annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+        testCompileOnly 'org.mockito:mockito-inline:5.2.0'
+        testImplementation project(":persistence")
+        testImplementation project(":business-logic")
+        testImplementation testFixtures(project(":micro-core"))
+    }
+}
+
+
+bootJar {
+    enabled = false
+}
+
+description = 'Service for manage security access layer of the school application'
