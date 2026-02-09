@@ -1,5 +1,7 @@
 package oleg.sopilnyak.test.endpoint.configuration;
 
+import oleg.sopilnyak.test.authentication.configuration.AuthenticationConfiguration;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -17,9 +19,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebMvc
 @ComponentScan(basePackages = {"oleg.sopilnyak.test.endpoint.rest"})
 @Import({AspectForRestConfiguration.class, AuthenticationConfiguration.class})
+@EnableWebMvc
 public class EndpointConfiguration  implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
