@@ -41,6 +41,15 @@ import org.springframework.transaction.annotation.Transactional;
 })
 @Rollback
 class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "school::organization::authority::persons:login";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "school::organization::authority::persons:logout";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_ALL = "school::organization::authority::persons:find.All";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID = "school::organization::authority::persons:find.By.Id";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW = "school::organization::authority::persons:create.Macro";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE = "school::organization::authority::persons:create.Or.Update";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE = "school::organization::authority::persons:delete";
+    private static final String ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL = "school::organization::authority::persons:delete.Macro";
+    //
     private static final String FACTORY_NAME = "Organization.AuthorityPersons";
     private static final String SPRING_NAME = "authorityCommandsFactory";
     private Collection<String> commandsId;
@@ -57,14 +66,14 @@ class AuthorityPersonCommandsFactoryTest extends MysqlTestModelFactory {
     @BeforeEach
     void setUp() {
         commandsId = Set.of(
-                "school::organization::authority::persons:login",
-                "school::organization::authority::persons:logout",
-                "school::organization::authority::persons:find.All",
-                "school::organization::authority::persons:find.By.Id",
-                "school::organization::authority::persons:create.Macro",
-                "school::organization::authority::persons:create.Or.Update",
-                "school::organization::authority::persons:delete",
-                "school::organization::authority::persons:delete.Macro"
+                ORGANIZATION_AUTHORITY_PERSON_LOGIN,
+                ORGANIZATION_AUTHORITY_PERSON_LOGOUT,
+                ORGANIZATION_AUTHORITY_PERSON_FIND_ALL,
+                ORGANIZATION_AUTHORITY_PERSON_FIND_BY_ID,
+                ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW,
+                ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE,
+                ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL,
+                ORGANIZATION_AUTHORITY_PERSON_DELETE
         );
     }
 
