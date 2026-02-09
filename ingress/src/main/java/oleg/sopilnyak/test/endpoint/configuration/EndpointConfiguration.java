@@ -19,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {"oleg.sopilnyak.test.endpoint.rest"})
-@Import({AspectForRestConfiguration.class})
+@Import({AspectForRestConfiguration.class, SecurityConfiguration.class})
 public class EndpointConfiguration  implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
