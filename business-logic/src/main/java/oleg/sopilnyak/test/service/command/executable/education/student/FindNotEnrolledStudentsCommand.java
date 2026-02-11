@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.education.student;
 
 import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacade;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.RegisterPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.core.Context;

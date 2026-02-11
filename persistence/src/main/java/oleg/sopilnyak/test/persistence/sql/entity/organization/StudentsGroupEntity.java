@@ -3,8 +3,8 @@ package oleg.sopilnyak.test.persistence.sql.entity.organization;
 import lombok.*;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
-import oleg.sopilnyak.test.school.common.model.Student;
-import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 import org.mapstruct.factory.Mappers;
 
 import jakarta.persistence.*;

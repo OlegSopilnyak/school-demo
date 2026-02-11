@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.message.payload;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.message.payload;
 
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

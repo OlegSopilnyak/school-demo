@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.DeleteProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * Command-Implementation: command to delete student profile instance by id
  *
  * @see StudentProfileCommand
- * @see oleg.sopilnyak.test.school.common.model.StudentProfile
+ * @see StudentProfile
  * @see ProfilePersistenceFacade
  */
 @Slf4j

@@ -7,8 +7,15 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
-import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
+
 import org.mapstruct.*;
 import org.springframework.util.ReflectionUtils;
 
@@ -139,7 +146,7 @@ public interface EntityMapper {
                 .filter(key -> profile.getExtra(key).isPresent())
                 .collect(Collectors.toMap(
                         extraKey -> extraKey, extraKey -> profile.getExtra(extraKey).orElse("unknown"),
-                        (existingValue, replacementValue) -> existingValue,
+                        (existingValue, _) -> existingValue,
                         HashMap::new
                 ));
     }

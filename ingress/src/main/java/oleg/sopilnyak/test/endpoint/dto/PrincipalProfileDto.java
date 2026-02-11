@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.endpoint.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 
 /**
  * DataTransportObject: POJO for PrincipalProfile type

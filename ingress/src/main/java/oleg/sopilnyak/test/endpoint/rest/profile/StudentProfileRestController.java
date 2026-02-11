@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 
 import java.util.Optional;
 import org.springframework.http.HttpStatus;

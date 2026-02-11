@@ -1,12 +1,13 @@
 package oleg.sopilnyak.test.school.common.exception.education;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 
 /**
  * Exception: throws when you want to delete or update student who is not created before
  *
  * @see EntityNotFoundException
- * @see oleg.sopilnyak.test.school.common.model.Student
+ * @see Student
  */
 public class StudentNotFoundException extends EntityNotFoundException {
     /**

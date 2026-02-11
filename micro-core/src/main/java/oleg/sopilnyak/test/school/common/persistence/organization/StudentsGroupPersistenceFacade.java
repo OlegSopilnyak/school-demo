@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.persistence.organization;
 
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentGroupWithStudentsException;
-import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 
 import java.util.Optional;
 import java.util.Set;

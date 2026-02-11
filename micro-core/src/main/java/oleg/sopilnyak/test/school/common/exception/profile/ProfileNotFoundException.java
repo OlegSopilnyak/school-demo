@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.exception.profile;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
 
 /**
  * Exception: throws when you want to delete or update profile which is not created before

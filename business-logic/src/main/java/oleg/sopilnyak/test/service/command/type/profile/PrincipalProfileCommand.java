@@ -2,8 +2,8 @@ package oleg.sopilnyak.test.service.command.type.profile;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;

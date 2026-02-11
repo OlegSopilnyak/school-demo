@@ -4,6 +4,7 @@ import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedExce
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import jakarta.servlet.Filter;
+import java.util.Optional;
 
 /**
  * Service-Facade: Service for manage security access layer of the school application
@@ -22,11 +23,36 @@ public interface AuthenticationFacade {
 
     /**
      * To sign out person from the application<BR/>
-     * Token won't valid after
+     * Tokens won't be valid after
      *
-     * @param token valid token to sign out the person
+     * @param credentials valid tokens to sign out the person
+     * @see AuthenticationFacade#signIn(String, String)
+     * @see AccessCredentials
      */
-    void signOut(String token);
+    void signOut(AccessCredentials credentials);
+
+    /**
+     * To refresh active token
+     *
+     * @param credentials active tokens of signed in person
+     * @return refreshed credentials
+     * @throws SchoolAccessDeniedException person signed out
+     * @see AuthenticationFacade#signIn(String, String)
+     * @see AuthenticationFacade#signOut(AccessCredentials)
+     * @see AccessCredentials#getRefreshToken()
+     */
+    AccessCredentials refresh(AccessCredentials credentials) throws SchoolAccessDeniedException;
+
+    /**
+     * To find credentials of the signed in person
+     *
+     * @param username username of the person
+     * @return active credentials or empty
+     * @see Optional
+     * @see AccessCredentials
+     * @see AuthenticationFacade#signIn(String, String)
+     */
+    Optional<AccessCredentials> findCredentialsFor(String username);
 
     /**
      * To get authentication http-filter

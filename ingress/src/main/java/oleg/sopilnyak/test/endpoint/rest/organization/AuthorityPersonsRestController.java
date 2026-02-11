@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

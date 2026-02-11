@@ -1,4 +1,6 @@
-package oleg.sopilnyak.test.school.common.model;
+package oleg.sopilnyak.test.school.common.model.organization;
+
+import oleg.sopilnyak.test.school.common.model.Person;
 
 import java.util.List;
 

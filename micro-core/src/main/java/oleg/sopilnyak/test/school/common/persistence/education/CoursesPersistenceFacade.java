@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.school.common.persistence.education;
 
-import oleg.sopilnyak.test.school.common.model.Course;
+import oleg.sopilnyak.test.school.common.model.education.Course;
 
 import java.util.Optional;
 

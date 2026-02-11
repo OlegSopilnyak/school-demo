@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.persistence.education;
 
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 
 import java.util.Set;
 

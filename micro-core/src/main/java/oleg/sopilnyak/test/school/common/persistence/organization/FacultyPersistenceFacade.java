@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.school.common.persistence.organization;
 
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
-import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 
 import java.util.Optional;
 import java.util.Set;

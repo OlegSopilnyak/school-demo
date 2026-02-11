@@ -13,9 +13,9 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEnti
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.Faculty;
-import oleg.sopilnyak.test.school.common.model.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 import oleg.sopilnyak.test.school.common.persistence.organization.joint.OrganizationPersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 

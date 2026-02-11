@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.school.common.business.facade.education;
 
 import oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 
 import java.util.List;
 

@@ -9,9 +9,9 @@ import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 
 import java.util.Optional;
@@ -135,11 +135,13 @@ public interface ProfilePersistence extends ProfilePersistenceFacade {
     @Override
     @SuppressWarnings("unchecked")
     default PersonProfileEntity toEntity(PersonProfile profile) {
-        if (profile instanceof StudentProfile student) {
-            return student instanceof StudentProfileEntity entity ? entity : toEntity(student);
-        } else if (profile instanceof PrincipalProfile principal) {
-            return principal instanceof PrincipalProfileEntity entity ? entity : toEntity(principal);
-        } else return null;
+        return switch (profile) {
+            case StudentProfile student when student instanceof StudentProfileEntity entity -> entity;
+            case StudentProfile student -> toEntity(student);
+            case PrincipalProfile principal when principal instanceof PrincipalProfileEntity entity -> entity;
+            case PrincipalProfile principal -> toEntity(principal);
+            default -> null;
+        };
     }
 
     // private methods

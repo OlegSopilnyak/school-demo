@@ -9,7 +9,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 
 import java.io.IOException;
 import java.util.Map;
@@ -23,8 +25,8 @@ import static org.springframework.util.ObjectUtils.isEmpty;
  * DataTransportObject: POJO for PersonProfile type (the parent of any type of profiles)
  *
  * @see PersonProfile
- * @see oleg.sopilnyak.test.school.common.model.PrincipalProfile
- * @see oleg.sopilnyak.test.school.common.model.StudentProfile
+ * @see PrincipalProfile
+ * @see StudentProfile
  */
 @Data
 @SuperBuilder

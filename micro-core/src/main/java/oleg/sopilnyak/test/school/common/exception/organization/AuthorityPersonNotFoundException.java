@@ -1,12 +1,13 @@
 package oleg.sopilnyak.test.school.common.exception.organization;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 
 /**
  * Exception: throws when you want to delete or update authority person which is not created before
  *
  * @see EntityNotFoundException
- * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
+ * @see AuthorityPerson
  */
 public class AuthorityPersonNotFoundException extends EntityNotFoundException {
     /**

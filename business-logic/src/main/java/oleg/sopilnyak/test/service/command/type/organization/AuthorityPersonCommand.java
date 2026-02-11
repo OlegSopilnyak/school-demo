@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -14,7 +14,7 @@ import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
  *
  * @param <T> the type of command execution (do) result
  * @see OrganizationCommand
- * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
+ * @see oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson
  */
 public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
     // template of error message

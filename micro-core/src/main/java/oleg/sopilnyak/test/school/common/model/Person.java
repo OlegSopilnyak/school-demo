@@ -1,5 +1,9 @@
 package oleg.sopilnyak.test.school.common.model;
 
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+
 /**
  * Model: Type for any person in the school.<BR/>Base type of student and authority.
  *

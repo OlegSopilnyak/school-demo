@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.message.payload;
 
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 
 import java.security.NoSuchAlgorithmException;
 import org.springframework.util.ObjectUtils;

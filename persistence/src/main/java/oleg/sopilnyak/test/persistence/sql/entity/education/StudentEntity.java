@@ -5,8 +5,8 @@ import static java.util.Objects.isNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
-import oleg.sopilnyak.test.school.common.model.Course;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

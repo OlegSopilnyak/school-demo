@@ -4,7 +4,7 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFac
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyIsNotEmptyException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
-import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.core.cache.SchoolCommandCache;

@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
@@ -11,7 +12,7 @@ import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
  *
  * @param <T> the type of command execution (do) result
  * @see AuthorityPersonCommand
- * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
+ * @see AuthorityPerson
  */
 public interface MacroDeleteAuthorityPerson<T> extends AuthorityPersonCommand<T> {
     /**

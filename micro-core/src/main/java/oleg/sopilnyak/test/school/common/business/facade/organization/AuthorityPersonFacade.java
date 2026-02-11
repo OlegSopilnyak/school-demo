@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.school.common.business.facade.organization;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.school.common.model.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 
 import java.util.List;
 

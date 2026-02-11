@@ -207,7 +207,7 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>AuthorityPerson.getFullName.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.model.AuthorityPerson</startClass>
+                            <startClass>oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson</startClass>
                             <startMethod>getFullName</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -222,7 +222,7 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>Student.getFullName.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.model.Student</startClass>
+                            <startClass>oleg.sopilnyak.test.school.common.model.education.Student</startClass>
                             <startMethod>getFullName</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>

@@ -4,13 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import oleg.sopilnyak.test.school.common.model.Person;
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 
 /**
  * DataTransportObject: parent class for Student/AuthorityPerson model type
  *
  * @see Person
- * @see oleg.sopilnyak.test.school.common.model.Student
- * @see oleg.sopilnyak.test.school.common.model.AuthorityPerson
+ * @see Student
+ * @see AuthorityPerson
  */
 @Data
 @SuperBuilder

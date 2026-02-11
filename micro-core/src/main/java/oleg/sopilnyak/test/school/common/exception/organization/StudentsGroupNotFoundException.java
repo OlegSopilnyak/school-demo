@@ -1,12 +1,13 @@
 package oleg.sopilnyak.test.school.common.exception.organization;
 
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 
 /**
  * Exception: throws when you want to delete or update students group which is not created before
  *
  * @see EntityNotFoundException
- * @see oleg.sopilnyak.test.school.common.model.StudentsGroup
+ * @see StudentsGroup
  */
 public class StudentsGroupNotFoundException extends EntityNotFoundException {
     /**

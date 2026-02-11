@@ -17,7 +17,7 @@ import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacad
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
-import oleg.sopilnyak.test.school.common.model.Student;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -52,7 +52,6 @@ public class StudentsRestController {
             log.debug("Getting student for id: {}", id);
 
             return resultToDto(studentId, facade.doActionAndResult(StudentsFacade.FIND_BY_ID ,id));
-//                    .findById(id));
         } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {
@@ -69,7 +68,6 @@ public class StudentsRestController {
             log.debug("Getting students for course Id: {}", id);
 
             final Set<Student> students = facade.doActionAndResult(StudentsFacade.FIND_ENROLLED, id);
-//            return resultToDto(facade.findEnrolledTo(id));
             return resultToDto(students);
         } catch (NumberFormatException _) {
             throw new CourseNotFoundException("Wrong course id: '" + courseId + "'");
@@ -83,7 +81,6 @@ public class StudentsRestController {
         log.debug("Trying to get not enrolled students");
         try {
             final Set<Student> students = facade.doActionAndResult(StudentsFacade.FIND_NOT_ENROLLED);
-//            return resultToDto(facade.findNotEnrolled());
             return resultToDto(students);
         } catch (Exception _) {
             throw new CannotProcessActionException("Cannot get not enrolled students");
@@ -96,7 +93,6 @@ public class StudentsRestController {
         log.debug("Trying to create the student {}", studentDto);
         try {
             final Optional<Student> student = facade.doActionAndResult(StudentsFacade.CREATE_MACRO, studentDto);
-//            return resultToDto(facade.create(studentDto));
             return resultToDto(student);
         } catch (Exception _) {
             throw new CannotProcessActionException("Cannot create the student: " + studentDto.toString());
@@ -112,7 +108,6 @@ public class StudentsRestController {
                 throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + id + "'");
             }
             final Optional<Student> student = facade.doActionAndResult(StudentsFacade.CREATE_OR_UPDATE, studentDto);
-//            return resultToDto(facade.createOrUpdate(studentDto));
             return resultToDto(student);
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot update student " + studentDto, e);
@@ -127,7 +122,6 @@ public class StudentsRestController {
             log.debug("Deleting student for id: {}", id);
 
             facade.doActionAndResult(StudentsFacade.DELETE_MACRO, id);
-//            facade.delete(id);
         } catch (NumberFormatException | StudentNotFoundException _) {
             throw new StudentNotFoundException(WRONG_STUDENT_ID_EXCEPTION + studentId + "'");
         } catch (Exception e) {

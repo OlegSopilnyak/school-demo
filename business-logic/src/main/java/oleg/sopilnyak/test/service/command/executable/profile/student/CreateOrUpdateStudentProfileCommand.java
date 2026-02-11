@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile.student;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
-import oleg.sopilnyak.test.school.common.model.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.CreateOrUpdateProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.StudentProfileCommand;

@@ -1,9 +1,11 @@
 package oleg.sopilnyak.test.school.common.model.authentication;
 
+import oleg.sopilnyak.test.school.common.model.BaseType;
+
 /**
  * Model: Type for school's services access token
  */
-public interface AccessCredentials {
+public interface AccessCredentials extends BaseType {
     /**
      * To get access to current valid token
      *

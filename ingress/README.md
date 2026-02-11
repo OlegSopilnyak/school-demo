@@ -49,13 +49,13 @@ for further processing<br> delegating them to **<ins>business-logic layer</ins>*
   no return, input parameter `String courseId`
 #### RegisterCourseController
 * **PUT** **_/school/register/{studentId}/to/{courseId}_** - to register the Student to the Course<BR>
-  - see `oleg.sopilnyak.test.school.common.model.Student student`<BR>
-  - see `oleg.sopilnyak.test.school.common.model.Course course`<BR>
+  - see `oleg.sopilnyak.test.school.common.model.education.Student student`<BR>
+  - see `oleg.sopilnyak.test.school.common.model.education.Course course`<BR>
     calls the`CoursesFacade#register(student, course)`<BR>
   no return, parameters `String studentId`, `String courseId`
 * **DELETE** **_/school/register/{studentId}/to/{courseId}_** - to un-register the Student from the Course<BR>
-    - see `oleg.sopilnyak.test.school.common.model.Student student`<BR>
-    - see `oleg.sopilnyak.test.school.common.model.Course course`<BR>
+    - see `oleg.sopilnyak.test.school.common.model.education.Student student`<BR>
+    - see `oleg.sopilnyak.test.school.common.model.education.Course course`<BR>
       calls the`CoursesFacade#unRegister(student, course)`<BR>
   no return, parameters `String studentId`, `String courseId`
 * ### organization

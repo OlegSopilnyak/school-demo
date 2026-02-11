@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.executable.profile.principal;
 
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
-import oleg.sopilnyak.test.school.common.model.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.profile.FindProfileCommand;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;

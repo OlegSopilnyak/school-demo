@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.command.type.organization;
 
-import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -13,7 +13,7 @@ import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
  * Type for school-organization faculties management command
  *
  * @see OrganizationCommand
- * @see oleg.sopilnyak.test.school.common.model.Faculty
+ * @see oleg.sopilnyak.test.school.common.model.organization.Faculty
  */
 public interface FacultyCommand<T> extends OrganizationCommand<T> {
     // template of error message

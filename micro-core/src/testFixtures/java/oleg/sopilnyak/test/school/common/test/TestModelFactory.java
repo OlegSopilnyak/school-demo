@@ -3,10 +3,19 @@ package oleg.sopilnyak.test.school.common.test;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import oleg.sopilnyak.test.school.common.model.*;
-import oleg.sopilnyak.test.school.common.model.PersonProfile;
+
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -540,16 +549,16 @@ public class TestModelFactory {
         }
     }
 
-    @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakeStudentsProfile extends FakePersonProfile implements StudentProfile {
     }
 
-    @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
+        @Setter
+        @Getter
         private String login;
 
         /**

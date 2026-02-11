@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.faculty;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
-import oleg.sopilnyak.test.school.common.model.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.persistence.organization.FacultyPersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.utility.PersistenceFacadeUtilities;
 import oleg.sopilnyak.test.service.command.executable.core.cache.SchoolCommandCache;

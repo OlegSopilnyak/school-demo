@@ -1,4 +1,6 @@
-package oleg.sopilnyak.test.school.common.model;
+package oleg.sopilnyak.test.school.common.model.person.profile;
+
+import oleg.sopilnyak.test.school.common.model.BaseType;
 
 import java.util.Optional;
 
