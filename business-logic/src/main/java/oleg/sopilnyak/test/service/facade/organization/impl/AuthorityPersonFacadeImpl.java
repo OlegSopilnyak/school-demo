@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.facade.organization.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.organization.base.OrganizationFacade;
-import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;

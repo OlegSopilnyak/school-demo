@@ -185,7 +185,7 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>SchoolAccess.makeSignatureFor.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.school.common.model.SchoolAccess</startClass>
+                            <startClass>oleg.sopilnyak.test.school.common.model.authentication.SchoolAccess</startClass>
                             <startMethod>makeSignatureFor</startMethod>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>

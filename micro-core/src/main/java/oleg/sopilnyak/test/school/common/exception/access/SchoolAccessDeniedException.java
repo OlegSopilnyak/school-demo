@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.school.common.exception.accsess;
+package oleg.sopilnyak.test.school.common.exception.access;
 
 /**
  * Exception: throws when you want to do not allowed activity

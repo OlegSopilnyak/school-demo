@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.endpoint.rest.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import oleg.sopilnyak.test.school.common.exception.EntityNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.UnableProcessEntityException;
-import oleg.sopilnyak.test.school.common.exception.accsess.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.core.GeneralCannotDeleteException;
 import org.springframework.http.HttpStatus;

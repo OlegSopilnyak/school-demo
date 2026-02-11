@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.school.common.model;
+package oleg.sopilnyak.test.school.common.model.authentication;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
