@@ -37,6 +37,7 @@
 
     <modules>
         <module>micro-core</module>
+<!--        <module>authentication</module>-->
         <module>bootstrap</module>
         <module>ingress</module>
         <module>business-logic</module>

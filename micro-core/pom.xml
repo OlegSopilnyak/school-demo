@@ -40,6 +40,13 @@
             <artifactId>mysql</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-servlet-api</artifactId>
+            <version>[0,)</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- PlantUML Generation artifacts -->
         <dependency>
             <groupId>de.elnarion.util</groupId>

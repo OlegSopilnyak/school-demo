@@ -3,6 +3,12 @@
 @startuml
 !pragma layout smetana
 
+interface AccessCredentials {
+	{method}  {abstract} +getRefreshToken () : String
+	{method}  {abstract} +getToken () : String
+}
+
+
 interface AuthorityPerson {
 	{method}  {abstract} +getFaculties () : List
 	{method} +getFullName () : String
