@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.authentication;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
+import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
@@ -10,6 +11,10 @@ import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
     // principal person profile persistence facade
     private final ProfilePersistenceFacade profilePersistenceFacade;
+    private final JwtService jwtService;
     /**
      * To sign in person to the application
      *
@@ -40,7 +46,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             throw new SchoolAccessDeniedException("Wrong password for username: " + username);
         }
         log.debug("Password for person with username '{}' is correct", username);
-        return AccessCredentialsEntity.builder().id(null).token("token").refreshToken("refreshToken").build();
+        final UserDetails signingUser = new User(username,null, Set.of());
+        final String validToken = jwtService.generateToken(signingUser);
+        final String refreshToken = UUID.randomUUID().toString();
+        return AccessCredentialsEntity.builder().id(null).token(validToken).refreshToken(refreshToken).build();
     }
 
     /**
