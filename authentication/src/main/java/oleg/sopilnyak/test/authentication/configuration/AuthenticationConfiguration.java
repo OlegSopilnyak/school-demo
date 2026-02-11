@@ -2,11 +2,14 @@ package oleg.sopilnyak.test.authentication.configuration;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
+import oleg.sopilnyak.test.authentication.AuthenticationFacadeImpl;
 import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
+import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
@@ -21,11 +24,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class AuthenticationConfiguration {
-
+    private final ProfilePersistenceFacade profilePersistenceFacade;
     @Bean
     public JwtService jwtService() {
         return new JwtServiceImpl();
@@ -59,8 +64,7 @@ public class AuthenticationConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService().userDetailsService());
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService().userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -68,5 +72,10 @@ public class AuthenticationConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public AuthenticationFacade  authenticationFacade() {
+        return new AuthenticationFacadeImpl(profilePersistenceFacade);
     }
 }

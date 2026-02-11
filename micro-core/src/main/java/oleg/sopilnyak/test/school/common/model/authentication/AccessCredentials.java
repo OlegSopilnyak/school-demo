@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.school.common.model.authentication;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 
 /**
- * Model: Type for school's services access token
+ * Model: Type for school's services access tokens
  */
 public interface AccessCredentials extends BaseType {
     /**
