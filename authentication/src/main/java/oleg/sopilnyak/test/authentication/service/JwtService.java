@@ -4,6 +4,8 @@ import java.util.Map;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
+    String ISSUER = "Basic School Application";
+
     String extractUserName(String token);
 
 
@@ -17,6 +19,15 @@ public interface JwtService {
     default String generateToken(UserDetails userDetails) {
         return generateToken(Map.of(), userDetails);
     }
+
+    /**
+     * To generate refresh JWT for user-details
+     *
+     * @param userDetails user-details of the token
+     * @return generated token based on user-details
+     * @see UserDetails
+     */
+    String generateRefreshToken(UserDetails userDetails);
 
     /**
      * To generate JWT for user-details and claims

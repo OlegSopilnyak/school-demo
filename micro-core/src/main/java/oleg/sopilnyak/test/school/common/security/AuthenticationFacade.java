@@ -25,23 +25,23 @@ public interface AuthenticationFacade {
      * To sign out person from the application<BR/>
      * Tokens won't be valid after
      *
-     * @param credentials valid tokens to sign out the person
+     * @param activeToken valid token to sign out the person
      * @see AuthenticationFacade#signIn(String, String)
-     * @see AccessCredentials
+     * @see AccessCredentials#getToken()
      */
-    void signOut(AccessCredentials credentials);
+    void signOut(String activeToken);
 
     /**
      * To refresh active token
      *
-     * @param credentials active tokens of signed in person
+     * @param refreshToken active refresh token of signed in person
      * @return refreshed credentials
      * @throws SchoolAccessDeniedException person signed out
      * @see AuthenticationFacade#signIn(String, String)
-     * @see AuthenticationFacade#signOut(AccessCredentials)
+     * @see AuthenticationFacade#signOut(String)
      * @see AccessCredentials#getRefreshToken()
      */
-    AccessCredentials refresh(AccessCredentials credentials) throws SchoolAccessDeniedException;
+    AccessCredentials refresh(String refreshToken) throws SchoolAccessDeniedException;
 
     /**
      * To find credentials of the signed in person
