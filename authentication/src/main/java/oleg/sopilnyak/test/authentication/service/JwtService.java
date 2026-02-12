@@ -39,5 +39,13 @@ public interface JwtService {
      */
     String generateToken(Map<String, Object> claims, UserDetails userDetails);
 
+    /**
+     * To check is token expired
+     *
+     * @param token jwt to check
+     * @return true if it's expired
+     */
+    boolean isTokenExpired(String token);
+
     boolean isTokenValid(String token, UserDetails userDetails);
 }

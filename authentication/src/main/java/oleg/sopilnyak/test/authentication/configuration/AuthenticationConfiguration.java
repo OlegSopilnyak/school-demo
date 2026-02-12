@@ -40,7 +40,7 @@ public class AuthenticationConfiguration {
 
     @Bean
     public TokenStorage tokenStorage() {
-        return new TokenStorageImpl();
+        return new TokenStorageImpl(jwtService());
     }
 
     @Bean

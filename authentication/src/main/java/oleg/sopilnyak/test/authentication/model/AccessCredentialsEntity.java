@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.authentication.model;
 
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,6 @@ public class AccessCredentialsEntity implements AccessCredentials {
     private String token;
     // valid token for refreshing expired one
     private String refreshToken;
+    // user-details used for tokens generation
+    private UserDetails user;
 }

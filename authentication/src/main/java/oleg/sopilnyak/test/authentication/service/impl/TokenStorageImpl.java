@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
+import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.TokenStorage;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
@@ -7,11 +8,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Storage: Implementation of the storage of active tokens
  */
+@Slf4j
+@RequiredArgsConstructor
 public class TokenStorageImpl implements TokenStorage {
+    private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
     private final Set<String> blackList = ConcurrentHashMap.newKeySet();
     /**
@@ -23,6 +29,7 @@ public class TokenStorageImpl implements TokenStorage {
      */
     @Override
     public void storeFor(final String username, final AccessCredentials credentials) {
+        log.debug("Storing access credentials for {}", username);
         accessCredentials.put(username, credentials);
     }
 
@@ -33,6 +40,7 @@ public class TokenStorageImpl implements TokenStorage {
      */
     @Override
     public void deleteCredentials(final String username) {
+        log.debug("Deleting access credentials for {}", username);
         accessCredentials.remove(username);
     }
 
@@ -46,6 +54,7 @@ public class TokenStorageImpl implements TokenStorage {
      */
     @Override
     public Optional<AccessCredentials> findCredentials(final String username) {
+        log.debug("Finding access credentials for {}", username);
         return Optional.ofNullable(accessCredentials.get(username));
     }
 
@@ -56,6 +65,7 @@ public class TokenStorageImpl implements TokenStorage {
      */
     @Override
     public void toBlackList(final String token) {
+        log.debug("Putting to black list token: '{}'", token);
         blackList.add(token);
     }
 
@@ -67,6 +77,12 @@ public class TokenStorageImpl implements TokenStorage {
      */
     @Override
     public boolean isInBlackList(final String token) {
+        log.debug("Checking in black list token: '{}'", token);
+        if (jwtService.isTokenExpired(token)) {
+            log.debug("Detected token: '{}'", token);
+            blackList.remove(token);
+            return false;
+        }
         return blackList.contains(token);
     }
 }

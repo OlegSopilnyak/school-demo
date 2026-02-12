@@ -64,7 +64,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         final String validToken = jwtService.generateToken(signingUser);
         final String refreshToken = jwtService.generateRefreshToken(signingUser);
         final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
-                .id(null).token(validToken).refreshToken(refreshToken)
+                .id(null).user(signingUser).token(validToken).refreshToken(refreshToken)
                 .build();
         // storing built person's access-credentials
         tokenStorage.storeFor(username, signedInCredentials);
@@ -114,16 +114,16 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         log.debug("Refreshing token for person with username '{}'", username);
         final AccessCredentials signedIn = tokenStorage.findCredentials(username)
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
-        final PrincipalProfile profile = profilePersistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast)
-                .orElseThrow(() -> new ProfileNotFoundException("Profile with username: '" + username + "' isn't found"));
-        final UserDetails signingUser = new UserDetailsEntity(username,null, authorities(profile));
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {
-            entity.setToken(jwtService.generateToken(signingUser));
+            final String validToken = jwtService.generateToken(entity.getUser());
+            entity.setToken(validToken);
             tokenStorage.storeFor(username, entity);
+            log.debug("Generated and stored token of '{}'", username);
             return signedIn;
         }
-        throw new SchoolAccessDeniedException("Username '" + username + "' isn't signed in");
+        // wrong type of the AccessCredentials ¯\_(ツ)_/¯
+        throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
     }
 
     /**
