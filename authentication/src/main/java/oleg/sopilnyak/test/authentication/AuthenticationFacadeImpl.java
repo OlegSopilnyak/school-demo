@@ -1,22 +1,15 @@
 package oleg.sopilnyak.test.authentication;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.TokenStorage;
+import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
-import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
-import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
-    // principal person profile persistence facade
-    private final ProfilePersistenceFacade profilePersistenceFacade;
+    // service to find user-details for signed-in users
+    private final UserService userService;
     // JWT managing service
     private final JwtService jwtService;
     // te storage of active tokens
@@ -51,20 +44,13 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         }
         // building credentials for signing in user by username
         log.debug("Signing In person with username '{}'", username);
-        // making signing in user-details
-        final PrincipalProfile profile = profilePersistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast)
-                .orElseThrow(() -> new ProfileNotFoundException("Profile with username: '" + username + "' isn't found"));
-        if (!profile.isPassword(password)) {
-            log.error("Wrong password for username: '{}'", username);
-            throw new SchoolAccessDeniedException("Wrong password for username: " + username);
-        }
-        log.debug("Password for person with username '{}' is correct", username);
-        final UserDetails signingUser = new UserDetailsEntity(username,null, authorities(profile));
-        // prepare tokens
-        final String validToken = jwtService.generateToken(signingUser);
-        final String refreshToken = jwtService.generateRefreshToken(signingUser);
-        final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
-                .id(null).user(signingUser).token(validToken).refreshToken(refreshToken)
+        // making signing in user-details for username/password
+        final UserDetails signingUser = userService.prepareUserDetails(username, password);
+        // prepare access credentials tokens for signed-in user
+        final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder().id(null)
+                .user(signingUser)
+                .token(jwtService.generateToken(signingUser))
+                .refreshToken(jwtService.generateRefreshToken(signingUser))
                 .build();
         // storing built person's access-credentials
         tokenStorage.storeFor(username, signedInCredentials);
@@ -150,11 +136,5 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Filter authenticationFilter() {
         return null;
-    }
-
-    // private methods
-    // to get user's authorities from principal's profile
-    private Collection<? extends GrantedAuthority> authorities(final PrincipalProfile profile) {
-        return Set.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 }

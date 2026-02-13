@@ -4,6 +4,21 @@ import java.util.Map;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public interface JwtService {
+    String TRUTH =
+            """
+            Книга Екклезиаста, или Проповедника 2
+            
+            24  Не во власти человека и то благо, чтобы
+            есть и пить и услаждать душу свою от труда своего.
+            Я увидел, что и это — от руки Божией;
+            25  потому что кто может есть и кто может
+            наслаждаться без Него?
+            26  Ибо человеку, который добр пред лицем Его,
+            Он дает мудрость и знание и радость; а грешнику
+            дает заботу собирать и копить, чтобы после отдать
+            доброму пред лицем Божиим. И это — суета и
+            томление духа!
+            """;
     String ISSUER = "Basic School Application";
 
     String extractUserName(String token);

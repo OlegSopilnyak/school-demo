@@ -45,7 +45,7 @@ public class AuthenticationConfiguration {
 
     @Bean
     public UserService userService() {
-        return new UserServiceImpl();
+        return new UserServiceImpl(profilePersistenceFacade);
     }
 
     @Bean
@@ -71,7 +71,7 @@ public class AuthenticationConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService().userDetailsService());
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -83,6 +83,6 @@ public class AuthenticationConfiguration {
 
     @Bean
     public AuthenticationFacade  authenticationFacade() {
-        return new AuthenticationFacadeImpl(profilePersistenceFacade, jwtService(), tokenStorage());
+        return new AuthenticationFacadeImpl(userService(), jwtService(), tokenStorage());
     }
 }
