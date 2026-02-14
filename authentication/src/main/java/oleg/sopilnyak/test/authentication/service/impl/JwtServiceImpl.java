@@ -9,72 +9,80 @@ import oleg.sopilnyak.test.authentication.service.JwtService;
 
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 
-@Service
 public class JwtServiceImpl implements JwtService {
+    // secret key to sign and verify the token
     private SecretKey signingKey;
 
     @PostConstruct
     public void initSecurityKey() {
         final String jwtSigningKey = Base64.getEncoder().encodeToString(TRUTH.getBytes(StandardCharsets.UTF_8));
-        signingKey = getSigningKey(jwtSigningKey);
+        final byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
+        signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
+    
     @Override
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public String extractUserName(final String token) {
+        return token == null || token.isBlank() ? null : extractClaim(token, Claims::getSubject);
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(final String token, final UserDetails userDetails) {
         final String userName = extractUserName(token);
         return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     @Override
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenExpired(final String token) {
+        return extractExpiration(token).before(nowDate());
     }
 
     @Override
-    public String generateToken(Map<String, Object> claims, UserDetails userDetails) {
-        return Jwts.builder().claims(claims)
+    public String generateAccessToken(final Map<String, Object> extraClaims, final UserDetails userDetails) {
+        return Jwts.builder().claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuer(ISSUER)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .issuedAt(nowDate())
+                .expiration(nowDatePlus(24, TimeUnit.MINUTES))
                 .signWith(signingKey).compact();
     }
 
     @Override
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(final UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuer(ISSUER)
                 .signWith(signingKey).compact();
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
+    // private methods
+    private static Date nowDate() {
+        final Instant now = Instant.now();
+        return Date.from(now);
+    }
+
+    private static Date nowDatePlus(final long duration, final TimeUnit timeUnit) {
+        final Instant now = Instant.now();
+        return Date.from(now.plus(duration, timeUnit.toChronoUnit()));
+    }
+
+    private <T> T extractClaim(final String token, final Function<Claims, T> claimsResolvers) {
         final Claims claims = extractAllClaims(token);
         return claimsResolvers.apply(claims);
     }
 
-    private Date extractExpiration(String token) {
+    private Date extractExpiration(final String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token)
-                .getPayload();
-    }
-
-    private static SecretKey getSigningKey(final String jwtSigningKey) {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private Claims extractAllClaims(final String token) {
+        return Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).getPayload();
     }
 }

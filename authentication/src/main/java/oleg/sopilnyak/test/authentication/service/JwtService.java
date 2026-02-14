@@ -31,8 +31,8 @@ public interface JwtService {
      * @return generated token based on user-details
      * @see UserDetails
      */
-    default String generateToken(UserDetails userDetails) {
-        return generateToken(Map.of(), userDetails);
+    default String generateAccessToken(UserDetails userDetails) {
+        return generateAccessToken(Map.of(), userDetails);
     }
 
     /**
@@ -52,7 +52,7 @@ public interface JwtService {
      * @return generated token based on user-details and claims
      * @see UserDetails
      */
-    String generateToken(Map<String, Object> claims, UserDetails userDetails);
+    String generateAccessToken(Map<String, Object> claims, UserDetails userDetails);
 
     /**
      * To check is token expired

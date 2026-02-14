@@ -49,7 +49,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         // prepare access credentials tokens for signed-in user
         final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder().id(null)
                 .user(signingUser)
-                .token(jwtService.generateToken(signingUser))
+                .token(jwtService.generateAccessToken(signingUser))
                 .refreshToken(jwtService.generateRefreshToken(signingUser))
                 .build();
         // storing built person's access-credentials
@@ -102,7 +102,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {
-            final String validToken = jwtService.generateToken(entity.getUser());
+            final String validToken = jwtService.generateAccessToken(entity.getUser());
             entity.setToken(validToken);
             tokenStorage.storeFor(username, entity);
             log.debug("Generated and stored token of '{}'", username);

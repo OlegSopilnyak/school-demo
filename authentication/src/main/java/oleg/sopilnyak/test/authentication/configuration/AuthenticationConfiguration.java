@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.TokenStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
+import oleg.sopilnyak.test.authentication.service.impl.AuthEntryPointJwt;
 import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.authentication.service.impl.TokenStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
@@ -24,6 +25,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -49,16 +51,30 @@ public class AuthenticationConfiguration {
     }
 
     @Bean
+    public AuthenticationEntryPoint unauthorizedHandler() {
+        return new AuthEntryPointJwt();
+    }
+
+    @Bean
     public Filter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtService(), userService());
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request -> request.requestMatchers("/api/v1/auth/**")
-                        .permitAll().anyRequest().authenticated())
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+        http
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF
+                .cors(AbstractHttpConfigurer::disable) // Disable CORS (or configure if needed)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling.authenticationEntryPoint(unauthorizedHandler())
+                )
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(
+                        sessionManagement -> sessionManagement.sessionCreationPolicy(STATELESS)
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
