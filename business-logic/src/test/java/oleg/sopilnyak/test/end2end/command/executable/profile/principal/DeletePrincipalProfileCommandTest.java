@@ -232,7 +232,7 @@ class DeletePrincipalProfileCommandTest extends MysqlTestModelFactory {
         try {
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {
-                fakeProfile.setLogin(fakeProfile.getLogin() + "->0");
+                fakeProfile.setUsername(fakeProfile.getUsername() + "->0");
                 fakeProfile.setEmail(fakeProfile.getEmail() + ".site-0");
             }
             PrincipalProfile entity = persist(profile);

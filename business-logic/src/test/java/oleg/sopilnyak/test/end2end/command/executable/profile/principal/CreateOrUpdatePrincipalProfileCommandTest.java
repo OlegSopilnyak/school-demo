@@ -99,7 +99,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldDoCommand_CreateProfile() {
         PrincipalProfile profile = makePrincipalProfile(null);
         if (profile instanceof FakePrincipalProfile fakeProfile) {
-            fakeProfile.setLogin(fakeProfile.getLogin() + "-> 1");
+            fakeProfile.setUsername(fakeProfile.getUsername() + "-> 1");
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
         Input<PrincipalProfile> input = (Input<PrincipalProfile>) Input.of(profile);
@@ -148,7 +148,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
         Long id = 701L;
         PrincipalProfile profile = makePrincipalProfile(id);
         if (profile instanceof FakePrincipalProfile fakeProfile) {
-            fakeProfile.setLogin(fakeProfile.getLogin() + "-> 1");
+            fakeProfile.setUsername(fakeProfile.getUsername() + "-> 1");
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
         Context<Optional<PrincipalProfile>> context = command.createContext(Input.of(profile));
@@ -186,7 +186,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
     void shouldNotDoCommand_SaveCreatedExceptionThrown() {
         PrincipalProfile profile = makePrincipalProfile(null);
         if (profile instanceof FakePrincipalProfile fakeProfile) {
-            fakeProfile.setLogin(fakeProfile.getLogin() + "-> 1");
+            fakeProfile.setUsername(fakeProfile.getUsername() + "-> 1");
             fakeProfile.setEmail(fakeProfile.getEmail() + ".site1");
         }
         Input<PrincipalProfile> input = (Input<PrincipalProfile>) Input.of(profile);
@@ -372,7 +372,7 @@ class CreateOrUpdatePrincipalProfileCommandTest extends MysqlTestModelFactory {
             EntityTransaction transaction = em.getTransaction();
             PrincipalProfile profile = makePrincipalProfile(null);
             if (profile instanceof FakePrincipalProfile fakeProfile) {
-                fakeProfile.setLogin(fakeProfile.getLogin() + "->0");
+                fakeProfile.setUsername(fakeProfile.getUsername() + "->0");
                 fakeProfile.setEmail(fakeProfile.getEmail() + ".site0");
             }
             PrincipalProfileEntity entity = entityMapper.toEntity(profile);

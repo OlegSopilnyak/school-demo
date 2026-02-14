@@ -5,6 +5,8 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -34,7 +36,10 @@ public abstract class PersonProfileEntity implements PersonProfile {
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String photoUrl;
+    @NotNull
+    @Email
     private String email;
+    @NotNull
     private String phone;
     private String location;
 

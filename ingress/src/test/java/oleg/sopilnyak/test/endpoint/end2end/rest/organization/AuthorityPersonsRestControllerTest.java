@@ -546,7 +546,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     private void setPersonPermissions(AuthorityPerson person, String username, String password) {
         PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
-        profile.setLogin(username);
+        profile.setUsername(username);
         try {
             profile.setSignature(profile.makeSignatureFor(password));
             merge(profile);

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 
 import java.util.HashMap;
@@ -89,7 +90,8 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreatePrincipalProfileEntity() {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
-                .login("login")
+                .username("username")
+                .role(Role.SUPPORT_STAFF)
                 .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2"))
                 .build();
@@ -104,19 +106,22 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldGetPrincipalProfileByLogin() {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
-                .login("login").photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .username("username")
+                .role(Role.SUPPORT_STAFF)
+                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2")).build();
         repository.saveAndFlush(profile);
         assertThat(repository.findById(profile.getId())).contains(profile);
 
-        assertThat(repository.findByLogin("login")).contains(profile);
+        assertThat(repository.findByLogin("username")).contains(profile);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeletePrincipalProfileEntity() {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
-                .login("login")
+                .username("username")
+                .role(Role.SUPPORT_STAFF)
                 .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2"))
                 .build();

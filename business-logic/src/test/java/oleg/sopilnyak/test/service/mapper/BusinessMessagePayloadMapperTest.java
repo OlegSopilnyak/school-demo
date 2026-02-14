@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
@@ -137,7 +138,8 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
         Long id = 106L;
         PrincipalProfile source = FakePrincipalProfile.builder()
                 .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .build();
 
         PrincipalProfilePayload payload = mapper.toPayload(source);
@@ -152,7 +154,8 @@ class BusinessMessagePayloadMapperTest extends TestModelFactory {
         Long id = 116L;
         PrincipalProfile source = FakePrincipalProfile.builder()
                 .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .build();
 
         PrincipalProfilePayload payload = mapper.toPayload(source);

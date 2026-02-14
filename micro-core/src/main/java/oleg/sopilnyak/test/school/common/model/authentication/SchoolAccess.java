@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.school.common.model.authentication;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -10,14 +11,14 @@ import java.util.stream.IntStream;
  */
 public interface SchoolAccess {
     /**
-     * To get user-name for principal person's login
+     * To get user-name for principal person's sign in
      *
      * @return value of user-name
      */
-    String getLogin();
+    String getUsername();
 
     /**
-     * To check is it the correct password for login
+     * To check is it the correct password for sign in
      *
      * @param password password to check
      * @return true if password is correct
@@ -30,15 +31,29 @@ public interface SchoolAccess {
      * To make the signature for password
      *
      * @param password the password for signature
-     * @return signature for login+password values
-     * @throws NoSuchAlgorithmException if there is not MD5 algorithm
+     * @return signature for username+password values
+     * @throws NoSuchAlgorithmException if there is not MD5 algorithm available
      */
     default String makeSignatureFor(String password) throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("MD5");
-        final String forSign = getLogin() + " " + password;
+        final String forSign = getUsername() + " " + password;
         md.update(forSign.getBytes());
         return makeHexString(md.digest()).toUpperCase();
     }
+
+    /**
+     * To get principal person role in the school
+     *
+     * @return value of person's role
+     */
+    Role getRole();
+
+    /**
+     * To get principal person permissions in the school activities
+     *
+     * @return set of allowed permissions
+     */
+    Set<Permission> getPermissions();
 
     // private methods
     private static String makeHexString(final byte[] data) {

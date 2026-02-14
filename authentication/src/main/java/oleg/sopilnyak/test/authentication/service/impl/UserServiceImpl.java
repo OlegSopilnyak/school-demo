@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
     // private methods
     // to make user-details for the principal profile
     private UserDetails makeUserDetailsFor(final PrincipalProfile profile) throws UsernameNotFoundException {
-        String username = profile.getLogin();
+        String username = profile.getUsername();
         final Collection<? extends GrantedAuthority> authorities = authorities(profile);
         if (authorities.isEmpty()) {
             log.error("User with username '{}' has no any authority!", username);
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
     // to get user's authorities from principal's profile
     private Collection<? extends GrantedAuthority> authorities(final PrincipalProfile profile) {
-        log.debug("Loading authorities for user '{}'...", profile.getLogin());
+        log.debug("Loading authorities for user '{}'...", profile.getUsername());
         return Set.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 }

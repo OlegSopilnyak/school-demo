@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
@@ -272,7 +274,8 @@ public class TestModelFactory {
                 .phone("phone")
                 .location("location")
                 .photoUrl("photo-url")
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .build();
     }
 
@@ -308,7 +311,7 @@ public class TestModelFactory {
 
     protected void assertProfilesEquals(PrincipalProfile actual, PrincipalProfile expected, boolean checkId) {
         assertPersonProfilesEquals(actual, expected, checkId);
-        assertThat(actual.getLogin()).isEqualTo(expected.getLogin());
+        assertThat(actual.getUsername()).isEqualTo(expected.getUsername());
         assertThat(actual.isPassword("")).isEqualTo(expected.isPassword(""));
     }
 
@@ -559,7 +562,13 @@ public class TestModelFactory {
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
-        private String login;
+        // user-name for principal person's sign in
+        private String username;
+        // principal person role in the school
+        private Role role;
+        // principal person permissions in the school activities
+        @Builder.Default
+        private Set<Permission> permissions = new HashSet<>();
 
         /**
          * To check is it the correct password for login

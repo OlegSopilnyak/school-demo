@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.StudentsGroupEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.StudentProfileEntity;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
@@ -102,7 +103,8 @@ class EntityMapperTest extends TestModelFactory {
         Long id = 106L;
         PrincipalProfile profile = FakePrincipalProfile.builder()
                 .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .build();
 
         PrincipalProfileEntity entity = mapper.toEntity(profile);

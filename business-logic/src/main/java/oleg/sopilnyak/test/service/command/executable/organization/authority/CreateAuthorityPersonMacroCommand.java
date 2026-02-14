@@ -182,7 +182,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
         final String emailPrefix = person.getFirstName().trim().toLowerCase() + "." + person.getLastName().trim().toLowerCase();
         final PrincipalProfilePayload payload = PrincipalProfilePayload.builder().id(null)
                 .phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
-                .login(emailPrefix)
+                .username(emailPrefix)
                 .build();
         try {
             payload.setSignature(payload.makeSignatureFor(""));

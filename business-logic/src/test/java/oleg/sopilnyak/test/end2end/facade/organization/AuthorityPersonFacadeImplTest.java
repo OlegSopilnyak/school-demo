@@ -443,7 +443,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
     private void setPersonPermissions(AuthorityPersonPayload person, String username, String password) {
         PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
-        profile.setLogin(username);
+        profile.setUsername(username);
         try {
             profile.setSignature(profile.makeSignatureFor(password));
             merge(profile);

@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
@@ -79,7 +80,8 @@ class EndpointMapperTest extends TestModelFactory {
         Long id = 106L;
         PrincipalProfile profile = FakePrincipalProfile.builder()
                 .id(id).email("email@email").phone("phone").location("location").photoUrl("photo-url")
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .build();
 
         PrincipalProfileDto dto = mapper.toDto(profile);

@@ -19,7 +19,7 @@ public interface PersonProfileRepository<T extends PersonProfileEntity> extends 
      * @see Optional#empty()
      */
     @Query("""
-            select profile from PrincipalProfileEntity profile where profile.login=:login
+            select profile from PrincipalProfileEntity profile where profile.username=:login
             """)
     Optional<T> findByLogin(@Param("login") String login);
 }

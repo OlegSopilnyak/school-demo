@@ -10,6 +10,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.profile.PersonProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.repository.PersonProfileRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -83,7 +84,10 @@ class PersistenceFacadeImplTest extends MysqlTestModelFactory {
         assertThat(facade.updateAccess(personId, "username", "password")).isTrue();
 
         PrincipalProfileEntity updated = facade.findPrincipalProfileById(profileId).map(PrincipalProfileEntity.class::cast).orElseThrow();
-        String signature = PrincipalProfileEntity.builder().login("username").build().makeSignatureFor("password");
+        String signature = PrincipalProfileEntity.builder()
+                .username("username")
+                .role(Role.SUPPORT_STAFF)
+                .build().makeSignatureFor("password");
         assertThat(updated.getSignature()).isEqualTo(signature);
         verify(authorityPersonRepository).findById(personId);
         verify(personProfileRepository, times(2)).findById(profileId);

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
@@ -798,7 +799,8 @@ class InputParameterTest {
                 .email("email-" + id)
                 .phone("phone-" + id)
                 .location("location-" + id)
-                .login("login-" + id)
+                .username("login-" + id)
+                .role(Role.SUPPORT_STAFF)
                 .signature("signature-" + id)
                 .build();
     }

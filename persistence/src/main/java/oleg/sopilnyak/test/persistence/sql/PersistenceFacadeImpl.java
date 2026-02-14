@@ -207,14 +207,14 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
 
         log.debug("Updating authority person profile...");
         try {
-            profile.setLogin(username);
+            profile.setUsername(username);
             profile.setSignature(profile.makeSignatureFor(password));
         } catch (NoSuchAlgorithmException e) {
             log.error("Cannot make signature", e);
             return false;
         }
 
-        return username.equals(personProfileRepository.saveAndFlush(profile).getLogin());
+        return username.equals(personProfileRepository.saveAndFlush(profile).getUsername());
     }
 
     // private methods

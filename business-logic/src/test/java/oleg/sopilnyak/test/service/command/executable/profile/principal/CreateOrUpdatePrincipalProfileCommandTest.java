@@ -73,12 +73,12 @@ class CreateOrUpdatePrincipalProfileCommandTest {
         String login = "login";
         String password = "password";
         PrincipalProfilePayload secure = new PrincipalProfilePayload();
-        secure.setLogin(login);
+        secure.setUsername(login);
         String signature = secure.makeSignatureFor(password);
         assertThat(signature).isNotEmpty();
         assertThat(secure.isPassword(password)).isFalse();
         PrincipalProfilePayload profilePayload =
-                PrincipalProfilePayload.builder().login(login).signature(signature).build();
+                PrincipalProfilePayload.builder().username(login).signature(signature).build();
         assertThat(profilePayload.isPassword(password)).isTrue();
         assertThat(profilePayload.isPassword("")).isFalse();
     }
