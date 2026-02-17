@@ -118,7 +118,7 @@ public class DeleteCourseCommand extends SchoolCommandCache<Course, Boolean> imp
      * @param context context of redo execution
      * @see Context
      * @see Context#getUndoParameter()
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)

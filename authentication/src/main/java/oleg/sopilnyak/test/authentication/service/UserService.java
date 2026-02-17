@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.authentication.service;
 
-import org.springframework.security.core.userdetails.UserDetails;
+import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
@@ -13,6 +14,7 @@ public interface UserService extends UserDetailsService {
      * @param username the value
      * @param password the value
      * @return user-details instance
+     * @see UserDetailsEntity
      */
-    UserDetails prepareUserDetails(String username, String password);
+    UserDetailsEntity prepareUserDetails(String username, String password);
 }

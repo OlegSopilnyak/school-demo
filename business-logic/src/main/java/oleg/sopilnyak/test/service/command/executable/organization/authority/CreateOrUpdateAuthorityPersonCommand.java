@@ -129,7 +129,7 @@ public class CreateOrUpdateAuthorityPersonCommand extends SchoolCommandCache<Aut
      * @see Context
      * @see Context.State#UNDONE
      * @see Context#getUndoParameter()
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      * @see AuthorityPersonPersistenceFacade#save(AuthorityPerson)
      * @see AuthorityPersonPersistenceFacade#deleteAuthorityPerson(Long)
      * @see AuthorityPersonNotFoundException

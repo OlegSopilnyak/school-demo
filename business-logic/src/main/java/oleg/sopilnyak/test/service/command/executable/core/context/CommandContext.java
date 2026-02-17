@@ -158,9 +158,9 @@ public class CommandContext<T> implements Context<T> {
      * @param exception cause of failure
      * @return failed context instance
      * @see Exception
-     * @see this#setState(State)
+     * @see Context#setState(State)
      * @see Context.State#FAIL
-     * @see this#setException(Exception)
+     * @see CommandContext#setException(Exception)
      */
     @Override
     public Context<T> failed(Exception exception) {

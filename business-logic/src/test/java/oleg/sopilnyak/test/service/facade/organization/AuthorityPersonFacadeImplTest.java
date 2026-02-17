@@ -572,7 +572,8 @@ class AuthorityPersonFacadeImplTest {
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
                 deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
-        loginPersonCommand = spy(new LoginAuthorityPersonCommand(authenticationFacade, persistenceFacade, payloadMapper));
+//        loginPersonCommand = spy(new LoginAuthorityPersonCommand(authenticationFacade, persistenceFacade, payloadMapper));
+        loginPersonCommand = spy(new LoginAuthorityPersonCommand(authenticationFacade, payloadMapper));
         ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deleteProfileCommand, "applicationContext", applicationContext);
 

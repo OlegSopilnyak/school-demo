@@ -48,7 +48,7 @@ public interface MessagesProcessor {
      * To check is there any active messages to process
      *
      * @return true if processor is waiting for the message
-     * @see this#accept(CommandMessage)
+     * @see MessagesProcessor#accept(CommandMessage)
      */
     boolean isEmpty();
 
@@ -79,8 +79,8 @@ public interface MessagesProcessor {
      * To activate the processor
      * Change the processor-active state to true
      *
-     * @see this#isProcessorActive()
-     * @see this#setProcessorActive(boolean)
+     * @see MessagesProcessor#isProcessorActive()
+     * @see MessagesProcessor#setProcessorActive(boolean)
      */
     default void activateProcessor() {
         setProcessorActive(true);
@@ -90,8 +90,8 @@ public interface MessagesProcessor {
      * To deactivate the processor
      * Change the processor-active state to false
      *
-     * @see this#isProcessorActive()
-     * @see this#setProcessorActive(boolean)
+     * @see MessagesProcessor#isProcessorActive()
+     * @see MessagesProcessor#setProcessorActive(boolean)
      */
     default void deActivateProcessor() {
         setProcessorActive(false);

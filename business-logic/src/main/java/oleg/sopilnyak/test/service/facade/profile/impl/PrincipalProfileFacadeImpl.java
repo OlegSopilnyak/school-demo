@@ -38,7 +38,7 @@ public class PrincipalProfileFacadeImpl extends PersonProfileFacadeImpl<Principa
      * To prepare the operator to convert entity to payload
      *
      * @param mapper layer's data mapper
-     * @see this#toPayload()
+     * @see PersonProfileFacadeImpl#toPayload()
      * @see BusinessMessagePayloadMapper
      */
     @Override

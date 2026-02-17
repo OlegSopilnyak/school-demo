@@ -48,7 +48,7 @@ public abstract class FindProfileCommand<E extends PersonProfile> extends BasicC
      * @see Context
      * @see Context#getRedoParameter()
      * @see Context.State#WORK
-     * @see this#functionFindById()
+     * @see FindProfileCommand#functionFindById()
      */
     @Override
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)

@@ -10,7 +10,7 @@ import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.authentication.service.impl.TokenStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
-import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
@@ -35,7 +35,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SchoolAuthenticationConfiguration {
     private static final String AUTHENTICATION = "/authentication";
-    private final ProfilePersistenceFacade profilePersistenceFacade;
+    private final PersistenceFacade profilePersistenceFacade;
+
     @Bean
     public JwtService jwtService() {
         return new JwtServiceImpl();
@@ -67,7 +68,7 @@ public class SchoolAuthenticationConfiguration {
                         )
                 )
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(AUTHENTICATION + "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(
@@ -96,7 +97,7 @@ public class SchoolAuthenticationConfiguration {
     }
 
     @Bean
-    public AuthenticationFacade  authenticationFacade() {
+    public AuthenticationFacade authenticationFacade() {
         return new AuthenticationFacadeImpl(userService(), jwtService(), tokenStorage());
     }
 }

@@ -5,6 +5,7 @@ import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.model.education.Course;
@@ -14,6 +15,7 @@ import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BaseProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
@@ -165,6 +167,15 @@ public interface BusinessMessagePayloadMapper {
     @Mapping(source = "profile", target = "signature", qualifiedByName = "toSignature")
     @Mapping(target = "original", expression = "java(profile)")
     PrincipalProfilePayload toPayload(PrincipalProfile profile);
+
+    /**
+     * Convert model-type to Payload
+     *
+     * @param credentials instance to convert
+     * @return Payload instance
+     */
+    @Mapping(target = "original", expression = "java(credentials)")
+    AccessCredentialsPayload toPayload(AccessCredentials credentials);
 
     @Named("toProfileExtras")
     default BaseProfilePayload.Extra[] toProfileExtras(PersonProfile profile) {

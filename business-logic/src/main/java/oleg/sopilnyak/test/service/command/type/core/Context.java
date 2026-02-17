@@ -54,7 +54,7 @@ public interface Context<T> extends Serializable {
      *
      * @param state context's state to check
      * @return true if context in the state
-     * @see this#getState()
+     * @see Context#getState()
      */
     default boolean stateIs(final State state) {
         return state == getState();
@@ -64,7 +64,7 @@ public interface Context<T> extends Serializable {
      * To check is context is done
      *
      * @return true if done
-     * @see this#getState()
+     * @see Context#getState()
      * @see Context.State#DONE
      */
     @JsonIgnore
@@ -76,7 +76,7 @@ public interface Context<T> extends Serializable {
      * To check is context is undone
      *
      * @return true if done
-     * @see this#getState()
+     * @see Context#getState()
      * @see Context.State#UNDONE
      */
     @JsonIgnore
@@ -88,7 +88,7 @@ public interface Context<T> extends Serializable {
      * To check is context is ready to do
      *
      * @return true if done
-     * @see this#getState()
+     * @see Context#getState()
      * @see Context.State#READY
      */
     @JsonIgnore
@@ -100,7 +100,7 @@ public interface Context<T> extends Serializable {
      * To check is context is failed after do or undo
      *
      * @return true if done
-     * @see this#getState()
+     * @see Context#getState()
      * @see Context.State#FAIL
      */
     @JsonIgnore
@@ -112,7 +112,7 @@ public interface Context<T> extends Serializable {
      * To check is context is before command-do state
      *
      * @return true if done
-     * @see this#getState()
+     * @see Context#getState()
      * @see Context.State#WORK
      */
     @JsonIgnore

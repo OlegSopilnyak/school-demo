@@ -78,8 +78,8 @@ public abstract class MessagesExchange {
      *
      * @param request command-message to process
      * @see ActionContext
-     * @see this#onErrorRequestMessage(CommandMessage, Throwable)
-     * @see this#onTakenRequestMessage(CommandMessage)
+     * @see MessagesExchange#onErrorRequestMessage(CommandMessage, Throwable)
+     * @see MessagesExchange#onTakenRequestMessage(CommandMessage)
      */
     protected void executeWithActionContext(CommandMessage<?> request) {
         // checking up request's action-context
@@ -114,9 +114,9 @@ public abstract class MessagesExchange {
      * and send the response to the responses messages-processor
      *
      * @param message command-message to be processed
-     * @see this#executeWithActionContext(CommandMessage)
-     * @see this#localExecutionResult(CommandMessage)
-     * @see this#passProcessedMessageOut(CommandMessage, String)
+     * @see MessagesExchange#executeWithActionContext(CommandMessage)
+     * @see MessagesExchange#localExecutionResult(CommandMessage)
+     * @see MessagesExchange#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
     protected <T> void onTakenRequestMessage(final CommandMessage<T> message) {
@@ -142,8 +142,8 @@ public abstract class MessagesExchange {
      *
      * @param message request command-message
      * @param error   cause of command-message processing error
-     * @see this#executeWithActionContext(CommandMessage)
-     * @see this#passProcessedMessageOut(CommandMessage, String)
+     * @see MessagesExchange#executeWithActionContext(CommandMessage)
+     * @see MessagesExchange#passProcessedMessageOut(CommandMessage, String)
      * @see MessagesProcessor#accept(CommandMessage)
      */
     protected <T> void onErrorRequestMessage(final CommandMessage<T> message, final Throwable error) {

@@ -125,7 +125,7 @@ public class DeleteAuthorityPersonCommand extends SchoolCommandCache<AuthorityPe
      * @see Context
      * @see Context#getUndoParameter()
      * @see Context.State#UNDONE
-     * @see this#rollbackCachedEntity(Context, Function)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function)
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)

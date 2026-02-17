@@ -86,7 +86,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
      * @see Function#apply(Object)
      * @see LongFunction#apply(long)
      * @see Supplier#get()
-     * @see this#rollbackCachedEntity(Context, Function, LongConsumer)
+     * @see SchoolCommandCache#rollbackCachedEntity(Context, Function, LongConsumer)
      */
     protected Optional<T> rollbackCachedEntity(final Context<?> context, final Function<T, Optional<T>> facadeSave) {
         return rollbackCachedEntity(context, facadeSave, null);

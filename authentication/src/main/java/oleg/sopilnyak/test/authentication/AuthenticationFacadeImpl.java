@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.authentication;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
+import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.TokenStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
@@ -9,7 +10,6 @@ import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import java.util.Optional;
-import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,9 +45,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         // building credentials for signing in user by username
         log.debug("Signing In person with username '{}'", username);
         // making signing in user-details for username/password
-        final UserDetails signingUser = userService.prepareUserDetails(username, password);
+        final UserDetailsEntity signingUser = userService.prepareUserDetails(username, password);
         // prepare access credentials tokens for signed-in user
-        final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder().id(null)
+        final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
                 .user(signingUser)
                 .token(jwtService.generateAccessToken(signingUser))
                 .refreshToken(jwtService.generateRefreshToken(signingUser))
