@@ -3,9 +3,6 @@ package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -118,164 +115,164 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
-
-    @Test
-    void shouldLogoutAuthorityPerson() throws Exception {
-        String headerName = "Authorization";
-        String token = "logged_in_person_token";
-        String bearer = "Bearer " + token;
-        String requestPath = ROOT + "/logout";
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .header(headerName, bearer)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn();
-
-        verify(controller).logout(bearer);
-        verify(facade).doActionAndResult(LOGOUT, token);
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLogoutAuthorityPerson_WrongHeaderValue() throws Exception {
-        String headerName = "Authorization";
-        String token = "logged_in_person_token";
-        String bearer = "bearer " + token;
-        String requestPath = ROOT + "/logout";
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .header(headerName, bearer)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn();
-
-        verify(controller).logout(bearer);
-        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLogoutAuthorityPerson_WrongHeaderName() throws Exception {
-        String headerName = "AuthoriSation";
-        String token = "logged_in_person_token";
-        String bearer = "Bearer " + token;
-        String requestPath = ROOT + "/logout";
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .header(headerName, bearer)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isBadRequest())
-                .andDo(print())
-                .andReturn();
-
-        verify(controller, never()).logout(anyString());
-        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
-    }
-
-    @Test
-    void shouldLoginAuthorityPerson() throws Exception {
-        String username = "test-username";
-        String password = "test-password";
-        AuthorityPerson person = create(makeCleanAuthorityPerson(212));
-        setPersonPermissions(person, username, password);
-        assertThat(database.updateAccess(person, username, password)).isTrue();
-        if (person instanceof AuthorityPersonEntity entity) {
-            entity.setFaculties(List.of());
-            merge(entity);
-        }
-        String requestPath = ROOT + "/login";
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
-                                        .param("username", username)
-                                        .param("password", password)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isOk())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).login(username, password);
-        String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
-        assertAuthorityPersonEquals(person, personDto, false);
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLoginAuthorityPerson_WrongLoginUsername() throws Exception {
-        String username = "test-username";
-        String password = "test-password";
-        AuthorityPerson person = create(makeCleanAuthorityPerson(213));
-        setPersonPermissions(person, username, password);
-        if (person instanceof AuthorityPersonEntity entity) {
-            entity.setFaculties(List.of());
-            merge(entity);
-        }
-        String requestPath = ROOT + "/login";
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
-                                        .param("username", "username")
-                                        .param("password", password)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).login("username", password);
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'username', is not found");
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
-        String username = "test-username";
-        String password = "test-password";
-        String wrongPassword = "wrong-password";
-        AuthorityPerson person = create(makeCleanAuthorityPerson(214));
-        setPersonPermissions(person, username, password);
-        if (person instanceof AuthorityPersonEntity entity) {
-            entity.setFaculties(List.of());
-            merge(entity);
-        }
-        String requestPath = ROOT + "/login";
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
-                                        .param("username", username)
-                                        .param("password", wrongPassword)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isForbidden())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).login(username, wrongPassword);
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(403);
-        assertThat(error.getErrorMessage()).isEqualTo("Login authority person command failed for username:" + username);
-        checkControllerAspect();
-    }
+//
+//    @Test
+//    void shouldLogoutAuthorityPerson() throws Exception {
+//        String headerName = "Authorization";
+//        String token = "logged_in_person_token";
+//        String bearer = "Bearer " + token;
+//        String requestPath = ROOT + "/logout";
+//
+//        mockMvc.perform(
+//                        MockMvcRequestBuilders.delete(requestPath)
+//                                .header(headerName, bearer)
+//                                .contentType(APPLICATION_JSON)
+//                )
+//                .andExpect(status().isOk())
+//                .andDo(print())
+//                .andReturn();
+//
+//        verify(controller).logout(bearer);
+//        verify(facade).doActionAndResult(LOGOUT, token);
+//        checkControllerAspect();
+//    }
+//
+//    @Test
+//    void shouldNotLogoutAuthorityPerson_WrongHeaderValue() throws Exception {
+//        String headerName = "Authorization";
+//        String token = "logged_in_person_token";
+//        String bearer = "bearer " + token;
+//        String requestPath = ROOT + "/logout";
+//
+//        mockMvc.perform(
+//                        MockMvcRequestBuilders.delete(requestPath)
+//                                .header(headerName, bearer)
+//                                .contentType(APPLICATION_JSON)
+//                )
+//                .andExpect(status().isOk())
+//                .andDo(print())
+//                .andReturn();
+//
+//        verify(controller).logout(bearer);
+//        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
+//        checkControllerAspect();
+//    }
+//
+//    @Test
+//    void shouldNotLogoutAuthorityPerson_WrongHeaderName() throws Exception {
+//        String headerName = "AuthoriSation";
+//        String token = "logged_in_person_token";
+//        String bearer = "Bearer " + token;
+//        String requestPath = ROOT + "/logout";
+//
+//        mockMvc.perform(
+//                        MockMvcRequestBuilders.delete(requestPath)
+//                                .header(headerName, bearer)
+//                                .contentType(APPLICATION_JSON)
+//                )
+//                .andExpect(status().isBadRequest())
+//                .andDo(print())
+//                .andReturn();
+//
+//        verify(controller, never()).logout(anyString());
+//        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
+//    }
+//
+//    @Test
+//    void shouldLoginAuthorityPerson() throws Exception {
+//        String username = "test-username";
+//        String password = "test-password";
+//        AuthorityPerson person = create(makeCleanAuthorityPerson(212));
+//        setPersonPermissions(person, username, password);
+//        assertThat(database.updateAccess(person, username, password)).isTrue();
+//        if (person instanceof AuthorityPersonEntity entity) {
+//            entity.setFaculties(List.of());
+//            merge(entity);
+//        }
+//        String requestPath = ROOT + "/login";
+//
+//        MvcResult result =
+//                mockMvc.perform(
+//                                MockMvcRequestBuilders.post(requestPath)
+//                                        .param("username", username)
+//                                        .param("password", password)
+//                                        .contentType(APPLICATION_JSON)
+//                        )
+//                        .andExpect(status().isOk())
+//                        .andDo(print())
+//                        .andReturn();
+//
+//        verify(controller).login(username, password);
+//        String responseString = result.getResponse().getContentAsString();
+//        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+//        assertAuthorityPersonEquals(person, personDto, false);
+//        checkControllerAspect();
+//    }
+//
+//    @Test
+//    void shouldNotLoginAuthorityPerson_WrongLoginUsername() throws Exception {
+//        String username = "test-username";
+//        String password = "test-password";
+//        AuthorityPerson person = create(makeCleanAuthorityPerson(213));
+//        setPersonPermissions(person, username, password);
+//        if (person instanceof AuthorityPersonEntity entity) {
+//            entity.setFaculties(List.of());
+//            merge(entity);
+//        }
+//        String requestPath = ROOT + "/login";
+//
+//        MvcResult result =
+//                mockMvc.perform(
+//                                MockMvcRequestBuilders.post(requestPath)
+//                                        .param("username", "username")
+//                                        .param("password", password)
+//                                        .contentType(APPLICATION_JSON)
+//                        )
+//                        .andExpect(status().isNotFound())
+//                        .andDo(print())
+//                        .andReturn();
+//
+//        verify(controller).login("username", password);
+//        String responseString = result.getResponse().getContentAsString();
+//        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+//
+//        assertThat(error.getErrorCode()).isEqualTo(404);
+//        assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'username', is not found");
+//        checkControllerAspect();
+//    }
+//
+//    @Test
+//    void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
+//        String username = "test-username";
+//        String password = "test-password";
+//        String wrongPassword = "wrong-password";
+//        AuthorityPerson person = create(makeCleanAuthorityPerson(214));
+//        setPersonPermissions(person, username, password);
+//        if (person instanceof AuthorityPersonEntity entity) {
+//            entity.setFaculties(List.of());
+//            merge(entity);
+//        }
+//        String requestPath = ROOT + "/login";
+//
+//        MvcResult result =
+//                mockMvc.perform(
+//                                MockMvcRequestBuilders.post(requestPath)
+//                                        .param("username", username)
+//                                        .param("password", wrongPassword)
+//                                        .contentType(APPLICATION_JSON)
+//                        )
+//                        .andExpect(status().isForbidden())
+//                        .andDo(print())
+//                        .andReturn();
+//
+//        verify(controller).login(username, wrongPassword);
+//        String responseString = result.getResponse().getContentAsString();
+//        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+//
+//        assertThat(error.getErrorCode()).isEqualTo(403);
+//        assertThat(error.getErrorMessage()).isEqualTo("Login authority person command failed for username:" + username);
+//        checkControllerAspect();
+//    }
 
     @Test
     void shouldFindAllAuthorities() throws Exception {

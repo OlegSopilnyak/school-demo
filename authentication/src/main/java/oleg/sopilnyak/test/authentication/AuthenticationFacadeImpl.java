@@ -8,7 +8,6 @@ import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedExce
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
-import jakarta.servlet.Filter;
 import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetails;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final JwtService jwtService;
     // te storage of active tokens
     private final TokenStorage tokenStorage;
+
     /**
      * To sign in person to the application
      *
@@ -95,21 +95,23 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * @see AccessCredentials#getRefreshToken()
      */
     @Override
-    public AccessCredentials refresh(final String refreshToken) throws SchoolAccessDeniedException {
+    public Optional<AccessCredentials> refresh(final String refreshToken) throws SchoolAccessDeniedException {
         final String username = jwtService.extractUserName(refreshToken);
         log.debug("Refreshing token for person with username '{}'", username);
         final AccessCredentials signedIn = tokenStorage.findCredentials(username)
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {
+            // generating fresh access token
             final String validToken = jwtService.generateAccessToken(entity.getUser());
             entity.setToken(validToken);
             tokenStorage.storeFor(username, entity);
             log.debug("Generated and stored token of '{}'", username);
-            return signedIn;
+            return Optional.of(signedIn);
+        } else {
+            // wrong type of the AccessCredentials ¯\_(ツ)_/¯
+            throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
         }
-        // wrong type of the AccessCredentials ¯\_(ツ)_/¯
-        throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
     }
 
     /**
@@ -125,16 +127,5 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Optional<AccessCredentials> findCredentialsFor(String username) {
         return tokenStorage.findCredentials(username);
-    }
-
-    /**
-     * To get authentication http-filter
-     *
-     * @return filter's instance
-     * @see Filter
-     */
-    @Override
-    public Filter authenticationFilter() {
-        return null;
     }
 }

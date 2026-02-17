@@ -39,8 +39,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand<?>> implements AuthorityPersonFacade {
-    public static final String LOGIN_KEY = "login";
-    public static final String PASSWORD_KEY = "password";
+    private static final String LOGIN_KEY = "login";
+    private static final String PASSWORD_KEY = "password";
     // semantic data to payload converter
     private final UnaryOperator<AuthorityPerson> toPayload;
     //

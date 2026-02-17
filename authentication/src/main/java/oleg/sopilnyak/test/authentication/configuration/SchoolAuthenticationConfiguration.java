@@ -7,7 +7,6 @@ import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.TokenStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.AuthEntryPointJwt;
 import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.authentication.service.impl.TokenStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
@@ -15,6 +14,7 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +33,8 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class AuthenticationConfiguration {
+public class SchoolAuthenticationConfiguration {
+    private static final String AUTHENTICATION = "/authentication";
     private final ProfilePersistenceFacade profilePersistenceFacade;
     @Bean
     public JwtService jwtService() {
@@ -51,11 +52,6 @@ public class AuthenticationConfiguration {
     }
 
     @Bean
-    public AuthenticationEntryPoint unauthorizedHandler() {
-        return new AuthEntryPointJwt();
-    }
-
-    @Bean
     public Filter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtService(), userService());
     }
@@ -66,7 +62,9 @@ public class AuthenticationConfiguration {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF
                 .cors(AbstractHttpConfigurer::disable) // Disable CORS (or configure if needed)
                 .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(unauthorizedHandler())
+                        exceptionHandling.authenticationEntryPoint((AuthenticationEntryPoint) (_, response, _) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized")
+                        )
                 )
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/api/v1/auth/**").permitAll()

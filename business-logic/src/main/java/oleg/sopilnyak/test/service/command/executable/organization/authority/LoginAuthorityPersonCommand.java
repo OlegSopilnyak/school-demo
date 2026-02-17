@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundExcept
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component(AuthorityPersonCommand.Component.LOGIN)
 public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AuthorityPerson>>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
+    private final transient AuthenticationFacade authenticationFacade;
     private final transient PersistenceFacade persistence;
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -56,7 +58,12 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<Authority
         return AuthorityPersonFacade.LOGIN;
     }
 
-    public LoginAuthorityPersonCommand(PersistenceFacade persistence, BusinessMessagePayloadMapper payloadMapper) {
+    public LoginAuthorityPersonCommand(
+            final AuthenticationFacade authentication,
+            final PersistenceFacade persistence,
+            final BusinessMessagePayloadMapper payloadMapper
+    ) {
+        this.authenticationFacade = authentication;
         this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }

@@ -23,6 +23,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
@@ -96,6 +97,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     ConfigurableApplicationContext context;
     @Autowired
     ApplicationContext applicationContext;
+    @MockitoSpyBean
+    @Autowired
+    AuthenticationFacade authenticationFacade;
 
     @MockitoSpyBean
     @Autowired
@@ -396,7 +400,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 deletePrincipalProfileCommand, "profilePrincipalDelete"
         );
         Map<AuthorityPersonCommand<?>, String> commands = Map.of(
-                spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonLogin",
+                spy(new LoginAuthorityPersonCommand(authenticationFacade, persistenceFacade, payloadMapper)), "authorityPersonLogin",
                 spy(new LogoutAuthorityPersonCommand()), "authorityPersonLogout",
                 createOrUpdateAuthorityPersonCommand, "authorityPersonUpdate",
                 createAuthorityPersonMacroCommand, "authorityPersonMacroCreate",

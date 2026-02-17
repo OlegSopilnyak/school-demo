@@ -1,7 +1,9 @@
 include 'micro-core'
+include 'authentication'
 include 'persistence'
 
 project(':micro-core').projectDir = "$rootDir/../micro-core" as File
+project(':authentication').projectDir = "$rootDir/../authentication" as File
 project(':persistence').projectDir = "$rootDir/../persistence" as File
 
 dependencyResolutionManagement {

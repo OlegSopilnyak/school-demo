@@ -6,7 +6,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -27,7 +26,6 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,8 +55,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 @DirtiesContext
 class AuthorityPersonsRestControllerTest extends TestModelFactory {
-    private static final String LOGIN = "school::organization::authority::persons:login";
-    private static final String LOGOUT = "school::organization::authority::persons:logout";
     private static final String FIND_ALL = "school::organization::authority::persons:find.All";
     private static final String FIND_BY_ID = "school::organization::authority::persons:find.By.Id";
     private static final String CREATE_NEW = "school::organization::authority::persons:create.Macro";
@@ -88,59 +84,6 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .build();
-    }
-
-    @Test
-    void shouldLogoutAuthorityPerson() throws Exception {
-        String token = "logged_in_person_token";
-        String bearer = "Bearer " + token;
-        String requestPath = ROOT + "/logout";
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .header("Authorization", bearer)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn();
-
-        verify(controller).logout(bearer);
-        verify(facade).doActionAndResult(LOGOUT, token);
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldLoginAuthorityPerson() throws Exception {
-        Long profileId = 1L;
-        String username = "test-username";
-        String password = "test-password";
-        AuthorityPerson person = makeCleanAuthorityPerson(212);
-        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
-        PrincipalProfilePayload profile = mock(PrincipalProfilePayload.class);
-        doReturn(true).when(profile).isPassword(password);
-        doReturn(profileId).when(profile).getId();
-        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
-        doReturn(profile).when(messagePayloadMapper).toPayload(profile);
-        String requestPath = ROOT + "/login";
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
-                                        .param("username", username)
-                                        .param("password", password)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isOk())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).login(username, password);
-        verify(facade).doActionAndResult(LOGIN, username, password);
-        String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
-        assertAuthorityPersonEquals(person, personDto, false);
-        checkControllerAspect();
     }
 
     @Test

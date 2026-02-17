@@ -1,5 +1,8 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import oleg.sopilnyak.test.endpoint.dto.AccessCredentialsDto;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
@@ -7,6 +10,7 @@ import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
@@ -134,4 +138,16 @@ class EndpointMapperTest extends TestModelFactory {
         assertStudentsGroupEquals(dto, group);
     }
 
+    @Test
+    void shouldTransformAccessCredentialsToDto() {
+        String validToken = "valid-token";
+        String refreshToken = "refresh-token";
+        AccessCredentials credentials = FakeAccessCredentials.builder().id(100L)
+                .token(validToken).refreshToken(refreshToken).build();
+
+        AccessCredentialsDto dto = mapper.toDto(credentials);
+
+        assertAccessCredentialsEquals(dto, credentials);
+        assertThat(dto.getId()).isZero();
+    }
 }

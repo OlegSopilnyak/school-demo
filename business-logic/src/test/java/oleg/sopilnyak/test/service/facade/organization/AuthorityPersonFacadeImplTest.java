@@ -26,6 +26,7 @@ import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
@@ -83,6 +84,8 @@ class AuthorityPersonFacadeImplTest {
     CommandActionExecutor actionExecutor = mock(CommandActionExecutor.class);
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    AuthenticationFacade authenticationFacade;
     @Mock
     PersistenceFacade persistenceFacade;
     @Mock
@@ -569,7 +572,7 @@ class AuthorityPersonFacadeImplTest {
         deletePersonMacroCommand = spy(new DeleteAuthorityPersonMacroCommand(
                 deletePersonCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
-        loginPersonCommand = spy(new LoginAuthorityPersonCommand(persistenceFacade, payloadMapper));
+        loginPersonCommand = spy(new LoginAuthorityPersonCommand(authenticationFacade, persistenceFacade, payloadMapper));
         ReflectionTestUtils.setField(createProfileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(deleteProfileCommand, "applicationContext", applicationContext);
 

@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.endpoint.configuration;
 
-//import oleg.sopilnyak.test.authentication.configuration.AuthenticationConfiguration;
+import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +20,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @ComponentScan(basePackages = {"oleg.sopilnyak.test.endpoint.rest"})
-//@Import({AspectForRestConfiguration.class, AuthenticationConfiguration.class})
-@Import({AspectForRestConfiguration.class})
+@Import({AspectForRestConfiguration.class, SchoolAuthenticationConfiguration.class})
 @EnableWebMvc
-public class EndpointConfiguration  implements WebMvcConfigurer {
+public class EndpointConfiguration implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(new ByteArrayHttpMessageConverter());

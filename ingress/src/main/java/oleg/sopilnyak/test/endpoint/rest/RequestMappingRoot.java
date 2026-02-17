@@ -1,9 +1,12 @@
 package oleg.sopilnyak.test.endpoint.rest;
 
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
+
 /**
  * Constants for request mapping roots by entity types
  */
 public final class RequestMappingRoot {
+    public static final String AUTHENTICATION = AuthenticationFacade.AUTH_PATH_PREFIX;
     public static final String COURSES = "/courses";
     public static final String STUDENTS = "/students";
     public static final String PRINCIPALS = "/principals";

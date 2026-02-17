@@ -4,6 +4,7 @@ import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroC
 import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
 import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.JSON_CONTEXT_MODULE_BEAN_NAME;
 
+import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local.LocalQueueCommandExecutor;
@@ -36,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -51,6 +53,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @ComponentScan("oleg.sopilnyak.test.service.command.executable")
 @RequiredArgsConstructor
+@Import({SchoolAuthenticationConfiguration.class})
 public class SchoolCommandsConfiguration {
     /**
      * Executor for school-commands

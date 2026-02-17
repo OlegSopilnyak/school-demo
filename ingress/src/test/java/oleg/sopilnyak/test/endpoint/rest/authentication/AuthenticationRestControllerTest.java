@@ -1,0 +1,150 @@
+package oleg.sopilnyak.test.endpoint.rest.authentication;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
+import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
+import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
+import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
+import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
+import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+
+import java.util.Optional;
+import org.aspectj.lang.JoinPoint;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@ExtendWith(SpringExtension.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
+@DirtiesContext
+class AuthenticationRestControllerTest extends TestModelFactory {
+    private static final String LOGIN = "school::organization::authority::persons:login";
+    private static final String LOGOUT = "school::organization::authority::persons:logout";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String ROOT = "/authentication";
+    @MockitoBean
+    PersistenceFacade persistenceFacade;
+    @MockitoSpyBean
+    @Autowired
+    AuthorityPersonFacade facade;
+    @MockitoBean
+    AuthenticationFacade authenticationFacade;
+    @MockitoSpyBean
+    @Autowired
+    private BusinessMessagePayloadMapper messagePayloadMapper;
+    @MockitoSpyBean
+    @Autowired
+    AuthenticationRestController controller;
+    @MockitoSpyBean
+    @Autowired
+    AdviseDelegate delegate;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .build();
+    }
+
+    @Test
+    void shouldLogoutAuthorityPerson() throws Exception {
+        String token = "logged_in_person_token";
+        String bearer = "Bearer " + token;
+        String requestPath = ROOT + "/logout";
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", bearer)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        verify(controller).logout(bearer);
+        verify(facade).doActionAndResult(LOGOUT, token);
+        checkControllerAspect();
+    }
+
+    @Test
+    void shouldLoginAuthorityPerson() throws Exception {
+        Long profileId = 1L;
+        String username = "test-username";
+        String password = "test-password";
+        AuthorityPerson person = makeCleanAuthorityPerson(212);
+        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
+        PrincipalProfilePayload profile = mock(PrincipalProfilePayload.class);
+        doReturn(true).when(profile).isPassword(password);
+        doReturn(profileId).when(profile).getId();
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
+        doReturn(profile).when(messagePayloadMapper).toPayload(profile);
+        String requestPath = ROOT + "/login";
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post(requestPath)
+                                        .param("username", username)
+                                        .param("password", password)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isOk())
+                        .andDo(print())
+                        .andReturn();
+
+        verify(controller).login(username, password);
+        verify(facade).doActionAndResult(LOGIN, username, password);
+        String responseString = result.getResponse().getContentAsString();
+        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
+        assertAuthorityPersonEquals(person, personDto, false);
+        checkControllerAspect();
+    }
+
+    @Test
+    void login() {
+    }
+
+    @Test
+    void refresh() {
+    }
+
+    @Test
+    void logout() {
+    }
+    // private methods
+    private void checkControllerAspect() {
+        final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
+        verify(delegate).beforeCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
+        verify(delegate).afterCall(aspectCapture.capture());
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
+    }
+}

@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
@@ -478,6 +479,11 @@ public class TestModelFactory {
         assertStudentsGroupLists(expected, result, true);
     }
 
+    protected void assertAccessCredentialsEquals(AccessCredentials result, AccessCredentials expected) {
+        assertThat(expected.getToken()).isEqualTo(result.getToken());
+        assertThat(expected.getRefreshToken()).isEqualTo(result.getRefreshToken());
+    }
+
 
     @Data
     @Builder
@@ -579,5 +585,17 @@ public class TestModelFactory {
         public boolean isPassword(String password) {
             return false;
         }
+    }
+
+    @Data
+    @Builder
+    protected static class FakeAccessCredentials implements AccessCredentials {
+        // current valid token
+        private String token;
+        // valid token for refreshing expired one
+        private String refreshToken;
+        // System-ID of the model's item
+        @Builder.Default
+        private Long id = 0L;
     }
 }

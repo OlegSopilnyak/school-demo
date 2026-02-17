@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.endpoint.mapper;
 
+import oleg.sopilnyak.test.endpoint.dto.AccessCredentialsDto;
 import oleg.sopilnyak.test.endpoint.dto.CourseDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentDto;
 import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
@@ -8,6 +9,7 @@ import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.dto.BaseProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
@@ -136,6 +138,15 @@ public interface EndpointMapper {
      */
     @Mapping(source = "profile", target = "extras", qualifiedByName = "toProfileExtras")
     PrincipalProfileDto toDto(PrincipalProfile profile);
+
+    /**
+     * Convert model-type to DTO
+     *
+     * @param credentials instance to convert
+     * @return DTO instance
+     */
+    @Mapping( target = "id", ignore = true)
+    AccessCredentialsDto toDto(AccessCredentials credentials);
 
     @Named("toProfileExtras")
     default BaseProfileDto.Extra[] toProfileExtras(PersonProfile profile) {

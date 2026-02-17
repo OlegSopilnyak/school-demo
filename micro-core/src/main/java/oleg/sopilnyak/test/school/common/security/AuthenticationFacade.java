@@ -3,13 +3,14 @@ package oleg.sopilnyak.test.school.common.security;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
-import jakarta.servlet.Filter;
 import java.util.Optional;
 
 /**
  * Service-Facade: Service for manage security access layer of the school application
  */
 public interface AuthenticationFacade {
+    String AUTH_PATH_PREFIX = "/authentication";
+
     /**
      * To sign in person to the application
      *
@@ -41,7 +42,7 @@ public interface AuthenticationFacade {
      * @see AuthenticationFacade#signOut(String)
      * @see AccessCredentials#getRefreshToken()
      */
-    AccessCredentials refresh(String refreshToken) throws SchoolAccessDeniedException;
+    Optional<AccessCredentials> refresh(String refreshToken) throws SchoolAccessDeniedException;
 
     /**
      * To find credentials of the signed in person
@@ -53,12 +54,4 @@ public interface AuthenticationFacade {
      * @see AuthenticationFacade#signIn(String, String)
      */
     Optional<AccessCredentials> findCredentialsFor(String username);
-
-    /**
-     * To get authentication http-filter
-     *
-     * @return filter's instance
-     * @see Filter
-     */
-    Filter authenticationFilter();
 }
