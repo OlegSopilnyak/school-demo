@@ -37,6 +37,7 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
     // authentication functionality facade
     private final transient AuthenticationFacade authenticationFacade;
 //    private final transient PersistenceFacade persistence;
+    // mapper of common types to module's payload types
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
 

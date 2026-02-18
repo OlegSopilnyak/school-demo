@@ -21,6 +21,12 @@ public interface JwtService {
             """;
     String ISSUER = "Basic School Application";
 
+    /**
+     * To extract username from the JW Token
+     *
+     * @param token jwt token
+     * @return username from the token
+     */
     String extractUserName(String token);
 
 
@@ -62,5 +68,13 @@ public interface JwtService {
      */
     boolean isTokenExpired(String token);
 
+    /**
+     * To check the token, is it complain to user-details
+     *
+     * @param token jwt to check
+     * @param userDetails to check username with one from the token
+     * @return true if token is valid
+     * @see UserDetails#getUsername()
+     */
     boolean isTokenValid(String token, UserDetails userDetails);
 }

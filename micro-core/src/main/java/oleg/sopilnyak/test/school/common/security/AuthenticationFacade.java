@@ -29,8 +29,9 @@ public interface AuthenticationFacade {
      * @param activeToken valid token to sign out the person
      * @see AuthenticationFacade#signIn(String, String)
      * @see AccessCredentials#getToken()
+     * @return signed out credentials or empty
      */
-    void signOut(String activeToken);
+    Optional<AccessCredentials> signOut(String activeToken);
 
     /**
      * To refresh active token

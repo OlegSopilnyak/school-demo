@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * Storage: the storage of active tokens
  */
-public interface TokenStorage {
+public interface AccessTokensStorage {
     /**
      * Storing signed in credentials for further usage
      *

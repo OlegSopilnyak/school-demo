@@ -1,9 +1,12 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
 
+import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
 import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -12,6 +15,7 @@ import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceF
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UserServiceImpl implements UserService {
     // principal person profile persistence facade
     private final PersistenceFacade persistenceFacade;
+    // the storage of active tokes and users
+    private final AccessTokensStorage accessTokensStorage;
 
     /**
      * To make userdetails for user, using username and password
@@ -45,7 +51,7 @@ public class UserServiceImpl implements UserService {
             throw new SchoolAccessDeniedException("Wrong password for username: " + username);
         }
         log.debug("Password for person with username '{}' is correct", username);
-        return makeUserDetailsFor(profile);
+        return makeUserDetailsFor(profile, password);
     }
 
     /**
@@ -59,20 +65,28 @@ public class UserServiceImpl implements UserService {
      * @return a fully populated user record (never <code>null</code>)
      * @throws UsernameNotFoundException if the user could not be found or the user has no
      *                                   GrantedAuthority
-     * @see ProfilePersistenceFacade#findPersonProfileByLogin(String)
+     * @see AccessTokensStorage#findCredentials(String)
+     * @see AccessCredentialsEntity#getUser()
      */
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+        final Supplier<? extends UsernameNotFoundException> userNotFound =
+                () -> new UsernameNotFoundException("User with username: '" + username + "' isn't found!");
         log.debug("Loading user by username '{}'...", username);
-        final PrincipalProfile profile = persistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast)
-                .orElseThrow(() -> new UsernameNotFoundException("Profile with username: '" + username + "' isn't found!"));
-        log.debug("Loaded user by username '{}'", username);
-        return makeUserDetailsFor(profile);
+        final AccessCredentials credentials = accessTokensStorage.findCredentials(username).orElseThrow(userNotFound);
+        if (credentials instanceof AccessCredentialsEntity entity) {
+            log.debug("Loaded user by username '{}'", username);
+            return entity.getUser();
+        } else {
+            log.error("Wrong stored credentials type for username: '{}' credentials: {}", username, credentials);
+            throw userNotFound.get();
+        }
     }
 
     // private methods
     // to make user-details for the principal profile
-    private UserDetailsEntity makeUserDetailsFor(final PrincipalProfile profile) throws UsernameNotFoundException {
+    private UserDetailsEntity makeUserDetailsFor(final PrincipalProfile profile, final String password)
+            throws UsernameNotFoundException {
         final String username = profile.getUsername();
         final Collection<? extends GrantedAuthority> authorities = authorities(profile);
         if (authorities.isEmpty()) {
@@ -81,7 +95,7 @@ public class UserServiceImpl implements UserService {
         }
         final AuthorityPerson person = persistenceFacade.findAuthorityPersonByProfileId(profile.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("Person with username: '" + username + "' isn't found!"));
-        return new UserDetailsEntity(person.getId(), username, "null", authorities);
+        return new UserDetailsEntity(person.getId(), username, password, authorities);
     }
 
     // to get user's authorities from principal's profile

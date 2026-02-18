@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,16 +28,34 @@ public class JwtServiceImpl implements JwtService {
         final byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);
         signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
-    
+
+    /**
+     * To extract username from the JW Token
+     *
+     * @param token jwt token
+     * @return username from the token
+     * @see Claims#getSubject()
+     */
     @Override
     public String extractUserName(final String token) {
         return token == null || token.isBlank() ? null : extractClaim(token, Claims::getSubject);
     }
 
+
+    /**
+     * To check the token, is it complain to user-details
+     *
+     * @param token       jwt to check
+     * @param userDetails to check username with one from the token
+     * @return true if token is valid
+     * @see UserDetails#getUsername()
+     * @see JwtService#extractUserName(String)
+     * @see JwtService#isTokenExpired(String)
+     */
     @Override
     public boolean isTokenValid(final String token, final UserDetails userDetails) {
         final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return Objects.equals(userName, userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     @Override

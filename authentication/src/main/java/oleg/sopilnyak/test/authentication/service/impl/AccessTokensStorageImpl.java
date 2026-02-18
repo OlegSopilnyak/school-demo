@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
 import oleg.sopilnyak.test.authentication.service.JwtService;
-import oleg.sopilnyak.test.authentication.service.TokenStorage;
+import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import java.util.Map;
@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TokenStorageImpl implements TokenStorage {
+public class AccessTokensStorageImpl implements AccessTokensStorage {
     private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
     private final Set<String> blackList = ConcurrentHashMap.newKeySet();

@@ -3,7 +3,7 @@ package oleg.sopilnyak.test.authentication;
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
 import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
 import oleg.sopilnyak.test.authentication.service.JwtService;
-import oleg.sopilnyak.test.authentication.service.TokenStorage;
+import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
@@ -24,7 +24,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     // JWT managing service
     private final JwtService jwtService;
     // te storage of active tokens
-    private final TokenStorage tokenStorage;
+    private final AccessTokensStorage tokenStorage;
 
     /**
      * To sign in person to the application
@@ -67,21 +67,19 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * @see AccessCredentials#getToken()
      */
     @Override
-    public void signOut(final String activeToken) {
+    public Optional<AccessCredentials> signOut(final String activeToken) {
         final String username = jwtService.extractUserName(activeToken);
         final Optional<AccessCredentials> signedIn = tokenStorage.findCredentials(username);
-        if (signedIn.isEmpty()) {
-            log.debug("No credentials found for username '{}'", username);
-            return;
-        }
-        // signing user out
-        log.debug("Signing out user with username '{}' ...", username);
-        final AccessCredentials signedInCredentials = signedIn.get();
-        final String blackListedToken = signedInCredentials.getToken();
-        tokenStorage.toBlackList(blackListedToken);
-        log.debug("Added token of '{}' to tokens black list", username);
-        tokenStorage.deleteCredentials(username);
-        log.debug("Deleted stored credentials of '{}'", username);
+        signedIn.ifPresentOrElse(credentials -> {
+                    log.debug("Signing out user with username '{}' ...", username);
+                    tokenStorage.toBlackList(credentials.getToken());
+                    log.debug("Added token of '{}' to tokens black list", username);
+                    tokenStorage.deleteCredentials(username);
+                    log.debug("Deleted stored credentials of '{}'", username);
+                },
+                () -> log.debug("No credentials found for username '{}'", username)
+        );
+        return  signedIn;
     }
 
     /**
@@ -122,7 +120,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * @see Optional
      * @see AccessCredentials
      * @see AuthenticationFacade#signIn(String, String)
-     * @see TokenStorage#findCredentials(String)
+     * @see AccessTokensStorage#findCredentials(String)
      */
     @Override
     public Optional<AccessCredentials> findCredentialsFor(String username) {

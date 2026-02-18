@@ -5,10 +5,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 import oleg.sopilnyak.test.authentication.AuthenticationFacadeImpl;
 import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
 import oleg.sopilnyak.test.authentication.service.JwtService;
-import oleg.sopilnyak.test.authentication.service.TokenStorage;
+import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
-import oleg.sopilnyak.test.authentication.service.impl.TokenStorageImpl;
+import oleg.sopilnyak.test.authentication.service.impl.AccessTokensStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
@@ -43,13 +43,13 @@ public class SchoolAuthenticationConfiguration {
     }
 
     @Bean
-    public TokenStorage tokenStorage() {
-        return new TokenStorageImpl(jwtService());
+    public AccessTokensStorage tokenStorage() {
+        return new AccessTokensStorageImpl(jwtService());
     }
 
     @Bean
     public UserService userService() {
-        return new UserServiceImpl(profilePersistenceFacade);
+        return new UserServiceImpl(profilePersistenceFacade, tokenStorage());
     }
 
     @Bean
