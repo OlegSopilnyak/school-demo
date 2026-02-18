@@ -74,11 +74,16 @@ public class UserServiceImpl implements UserService {
                 () -> new UsernameNotFoundException("User with username: '" + username + "' isn't found!");
         log.debug("Loading user by username '{}'...", username);
         final AccessCredentials credentials = accessTokensStorage.findCredentials(username).orElseThrow(userNotFound);
-        if (credentials instanceof AccessCredentialsEntity entity) {
+        //
+        // checking credentials of user with username
+        if (accessTokensStorage.isInBlackList(credentials.getToken())) {
+            log.warn("Access token of user with username: '{}' is black-listed...", username);
+            throw userNotFound.get();
+        } else if (credentials instanceof AccessCredentialsEntity entity) {
             log.debug("Loaded user by username '{}'", username);
             return entity.getUser();
         } else {
-            log.error("Wrong stored credentials type for username: '{}' credentials: {}", username, credentials);
+            log.error("Wrong stored credentials entity type for username: '{}' credentials: {}", username, credentials);
             throw userNotFound.get();
         }
     }

@@ -79,7 +79,7 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     public boolean isInBlackList(final String token) {
         log.debug("Checking in black list token: '{}'", token);
         if (jwtService.isTokenExpired(token)) {
-            log.debug("Detected token: '{}'", token);
+            log.debug("Detected expired token: '{}'", token);
             blackList.remove(token);
             return false;
         }

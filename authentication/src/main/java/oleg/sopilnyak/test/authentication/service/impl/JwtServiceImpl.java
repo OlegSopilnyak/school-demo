@@ -1,6 +1,7 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -17,7 +18,10 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JwtServiceImpl implements JwtService {
     // secret key to sign and verify the token
     private SecretKey signingKey;
@@ -34,11 +38,12 @@ public class JwtServiceImpl implements JwtService {
      *
      * @param token jwt token
      * @return username from the token
+     * @see StringUtils#hasText(String)
      * @see Claims#getSubject()
      */
     @Override
     public String extractUserName(final String token) {
-        return token == null || token.isBlank() ? null : extractClaim(token, Claims::getSubject);
+        return StringUtils.hasText(token) ? extractClaim(token, Claims::getSubject) : null;
     }
 
 
@@ -50,38 +55,57 @@ public class JwtServiceImpl implements JwtService {
      * @return true if token is valid
      * @see UserDetails#getUsername()
      * @see JwtService#extractUserName(String)
-     * @see JwtService#isTokenExpired(String)
      */
     @Override
     public boolean isTokenValid(final String token, final UserDetails userDetails) {
-        final String userName = extractUserName(token);
-        return Objects.equals(userName, userDetails.getUsername()) && !isTokenExpired(token);
+        return Objects.equals(extractUserName(token), userDetails.getUsername());
     }
 
+    /**
+     * To check is access token expired
+     *
+     * @param token jwt to check
+     * @return true if token is expired
+     */
     @Override
     public boolean isTokenExpired(final String token) {
         return extractExpiration(token).before(nowDate());
     }
 
+    /**
+     * To generate access token
+     *
+     * @param extraClaims the claims of the token
+     * @param userDetails user-details of the token
+     * @return generated token's instance
+     */
     @Override
     public String generateAccessToken(final Map<String, Object> extraClaims, final UserDetails userDetails) {
-        return Jwts.builder().claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuer(ISSUER)
-                .issuedAt(nowDate())
-                .expiration(nowDatePlus(24, TimeUnit.MINUTES))
-                .signWith(signingKey).compact();
+        final JwtBuilder builder = builderForUser(userDetails);
+        return builder.expiration(nowDatePlus(24, TimeUnit.MINUTES)).claims(extraClaims).compact();
     }
 
+    /**
+     * To generate access refresh token
+     *
+     * @param userDetails user-details of the token
+     * @return generated token's instance
+     */
     @Override
     public String generateRefreshToken(final UserDetails userDetails) {
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuer(ISSUER)
-                .signWith(signingKey).compact();
+        return builderForUser(userDetails).compact();
     }
 
     // private methods
+    private JwtBuilder builderForUser(final UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuer(ISSUER)
+                .issuedAt(nowDate())
+                .signWith(signingKey)
+                ;
+    }
+
     private static Date nowDate() {
         final Instant now = Instant.now();
         return Date.from(now);
@@ -93,12 +117,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private <T> T extractClaim(final String token, final Function<Claims, T> claimsResolvers) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolvers.apply(claims);
+        try {
+            return claimsResolvers.apply(extractAllClaims(token));
+        } catch (Exception e) {
+            log.error("Cannot parse Claims of token: {}", token, e);
+            return null;
+        }
     }
 
     private Date extractExpiration(final String token) {
-        return extractClaim(token, Claims::getExpiration);
+        final Date expirationDate = extractClaim(token, Claims::getExpiration);
+        return expirationDate == null ? new Date(0L) : expirationDate;
     }
 
     private Claims extractAllClaims(final String token) {
