@@ -8,6 +8,7 @@ plugins {
 dependencies {
     dependencies {
         implementation project(":micro-core")
+        implementation project(":persistence")
 
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -25,7 +26,6 @@ dependencies {
         annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
         testCompileOnly 'org.mockito:mockito-inline:5.2.0'
-        testImplementation project(":persistence")
         testImplementation project(":business-logic")
         testImplementation testFixtures(project(":micro-core"))
     }

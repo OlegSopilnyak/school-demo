@@ -73,7 +73,8 @@ public class UserServiceImpl implements UserService {
         final Supplier<? extends UsernameNotFoundException> userNotFound =
                 () -> new UsernameNotFoundException("User with username: '" + username + "' isn't found!");
         log.debug("Loading user by username '{}'...", username);
-        final AccessCredentials credentials = accessTokensStorage.findCredentials(username).orElseThrow(userNotFound);
+        final AccessCredentials credentials = accessTokensStorage.findCredentials(username)
+                .orElseThrow(userNotFound);
         //
         // checking credentials of user with username
         if (accessTokensStorage.isInBlackList(credentials.getToken())) {
