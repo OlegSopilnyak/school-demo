@@ -22,6 +22,7 @@ import oleg.sopilnyak.test.persistence.sql.repository.education.StudentRepositor
 import oleg.sopilnyak.test.persistence.sql.repository.organization.AuthorityPersonRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.FacultyRepository;
 import oleg.sopilnyak.test.persistence.sql.repository.organization.StudentsGroupRepository;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import org.slf4j.Logger;
 import org.springframework.transaction.annotation.Propagation;
@@ -85,6 +86,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
         PrincipalProfileEntity maleProfile = PrincipalProfileEntity.builder()
                 .email("bill@school.com")
                 .location("Sweet Home")
+                .role(Role.PRINCIPAL)
                 .build();
         AuthorityPersonEntity maleTeacher = AuthorityPersonEntity.builder()
                 .title("Teacher").firstName("Bill").lastName("Clinton").gender("Mr")
@@ -92,6 +94,7 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
         PrincipalProfileEntity femaleProfile = PrincipalProfileEntity.builder()
                 .email("hillary@school.com")
                 .location("Sweet Home")
+                .role(Role.DEPUTY_PRINCIPAL)
                 .build();
         AuthorityPersonEntity femaleTeacher = AuthorityPersonEntity.builder()
                 .title("Teacher").firstName("Hillary").lastName("Clinton").gender("Mrs")

@@ -12,6 +12,8 @@ import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.persistence.profile.ProfilePersistenceFacade;
 
+import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +23,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.ReflectionUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +50,7 @@ public class UserServiceImpl implements UserService {
         // making signing in user-details
         final PrincipalProfile profile = persistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast)
                 .orElseThrow(() -> new UsernameNotFoundException("Profile with username: '" + username + "' isn't found!"));
-        if (!profile.isPassword(password)) {
+        if (!isPasswordValidFor(profile, password)) {
             log.error("Wrong password for username: '{}'", username);
             throw new SchoolAccessDeniedException("Wrong password for username: " + username);
         }
@@ -90,6 +94,24 @@ public class UserServiceImpl implements UserService {
     }
 
     // private methods
+    // to check is password correct for the person using profile
+    private boolean isPasswordValidFor(final PrincipalProfile profile, final String password) {
+        final Method signatureGetter = ReflectionUtils.findMethod(profile.getClass(), "getSignature");
+        if (signatureGetter == null) {
+            return false;
+        }
+        final String username = profile.getUsername();
+        final String signature = (String) ReflectionUtils.invokeMethod(signatureGetter, profile);
+        if (ObjectUtils.isEmpty(signature) || ObjectUtils.isEmpty(username)) {
+            return false;
+        }
+        try {
+            return signature.equals(profile.makeSignatureFor(password));
+        } catch (NoSuchAlgorithmException _) {
+            return false;
+        }
+    }
+
     // to make user-details for the principal profile
     private UserDetailsEntity makeUserDetailsFor(final PrincipalProfile profile, final String password)
             throws UsernameNotFoundException {

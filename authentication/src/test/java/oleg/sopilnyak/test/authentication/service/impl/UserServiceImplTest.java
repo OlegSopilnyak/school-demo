@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -19,7 +20,9 @@ import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -31,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceImplTest {
+class UserServiceImplTest extends TestModelFactory {
     @Mock
     PersistenceFacade persistenceFacade;
     @Mock
@@ -43,14 +46,16 @@ class UserServiceImplTest {
     String username = "username";
 
     @Test
-    void shouldPrepareUserDetails() {
+    void shouldPrepareUserDetails() throws NoSuchAlgorithmException {
         Long profileId = 1L;
         Long personId = 1L;
         String password = "password";
-        PrincipalProfile profile = mock(PrincipalProfile.class);
+        ProfileWithSignature profile = mock(ProfileWithSignature.class);
+        doCallRealMethod().when(profile).makeSignatureFor(anyString());
         doReturn(profileId).when(profile).getId();
         doReturn(username).when(profile).getUsername();
-        doReturn(true).when(profile).isPassword(password);
+        String signature = profile.makeSignatureFor(password);
+        doReturn(signature).when(profile).getSignature();
         doReturn(Role.SUPPORT_STAFF).when(profile).getRole();
         doReturn(Set.of(Permission.EDU_GET)).when(profile).getPermissions();
         doReturn(Optional.of(profile)).when(persistenceFacade).findPersonProfileByLogin(username);
@@ -69,7 +74,6 @@ class UserServiceImplTest {
         result.getAuthorities().forEach(granted -> assertThat(authorities).contains(granted.getAuthority()));
         // check the behavior
         verify(persistenceFacade).findPersonProfileByLogin(username);
-        verify(profile).isPassword(password);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 
@@ -98,18 +102,19 @@ class UserServiceImplTest {
         assertThat(result).isNotNull().isInstanceOf(SchoolAccessDeniedException.class);
         // check the behavior
         verify(persistenceFacade).findPersonProfileByLogin(username);
-        verify(profile).isPassword(password);
         verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
     @Test
-    void shouldNotPrepareUserDetails_NoPersonForProfile() {
+    void shouldNotPrepareUserDetails_NoPersonForProfile() throws NoSuchAlgorithmException {
         Long profileId = 2L;
         String password = "password";
-        PrincipalProfile profile = mock(PrincipalProfile.class);
+        ProfileWithSignature profile = mock(ProfileWithSignature.class);
+        doCallRealMethod().when(profile).makeSignatureFor(anyString());
         doReturn(profileId).when(profile).getId();
         doReturn(username).when(profile).getUsername();
-        doReturn(true).when(profile).isPassword(password);
+        String signature = profile.makeSignatureFor(password);
+        doReturn(signature).when(profile).getSignature();
         doReturn(Role.SUPPORT_STAFF).when(profile).getRole();
         doReturn(Set.of(Permission.EDU_GET)).when(profile).getPermissions();
         doReturn(Optional.of(profile)).when(persistenceFacade).findPersonProfileByLogin(username);
@@ -120,7 +125,6 @@ class UserServiceImplTest {
         assertThat(result).isNotNull().isInstanceOf(UsernameNotFoundException.class);
         // check the behavior
         verify(persistenceFacade).findPersonProfileByLogin(username);
-        verify(profile).isPassword(password);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 
@@ -190,5 +194,10 @@ class UserServiceImplTest {
         verify(accessTokensStorage).findCredentials(username);
         verify(accessTokensStorage).isInBlackList(token);
         verify(credentials).getToken();
+    }
+
+    // inner classes
+    interface ProfileWithSignature extends PrincipalProfile {
+        String getSignature();
     }
 }
