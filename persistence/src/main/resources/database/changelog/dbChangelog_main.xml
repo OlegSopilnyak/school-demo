@@ -1,0 +1,59 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ (c) 2022 CARIAD SE, All rights reserved.
+  ~
+  ~ NOTICE:
+  ~ All the information and materials contained herein, including the intellectual and technical concepts,
+  ~ are the property of CARIAD SE and may be covered by patents, patents in process, and are protected by trade secret and/or copyright law.
+  ~ The copyright notice above does not evidence any actual or intended publication or disclosure of this source code, which includes information and materials
+  ~ that are confidential and/or proprietary and trade secrets of CARIAD SE.
+  ~ Any reproduction, dissemination, modification, distribution, public performance, public display of or any other use of this source code and/or any other
+  ~ information and/or material contained herein without the prior written consent of CARIAD SE is strictly prohibited and in violation of applicable laws.
+  ~ The receipt or possession of this source code and/or related information does not convey or imply any rights to reproduce, disclose or distribute its
+  ~ contents or to manufacture, use or sell anything that it may describe in whole or in part.
+  -->
+
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <include file="changesets/001_create_smart_campaign_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/002_extend_smart_campaign_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/003_create-source-baseline-and-tab-status-table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/004_fix_baseline_id_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/005_fix_vehicle_project_columns.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/006_software_details.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/007_add_src_baseline_status.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/008_add_smart_campaign_columns.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/009_add_cmt_campaign_id_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/010_remove_campaign_status_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/011_add_batches.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/012_add_change_measure_id_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/013_add_vehicle_vin_codes.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/014_batch_table_nullable_constraints.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/015_drop_column_data_package_size_in_batch.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/016_create_campaign_parameters.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/017_add_batch_state_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/018_add_RecallCriterianId_column_smart_campaign.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/019_update_RecallCriterianToRecallCriterianUUID_smart_campaign.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/020_add_staging_vins.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/021_update_smart_campaign_batches_created.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/022_create_shedlock_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/020_add_filter_id_to_batch_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/021_create_vehicle_filters_database.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/022_add_vehicle_in_batch_status_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/023_batch_table_add_cmt_campaign_id_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/024_campaign_early_adopter_enabled.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/025_add_batch_uuid_column.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/026_create_early_adopter_vin_list_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/027_add_weighted_response_time_to_Staging_vins.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/028_add_vin_indexes_to_StagingVins.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/029_add_vin_indexes_to_StagingVins_RespTimeColumn.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/30_AlterDataType_ForTokenColumn_staging_vins_fetch_state.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/31_create_ref_permission_attributes.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/32_create_campaign_vin_filter_expression_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/33_create_campaign_vin_filter_expression_parameter_table.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/034_add_weighted_response_time_to_vins.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/035_add_vhm_filter_id_to_smart_campaign.xml" relativeToChangelogFile="true"/>
+    <include file="changesets/036_add_index_response_time_to_vins.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -1,0 +1,2 @@
+docker network create school-docker-network
+docker run --rm -d --name school-mysql --network=school-docker-network -p 3306:3306 -e MYSQL_ROOT_PASSWORD= -e MYSQL_ALLOW_EMPTY_PASSWORD=true -e MYSQL_USER=director -e MYSQL_PASSWORD=director_password -e MYSQL_DATABASE=school_db mysql:8.0

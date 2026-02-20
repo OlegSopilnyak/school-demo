@@ -25,6 +25,10 @@ dependencies {
     testImplementation testFixtures(project(":micro-core"))
 }
 
+flyway {
+    locations = ["classpath:database/migration"]
+}
+
 bootJar {
     enabled = false
 }
