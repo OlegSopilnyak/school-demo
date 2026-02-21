@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true"})
 @Rollback
 class PersistenceFacadeImplTest extends MysqlTestModelFactory {
     @MockitoSpyBean

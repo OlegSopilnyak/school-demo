@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 
 import javax.sql.DataSource;
-import java.util.Properties;
+
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,15 +20,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = "oleg.sopilnyak.test.persistence.sql.repository")
 public class PersistenceConfiguration {
     public static final String REAL_PERSISTENCE_FACADE = "realPersistenceFacade";
+    public static final String PERSISTENCE_SQL_SCAN_PACKAGE = "oleg.sopilnyak.test.persistence.sql";
     private final Boolean showSQL;
-    private final String hbm2ddlAuto;
+    private final String databaseUnitName;
 
     public PersistenceConfiguration(
             @Value("${school.spring.jpa.show-sql:false}") Boolean showSQL,
-            @Value("${school.hibernate.hbm2ddl.auto:validate}") String hbm2ddlAuto
+            @Value("${school.persistence.unit.name:testDatabaseUnit}") String databaseUnitName
     ) {
         this.showSQL = showSQL;
-        this.hbm2ddlAuto = hbm2ddlAuto;
+        this.databaseUnitName = databaseUnitName;
     }
 
     @Bean
@@ -51,13 +52,8 @@ public class PersistenceConfiguration {
         final LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setDataSource(dataSource);
         factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("oleg.sopilnyak.test.persistence.sql");
-        factory.setPersistenceUnitName("schoolDatabaseUnit");
-
-        final Properties jpaProperties = new Properties();
-        jpaProperties.put("hibernate.hbm2ddl.auto", hbm2ddlAuto);
-        factory.setJpaProperties(jpaProperties);
-
+        factory.setPackagesToScan(PERSISTENCE_SQL_SCAN_PACKAGE);
+        factory.setPersistenceUnitName(databaseUnitName);
         factory.afterPropertiesSet();
         return factory;
     }

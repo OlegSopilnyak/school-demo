@@ -84,16 +84,18 @@ public class PersistenceFacadeImpl implements PersistenceFacade,
             return;
         }
         PrincipalProfileEntity maleProfile = PrincipalProfileEntity.builder()
-                .email("bill@school.com")
+                .email("bill@school.com").phone("123456789")
                 .location("Sweet Home")
+                .username("bill").signature("signature")
                 .role(Role.PRINCIPAL)
                 .build();
         AuthorityPersonEntity maleTeacher = AuthorityPersonEntity.builder()
                 .title("Teacher").firstName("Bill").lastName("Clinton").gender("Mr")
                 .build();
         PrincipalProfileEntity femaleProfile = PrincipalProfileEntity.builder()
-                .email("hillary@school.com")
+                .email("hillary@school.com").phone("123456789")
                 .location("Sweet Home")
+                .username("hillary").signature("signature")
                 .role(Role.DEPUTY_PRINCIPAL)
                 .build();
         AuthorityPersonEntity femaleTeacher = AuthorityPersonEntity.builder()

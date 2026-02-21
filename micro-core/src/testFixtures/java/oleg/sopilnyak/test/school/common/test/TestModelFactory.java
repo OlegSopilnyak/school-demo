@@ -277,6 +277,7 @@ public class TestModelFactory {
                 .location("location")
                 .photoUrl("photo-url")
                 .username("login-" + id)
+                .signature("signature-" + id)
                 .role(Role.SUPPORT_STAFF)
                 .build();
     }
@@ -569,6 +570,7 @@ public class TestModelFactory {
     @SuperBuilder
     protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
         private String username;
+        private String signature;
         // principal person role in the school
         private Role role;
         // principal person permissions in the school activities

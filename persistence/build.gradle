@@ -3,14 +3,14 @@ plugins {
     id 'org.springframework.boot' version "${springBootVersion}"
     id 'io.spring.dependency-management' version "${springDependencyVersion}"
     id "io.freefair.lombok" version "${lombokPluginVersion}"
-    id 'org.flywaydb.flyway' version "${flywayVersion}"
 }
 
 dependencies {
     implementation project(":micro-core")
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     compileOnly 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
     // MySQL java-connector
     runtimeOnly "mysql:mysql-connector-java:${connectorMySqlVersion}"
     // Json annotations support library
@@ -23,10 +23,6 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     testImplementation testFixtures(project(":micro-core"))
-}
-
-flyway {
-    locations = ["classpath:database/migration"]
 }
 
 bootJar {

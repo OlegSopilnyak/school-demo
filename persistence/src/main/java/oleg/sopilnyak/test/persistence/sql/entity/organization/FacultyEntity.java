@@ -29,11 +29,12 @@ public class FacultyEntity implements Faculty {
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private String name;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private AuthorityPersonEntity dean;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, mappedBy = "faculty")
+    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "faculty")
     private Set<CourseEntity> courseEntitySet;
 
     /**
