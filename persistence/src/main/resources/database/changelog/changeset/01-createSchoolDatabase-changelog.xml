@@ -65,7 +65,6 @@
             <column name="type" type="INT">
                 <constraints nullable="false"/>
             </column>
-            <column name="photo_url" type="VARCHAR(255)"/>
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
@@ -73,15 +72,10 @@
                 <constraints nullable="false"/>
             </column>
             <column name="location" type="VARCHAR(255)"/>
-            <column name="username" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="signature" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="person_role" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="photo_url" type="VARCHAR(255)"/>
+            <column defaultValue="Not a Principal" name="username" type="varchar(50)"/>
+            <column defaultValue="Not a Principal" name="signature" type="varchar(150)"/>
+            <column defaultValue="STUDENT" name="person_role" type="varchar(50)"/>
         </createTable>
     </changeSet>
     <changeSet id="1771664687427-7" author="oleg.sopilnyak@gmail.com">
@@ -100,9 +94,13 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_students"/>
             </column>
             <column name="profile_id" type="BIGINT"/>
-            <column name="first_name" type="VARCHAR(255)"/>
+            <column defaultValue="Student" name="person_first_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column  defaultValue="Mx" name="person_gender" type="VARCHAR(10)">
+                <constraints nullable="false"/>
+            </column>
             <column name="last_name" type="VARCHAR(255)"/>
-            <column name="gender" type="VARCHAR(255)"/>
             <column name="description" type="VARCHAR(255)"/>
             <column name="group_id" type="BIGINT"/>
         </createTable>

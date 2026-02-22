@@ -35,13 +35,13 @@ public abstract class PersonProfileEntity implements PersonProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
-    private String photoUrl;
     @NotNull
     @Email
     private String email;
     @NotNull
     private String phone;
     private String location;
+    private String photoUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "profile_extras", joinColumns = @JoinColumn(name = "person_id"))

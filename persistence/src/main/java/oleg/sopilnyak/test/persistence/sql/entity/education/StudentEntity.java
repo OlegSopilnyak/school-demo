@@ -21,6 +21,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -53,15 +54,18 @@ public class StudentEntity implements Student {
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
     private Long profileId;
+    @NotNull
+    @Column(name = "person_first_name", columnDefinition = "varchar(100) default 'Student'")
     private String firstName;
-    private String lastName;
+    @NotNull
+    @Column(name = "person_gender", columnDefinition = "varchar(10) default 'Mx'")
     private String gender;
+    private String lastName;
     private String description;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinTable(name = "student_course",
-            joinColumns = {@JoinColumn(name = "fk_student")},
-            inverseJoinColumns = {@JoinColumn(name = "fk_course")}
+            joinColumns = {@JoinColumn(name = "fk_student")}, inverseJoinColumns = {@JoinColumn(name = "fk_course")}
     )
     private Set<CourseEntity> courseSet;
 

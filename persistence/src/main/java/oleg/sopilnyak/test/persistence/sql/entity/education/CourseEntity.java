@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ public class CourseEntity implements Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID", unique = true, nullable = false)
     private Long id;
+    @NotNull
     private String name;
     private String description;
     @ManyToMany(mappedBy = "courseSet", fetch = FetchType.LAZY)
