@@ -38,12 +38,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = {
-        SchoolAuthenticationConfiguration.class,
-        PersistenceConfiguration.class//,
-//        TestConfig.class
-})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@ContextConfiguration(classes = {SchoolAuthenticationConfiguration.class, PersistenceConfiguration.class})
+@TestPropertySource(properties = {"school.spring.jpa.show-sql=true"})
 class UserServiceImplTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;

@@ -50,7 +50,7 @@ public class PrincipalProfileEntity extends PersonProfileEntity implements Princ
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "person_permissions")
-    @CollectionTable(name = "person_permissions", joinColumns = @JoinColumn(name = "permission", referencedColumnName = "username"))
+    @CollectionTable(name = "person_permissions", joinColumns = @JoinColumn(name = "permission", referencedColumnName = "id"))
     @Builder.Default
     private Set<Permission> permissions = new HashSet<>();
 
