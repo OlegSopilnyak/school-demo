@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -93,9 +94,11 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
             final String password = credentials.second();
 
             log.debug("Trying to sign in authority person with username:'{}'", username);
-            final AccessCredentials accessCredentials = authenticationFacade.signIn(username, password);
-            if (context instanceof CommandContext<Optional<AccessCredentials >> commandContext) {
-                commandContext.setResult(Optional.of(accessCredentials).map(payloadMapper::toPayload));
+            final AccessCredentials accessCredentials = authenticationFacade.signIn(username, password)
+                    .map(payloadMapper::toPayload)
+                    .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + username + "', is not found"));
+            if (context instanceof CommandContext<Optional<AccessCredentials>> commandContext) {
+                commandContext.setResult(Optional.of(accessCredentials));
                 commandContext.setUndoParameter(Input.of(accessCredentials.getToken()));
             } else {
                 throw new InvalidParameterTypeException("CommandContext", context);

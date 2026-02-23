@@ -16,11 +16,12 @@ public interface AuthenticationFacade {
      *
      * @param username person's access username
      * @param password person's access password
-     * @return access token
+     * @return signed in credentials or empty
      * @throws SchoolAccessDeniedException if access is denied
      * @see AccessCredentials
+     * @see Optional
      */
-    AccessCredentials signIn(String username, String password) throws SchoolAccessDeniedException;
+    Optional<AccessCredentials> signIn(String username, String password) throws SchoolAccessDeniedException;
 
     /**
      * To sign out person from the application<BR/>
@@ -30,6 +31,7 @@ public interface AuthenticationFacade {
      * @see AuthenticationFacade#signIn(String, String)
      * @see AccessCredentials#getToken()
      * @return signed out credentials or empty
+     * @see Optional
      */
     Optional<AccessCredentials> signOut(String activeToken);
 
@@ -37,11 +39,12 @@ public interface AuthenticationFacade {
      * To refresh active token
      *
      * @param refreshToken active refresh token of signed in person
-     * @return refreshed credentials
+     * @return refreshed credentials or empty
      * @throws SchoolAccessDeniedException person signed out
      * @see AuthenticationFacade#signIn(String, String)
      * @see AuthenticationFacade#signOut(String)
      * @see AccessCredentials#getRefreshToken()
+     * @see Optional
      */
     Optional<AccessCredentials> refresh(String refreshToken) throws SchoolAccessDeniedException;
 

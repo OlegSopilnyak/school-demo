@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,17 +46,18 @@ public class UserServiceImpl implements UserService {
      * @see ProfilePersistenceFacade#findPersonProfileByLogin(String)
      */
     @Override
-    public UserDetailsEntity prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
+    public Optional<UserDetailsEntity> prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
         log.debug("Loading user by username '{}' and password...", username);
         // making signing in user-details
-        final PrincipalProfile profile = persistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast)
-                .orElseThrow(() -> new UsernameNotFoundException("Profile with username: '" + username + "' isn't found!"));
-        if (!isPasswordValidFor(profile, password)) {
-            log.error("Wrong password for username: '{}'", username);
-            throw new SchoolAccessDeniedException("Wrong password for username: " + username);
-        }
-        log.debug("Password for person with username '{}' is correct", username);
-        return makeUserDetailsFor(profile, password);
+        final Optional<PrincipalProfile> foundProfile = persistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast);
+        return foundProfile.map(profile -> {
+            log.debug("There is the profile for user with username '{}'", username);
+            if (!isPasswordValidFor(profile, password)) {
+                log.error("Wrong password for username: '{}'", username);
+                throw new SchoolAccessDeniedException("Wrong password for username: " + username);
+            }
+            return makeUserDetailsFor(profile, password);
+        });
     }
 
     /**
@@ -116,6 +118,7 @@ public class UserServiceImpl implements UserService {
     private UserDetailsEntity makeUserDetailsFor(final PrincipalProfile profile, final String password)
             throws UsernameNotFoundException {
         final String username = profile.getUsername();
+        log.debug("Making user-details by username '{}' for the user's profile...", username);
         final Collection<? extends GrantedAuthority> authorities = authorities(profile);
         if (authorities.isEmpty()) {
             log.error("User with username '{}' has no any authority!", username);
@@ -128,7 +131,7 @@ public class UserServiceImpl implements UserService {
 
     // to get user's authorities from principal's profile
     private Collection<? extends GrantedAuthority> authorities(final PrincipalProfile profile) {
-        log.debug("Loading authorities for user '{}'...", profile.getUsername());
+        log.debug("Loading authorities for profile with username: '{}'...", profile.getUsername());
         final Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + validAuthority(profile.getRole().name())));
         profile.getPermissions().stream().map(Enum::name)

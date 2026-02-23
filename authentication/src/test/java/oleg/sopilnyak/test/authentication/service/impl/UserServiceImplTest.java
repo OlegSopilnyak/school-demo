@@ -64,14 +64,16 @@ class UserServiceImplTest extends TestModelFactory {
         doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
         Set<String> authorities = Set.of("ROLE_SUPPORT_STAFF", "EDU_GET");
 
-        UserDetailsEntity result = service.prepareUserDetails(username, password);
+        Optional<UserDetailsEntity> result = service.prepareUserDetails(username, password);
 
         // check the result
-        assertThat(result).isNotNull();
-        assertThat(result.getUsername()).isEqualTo(username);
-        assertThat(result.getPassword()).isEqualTo(password);
-        assertThat(result.getId()).isEqualTo(personId);
-        result.getAuthorities().forEach(granted -> assertThat(authorities).contains(granted.getAuthority()));
+        assertThat(result).isNotNull().isNotEmpty();
+        assertThat(result.orElseThrow().getUsername()).isEqualTo(username);
+        assertThat(result.orElseThrow().getPassword()).isEqualTo(password);
+        assertThat(result.orElseThrow().getId()).isEqualTo(personId);
+        result.orElseThrow().getAuthorities().forEach(granted ->
+                assertThat(authorities).contains(granted.getAuthority())
+        );
         // check the behavior
         verify(persistenceFacade).findPersonProfileByLogin(username);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
@@ -81,10 +83,10 @@ class UserServiceImplTest extends TestModelFactory {
     void shouldNotPrepareUserDetails_NoProfileByUsername() {
         String password = "password";
 
-        var result = assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
+        var result = service.prepareUserDetails(username, password);
 
         // check the result
-        assertThat(result).isNotNull().isInstanceOf(UsernameNotFoundException.class);
+        assertThat(result).isNotNull().isEmpty();
         // check the behavior
         verify(persistenceFacade).findPersonProfileByLogin(username);
         verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());

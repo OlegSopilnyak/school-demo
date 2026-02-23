@@ -1,9 +1,8 @@
 package oleg.sopilnyak.test.authentication;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
-import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
@@ -23,39 +22,31 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     private final UserService userService;
     // JWT managing service
     private final JwtService jwtService;
-    // te storage of active tokens
+    // the storage of active tokens
     private final AccessTokensStorage tokenStorage;
+
 
     /**
      * To sign in person to the application
      *
      * @param username person's access username
      * @param password person's access password
-     * @return access credentials
+     * @return signed in credentials or empty
      * @throws SchoolAccessDeniedException if access is denied
      * @see AccessCredentials
+     * @see Optional
      */
     @Override
-    public AccessCredentials signIn(final String username, final String password) throws SchoolAccessDeniedException {
-        final Optional<AccessCredentials> signedIn = tokenStorage.findCredentials(username);
-        if (signedIn.isPresent()) {
-            log.debug("Found credentials for {}", username);
-            return signedIn.get();
+    public Optional<AccessCredentials> signIn(final String username, final String password) throws SchoolAccessDeniedException {
+        final Optional<AccessCredentials> storedAccessCredentials = tokenStorage.findCredentials(username);
+        if (storedAccessCredentials.isPresent()) {
+            log.debug("Found credentials for person with username '{}'", username);
+            return storedAccessCredentials;
         }
         // building credentials for signing in user by username
         log.debug("Signing In person with username '{}'", username);
-        // making signing in user-details for username/password
-        final UserDetailsEntity signingUser = userService.prepareUserDetails(username, password);
-        // prepare access credentials tokens for signed-in user
-        final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
-                .user(signingUser)
-                .token(jwtService.generateAccessToken(signingUser))
-                .refreshToken(jwtService.generateRefreshToken(signingUser))
-                .build();
-        // storing built person's access-credentials
-        tokenStorage.storeFor(username, signedInCredentials);
-        // returns built person's access-credentials
-        return signedInCredentials;
+        // making signed in user-details for username/password
+        return makeAccessCredentialsFor(username, password);
     }
 
     /**
@@ -79,7 +70,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 },
                 () -> log.debug("No credentials found for username '{}'", username)
         );
-        return  signedIn;
+        return signedIn;
     }
 
     /**
@@ -100,12 +91,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {
-            // generating fresh access token
-            final String validToken = jwtService.generateAccessToken(entity.getUser());
-            entity.setToken(validToken);
-            tokenStorage.storeFor(username, entity);
-            log.debug("Generated and stored token of '{}'", username);
-            return Optional.of(signedIn);
+            log.debug("Regenerating and store tokens of '{}'", username);
+            // regenerating access credentials with fresh tokens
+            return makeAccessCredentialsFor(entity.getUser().getUsername(), entity.getUser().getPassword());
         } else {
             // wrong type of the AccessCredentials ¯\_(ツ)_/¯
             throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
@@ -125,5 +113,25 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
     @Override
     public Optional<AccessCredentials> findCredentialsFor(String username) {
         return tokenStorage.findCredentials(username);
+    }
+
+    // private methods
+    // making access credentials for username/password
+    private Optional<AccessCredentials> makeAccessCredentialsFor(final String username, final String password) {
+        return userService.prepareUserDetails(username, password)
+                .map(signedInUserDetails -> {
+                            log.debug("Preparing user-details for person with username '{}'", username);
+                            // prepare access credentials tokens for signed-in user
+                            final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
+                                    .user(signedInUserDetails)
+                                    .token(jwtService.generateAccessToken(signedInUserDetails))
+                                    .refreshToken(jwtService.generateRefreshToken(signedInUserDetails))
+                                    .build();
+                            log.debug("Storing built user-details for person with username '{}'", username);
+                            // storing built person's access-credentials
+                            tokenStorage.storeFor(username, signedInCredentials);
+                            return signedInCredentials;
+                        }
+                );
     }
 }
