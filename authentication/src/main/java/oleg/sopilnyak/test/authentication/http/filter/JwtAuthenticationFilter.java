@@ -56,12 +56,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // retrieving user-details for valid access token
             final UserDetails userDetails = users.loadUserByUsername(userName);
             if (jwtService.isTokenValid(jsonWebToken, userDetails)) {
-                final var authToken = new UsernamePasswordAuthenticationToken(
+                final var authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 final var context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authToken);
+                context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
             }
         }

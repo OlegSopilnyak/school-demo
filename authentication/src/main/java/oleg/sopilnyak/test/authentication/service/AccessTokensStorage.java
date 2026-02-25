@@ -25,6 +25,13 @@ public interface AccessTokensStorage {
     void deleteCredentials(String username);
 
     /**
+     * Deleting stored person's credentials
+     *
+     * @param refreshToken person's access refresh-token
+     */
+    void deleteCredentialsWithRefreshToken(String refreshToken);
+
+    /**
      * To find stored credentials
      *
      * @param username person's access username

@@ -1,7 +1,15 @@
 package oleg.sopilnyak.test.authentication.service;
 
+import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 public interface JwtService {
     String TRUTH =
@@ -35,6 +43,10 @@ public interface JwtService {
             томление духа!
             """;
     String ISSUER = "Basic School Application";
+    String AUTHORITY_ROLE_PREFIX = "ROLE_";
+    String ROLES_CLAIM = "roles";
+    String PERSON_ID_CLAIM = "person-id";
+    String PERMISSIONS_CLAIM = "permissions";
 
     /**
      * To extract username from the JW Token
@@ -52,8 +64,16 @@ public interface JwtService {
      * @return generated token based on user-details
      * @see UserDetails
      */
-    default String generateAccessToken(UserDetails userDetails) {
-        return generateAccessToken(Map.of(), userDetails);
+    default String generateAccessToken(final UserDetails userDetails) {
+        final HashMap<String, Object> claims = new HashMap<>();
+        if (userDetails instanceof UserDetailsEntity entity) {
+            claims.put(PERSON_ID_CLAIM, entity.getId());
+            userDetails.getAuthorities().forEach(authority -> putAuthority(claims, authority));
+        }
+        // check user-details-authorities content
+        Assert.isTrue(!ObjectUtils.isEmpty(claims.get(ROLES_CLAIM)), "UserDetails, no roles declared!");
+        // generating Access JSON Web Token (JWT)
+        return generateAccessToken(claims, userDetails);
     }
 
     /**
@@ -92,4 +112,25 @@ public interface JwtService {
      * @see UserDetails#getUsername()
      */
     boolean isTokenValid(String token, UserDetails userDetails);
+
+    // private methods
+    @SuppressWarnings("unchecked")
+    private static void putAuthority(final HashMap<String, Object> claims , final GrantedAuthority authority) {
+        final String authorityValue = authority.getAuthority();
+        if (authorityValue.startsWith(AUTHORITY_ROLE_PREFIX)) {
+            claims.compute(ROLES_CLAIM, (_,val) -> {
+                final List<String> roles = !(val instanceof List) ? new LinkedList<>() : (List<String>) val;
+                // cutting off role's prefix
+                roles.add(authorityValue.substring(AUTHORITY_ROLE_PREFIX.length()));
+                return roles;
+            });
+        }  else {
+            claims.compute(PERMISSIONS_CLAIM, (_,val) -> {
+                final List<String> permissions = !(val instanceof List) ? new LinkedList<>() : (List<String>) val;
+                permissions.add(authorityValue);
+                return permissions;
+            });
+
+        }
+    }
 }

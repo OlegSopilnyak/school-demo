@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
+import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
@@ -20,10 +21,11 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
     private final Set<String> blackList = ConcurrentHashMap.newKeySet();
+
     /**
      * Storing signed in credentials for further usage
      *
-     * @param username            person's access username
+     * @param username    person's access username
      * @param credentials access credentials
      * @see AccessCredentials
      */
@@ -42,6 +44,20 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     public void deleteCredentials(final String username) {
         log.debug("Deleting access credentials for {}", username);
         accessCredentials.remove(username);
+    }
+
+    /**
+     * Deleting stored person's credentials
+     *
+     * @param refreshToken person's access refresh-token
+     */
+    @Override
+    public void deleteCredentialsWithRefreshToken(final String refreshToken) {
+        accessCredentials.values().stream()
+                .filter(credentials -> credentials.getRefreshToken().equals(refreshToken))
+                .map(AccessCredentialsEntity.class::cast)
+                .map(credentials -> credentials.getUser().getUsername())
+                .findFirst().ifPresent(this::deleteCredentials);
     }
 
     /**

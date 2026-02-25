@@ -8,8 +8,10 @@ import static org.mockito.Mockito.spy;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
+import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -17,19 +19,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class JwtServiceImplTest {
     JwtServiceImpl service;
-    UserDetails userDetails;
+    UserDetailsEntity userDetails;
 
     String username = "username";
 
     @BeforeEach
     void setUp() {
-        userDetails = mock(UserDetails.class);
+        userDetails = mock(UserDetailsEntity.class);
         service = spy(new JwtServiceImpl());
         service.initSecurityKey();
         reset(service);
@@ -134,6 +137,30 @@ class JwtServiceImplTest {
         assertThat(expired).isTrue();
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void shouldGenerateAccessToken_UserDetailsOnly() {
+        Long id = 100L;
+        Collection<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList("ROLE_USER", "EDU_OOPS");
+        doReturn(id).when(userDetails).getId();
+        doReturn(authorities).when(userDetails).getAuthorities();
+        doReturn(username).when(userDetails).getUsername();
+
+        String token = service.generateAccessToken(userDetails);
+
+        assertThat(token).isNotNull().isNotBlank().isNotEmpty();
+        Claims claims = ReflectionTestUtils.invokeMethod(service, "extractAllClaims", token);
+        assertThat(claims).isNotNull();
+        assertThat(claims.getSubject()).isEqualTo(username);
+        assertThat(claims.getExpiration()).isAfter(new Date());
+        assertThat(claims.get("person-id")).isNotNull();
+        assertThat(((Number)claims.get("person-id")).longValue()).isEqualTo(id);
+        assertThat(claims.get("roles")).isNotNull();
+        assertThat(((Collection<String>) claims.get("roles"))).contains("USER");
+        assertThat(claims.get("permissions")).isNotNull();
+        assertThat(((Collection<String>) claims.get("permissions"))).contains("EDU_OOPS");
+    }
+
     @Test
     void shouldGenerateAccessToken_Standard() {
         doReturn(username).when(userDetails).getUsername();
@@ -158,8 +185,9 @@ class JwtServiceImplTest {
         assertThat(claims).isNotNull();
         assertThat(claims.getSubject()).isEqualTo(username);
         assertThat(claims.getExpiration()).isAfter(new Date());
-        assertThat(claims.get("id")).isEqualTo(1);
-        assertThat(claims.get("description")).isEqualTo("It's cool");
+        assertThat(claims)
+                .containsEntry("id", 1)
+                .containsEntry("description", "It's cool");
     }
 
     @Test
@@ -172,6 +200,6 @@ class JwtServiceImplTest {
         Claims claims = ReflectionTestUtils.invokeMethod(service, "extractAllClaims", token);
         assertThat(claims).isNotNull();
         assertThat(claims.getSubject()).isEqualTo(username);
-        assertThat(claims.getExpiration()).isNull();
+        assertThat(claims.getExpiration()).isNotNull().isAfter(new Date());
     }
 }

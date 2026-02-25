@@ -93,7 +93,7 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public String generateRefreshToken(final UserDetails userDetails) {
-        return builderForUser(userDetails).compact();
+        return builderForUser(userDetails).expiration(nowDatePlus(1, TimeUnit.HOURS)).compact();
     }
 
     // private methods
@@ -120,7 +120,7 @@ public class JwtServiceImpl implements JwtService {
         try {
             return claimsResolvers.apply(extractAllClaims(token));
         } catch (Exception e) {
-            log.error("Cannot parse Claims of token: {}", token, e);
+            log.warn("Cannot parse Claims of token: {}", token, e);
             return null;
         }
     }

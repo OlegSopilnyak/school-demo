@@ -85,6 +85,12 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      */
     @Override
     public Optional<AccessCredentials> refresh(final String refreshToken) throws SchoolAccessDeniedException {
+        if (jwtService.isTokenExpired(refreshToken)) {
+            log.warn("Refresh token is expired '{}'", refreshToken);
+            // removing entity with refresh-token from storage
+            tokenStorage.deleteCredentialsWithRefreshToken(refreshToken);
+            return Optional.empty();
+        }
         final String username = jwtService.extractUserName(refreshToken);
         log.debug("Refreshing token for person with username '{}'", username);
         final AccessCredentials signedIn = tokenStorage.findCredentials(username)

@@ -13,6 +13,7 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class UserDetailsEntity extends User implements UserDetails {
+    // person id
     private final Long id;
     /**
      * Calls the more complex constructor with all boolean arguments set to {@code true}.
