@@ -4,22 +4,19 @@ import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
-import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
-import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
-import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,20 +32,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class LoginAuthorityPersonCommandTest {
     @Mock
-    PersistenceFacade persistence;
+    AuthenticationFacade authenticationFacade;
     @Mock
     BusinessMessagePayloadMapper payloadMapper;
     @Spy
     @InjectMocks
     LoginAuthorityPersonCommand command;
     @Mock
-    AuthorityPerson entity;
+    AccessCredentials credentials;
     @Mock
-    AuthorityPersonPayload entityPayload;
-    @Mock
-    PrincipalProfile profile;
-    @Mock
-    PrincipalProfilePayload profilePayload;
+    AccessCredentialsPayload credentialsPayload;
     @Mock
     ApplicationContext applicationContext;
 
@@ -59,144 +52,86 @@ class LoginAuthorityPersonCommandTest {
     }
 
     @Test
-    void shouldDoCommand_EntityExists() {
+    void shouldDoCommand_SignedIn() {
         String username = "login";
         String password = "pass";
-        Long id = 330L;
-        when(profilePayload.getId()).thenReturn(id);
-        when(profilePayload.isPassword(password)).thenReturn(true);
-        when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
-        when(persistence.findAuthorityPersonByProfileId(id)).thenReturn(Optional.of(entity));
-        when(payloadMapper.toPayload(entity)).thenReturn(entityPayload);
-        when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        String token = "active-token";
+        when(payloadMapper.toPayload(credentials)).thenReturn(credentialsPayload);
+        doReturn(token).when(credentialsPayload).getToken();
+        doReturn(Optional.of(credentials)).when(authenticationFacade).signIn(username, password);
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entityPayload));
-        assertThat(context.getUndoParameter().isEmpty()).isTrue();
+        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(credentialsPayload));
+        assertThat(context.getUndoParameter()).isEqualTo(Input.of(token));
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
     }
 
     @Test
-    void shouldDoCommand_AuthorityPersonNotExists() {
-        long id = 331L;
+    void shouldDoCommand_NotSignedIn_NoUsernameProfile() {
         String username = "login";
         String password = "pass";
-        when(profilePayload.getId()).thenReturn(id);
-        when(profilePayload.isPassword(password)).thenReturn(true);
-        when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
-        when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-
-        command.doCommand(context);
-
-        assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEmpty();
-        assertThat(context.getUndoParameter().isEmpty()).isTrue();
-        verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence).findAuthorityPersonByProfileId(id);
-    }
-
-    @Test
-    void shouldNotDoCommand_PrincipalProfileNotExists() {
-        long id = 332L;
-        String username = "login";
-        String password = "pass";
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
+        assertThat(context.getException().getMessage()).isEqualTo(String.format("Profile with login:'%s', is not found", username));
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
     }
 
     @Test
-    void shouldNotDoCommand_FindPrincipalProfileThrows() {
-        long id = 333L;
+    void shouldNotDoCommand_AccessDenied() {
         String username = "login";
         String password = "pass";
-        String error = "error finding principal profile";
-        RuntimeException runtimeException = new RuntimeException(error);
-        doThrow(runtimeException).when(persistence).findPrincipalProfileByLogin(username);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-
-        command.doCommand(context);
-
-        assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isEqualTo(runtimeException);
-        assertThat(context.getResult()).isEmpty();
-        assertThat(context.getUndoParameter().isEmpty()).isTrue();
-        verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
-    }
-
-    @Test
-    void shouldNotDoCommand_PrincipalProfileWrongPassword() {
-        long id = 334L;
-        String username = "login";
-        String password = "pass";
-        when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
-        when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        doThrow(SchoolAccessDeniedException.class).when(authenticationFacade).signIn(username, password);
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(SchoolAccessDeniedException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
     }
 
     @Test
-    void shouldNotDoCommand_FindAuthorityPersonThrows() {
-        long id = 335L;
+    void shouldNotDoCommand_SigningInThrows() {
         String username = "login";
         String password = "pass";
-        String error = "error finding authority person";
+        String error = "error finding principal profile";
         RuntimeException runtimeException = new RuntimeException(error);
-        when(profilePayload.getId()).thenReturn(id);
-        when(profilePayload.isPassword(password)).thenReturn(true);
-        when(persistence.findPrincipalProfileByLogin(username)).thenReturn(Optional.of(profile));
-        when(payloadMapper.toPayload(profile)).thenReturn(profilePayload);
-        doThrow(runtimeException).when(persistence).findAuthorityPersonByProfileId(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        doThrow(runtimeException).when(authenticationFacade).signIn(username, password);
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(runtimeException);
-        assertThat(context.getException().getMessage()).isEqualTo(error);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
     }
 
     @Test
-    void shouldUndoCommand_NothingToDo() {
+    void shouldUndoCommand_SignOutByToken() {
         String username = "login";
         String password = "pass";
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-        context.setState(Context.State.DONE);
+        String token = "active-token";
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.of(entity));
+            commandContext.setState(Context.State.DONE);
+            commandContext.setUndoParameter(Input.of(token));
         }
 
         command.undoCommand(context);
@@ -204,5 +139,6 @@ class LoginAuthorityPersonCommandTest {
         assertThat(context.getState()).isEqualTo(UNDONE);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
+        verify(authenticationFacade).signOut(token);
     }
 }

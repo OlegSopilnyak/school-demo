@@ -80,9 +80,7 @@ public class CreateAuthorityPersonMacroCommand extends SequentialMacroCommand<Op
     ) {
         super(actionExecutor);
         this.payloadMapper = payloadMapper;
-        this.putToNest(profileCommand);
-        this.putToNest(personCommand);
-
+        toNest(profileCommand, personCommand);
     }
 
 

@@ -14,6 +14,7 @@ import oleg.sopilnyak.test.service.command.type.core.nested.NestedContextDeque;
 import oleg.sopilnyak.test.service.command.type.core.nested.NestedStateChangedListener;
 import oleg.sopilnyak.test.service.exception.UnableExecuteCommandException;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -57,14 +58,13 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     /**
      * To add the command to the commands nest
      *
-     * @param command the instance to add
-     * @param <N>     the result type of the nested command
+     * @param commands the instances to put them to the nest
      * @see NestedCommand
      */
     @Override
-    public <N> void putToNest(final NestedCommand<N> command) {
+    public void toNest(final NestedCommand<?>... commands) {
         synchronized (netsedCommandsList) {
-            netsedCommandsList.add(command);
+            netsedCommandsList.addAll(Arrays.asList(commands));
         }
     }
 

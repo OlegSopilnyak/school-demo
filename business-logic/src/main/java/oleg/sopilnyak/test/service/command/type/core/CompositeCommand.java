@@ -44,10 +44,9 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     /**
      * To put the command to the composite's nest
      *
-     * @param command the instance to put
-     * @param <N> the result type of the nested command
+     * @param commands the instances to put them to the nest
      */
-    <N> void putToNest(NestedCommand<N> command);
+    void toNest(NestedCommand<?>... commands);
 
     /**
      * To build command's context of composite command for the input

@@ -41,9 +41,6 @@ public interface AuthenticationFacade {
      * @param refreshToken active refresh token of signed in person
      * @return refreshed credentials or empty
      * @throws SchoolAccessDeniedException person signed out
-     * @see AuthenticationFacade#signIn(String, String)
-     * @see AuthenticationFacade#signOut(String)
-     * @see AccessCredentials#getRefreshToken()
      * @see Optional
      */
     Optional<AccessCredentials> refresh(String refreshToken) throws SchoolAccessDeniedException;
@@ -55,7 +52,6 @@ public interface AuthenticationFacade {
      * @return active credentials or empty
      * @see Optional
      * @see AccessCredentials
-     * @see AuthenticationFacade#signIn(String, String)
      */
     Optional<AccessCredentials> findCredentialsFor(String username);
 }

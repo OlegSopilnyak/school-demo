@@ -69,9 +69,9 @@ class ParallelMacroCommandTest {
     void setUp() {
         executor.initialize();
         executor.setThreadNamePrefix("ParallelMacroCommand-");
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         ActionContext.setup("test-facade", "test-action");
     }
 
@@ -157,10 +157,10 @@ class ParallelMacroCommandTest {
         int parameter = 102;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
         Context<Double> macroContext = command.createContext(inputParameter);
@@ -337,10 +337,10 @@ class ParallelMacroCommandTest {
         int parameter = 105;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeParallelCommand(executor, studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
         Context<Double> macroContext = command.createContext(inputParameter);

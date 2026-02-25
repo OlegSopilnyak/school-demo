@@ -73,9 +73,9 @@ class SequentialMacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         setupBaseCommandIds();
         ActionContext.setup("test-facade", "test-action");
     }
@@ -155,11 +155,11 @@ class SequentialMacroCommandTest {
         int parameter = 121;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(courseCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(courseCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContext(studentCommand, inputParameter);
         allowRealPrepareContext(courseCommand, inputParameter);
@@ -243,11 +243,11 @@ class SequentialMacroCommandTest {
         int parameter = 132;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(courseCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(courseCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContext(studentCommand, inputParameter);
         allowRealPrepareContext(courseCommand, inputParameter);
@@ -302,11 +302,11 @@ class SequentialMacroCommandTest {
         int parameter = 112;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeSequentialCommand(studentCommand, courseCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(courseCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(courseCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContext(studentCommand, inputParameter);
         allowRealPrepareContext(courseCommand, inputParameter);

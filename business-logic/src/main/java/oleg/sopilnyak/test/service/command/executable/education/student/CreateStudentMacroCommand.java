@@ -71,15 +71,14 @@ public class CreateStudentMacroCommand extends SequentialMacroCommand<Optional<S
     }
 
     public CreateStudentMacroCommand(
-            @Qualifier(Component.CREATE_OR_UPDATE) StudentCommand<?> personCommand,
+            @Qualifier(StudentCommand.Component.CREATE_OR_UPDATE) StudentCommand<?> personCommand,
             @Qualifier(StudentProfileCommand.Component.CREATE_OR_UPDATE) StudentProfileCommand<?> profileCommand,
             final BusinessMessagePayloadMapper payloadMapper,
             final CommandActionExecutor actionExecutor
     ) {
         super(actionExecutor);
         this.payloadMapper = payloadMapper;
-        putToNest(profileCommand);
-        putToNest(personCommand);
+        toNest(profileCommand, personCommand);
     }
 
     /**

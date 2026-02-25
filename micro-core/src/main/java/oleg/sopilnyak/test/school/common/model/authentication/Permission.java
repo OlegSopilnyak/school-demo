@@ -11,6 +11,7 @@ public enum Permission {
     EDU_UPDATE("Can update the instance of Student or Course"),
     EDU_DELETE("Can remove the instance of Student or Course"),
     // organization part permissions
+    ORG_CREATE("Can create new instances of AuthorityPersons, Faculties or StudentsGroups"),
     ORG_LIST("Can look for AuthorityPersons, Faculties or StudentsGroups"),
     ORG_GET("Can get the instance of AuthorityPerson, Faculty or StudentsGroup"),
     ORG_UPDATE("Can update the instance of AuthorityPerson, Faculty or StudentsGroup"),

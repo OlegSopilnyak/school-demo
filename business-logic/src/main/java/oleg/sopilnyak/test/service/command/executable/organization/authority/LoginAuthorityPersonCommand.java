@@ -37,7 +37,6 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
         implements AuthorityPersonCommand<Optional<AccessCredentials>> {
     // authentication functionality facade
     private final transient AuthenticationFacade authenticationFacade;
-//    private final transient PersistenceFacade persistence;
     // mapper of common types to module's payload types
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -62,11 +61,8 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
         return AuthorityPersonFacade.LOGIN;
     }
 
-//    public LoginAuthorityPersonCommand(AuthenticationFacade authentication, PersistenceFacade persistence,
-//                                       BusinessMessagePayloadMapper payloadMapper) {
     public LoginAuthorityPersonCommand(AuthenticationFacade authentication, BusinessMessagePayloadMapper payloadMapper) {
         this.authenticationFacade = authentication;
-//        this.persistence = persistence;
         this.payloadMapper = payloadMapper;
     }
 
@@ -103,23 +99,6 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
             } else {
                 throw new InvalidParameterTypeException("CommandContext", context);
             }
-//            log.debug("Trying to get principal-profile by username:{}", username);
-//            final PrincipalProfile profile = persistence.findPrincipalProfileByLogin(username)
-//                    .map(payloadMapper::toPayload)
-//                    .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + username + "', is not found"));
-//
-//            log.debug("Checking the password for principal-profile by username:{}", username);
-//            if (!profile.isPassword(password)) {
-//                log.warn("Password for login: {} is incorrect", username);
-//                throw new SchoolAccessDeniedException("Login authority person command failed for username:" + username);
-//            }
-//
-//            final Long profileId = profile.getId();
-//            log.debug("Trying to find principal person with profileId:{}", profileId);
-//            final Optional<AuthorityPerson> person = persistence.findAuthorityPersonByProfileId(profileId);
-//
-//            log.debug("Got authority person with login:'{}' {}", person, username);
-//            context.setResult(person.isEmpty() ? person : person.map(payloadMapper::toPayload));
         } catch (Exception e) {
             log.error("Cannot sign in the authority person with credentials: {}", parameter, e);
             context.failed(e);
@@ -145,6 +124,7 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
             final String activeToken = parameter.value();
             authenticationFacade.signOut(activeToken);
             log.debug("Person is signed out, token: {}", activeToken);
+            super.executeUndo(context);
         } catch (Exception e) {
             log.error("Cannot sign out the authority person with credentials: {}", parameter, e);
             context.failed(e);

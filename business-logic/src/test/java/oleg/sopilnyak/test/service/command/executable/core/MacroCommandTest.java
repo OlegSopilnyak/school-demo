@@ -80,9 +80,9 @@ class MacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         setupBaseCommandIds();
         ActionContext.setup("test-facade", "test-action");
     }
@@ -128,10 +128,10 @@ class MacroCommandTest {
         int parameter = 115;
         Input<Integer> inputParameter = Input.of(parameter);
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
 
@@ -198,19 +198,19 @@ class MacroCommandTest {
                 return (Context<N>) studentContext;
             }
         });
-        macroCommand.putToNest(command1);
-        macroCommand.putToNest(command2);
-        macroCommand.putToNest(command3);
+        macroCommand.toNest(command1);
+        macroCommand.toNest(command2);
+        macroCommand.toNest(command3);
         allowRealPrepareContext(macroCommand, command1, inputParameter);
         allowRealPrepareContext(macroCommand, command2, inputParameter);
         allowRealAcceptPrepareContext(macroCommand, command3, inputParameter);
         // make root macro command
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
-        command.putToNest(macroCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
+        command.toNest(macroCommand);
         // allow real methods for mocks
         allowRealPrepareContextBase(command, inputParameter);
         allowRealPrepareContextExtra(command, inputParameter);
@@ -386,10 +386,10 @@ class MacroCommandTest {
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         Object[] parameters = new Object[]{parameter * 100, true, parameter * 10.0};
         doCallRealMethod().when(actionExecutor).commitAction(eq(ActionContext.current()), any(Context.class));
         doCallRealMethod().when(actionExecutor).processActionCommand(any(BaseCommandMessage.class));
@@ -465,17 +465,17 @@ class MacroCommandTest {
             }
         });
 
-        macroCommand.putToNest(command1);
-        macroCommand.putToNest(command2);
-        macroCommand.putToNest(command3);
+        macroCommand.toNest(command1);
+        macroCommand.toNest(command2);
+        macroCommand.toNest(command3);
         macroCommand.fromNest().forEach(mNested -> allowRealPrepareContext(macroCommand, mNested, inputParameter));
         // make root macro command
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
-        command.putToNest(macroCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
+        command.toNest(macroCommand);
 
         Object[] parameters = new Object[]{parameter * 100, true, parameter * 10.0};
         Collection<NestedCommand<?>> commands = command.fromNest();
@@ -730,10 +730,10 @@ class MacroCommandTest {
         Input<Integer> inputParameter = Input.of(parameter);
         Object[] parameters = new Object[]{parameter * 100.0, true, parameter * 10.0};
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
         Context<Double> macroContext = command.createContext(inputParameter);
@@ -819,9 +819,9 @@ class MacroCommandTest {
             }
         });
         // building inner macro-command
-        macroCommand.putToNest(command1);
-        macroCommand.putToNest(command2);
-        macroCommand.putToNest(command3);
+        macroCommand.toNest(command1);
+        macroCommand.toNest(command2);
+        macroCommand.toNest(command3);
         {
             Object[] parameters = new Object[]{parameter * 200.0, true, parameter * 20.0};
             RootCommand<?>[] nested = macroCommand.fromNest()
@@ -838,11 +838,11 @@ class MacroCommandTest {
         // make root macro command
         Object[] parameters = new Object[]{parameter * 100.0, true, parameter * 10.0};
         command = spy(new FakeMacroCommand(studentCommand, actionExecutor));
-        command.putToNest(studentCommand);
-        command.putToNest(doubleCommand);
-        command.putToNest(booleanCommand);
-        command.putToNest(intCommand);
-        command.putToNest(macroCommand);
+        command.toNest(studentCommand);
+        command.toNest(doubleCommand);
+        command.toNest(booleanCommand);
+        command.toNest(intCommand);
+        command.toNest(macroCommand);
         allowRealPrepareContextBase(inputParameter);
         allowRealPrepareContextExtra(inputParameter);
         Context<Double> macroContext = command.createContext(inputParameter);
