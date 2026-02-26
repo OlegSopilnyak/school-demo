@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.facade.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
@@ -20,6 +21,7 @@ import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -82,7 +84,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "school::organization::authority::persons:login";
@@ -178,11 +183,12 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         assertThat(findAuthorityPersonByProfileId(person.getProfileId())).isEqualTo(person.getOriginal());
         setPersonPermissions(person, username, password);
 
-        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, username, password);
+        Optional<AccessCredentials> result = facade.doActionAndResult(commandId, username, password);
 
-        assertThat(result).isPresent().contains(person);
+        assertThat(result).isPresent();
         verifyAfterCommand(commandId, Input.of(username, password));
-        verify(persistence).findPrincipalProfileByLogin(username);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(person.getProfileId());
     }
 
@@ -198,15 +204,15 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         var thrown = assertThrows(SchoolAccessDeniedException.class,
                 () -> facade.doActionAndResult(commandId, username, "password")
-//                        facade.login(username, "password")
         );
 
         assertThat(thrown).isInstanceOf(SchoolAccessDeniedException.class);
-        assertThat(thrown.getMessage()).isEqualTo("Login authority person command failed for username:" + username);
+        assertThat(thrown.getMessage()).isEqualTo("Wrong password for username: " + username);
 
         verifyAfterCommand(commandId, Input.of(username, "password"));
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(person.getProfileId());
+        verify(authenticationFacade).signIn(username, "password");
+        verify(persistence).findPersonProfileByLogin(username);
+        verify(persistence, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
     @Test

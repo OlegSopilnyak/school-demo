@@ -69,7 +69,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
         PersistenceConfiguration.class,
         TestConfig.class
 })
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class PrincipalProfileFacadeImplTest extends MysqlTestModelFactory {
     private static final String FIND_BY_ID = "school::person::profile::principal:find.By.Id";
