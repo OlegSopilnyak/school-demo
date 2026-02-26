@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.factory.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -40,6 +41,8 @@ class FacultyCommandsFactorySpringTest {
     @MockitoBean
     PersistenceFacade persistenceFacade;
     @MockitoBean
+    AuthenticationFacade authenticationFacade;
+    @MockitoBean
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired
     CommandsFactory<FacultyCommand<?>> factory;
@@ -53,10 +56,6 @@ class FacultyCommandsFactorySpringTest {
                 ORGANIZATION_FACULTY_FIND_BY_ID,
                 ORGANIZATION_FACULTY_CREATE_OR_UPDATE,
                 ORGANIZATION_FACULTY_DELETE
-//                "organization.faculty.findAll",
-//                "organization.faculty.findById",
-//                "organization.faculty.createOrUpdate",
-//                "organization.faculty.delete"
         );
     }
 

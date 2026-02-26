@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeExce
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -22,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
  * @see OrganizationFacadeImpl
  * @see AuthorityPerson
  * @see AuthorityPersonCommand
+ * @see AuthorityPersonFacade
+ * @see AccessCredentials
  */
 @Slf4j
 public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityPersonCommand<?>> implements AuthorityPersonFacade {
@@ -43,22 +45,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     private static final String PASSWORD_KEY = "password";
     // semantic data to payload converter
     private final UnaryOperator<AuthorityPerson> toPayload;
-    //
-    // setting up action-methods by action-id
-    private final Map<String, Function<Object[], Object>> actions = Map.<String, Function<Object[], Object>>of(
-            AuthorityPersonFacade.LOGIN, this::internalLogin,
-            AuthorityPersonFacade.LOGOUT, this::internalLogout,
-            AuthorityPersonFacade.FIND_ALL, this::internalFindAll,
-            AuthorityPersonFacade.FIND_BY_ID, this::internalFindById,
-            AuthorityPersonFacade.CREATE_OR_UPDATE, this::internalCreateOrUpdate,
-            AuthorityPersonFacade.CREATE_MACRO, this::internalCreateComposite,
-            AuthorityPersonFacade.DELETE_MACRO, this::internalDeleteComposite
-    ).entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue,
-                    (existing, _) -> existing,
-                    HashMap::new
-            )
-    );
 
     public AuthorityPersonFacadeImpl(
             CommandsFactory<AuthorityPersonCommand<?>> factory,
@@ -80,8 +66,17 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     @SuppressWarnings("unchecked")
     @Override
     public <T> T organizationAction(final String actionId, final Object... parameters) {
-        getLogger().debug("Trying to execute action {} with arguments {}", actionId, parameters);
-        return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(parameters);
+        getLogger().debug("Trying to execute action [{}] with arguments: {}", actionId, parameters);
+        return (T) switch (actionId) {
+            case AuthorityPersonFacade.LOGIN -> internalLogin(parameters);
+            case AuthorityPersonFacade.LOGOUT -> internalLogout(parameters);
+            case AuthorityPersonFacade.FIND_ALL -> internalFindAll();
+            case AuthorityPersonFacade.FIND_BY_ID -> internalFindById(parameters);
+            case AuthorityPersonFacade.CREATE_OR_UPDATE -> internalCreateOrUpdate(parameters);
+            case AuthorityPersonFacade.CREATE_MACRO -> internalCreateComposite(parameters);
+            case AuthorityPersonFacade.DELETE_MACRO -> internalDeleteComposite(parameters);
+            default -> throwsUnknownActionId(actionId).apply(null);
+        };
     }
 
     /**
@@ -127,13 +122,13 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     // To log in AuthorityPerson by it valid login and password (for entry-point)
-    private Optional<AuthorityPerson> internalLogin(final Object... parameters) {
+    private Optional<AccessCredentials> internalLogin(final Object... parameters) {
         final Map<String, String> auth = decodeAuthentication(parameters);
         return internalLogin(auth.get(LOGIN_KEY), auth.get(PASSWORD_KEY));
     }
 
     // To log in AuthorityPerson by it valid username and password (for internal usage)
-    private Optional<AuthorityPerson> internalLogin(final String username, final String password) {
+    private Optional<AccessCredentials> internalLogin(final String username, final String password) {
         // doing login action business logic
         final String commandId = AuthorityPersonFacade.LOGIN;
         // declaring custom error handler
@@ -152,15 +147,15 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
                 case null, default -> defaultDoOnError(commandId).accept(exception);
             }
         };
-
+        //
         // logging in the person
         log.debug("Trying to log in person using: '{}'", username);
         final var input = Input.of(username, password);
-        final Optional<Optional<AuthorityPerson>> result = executeCommand(commandId, factory, input, doOnError);
+        final Optional<Optional<AccessCredentials>> result = executeCommand(commandId, factory, input, doOnError);
         return result.flatMap(person -> {
             // logged in successfully
-            log.debug("AuthorityPerson is logged in: {}", person);
-            return person.map(toPayload);
+            log.debug("AuthorityPerson with username: '{}' is signed in.", username);
+            return person;
         });
     }
 
@@ -180,10 +175,6 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     // To get all authority persons (for entry-point)
-    private Collection<AuthorityPerson> internalFindAll(final Object... parameters) {
-        return internalFindAll();
-    }
-
     // To get all authority persons (for internal usage)
     private Collection<AuthorityPerson> internalFindAll() {
         log.debug("Finding all authority persons");

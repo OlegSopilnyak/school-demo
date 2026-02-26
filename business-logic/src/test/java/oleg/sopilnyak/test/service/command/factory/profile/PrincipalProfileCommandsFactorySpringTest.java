@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.factory.profile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -35,6 +36,8 @@ class PrincipalProfileCommandsFactorySpringTest {
     SchedulingTaskExecutor executor;
     @MockitoBean
     PersistenceFacade persistenceFacade;
+    @MockitoBean
+    AuthenticationFacade authenticationFacade;
     @MockitoBean
     BusinessMessagePayloadMapper payloadMapper;
     @Autowired

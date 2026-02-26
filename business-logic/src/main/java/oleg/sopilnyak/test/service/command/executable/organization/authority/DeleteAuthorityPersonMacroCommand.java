@@ -113,7 +113,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
     ) {
         super(actionExecutor, executor);
         this.persistence = persistence;
-        toNest(profileCommand, personCommand);
+        toNest(personCommand, profileCommand);
     }
 
     /**
