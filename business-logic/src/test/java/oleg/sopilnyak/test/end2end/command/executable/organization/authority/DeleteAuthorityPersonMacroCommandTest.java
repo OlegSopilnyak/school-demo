@@ -70,7 +70,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestPropertySource(properties = {
         "school.parallel.max.pool.size=10",
         "school.spring.jpa.show-sql=true",
-        "school.hibernate.hbm2ddl.auto=update"
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
 @SuppressWarnings("unchecked")
 class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
@@ -680,7 +680,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
         verifyProfileUndoCommand();
         verify(persistence).save(any(PrincipalProfilePayload.class));
 
-        verifyProfileDoCommand( 2);
+        verifyProfileDoCommand(2);
         Long doProfileId = profileContext.<Long>getRedoParameter().value();
         verify(persistence).findPrincipalProfileById(doProfileId);
         verify(persistence).deleteProfileById(doProfileId);

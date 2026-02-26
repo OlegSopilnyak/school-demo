@@ -43,7 +43,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class FindRegisteredCoursesCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean

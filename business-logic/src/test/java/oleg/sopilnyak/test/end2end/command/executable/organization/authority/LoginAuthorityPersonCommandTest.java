@@ -1,9 +1,9 @@
 package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
-import static oleg.sopilnyak.test.service.command.type.core.Context.State.DONE;
 import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -15,17 +15,18 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEn
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
-import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 
 import jakarta.persistence.EntityManager;
@@ -42,15 +43,22 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     PersistenceFacade persistence;
+    @MockitoSpyBean
+    @Autowired
+    AuthenticationFacade authenticationFacade;
     @Autowired
     EntityManagerFactory emf;
     @Autowired
@@ -72,7 +80,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Test
     void shouldBeValidCommand() {
         assertThat(command).isNotNull();
-        assertThat(ReflectionTestUtils.getField(command, "persistence")).isSameAs(persistence);
+        assertThat(ReflectionTestUtils.getField(command, "authenticationFacade")).isSameAs(authenticationFacade);
         assertThat(ReflectionTestUtils.getField(command, "payloadMapper")).isSameAs(payloadMapper);
     }
 
@@ -83,15 +91,16 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(entity));
-        assertThat(context.getUndoParameter().isEmpty()).isTrue();
+        assertThat(context.getResult().orElseThrow().orElseThrow()).isInstanceOf(AccessCredentialsPayload.class);
+        assertThat(context.getUndoParameter().isEmpty()).isFalse();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
     }
 
@@ -102,16 +111,18 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
         deleteEntity(AuthorityPersonEntity.class, entity.getId());
 
         command.doCommand(context);
 
-        assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isEmpty();
+        assertThat(context.isFailed()).isTrue();
+        assertThat(context.getException().getMessage()).isEqualTo(String.format("Person with username: '%s' isn't found!", username));
+        assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
     }
 
@@ -122,19 +133,19 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
         long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
         deleteEntity(PrincipalProfileEntity.class, id);
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
-        assertThat(context.getException()).isInstanceOf(ProfileNotFoundException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
+        assertThat(context.getException().getMessage()).isEqualTo(String.format("Profile with login:'%s', is not found", username));
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
+        verify(persistence, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
     @Test
@@ -143,21 +154,23 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
-        long id = entity.getProfileId();
         String error = "error finding principal profile";
         RuntimeException runtimeException = new RuntimeException(error);
-        doThrow(runtimeException).when(persistence).findPrincipalProfileByLogin(username);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        doThrow(runtimeException).when(persistence).findPersonProfileByLogin(username);
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
-        command.doCommand(context);
 
+        var thrown = assertThrows(Exception.class, () -> command.doCommand(context));
+
+        assertThat(thrown).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
+        verify(persistence, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
     @Test
@@ -166,19 +179,19 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
-        long id = entity.getProfileId();
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, "password"));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, "password"));
 
         command.doCommand(context);
 
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(SchoolAccessDeniedException.class);
-        assertThat(context.getException().getMessage()).isEqualTo("Login authority person command failed for username:" + username);
+        assertThat(context.getException().getMessage()).isEqualTo("Wrong password for username: " + username);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence, atLeastOnce()).findPrincipalProfileByLogin(username);
-        verify(persistence, never()).findAuthorityPersonByProfileId(id);
+        verify(authenticationFacade).signIn(username, "password");
+        verify(persistence).findPersonProfileByLogin(username);
+        verify(persistence, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
     @Test
@@ -191,7 +204,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         String error = "error finding authority person";
         RuntimeException runtimeException = new RuntimeException(error);
         doThrow(runtimeException).when(persistence).findAuthorityPersonByProfileId(id);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
         command.doCommand(context);
 
@@ -201,27 +214,29 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
-        verify(persistence, atLeastOnce()).findPrincipalProfileByLogin(username);
+        verify(authenticationFacade).signIn(username, password);
+        verify(persistence).findPersonProfileByLogin(username);
         verify(persistence).findAuthorityPersonByProfileId(id);
     }
 
     @Test
-    void shouldUndoCommand_NothingToDo() {
+    void shouldUndoCommand_SigningOut() {
         String username = "login";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
-        Context<Optional<AuthorityPerson>> context = command.createContext(Input.of(username, password));
-        context.setState(DONE);
-        if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.of(entity));
-        }
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
+        command.doCommand(context);
+        AccessCredentials credentials = context.getResult().orElseThrow().orElseThrow();
+        String token = credentials.getToken();
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
+        assertThat(context.getUndoParameter().value()).isEqualTo(token);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
+        verify(authenticationFacade).signOut(token);
     }
 
     // private methods

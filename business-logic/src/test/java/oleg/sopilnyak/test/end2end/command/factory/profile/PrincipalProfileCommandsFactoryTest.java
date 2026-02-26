@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.command.factory.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -25,10 +26,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
         PrincipalProfileCommandsFactoryTest.FactoryConfiguration.class,
         PersistenceConfiguration.class,
         TestConfig.class
+})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
 @Rollback
 class PrincipalProfileCommandsFactoryTest extends MysqlTestModelFactory {
@@ -87,6 +94,7 @@ class PrincipalProfileCommandsFactoryTest extends MysqlTestModelFactory {
     }
 
     @Configuration
+    @Import({SchoolAuthenticationConfiguration.class})
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean(name = SPRING_NAME)

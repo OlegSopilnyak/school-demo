@@ -52,7 +52,10 @@ import org.springframework.transaction.UnexpectedRollbackException;
 @ContextConfiguration(classes = {
         PersistenceConfiguration.class, DeleteStudentCommand.class, TestConfig.class
 })
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class DeleteStudentCommandTest extends MysqlTestModelFactory {
     @Autowired

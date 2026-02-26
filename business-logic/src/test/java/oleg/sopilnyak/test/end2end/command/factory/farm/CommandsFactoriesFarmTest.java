@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.end2end.command.factory.farm;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
 import oleg.sopilnyak.test.end2end.configuration.TestConfig;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
@@ -28,9 +29,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Propagation;
@@ -42,6 +46,11 @@ import org.springframework.transaction.annotation.Transactional;
         PersistenceConfiguration.class,
         TestConfig.class
 })
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
+@Rollback
 class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
     private static final String FACTORY_NAME = "CommandFactories-Farm";
     @Autowired
@@ -103,6 +112,7 @@ class CommandsFactoriesFarmTest extends MysqlTestModelFactory {
 
 
     @Configuration
+    @Import({SchoolAuthenticationConfiguration.class})
     @ComponentScan("oleg.sopilnyak.test.service.command.executable")
     static class FactoryConfiguration {
         @Bean

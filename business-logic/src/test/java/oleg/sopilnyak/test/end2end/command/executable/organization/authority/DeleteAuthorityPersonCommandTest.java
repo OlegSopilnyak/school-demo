@@ -43,7 +43,10 @@ import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteAuthorityPersonCommand.class, TestConfig.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @SuppressWarnings("unchecked")
 class DeleteAuthorityPersonCommandTest extends MysqlTestModelFactory {
     @Autowired

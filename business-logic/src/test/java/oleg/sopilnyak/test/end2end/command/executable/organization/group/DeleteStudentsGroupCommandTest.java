@@ -47,7 +47,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {PersistenceConfiguration.class, DeleteStudentsGroupCommand.class, TestConfig.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 @Rollback
 @SuppressWarnings("unchecked")
 class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
