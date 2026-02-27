@@ -1,6 +1,8 @@
 package oleg.sopilnyak.test.school.common.business.facade.profile.base;
 
 import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
 
 /**
  * Service-BaseFacade: Service for manage person profiles in the school
@@ -8,26 +10,6 @@ import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
  */
 public interface PersonProfileFacade extends BusinessFacade {
     String NAMESPACE = "school::person::profile";
-    /**
-     * Action ID of find person by id
-     *
-     * @return action-id value
-     */
-    String findByIdActionId();
-
-    /**
-     * Action ID of create or update person by person instance
-     *
-     * @return created or updated person instance value
-     */
-    String createOrUpdateActionId();
-
-    /**
-     * Action ID of delete person by id
-     *
-     * @return action-id value
-     */
-    String deleteByIdActionId();
 
     /**
      * Unified facade's entry-point to do action and return the result
@@ -51,4 +33,34 @@ public interface PersonProfileFacade extends BusinessFacade {
      * @see BusinessFacade#doActionAndResult(String, Object...)
      */
     <T> T personProfileAction(String actionId, Object... parameters);
+
+    /**
+     * To convert argument to particular type (long)
+     *
+     * @param argument value to convert
+     * @return converted value or throws InvalidParameterTypeException
+     * @see InvalidParameterTypeException
+     */
+    default Long toLong(final Object argument) {
+        if (argument instanceof Long id) {
+            return id;
+        } else {
+            throw new InvalidParameterTypeException("Long", argument);
+        }
+    }
+
+    /**
+     * To convert argument to particular type (person profile)
+     *
+     * @param argument value to convert
+     * @return converted value or throws InvalidParameterTypeException
+     * @see InvalidParameterTypeException
+     */
+    default PersonProfile toPersonProfile(final Object argument) {
+        if (argument instanceof PersonProfile profile) {
+            return profile;
+        } else {
+            throw new InvalidParameterTypeException("PersonProfile", argument);
+        }
+    }
 }

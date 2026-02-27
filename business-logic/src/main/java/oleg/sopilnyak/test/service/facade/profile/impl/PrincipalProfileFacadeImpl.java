@@ -20,8 +20,35 @@ import lombok.extern.slf4j.Slf4j;
 public class PrincipalProfileFacadeImpl extends PersonProfileFacadeImpl<PrincipalProfileCommand<?>>
         implements PrincipalProfileFacade {
     //
-    // semantic data to payload converter
-    private UnaryOperator<PersonProfile> toPayloadMapperFunction;
+    // semantic data to payload converter operator
+    private final UnaryOperator<PersonProfile> payloadOperator;
+
+    public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand<?>> factory,
+                                      final BusinessMessagePayloadMapper payloadMapper,
+                                      final CommandActionExecutor actionExecutor) {
+        super(factory, actionExecutor);
+        payloadOperator = profile -> profile instanceof PrincipalProfilePayload ? profile : payloadMapper.toPayload(profile);
+    }
+
+
+    /**
+     * Concrete profile action processing facade method
+     *
+     * @param actionId   the id of the action
+     * @param argument the parameters of action to execute
+     * @return action execution result value
+     * @param <T> execution result type
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <T> T profileAction(final String actionId, final Object argument) {
+        return (T) switch (actionId) {
+            case PrincipalProfileFacade.FIND_BY_ID -> super.internalFindById(actionId, argument);
+            case PrincipalProfileFacade.CREATE_OR_UPDATE -> super.internalCreateOrUpdate(actionId, argument);
+            case PrincipalProfileFacade.DELETE_BY_ID -> super.internalDelete(actionId, argument);
+            default -> unknownActionId(actionId);
+        };
+    }
 
     /**
      * To get the operator to convert entity to payload
@@ -30,26 +57,8 @@ public class PrincipalProfileFacadeImpl extends PersonProfileFacadeImpl<Principa
      * @see UnaryOperator#apply(Object)
      */
     @Override
-    protected UnaryOperator<PersonProfile> toPayload() {
-        return toPayloadMapperFunction;
-    }
-
-    /**
-     * To prepare the operator to convert entity to payload
-     *
-     * @param mapper layer's data mapper
-     * @see PersonProfileFacadeImpl#toPayload()
-     * @see BusinessMessagePayloadMapper
-     */
-    @Override
-    protected void prepareToPayloadFunction(final BusinessMessagePayloadMapper mapper) {
-        this.toPayloadMapperFunction = profile -> profile instanceof PrincipalProfilePayload ? profile : mapper.toPayload(profile);
-    }
-
-    public PrincipalProfileFacadeImpl(final CommandsFactory<PrincipalProfileCommand<?>> factory,
-                                      final BusinessMessagePayloadMapper payloadMapper,
-                                      final CommandActionExecutor actionExecutor) {
-        super(factory, payloadMapper, actionExecutor);
+    protected final UnaryOperator<PersonProfile> toPayload() {
+        return payloadOperator;
     }
 
     /**
@@ -58,7 +67,7 @@ public class PrincipalProfileFacadeImpl extends PersonProfileFacadeImpl<Principa
      * @return logger instance
      */
     @Override
-    public Logger getLogger() {
+    public final Logger getLogger() {
         return log;
     }
 }
