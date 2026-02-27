@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -44,22 +43,6 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
     private final CommandActionExecutor actionExecutor;
     // semantic data to payload converter
     private final UnaryOperator<Course> toPayload;
-    //
-    // setting up action-methods by action-id
-    private final Map<String, Function<Object[], Object>> actions = Map.<String, Function<Object[], Object>>of(
-            CoursesFacade.FIND_BY_ID, this::internalFindById,
-            CoursesFacade.FIND_REGISTERED, this::internalFindRegisteredFor,
-            CoursesFacade.FIND_NOT_REGISTERED, this::internalFindWithoutStudents,
-            CoursesFacade.CREATE_OR_UPDATE, this::internalCreateOrUpdate,
-            CoursesFacade.DELETE, this::internalDelete,
-            CoursesFacade.REGISTER, this::internalRegister,
-            CoursesFacade.UN_REGISTER, this::internalUnRegister
-    ).entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue,
-                    (existing, _) -> existing,
-                    HashMap::new
-            )
-    );
 
     public CoursesFacadeImpl(
             CommandsFactory<CourseCommand<?>> factory,
@@ -83,7 +66,16 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
     @Override
     public <T> T educationAction(final String actionId, final Object... parameters) {
         getLogger().debug("Trying to execute action {} with arguments {}", actionId, parameters);
-        return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(parameters);
+        return (T) switch (actionId) {
+            case CoursesFacade.FIND_BY_ID -> this.internalFindById(parameters);
+            case CoursesFacade.FIND_REGISTERED -> this.internalFindRegisteredFor(parameters);
+            case CoursesFacade.FIND_NOT_REGISTERED -> this.internalFindWithoutStudents();
+            case CoursesFacade.CREATE_OR_UPDATE -> this.internalCreateOrUpdate(parameters);
+            case CoursesFacade.DELETE -> this.internalDelete(parameters);
+            case CoursesFacade.REGISTER -> this.internalRegister(parameters);
+            case CoursesFacade.UN_REGISTER -> this.internalUnRegister(parameters);
+            default -> throwsUnknownActionId(actionId).apply(null);
+        };
     }
 
     /**
@@ -163,10 +155,6 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
     }
 
     // To get courses without registered students (for entry-point)
-    private Set<Course> internalFindWithoutStudents(final Object... parameters) {
-        return internalFindWithoutStudents();
-    }
-
     // To get courses without registered students (for internal usage)
     private Set<Course> internalFindWithoutStudents() {
         log.debug("Finding no-students courses");

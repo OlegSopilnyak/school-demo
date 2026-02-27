@@ -15,12 +15,9 @@ import oleg.sopilnyak.test.service.facade.education.base.impl.EducationFacadeImp
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -37,21 +34,6 @@ public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsF
     private final CommandActionExecutor actionExecutor;
     // semantic data to payload converter
     private final UnaryOperator<Student> toPayload;
-    //
-    // setting up action-methods by action-id
-    private final Map<String, Function<Object[], Object>> actions = Map.<String, Function<Object[], Object>>of(
-            StudentsFacade.FIND_BY_ID, this::internalFindById,
-            StudentsFacade.FIND_ENROLLED, this::internalEnrolledTo,
-            StudentsFacade.FIND_NOT_ENROLLED, this::internalFindNotEnrolled,
-            StudentsFacade.CREATE_MACRO, this::internalCreateComposite,
-            StudentsFacade.CREATE_OR_UPDATE, this::internalCreateOrUpdate,
-            StudentsFacade.DELETE_MACRO, this::internalDeleteComposite
-    ).entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue,
-                    (existing, _) -> existing,
-                    HashMap::new
-            )
-    );
 
     public StudentsFacadeImpl(
             CommandsFactory<StudentCommand<?>> factory,
@@ -75,7 +57,15 @@ public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsF
     @Override
     public <T> T educationAction(final String actionId, final Object... parameters) {
         getLogger().debug("Trying to execute action {} with arguments {}", actionId, parameters);
-        return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(parameters);
+        return (T) switch (actionId) {
+            case StudentsFacade.FIND_BY_ID -> this.internalFindById(parameters);
+            case StudentsFacade.FIND_ENROLLED -> this.internalEnrolledTo(parameters);
+            case StudentsFacade.FIND_NOT_ENROLLED -> this.internalFindNotEnrolled();
+            case StudentsFacade.CREATE_MACRO -> this.internalCreateComposite(parameters);
+            case StudentsFacade.CREATE_OR_UPDATE -> this.internalCreateOrUpdate(parameters);
+            case StudentsFacade.DELETE_MACRO -> this.internalDeleteComposite(parameters);
+            default -> throwsUnknownActionId(actionId).apply(null);
+        };
     }
 
     /**
@@ -132,10 +122,6 @@ public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsF
     }
 
     // To get students not enrolled to any course (for entry-point)
-    private Set<Student> internalFindNotEnrolled(final Object... parameters) {
-        return internalFindNotEnrolled();
-    }
-
     // To get students not enrolled to any course (for internal usage)
     private Set<Student> internalFindNotEnrolled() {
         log.debug("Finding students not enrolled to any course");

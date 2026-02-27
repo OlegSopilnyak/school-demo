@@ -273,7 +273,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isPresent();
         assertAuthorityPersonEquals(authorityPerson, result.get(), false);
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW, Input.of(authorityPerson));
+        verifyAfterCommand(commandId, Input.of(authorityPerson));
         ArgumentCaptor<AuthorityPerson> captor = ArgumentCaptor.forClass(AuthorityPerson.class);
         verify(persistence).save(captor.capture());
         assertAuthorityPersonEquals(captor.getValue(), authorityPerson);
@@ -288,7 +288,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(result).isPresent();
         assertAuthorityPersonEquals(authorityPerson, result.get(), true);
-        verifyAfterCommand(ORGANIZATION_AUTHORITY_PERSON_CREATE_OR_UPDATE, Input.of(authorityPerson));
+        verifyAfterCommand(commandId, Input.of(authorityPerson));
         verify(persistence).save(authorityPerson);
     }
 

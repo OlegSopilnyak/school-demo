@@ -15,12 +15,9 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -36,19 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGroupCommand<?>> implements StudentsGroupFacade {
     // semantic data to payload converter
     private final UnaryOperator<StudentsGroup> toPayload;
-    //
-    // setting up action-methods by action-id
-    private final Map<String, Function<Object[], Object>> actions = Map.<String, Function<Object[], Object>>of(
-            StudentsGroupFacade.FIND_ALL, this::internalFindAll,
-            StudentsGroupFacade.FIND_BY_ID, this::internalFindById,
-            StudentsGroupFacade.CREATE_OR_UPDATE, this::internalCreateOrUpdate,
-            StudentsGroupFacade.DELETE, this::internalDeleteById
-    ).entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue,
-                    (existing, _) -> existing,
-                    HashMap::new
-            )
-    );
 
     public StudentsGroupFacadeImpl(
             CommandsFactory<StudentsGroupCommand<?>> factory,
@@ -71,7 +55,13 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     @Override
     public <T> T organizationAction(final String actionId, final Object... parameters) {
         getLogger().debug("Trying to execute action {} with arguments {}", actionId, parameters);
-        return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(parameters);
+        return (T) switch (actionId) {
+            case StudentsGroupFacade.FIND_ALL -> this.internalFindAll();
+            case StudentsGroupFacade.FIND_BY_ID -> this.internalFindById(parameters);
+            case StudentsGroupFacade.CREATE_OR_UPDATE -> this.internalCreateOrUpdate(parameters);
+            case StudentsGroupFacade.DELETE -> this.internalDeleteById(parameters);
+            default -> throwsUnknownActionId(actionId).apply(null);
+        };
     }
 
     /**
@@ -96,6 +86,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
             throw new InvalidParameterTypeException("StudentsGroup", parameters[0]);
         }
     }
+
     // to get the students group by ID (for entry-point)
     private Optional<StudentsGroup> internalFindById(final Object... parameters) {
         return internalFindById(decodeLongArgument(parameters));
@@ -112,10 +103,6 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     }
 
     // to get all students groups (for entry-point)
-    private Collection<StudentsGroup> internalFindAll(final Object... parameters) {
-        return internalFindAll();
-    }
-
     // to get all students groups (for internal usage)
     private Collection<StudentsGroup> internalFindAll() {
         log.debug("Finding all students groups");

@@ -12,12 +12,9 @@ import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import org.springframework.lang.Nullable;
 import lombok.Getter;
 
@@ -32,23 +29,9 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     private final CommandsFactory<P> factory;
     @Getter
     private final CommandActionExecutor actionExecutor;
-    //
-    // setting up action-methods by action-id
-    private final Map<String, UnaryOperator<Object>> actions = Map.<String, UnaryOperator<Object>>of(
-            findByIdActionId(), this::internalFindById,
-            createOrUpdateActionId(), this::internalCreateOrUpdate,
-            deleteByIdActionId(), this::internalDelete
-    ).entrySet().stream().collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue,
-                    (existing, _) -> existing,
-                    HashMap::new
-            )
-    );
 
-    protected PersonProfileFacadeImpl(
-            CommandsFactory<P> factory,
-            BusinessMessagePayloadMapper mapper,
-            CommandActionExecutor actionExecutor
+    protected PersonProfileFacadeImpl(CommandsFactory<P> factory, BusinessMessagePayloadMapper mapper,
+                                      CommandActionExecutor actionExecutor
     ) {
         this.factory = factory;
         this.actionExecutor = actionExecutor;
@@ -88,8 +71,13 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
     @Override
     public <T> T personProfileAction(final String actionId, final Object... parameters) {
         final Object argument = parameters.length > 0 ? parameters[0] : null;
-        getLogger().debug("Trying to execute action '{}' with arguments {}", actionId, argument);
-        return (T) actions.computeIfAbsent(actionId, this::throwsUnknownActionId).apply(argument);
+        getLogger().debug("Trying to execute action '{}' with argument {}", actionId, argument);
+        return (T) switch (actionId) {
+            case String id when findByIdActionId().equals(id) -> this.internalFindById(argument);
+            case String id when createOrUpdateActionId().equals(id) -> this.internalCreateOrUpdate(argument);
+            case String id when deleteByIdActionId().equals(id) -> this.internalDelete(argument);
+            default -> throwsUnknownActionId(actionId).apply(null);
+        };
     }
 
     // private methods
@@ -100,7 +88,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         return null;
     }
 
-    // To get the person's profile by ID
+    // To get the person's profile by ID (for entry-point)
     private Optional<PersonProfile> internalFindById(final Object argument) {
         final Long id = toLong(argument);
         getLogger().debug("Getting profile by ID:{}", id);
@@ -113,7 +101,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         });
     }
 
-    // To create or update person-profile
+    // To create or update person-profile (for entry-point)
     private Optional<PersonProfile> internalCreateOrUpdate(final Object argument) {
         final PersonProfile instance = toPersonProfile(argument);
         getLogger().debug("Creating or Updating profile {}", instance);
@@ -126,7 +114,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         });
     }
 
-    // To delete person-profile by id or profile
+    // To delete person-profile by id or profile (for entry-point)
     public Void internalDelete(final Object argument) throws ProfileNotFoundException {
         return switch (argument) {
             // delete by id
@@ -141,7 +129,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
         };
     }
 
-    // To delete person-profile by profile-id
+    // To delete person-profile by profile-id (for internal usage)
     @Nullable
     private Void internalDeleteById(Long id) {
         final String commandId = deleteByIdActionId();
