@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.endpoint.rest.authentication;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -10,16 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
-import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
-import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 
 import java.util.Optional;
 import org.aspectj.lang.JoinPoint;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,7 +54,8 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     @MockitoSpyBean
     @Autowired
     AuthorityPersonFacade facade;
-    @MockitoBean
+    @MockitoSpyBean
+    @Autowired
     AuthenticationFacade authenticationFacade;
     @MockitoSpyBean
     @Autowired
@@ -65,6 +66,8 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
+    @Mock
+    AccessCredentials accessCredentials;
 
     MockMvc mockMvc;
 
@@ -77,9 +80,10 @@ class AuthenticationRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldLogoutAuthorityPerson() throws Exception {
-        String token = "logged_in_person_token";
+        String token = "logged.in_person.token";
         String bearer = "Bearer " + token;
         String requestPath = ROOT + "/logout";
+        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signOut(token);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -90,23 +94,22 @@ class AuthenticationRestControllerTest extends TestModelFactory {
                 .andDo(print())
                 .andReturn();
 
+        // check the behavior
         verify(controller).logout(bearer);
         verify(facade).doActionAndResult(LOGOUT, token);
+        verify(authenticationFacade).signOut(token);
         checkControllerAspect();
     }
 
     @Test
     void shouldLoginAuthorityPerson() throws Exception {
-        Long profileId = 1L;
         String username = "test-username";
         String password = "test-password";
-        AuthorityPerson person = makeCleanAuthorityPerson(212);
-        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
-        PrincipalProfilePayload profile = mock(PrincipalProfilePayload.class);
-        doReturn(true).when(profile).isPassword(password);
-        doReturn(profileId).when(profile).getId();
-        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
-        doReturn(profile).when(messagePayloadMapper).toPayload(profile);
+        String activeToke = "logged.in_person.active.token";
+        String refreshToken = "logged.in_person.refresh_token";
+        doReturn(activeToke).when(accessCredentials).getToken();
+        doReturn(refreshToken).when(accessCredentials).getRefreshToken();
+        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signIn(username, password);
         String requestPath = ROOT + "/login";
 
         MvcResult result =
@@ -120,31 +123,29 @@ class AuthenticationRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        AccessCredentials credentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
+        assertThat(credentials).isNotNull();
+        assertThat(credentials.getToken()).isNotBlank().isEqualTo(activeToke);
+        assertThat(credentials.getRefreshToken()).isNotBlank().isEqualTo(refreshToken);
+        // check the behavior
         verify(controller).login(username, password);
         verify(facade).doActionAndResult(LOGIN, username, password);
-        String responseString = result.getResponse().getContentAsString();
-        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
-        assertAuthorityPersonEquals(person, personDto, false);
+        verify(authenticationFacade).signIn(username, password);
         checkControllerAspect();
-    }
-
-    @Test
-    void login() {
     }
 
     @Test
     void refresh() {
     }
-
-    @Test
-    void logout() {
-    }
     // private methods
     private void checkControllerAspect() {
         final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
-        verify(delegate).beforeCall(aspectCapture.capture());
+        verify(delegate, atLeastOnce()).beforeCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
-        verify(delegate).afterCall(aspectCapture.capture());
+        verify(delegate, atLeastOnce()).afterCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
     }
 }

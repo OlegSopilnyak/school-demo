@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
     public Optional<UserDetailsEntity> prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
         log.debug("Loading user by username '{}' and password...", username);
         // making signing in user-details
-        final Optional<PrincipalProfile> foundProfile = persistenceFacade.findPersonProfileByLogin(username).map(PrincipalProfile.class::cast);
+        final Optional<PrincipalProfile> foundProfile = persistenceFacade.findPrincipalProfileByLogin(username);
         return foundProfile.map(profile -> {
             log.debug("There is the profile for user with username '{}'", username);
             if (!isPasswordValidFor(profile, password)) {

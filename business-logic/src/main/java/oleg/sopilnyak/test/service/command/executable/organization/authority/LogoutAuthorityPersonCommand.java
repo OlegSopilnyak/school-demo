@@ -1,17 +1,23 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -23,7 +29,19 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component(AuthorityPersonCommand.Component.LOGOUT)
-public class LogoutAuthorityPersonCommand extends BasicCommand<Boolean> implements AuthorityPersonCommand<Boolean> {
+public class LogoutAuthorityPersonCommand extends BasicCommand<Optional<AccessCredentials>>
+        implements AuthorityPersonCommand<Optional<AccessCredentials>> {
+    // authentication functionality facade
+    private final transient AuthenticationFacade authenticationFacade;
+    // mapper of common types to module's payload types
+    @Getter
+    private final transient BusinessMessagePayloadMapper payloadMapper;
+
+    public LogoutAuthorityPersonCommand(AuthenticationFacade authenticationFacade, BusinessMessagePayloadMapper payloadMapper) {
+        this.authenticationFacade = authenticationFacade;
+        this.payloadMapper = payloadMapper;
+    }
+
     /**
      * The name of command bean in spring beans factory
      *
@@ -57,14 +75,16 @@ public class LogoutAuthorityPersonCommand extends BasicCommand<Boolean> implemen
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void executeDo(Context<Boolean> context) {
+    public void executeDo(Context<Optional<AccessCredentials>> context) {
         final Input<String> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
             final String token = parameter.value();
             log.debug("Trying to logout authority person by token:'{}'", token);
-
-            context.setResult(true);
+            final AccessCredentials accessCredentials = authenticationFacade.signOut(token)
+                    .map(payloadMapper::toPayload)
+                    .orElseThrow(() -> new ProfileNotFoundException("Profile with token:'" + token + "', is not found"));
+            context.setResult(Optional.of(accessCredentials));
         } catch (Exception e) {
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);

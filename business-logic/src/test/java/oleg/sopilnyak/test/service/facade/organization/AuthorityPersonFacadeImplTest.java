@@ -139,10 +139,12 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldLogoutAuthorityPerson_Unified() {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGOUT;
+        String token = "logged_in_person_token";
         AuthorityPersonCommand<?> command = factory.command(commandId);
         reset(factory);
+        doReturn(credentialsPayload).when(payloadMapper).toPayload(credentials);
+        doReturn(Optional.of(credentials)).when(authenticationFacade).signOut(token);
         doReturn(command).when(applicationContext).getBean("authorityPersonLogout", AuthorityPersonCommand.class);
-        String token = "logged_in_person_token";
 
         facade.doActionAndResult(commandId, token);
 
@@ -154,10 +156,12 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldLogoutAuthorityPerson() {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_LOGOUT;
+        String token = "logged_in_person_token";
         AuthorityPersonCommand<?> command = factory.command(commandId);
         reset(factory);
+        doReturn(credentialsPayload).when(payloadMapper).toPayload(credentials);
+        doReturn(Optional.of(credentials)).when(authenticationFacade).signOut(token);
         doReturn(command).when(applicationContext).getBean("authorityPersonLogout", AuthorityPersonCommand.class);
-        String token = "logged_in_person_token";
 
         ReflectionTestUtils.invokeMethod(facade, "internalLogout", token);
 
@@ -574,7 +578,7 @@ class AuthorityPersonFacadeImplTest {
 
         Map<AuthorityPersonCommand<?>, String> commands = Map.of(
                 loginPersonCommand, "authorityPersonLogin",
-                spy(new LogoutAuthorityPersonCommand()), "authorityPersonLogout",
+                spy(new LogoutAuthorityPersonCommand(authenticationFacade, payloadMapper)), "authorityPersonLogout",
                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)), "authorityPersonFindAll",
                 spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonFind",
                 createPersonCommand, "authorityPersonUpdate",

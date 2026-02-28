@@ -408,7 +408,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Map<AuthorityPersonCommand<?>, String> commands = Map.of(
 //                spy(new LoginAuthorityPersonCommand(authenticationFacade, persistenceFacade, payloadMapper)), "authorityPersonLogin",
                 spy(new LoginAuthorityPersonCommand(authenticationFacade, payloadMapper)), "authorityPersonLogin",
-                spy(new LogoutAuthorityPersonCommand()), "authorityPersonLogout",
+                spy(new LogoutAuthorityPersonCommand(authenticationFacade,payloadMapper)), "authorityPersonLogout",
                 createOrUpdateAuthorityPersonCommand, "authorityPersonUpdate",
                 createAuthorityPersonMacroCommand, "authorityPersonMacroCreate",
                 deleteAuthorityPersonCommand, "authorityPersonDelete",

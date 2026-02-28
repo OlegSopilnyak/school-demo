@@ -152,26 +152,30 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
         log.debug("Trying to log in person using: '{}'", username);
         final var input = Input.of(username, password);
         final Optional<Optional<AccessCredentials>> result = executeCommand(commandId, factory, input, doOnError);
-        return result.flatMap(person -> {
+        return result.flatMap(credentials -> {
             // logged in successfully
             log.debug("AuthorityPerson with username: '{}' is signed in.", username);
-            return person;
+            return credentials;
         });
     }
 
     // To log out the AuthorityPerson (for entry-point)
-    private Void internalLogout(final Object... parameters) {
-        internalLogout(decodeStringArgument(parameters));
-        return null;
+    private Optional<AccessCredentials> internalLogout(final Object... parameters) {
+        return internalLogout(decodeStringArgument(parameters));
     }
 
     // To log out the AuthorityPerson (for internal usage)
-    private void internalLogout(final String token) {
+    private Optional<AccessCredentials> internalLogout(final String token) {
         log.debug("Logging out person using token: {}", token);
-        final Optional<Boolean> result = executeCommand(AuthorityPersonFacade.LOGOUT, factory, Input.of(token));
+        final Optional<Optional<AccessCredentials>> result = executeCommand(AuthorityPersonFacade.LOGOUT, factory, Input.of(token));
         result.ifPresent(executionResult ->
                 log.debug("Person is logged out: {}", executionResult)
         );
+        return result.flatMap(credentials -> {
+            // logged in successfully
+            log.debug("AuthorityPerson is signed out with former credentials: '{}'", credentials);
+            return credentials;
+        });
     }
 
     // To get all authority persons (for entry-point)

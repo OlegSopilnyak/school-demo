@@ -6,10 +6,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
+import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +32,14 @@ class LogoutAuthorityPersonCommandTest {
     LogoutAuthorityPersonCommand command;
     @Mock
     ApplicationContext applicationContext;
+    @Mock
+    AuthenticationFacade authenticationFacade;
+    @Mock
+    BusinessMessagePayloadMapper messagePayloadMapper;
+    @Mock
+    AccessCredentials accessCredentials;
+    @Mock
+    AccessCredentialsPayload accessCredentialsPayload;
 
     @BeforeEach
     void setUp() {
@@ -37,18 +50,20 @@ class LogoutAuthorityPersonCommandTest {
     @Test
     void shouldDoCommand() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(Input.of(token));
+        doReturn(accessCredentialsPayload).when(messagePayloadMapper).toPayload(accessCredentials);
+        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signOut(token);
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(token));
 
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getResult().orElseThrow()).isTrue();
+        assertThat(context.getResult().orElseThrow()).isNotNull();
     }
 
     @Test
     void shouldUndoCommand_NothingToDo() {
         String token = "logged_in_person_token";
-        Context<Boolean> context = command.createContext(Input.of(token));
+        Context<Optional<AccessCredentials>> context = command.createContext(Input.of(token));
         context.setState(DONE);
 
         command.undoCommand(context);
