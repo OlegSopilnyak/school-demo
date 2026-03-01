@@ -1,7 +1,6 @@
 package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -81,10 +80,7 @@ public class LogoutAuthorityPersonCommand extends BasicCommand<Optional<AccessCr
             checkNullParameter(parameter);
             final String token = parameter.value();
             log.debug("Trying to logout authority person by token:'{}'", token);
-            final AccessCredentials accessCredentials = authenticationFacade.signOut(token)
-                    .map(payloadMapper::toPayload)
-                    .orElseThrow(() -> new ProfileNotFoundException("Profile with token:'" + token + "', is not found"));
-            context.setResult(Optional.of(accessCredentials));
+            context.setResult(authenticationFacade.signOut(token).map(payloadMapper::toPayload));
         } catch (Exception e) {
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);

@@ -217,7 +217,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
         // waitingProcessedCommandMessage::retrieveProcessedMessage
         verify(messagesExecutor, times(3)).messageWatchdogFor(correlationId);
         verify(messagesExecutor).stopWatchingMessage(correlationId);
-        verify(logger).debug("= Retrieve: the result of command '{}' after processing is {}", commandId, request);
+        verify(logger).info("= Retrieve: the result of command '{}' after processing is {}", commandId, request);
     }
 
     @Test
@@ -389,7 +389,7 @@ class CommandMessagesExchangeExecutorAdapterTest {
         // waitingProcessedCommandMessage::retrieveProcessedMessage
         verify(messagesExecutor, times(2)).messageWatchdogFor(correlationId);
         verify(messagesExecutor).stopWatchingMessage(correlationId);
-        verify(logger).debug("= Retrieve: the result of command '{}' after processing is {}", commandId, request);
+        verify(logger).info("= Retrieve: the result of command '{}' after processing is {}", commandId, request);
     }
 
     @Test

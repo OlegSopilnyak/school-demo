@@ -299,13 +299,13 @@ public abstract class CommandMessagesExchangeExecutorAdapter
                             "= Retrieve: waiting for sent command: '{}' process completion, in the message: '{}'",
                             commandId, correlationId
                     );
-                    // wait until command-message processing is done
-                    watchdog.waitForMessageComplete();
+                    // waiting until command-message processing is done
+            waitingForDoneMessage(watchdog);
                     // removing message-watcher from message-in-progress map using correlation-id
                     stopWatchingMessage(correlationId);
                     // getting processed result
                     final CommandMessage<T> processedCommandResult = watchdog.getResult();
-                    getLogger().debug(
+                    getLogger().info(
                             "= Retrieve: the result of command '{}' after processing is {}",
                             commandId, processedCommandResult
                     );
@@ -319,6 +319,10 @@ public abstract class CommandMessagesExchangeExecutorAdapter
         );
         // returns processed command-message value
         return processedMessageHolder.get();
+    }
+
+    private <T> void waitingForDoneMessage(final CommandMessageWatchdog<T> watchdog) {
+        watchdog.waitForMessageComplete();
     }
 
     // launching command messages processor asynchronously

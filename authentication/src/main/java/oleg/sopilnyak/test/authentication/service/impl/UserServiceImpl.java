@@ -47,10 +47,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Optional<UserDetailsEntity> prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
-        log.debug("Loading user by username '{}' and password...", username);
+        log.debug("Preparing user-details by username '{}' and password...", username);
         // making signing in user-details
-        final Optional<PrincipalProfile> foundProfile = persistenceFacade.findPrincipalProfileByLogin(username);
-        return foundProfile.map(profile -> {
+        return persistenceFacade.findPrincipalProfileByLogin(username).map(profile -> {
             log.debug("There is the profile for user with username '{}'", username);
             if (!isPasswordValidFor(profile, password)) {
                 log.error("Wrong password for username: '{}'", username);

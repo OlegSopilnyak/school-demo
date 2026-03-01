@@ -58,7 +58,7 @@ class UserServiceImplTest extends TestModelFactory {
         doReturn(signature).when(profile).getSignature();
         doReturn(Role.SUPPORT_STAFF).when(profile).getRole();
         doReturn(Set.of(Permission.EDU_GET)).when(profile).getPermissions();
-        doReturn(Optional.of(profile)).when(persistenceFacade).findPersonProfileByLogin(username);
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
         AuthorityPerson person = mock(AuthorityPerson.class);
         doReturn(personId).when(person).getId();
         doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
@@ -75,7 +75,7 @@ class UserServiceImplTest extends TestModelFactory {
                 assertThat(authorities).contains(granted.getAuthority())
         );
         // check the behavior
-        verify(persistenceFacade).findPersonProfileByLogin(username);
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 
@@ -88,7 +88,7 @@ class UserServiceImplTest extends TestModelFactory {
         // check the result
         assertThat(result).isNotNull().isEmpty();
         // check the behavior
-        verify(persistenceFacade).findPersonProfileByLogin(username);
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
@@ -96,14 +96,14 @@ class UserServiceImplTest extends TestModelFactory {
     void shouldNotPrepareUserDetails_WrongPasswordInProfile() {
         String password = "password";
         PrincipalProfile profile = mock(PrincipalProfile.class);
-        doReturn(Optional.of(profile)).when(persistenceFacade).findPersonProfileByLogin(username);
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
 
         var result = assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
 
         // check the result
         assertThat(result).isNotNull().isInstanceOf(SchoolAccessDeniedException.class);
         // check the behavior
-        verify(persistenceFacade).findPersonProfileByLogin(username);
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
@@ -119,14 +119,14 @@ class UserServiceImplTest extends TestModelFactory {
         doReturn(signature).when(profile).getSignature();
         doReturn(Role.SUPPORT_STAFF).when(profile).getRole();
         doReturn(Set.of(Permission.EDU_GET)).when(profile).getPermissions();
-        doReturn(Optional.of(profile)).when(persistenceFacade).findPersonProfileByLogin(username);
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
 
         var result = assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
 
         // check the result
         assertThat(result).isNotNull().isInstanceOf(UsernameNotFoundException.class);
         // check the behavior
-        verify(persistenceFacade).findPersonProfileByLogin(username);
+        verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 

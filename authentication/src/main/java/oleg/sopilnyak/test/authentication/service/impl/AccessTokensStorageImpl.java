@@ -71,7 +71,7 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     @Override
     public Optional<AccessCredentials> findCredentials(final String username) {
         log.debug("Finding access credentials for {}", username);
-        return Optional.ofNullable(accessCredentials.get(username));
+        return username == null ? Optional.empty() : Optional.ofNullable(accessCredentials.get(username));
     }
 
     /**

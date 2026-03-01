@@ -2,7 +2,6 @@ package oleg.sopilnyak.test.end2end.command.executable.organization.authority;
 
 import static oleg.sopilnyak.test.service.command.type.core.Context.State.UNDONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -43,7 +42,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.UnexpectedRollbackException;
 
 @ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = {SchoolCommandsConfiguration.class, PersistenceConfiguration.class, TestConfig.class})
@@ -156,20 +154,19 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         setPersonPermissions(entity, username, password);
         String error = "error finding principal profile";
         RuntimeException runtimeException = new RuntimeException(error);
-        doThrow(runtimeException).when(persistence).findPersonProfileByLogin(username);
+        doThrow(runtimeException).when(persistence).findPrincipalProfileByLogin(username);
         Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
 
-        var thrown = assertThrows(Exception.class, () -> command.doCommand(context));
+        command.doCommand(context);
 
-        assertThat(thrown).isInstanceOf(UnexpectedRollbackException.class);
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isEqualTo(runtimeException);
         assertThat(context.getResult()).isEmpty();
         assertThat(context.getUndoParameter().isEmpty()).isTrue();
         verify(command).executeDo(context);
         verify(authenticationFacade).signIn(username, password);
-        verify(persistence).findPersonProfileByLogin(username);
+        verify(persistence).findPrincipalProfileByLogin(username);
         verify(persistence, never()).findAuthorityPersonByProfileId(anyLong());
     }
 
