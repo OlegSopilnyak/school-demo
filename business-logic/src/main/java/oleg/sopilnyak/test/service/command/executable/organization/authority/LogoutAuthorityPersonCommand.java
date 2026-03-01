@@ -78,9 +78,9 @@ public class LogoutAuthorityPersonCommand extends BasicCommand<Optional<AccessCr
         final Input<String> parameter = context.getRedoParameter();
         try {
             checkNullParameter(parameter);
-            final String token = parameter.value();
-            log.debug("Trying to logout authority person by token:'{}'", token);
-            context.setResult(authenticationFacade.signOut(token).map(payloadMapper::toPayload));
+            final String username = parameter.value();
+            log.debug("Trying to logout authority person with username:'{}'", username);
+            context.setResult(authenticationFacade.signOut(username).map(payloadMapper::toPayload));
         } catch (Exception e) {
             log.error("Cannot find the authority person with login:'{}'", parameter, e);
             context.failed(e);

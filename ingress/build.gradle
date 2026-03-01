@@ -21,6 +21,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
     testCompileOnly 'org.mockito:mockito-inline:5.2.0'
+    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation project(":persistence")
     testImplementation project(":business-logic")
     testImplementation testFixtures(project(":micro-core"))

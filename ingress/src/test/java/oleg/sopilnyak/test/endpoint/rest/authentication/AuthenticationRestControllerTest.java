@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -78,16 +79,14 @@ class AuthenticationRestControllerTest extends TestModelFactory {
                 .build();
     }
 
+    @WithMockUser(username = "username", roles = {"PRINCIPAL"})
     @Test
     void shouldLogoutAuthorityPerson() throws Exception {
-        String token = "logged.in_person.token";
-        String bearer = "Bearer " + token;
+        String username = "username";
         String requestPath = ROOT + "/logout";
-        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signOut(token);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
-                                .header("Authorization", bearer)
                                 .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
@@ -95,9 +94,9 @@ class AuthenticationRestControllerTest extends TestModelFactory {
                 .andReturn();
 
         // check the behavior
-        verify(controller).logout(bearer);
-        verify(facade).doActionAndResult(LOGOUT, token);
-        verify(authenticationFacade).signOut(token);
+        verify(controller).logout();
+        verify(facade).doActionAndResult(LOGOUT, username);
+        verify(authenticationFacade).signOut(username);
         checkControllerAspect();
     }
 

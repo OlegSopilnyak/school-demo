@@ -95,7 +95,7 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
                     .orElseThrow(() -> new ProfileNotFoundException("Profile with login:'" + username + "', is not found"));
             if (context instanceof CommandContext<Optional<AccessCredentials>> commandContext) {
                 commandContext.setResult(Optional.of(accessCredentials));
-                commandContext.setUndoParameter(Input.of(accessCredentials.getToken()));
+                commandContext.setUndoParameter(Input.of(username));
             } else {
                 throw new InvalidParameterTypeException("CommandContext", context);
             }
@@ -121,9 +121,9 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
         try {
             log.debug("Trying to sign out authority person...");
 
-            final String activeToken = parameter.value();
-            authenticationFacade.signOut(activeToken);
-            log.debug("Person is signed out, token: {}", activeToken);
+            final String username = parameter.value();
+            authenticationFacade.signOut(username);
+            log.debug("Person with login '{}' is signed out.", username);
             super.executeUndo(context);
         } catch (Exception e) {
             log.error("Cannot sign out the authority person with credentials: {}", parameter, e);

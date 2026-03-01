@@ -104,7 +104,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldDoCommand_AuthorityPersonNotExists() {
-        String username = "login";
+        String username = "login-no-person";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
@@ -126,7 +126,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDoCommand_PrincipalProfileNotExists() {
-        String username = "login";
+        String username = "login-no-profile";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
@@ -148,7 +148,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDoCommand_FindPrincipalProfileThrows() {
-        String username = "login";
+        String username = "login-find-throws";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
@@ -172,7 +172,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDoCommand_PrincipalProfileWrongPassword() {
-        String username = "login";
+        String username = "login-wrong-password";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
@@ -193,7 +193,7 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
 
     @Test
     void shouldNotDoCommand_FindAuthorityPersonThrows() {
-        String username = "login";
+        String username = "login-find-person-throws";
         String password = "pass";
         AuthorityPersonPayload entity = persist();
         setPersonPermissions(entity, username, password);
@@ -224,16 +224,14 @@ class LoginAuthorityPersonCommandTest extends MysqlTestModelFactory {
         setPersonPermissions(entity, username, password);
         Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
         command.doCommand(context);
-        AccessCredentials credentials = context.getResult().orElseThrow().orElseThrow();
-        String token = credentials.getToken();
 
         command.undoCommand(context);
 
         assertThat(context.getState()).isEqualTo(UNDONE);
-        assertThat(context.getUndoParameter().value()).isEqualTo(token);
+        assertThat(context.getUndoParameter().value()).isEqualTo(username);
         assertThat(context.getException()).isNull();
         verify(command).executeUndo(context);
-        verify(authenticationFacade).signOut(token);
+        verify(authenticationFacade).signOut(username);
     }
 
     // private methods

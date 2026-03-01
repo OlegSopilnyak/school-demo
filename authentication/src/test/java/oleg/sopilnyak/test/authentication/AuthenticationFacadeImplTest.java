@@ -96,15 +96,13 @@ class AuthenticationFacadeImplTest {
     void shouldSignOut() {
         AccessCredentialsEntity entity = AccessCredentialsEntity.builder().user(userDetails).token(activeToken).build();
         doReturn(Optional.of(entity)).when(tokenStorage).findCredentials(username);
-        doReturn(username).when(jwtService).extractUserName(activeToken);
 
-        Optional<AccessCredentials> signed = facade.signOut(activeToken);
+        Optional<AccessCredentials> signed = facade.signOut(username);
 
         // check the result
         assertThat(signed).isNotNull().isNotEmpty();
         assertThat(signed.orElseThrow()).isSameAs(entity);
         // check the behavior
-        verify(jwtService).extractUserName(activeToken);
         verify(tokenStorage).findCredentials(username);
         verify(tokenStorage).toBlackList(activeToken);
         verify(tokenStorage).deleteCredentials(username);
@@ -112,14 +110,12 @@ class AuthenticationFacadeImplTest {
 
     @Test
     void shouldNotSignOut_NoStoredAccessCredentials() {
-        doReturn(username).when(jwtService).extractUserName(activeToken);
 
-        Optional<AccessCredentials> signed = facade.signOut(activeToken);
+        Optional<AccessCredentials> signed = facade.signOut(username);
 
         // check the result
         assertThat(signed).isNotNull().isEmpty();
         // check the behavior
-        verify(jwtService).extractUserName(activeToken);
         verify(tokenStorage).findCredentials(username);
         verify(tokenStorage, never()).toBlackList(anyString());
         verify(tokenStorage, never()).deleteCredentials(anyString());

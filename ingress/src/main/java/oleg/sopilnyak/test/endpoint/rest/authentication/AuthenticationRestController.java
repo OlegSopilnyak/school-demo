@@ -13,12 +13,11 @@ import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import java.util.Optional;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.ObjectUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,7 +37,6 @@ public class AuthenticationRestController {
     private static final String USER_NAME = "username";
     private static final String PASS_NAME = "password";
     private static final String TOKEN_NAME = "token";
-    public static final String BEARER_PREFIX = "Bearer ";
     // delegate for requests processing through commands' execution engine
     private final AuthorityPersonFacade personFacade;
     // security access layer of the school application
@@ -67,17 +65,15 @@ public class AuthenticationRestController {
         }
     }
 
+    @PreAuthorize("isFullyAuthenticated()")
     @DeleteMapping("/logout")
-    public void logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String validAccessToken) {
-        log.debug("Trying to sign out authority person using: '{}'", validAccessToken);
-        if (!ObjectUtils.isEmpty(validAccessToken) && validAccessToken.startsWith(BEARER_PREFIX)) {
-            final String token = validAccessToken.substring(BEARER_PREFIX.length());
-            log.debug("Trying to sign out authority person with token: '{}'", token);
+    public void logout() {
+        final String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.debug("Trying to sign out authority person with login: '{}'", username);
 
-            personFacade.doActionAndResult(LOGOUT, token);
+        personFacade.doActionAndResult(LOGOUT, username);
 
-            log.debug("Authority person is signed out.");
-        }
+        log.debug("Authority person with login: '{}' is signed out.", username );
     }
 
     // private methods

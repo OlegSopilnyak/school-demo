@@ -55,9 +55,7 @@ class LoginAuthorityPersonCommandTest {
     void shouldDoCommand_SignedIn() {
         String username = "login";
         String password = "pass";
-        String token = "active-token";
         when(payloadMapper.toPayload(credentials)).thenReturn(credentialsPayload);
-        doReturn(token).when(credentialsPayload).getToken();
         doReturn(Optional.of(credentials)).when(authenticationFacade).signIn(username, password);
         Context<Optional<AccessCredentials>> context = command.createContext(Input.of(username, password));
 
@@ -65,7 +63,7 @@ class LoginAuthorityPersonCommandTest {
 
         assertThat(context.isDone()).isTrue();
         assertThat(context.getResult().orElseThrow()).isEqualTo(Optional.of(credentialsPayload));
-        assertThat(context.getUndoParameter()).isEqualTo(Input.of(token));
+        assertThat(context.getUndoParameter()).isEqualTo(Input.of(username));
         verify(command).executeDo(context);
         verify(authenticationFacade).signIn(username, password);
     }

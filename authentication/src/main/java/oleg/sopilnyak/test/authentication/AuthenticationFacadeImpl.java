@@ -53,13 +53,12 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * To sign out person from the application<BR/>
      * Tokens won't be valid after
      *
-     * @param activeToken valid token to sign out the person
+     * @param username valid sign in username of the person
      * @see AuthenticationFacade#signIn(String, String)
      * @see AccessCredentials#getToken()
      */
     @Override
-    public Optional<AccessCredentials> signOut(final String activeToken) {
-        final String username = jwtService.extractUserName(activeToken);
+    public Optional<AccessCredentials> signOut(final String username) {
         final Optional<AccessCredentials> signedIn = tokenStorage.findCredentials(username);
         signedIn.ifPresentOrElse(credentials -> {
                     log.debug("Signing out user with username '{}' ...", username);
@@ -68,7 +67,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
                     tokenStorage.deleteCredentials(username);
                     log.debug("Deleted stored credentials of '{}'", username);
                 },
-                () -> log.debug("No credentials found for username '{}'", username)
+                () -> log.warn("No stored credentials found for username '{}'", username)
         );
         return signedIn;
     }

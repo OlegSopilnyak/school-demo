@@ -176,9 +176,7 @@ class AuthorityPersonFacadeImplTest {
         doReturn(loginPersonCommand).when(applicationContext).getBean("authorityPersonLogin", AuthorityPersonCommand.class);
         String username = "test-login";
         String password = "test-password";
-        String token = "active-token";
         when(payloadMapper.toPayload(credentials)).thenReturn(credentialsPayload);
-        doReturn(token).when(credentialsPayload).getToken();
         doReturn(Optional.of(credentials)).when(authenticationFacade).signIn(username, password);
 
         Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, username, password);
@@ -196,9 +194,7 @@ class AuthorityPersonFacadeImplTest {
         doReturn(loginPersonCommand).when(applicationContext).getBean("authorityPersonLogin", AuthorityPersonCommand.class);
         String username = "test-login";
         String password = "test-password";
-        String token = "active-token";
         when(payloadMapper.toPayload(credentials)).thenReturn(credentialsPayload);
-        doReturn(token).when(credentialsPayload).getToken();
         doReturn(Optional.of(credentials)).when(authenticationFacade).signIn(username, password);
 
         Optional<AccessCredentials> result = ReflectionTestUtils.invokeMethod(facade, "internalLogin", username, password);
