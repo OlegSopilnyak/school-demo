@@ -15,6 +15,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.Instant;
+import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -49,7 +50,7 @@ public interface IOBase<P> extends Serializable {
      * @return true if no data in the output result
      */
     default boolean isEmpty() {
-        return isNull(value());
+        return ObjectUtils.isEmpty(value());
     }
 
     /**

@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
+import oleg.sopilnyak.test.service.command.io.parameter.CompositeInputParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
@@ -240,6 +241,99 @@ class CommandMessageJsonSerializationTest {
         assertThat(restored).isNotNull().isInstanceOf(PayloadPairParameter.class);
         assertThat(restored.value().first()).isEqualTo(firstEntity);
         assertThat(restored.value().second()).isEqualTo(secondEntity);
+    }
+
+    @Test
+    void shouldDeserializeCompositeInputParameter_TheSameTypes_Long() throws IOException {
+        Long id1 = 102L;
+        Long id2 = 103L;
+        Long id3 = 104L;
+        Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        String json = objectMapper.writeValueAsString(input);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored.value()[0].value()).isEqualTo(id1);
+        assertThat(restored.value()[1].value()).isEqualTo(id2);
+        assertThat(restored.value()[2].value()).isEqualTo(id3);
+    }
+
+    @Test
+    void shouldDeserializeCompositeInputParameter_TheSameTypes_String() throws IOException {
+        String id1 = "102L";
+        String id2 = "103L";
+        String id3 = "104L";
+        Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        String json = objectMapper.writeValueAsString(input);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored.value()[0].value()).isEqualTo(id1);
+        assertThat(restored.value()[1].value()).isEqualTo(id2);
+        assertThat(restored.value()[2].value()).isEqualTo(id3);
+    }
+
+    @Test
+    void shouldDeserializeCompositeInputParameter_TheSameTypes_Payload() throws IOException {
+        long id = 116L;
+        StudentPayload id1 = createStudent(id);
+        StudentPayload id2 = createStudent(id + 1);
+        StudentPayload id3 = createStudent(id + 2);
+        Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        String json = objectMapper.writeValueAsString(input);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored.value()[0].value()).isEqualTo(id1);
+        assertThat(restored.value()[1].value()).isEqualTo(id2);
+        assertThat(restored.value()[2].value()).isEqualTo(id3);
+    }
+
+    @Test
+    void shouldDeserializeCompositeInputParameter_DifferentTypes() throws IOException {
+        long id = 126L;
+        StudentPayload id1 = createStudent(id);
+        Long id2 = id + 1;
+        String id3 = "id + 2";
+        Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        String json = objectMapper.writeValueAsString(input);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored.value()[0].value()).isEqualTo(id1);
+        assertThat(restored.value()[1].value()).isEqualTo(id2);
+        assertThat(restored.value()[2].value()).isEqualTo(id3);
+    }
+
+    @Test
+    void shouldDeserializeCompositeInputParameter_UsingInputOf() throws IOException {
+        long id = 126L;
+        StudentPayload id1 = createStudent(id);
+        Long id2 = id + 1;
+        String id3 = "id + 2";
+        Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        var input = Input.of(Input.of(id1), Input.of(id2), Input.of(id3));
+        String json = objectMapper.writeValueAsString(input);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored.value()[0].value()).isEqualTo(id1);
+        assertThat(restored.value()[1].value()).isEqualTo(id2);
+        assertThat(restored.value()[2].value()).isEqualTo(id3);
     }
 
     @Test

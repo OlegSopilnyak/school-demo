@@ -1,24 +1,24 @@
 package oleg.sopilnyak.test.service.command.io;
 
-import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.school.common.model.education.Course;
-import oleg.sopilnyak.test.school.common.model.organization.Faculty;
-import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.education.Student;
-import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
+import oleg.sopilnyak.test.service.command.io.parameter.CompositeInputParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.StringPairParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -49,8 +49,17 @@ import org.mapstruct.factory.Mappers;
  * @see CommandContext#setRedoParameter(Input)
  */
 public interface Input<P> extends IOBase<P> {
-
     BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
+
+    /**
+     * To create new composite input instance (many inputs inside)
+     *
+     * @return new instance of the input
+     * @see CompositeInputParameter
+     */
+    static CompositeInput of(Input<?>... inputs) {
+        return new CompositeInputParameter(inputs);
+    }
 
     /**
      * To create new empty input instance
@@ -86,16 +95,15 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input long-pair-parameter instance
+     * To create new input long-type-pair-parameter instance
      *
      * @param firstId  first ID value
      * @param secondId second ID value
      * @return new instance of the input
-     * @see LongIdPairParameter
-     * @see PairParameter
+     * @see Input#of(Input[])
      */
-    static PairParameter<Long> of(final Long firstId, final Long secondId) {
-        return new LongIdPairParameter(firstId, secondId);
+    static CompositeInput of(final Long firstId, final Long secondId) {
+        return of(of(firstId), of(secondId));
     }
 
     /**
@@ -110,16 +118,15 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input string-pair-parameter instance
+     * To create new input string-type-pair-parameter instance
      *
      * @param firstValue  first value
      * @param secondValue second value
      * @return new instance of the input
-     * @see StringPairParameter
-     * @see PairParameter
+     * @see Input#of(Input[])
      */
-    static PairParameter<String> of(final String firstValue, final String secondValue) {
-        return new StringPairParameter(firstValue, secondValue);
+    static CompositeInput of(final String firstValue, final String secondValue) {
+        return of(of(firstValue), of(secondValue));
     }
 
     /**
@@ -138,7 +145,7 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input payload-pair-parameter instance
+     * To create new input payload-type-pair-parameter instance
      *
      * @param firstPayload  first payload value
      * @param secondPayload second payload value
@@ -148,8 +155,8 @@ public interface Input<P> extends IOBase<P> {
      * @see BasePayload
      * @see BaseType
      */
-    static <T extends BasePayload<? extends BaseType>> PairParameter<T> of(final T firstPayload, final T secondPayload) {
-        return new PayloadPairParameter<>(firstPayload, secondPayload);
+    static <T extends BasePayload<? extends BaseType>> CompositeInput of(final T firstPayload, final T secondPayload) {
+        return of(of(firstPayload), of(secondPayload));
     }
 
     /**
@@ -187,8 +194,7 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      */
     static Input<?> of(final Object parameter) {
-        return MockUtil.isMock(parameter)
-                ? mock(parameter)
+        return MockUtil.isMock(parameter) ? mock(parameter)
                 : switch (parameter) {
             case null -> empty();
             case Input<?> input -> input;
@@ -198,9 +204,14 @@ public interface Input<P> extends IOBase<P> {
         };
     }
 
-
+    /**
+     * To create new input by parameter type
+     *
+     * @param type instance to wrap
+     * @return new instance of the input
+     */
     static <T extends BaseType> Input<?> of(final T type) {
-        return switch (type){
+        return switch (type) {
             case null -> empty();
             case T base when MockUtil.isMock(base) -> mock(base);
             // education types
@@ -220,7 +231,7 @@ public interface Input<P> extends IOBase<P> {
             case PrincipalProfile base -> of(payloadMapper.toPayload(base));
             case StudentProfilePayload payload -> of(payload);
             case StudentProfile base -> of(payloadMapper.toPayload(base));
-            default -> throw new IllegalArgumentException("Parameter type not supported: " + type.getClass());
+            default -> throw new InvalidParameterTypeException("Model's BaseType", type);
         };
     }
 
@@ -262,15 +273,11 @@ public interface Input<P> extends IOBase<P> {
 
         @Override
         @SuppressWarnings("unchecked")
-        public Input<I> deserialize(final JsonParser jsonParser,
-                                    final DeserializationContext deserializationContext) throws IOException {
+        public Input<I> deserialize(final JsonParser jsonParser, final DeserializationContext notUsed) throws IOException {
             final TreeNode parameterNode = jsonParser.readValueAsTree();
-            final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
             final var inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
-            return mapper.readValue(parameterNode.toString(), inputParameterClass);
+            return ((ObjectMapper) jsonParser.getCodec()).readValue(parameterNode.toString(), inputParameterClass);
         }
 
     }
-
-    // private methods
 }
