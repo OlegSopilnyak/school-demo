@@ -4,16 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
+import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.command.io.parameter.CompositeInputParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.LongIdPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
@@ -171,7 +169,7 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_LongIdParameter() throws IOException {
         long id = 102;
-        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
+        Input.ParameterDeserializer<Long> inputParameterDeserializer = new Input.ParameterDeserializer<>();
         NumberIdParameter<Long> input = new NumberIdParameter<>(id);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
@@ -185,30 +183,15 @@ class CommandMessageJsonSerializationTest {
     @Test
     void shouldDeserializeInputUsingInputParameterDeserializer_StringIdParameter() throws IOException {
         String id = UUID.randomUUID().toString();
-        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
-        StringIdParameter input = new StringIdParameter(id);
+        Input.ParameterDeserializer<String> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+        StringParameter input = new StringParameter(id);
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
         Input<?> restored = inputParameterDeserializer.deserialize(parser, null);
 
-        assertThat(restored).isNotNull().isInstanceOf(StringIdParameter.class);
+        assertThat(restored).isNotNull().isInstanceOf(StringParameter.class);
         assertThat(restored.value()).isEqualTo(id);
-    }
-
-    @Test
-    void shouldDeserializeInputUsingInputParameterDeserializer_LongIdPairParameter() throws IOException {
-        long id = 103L;
-        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
-        LongIdPairParameter input = new LongIdPairParameter(id, id + 1);
-        String json = objectMapper.writeValueAsString(input);
-        JsonParser parser = objectMapper.getFactory().createParser(json);
-
-        PairParameter<?> restored = (PairParameter<?>) inputParameterDeserializer.deserialize(parser, null);
-
-        assertThat(restored).isNotNull().isInstanceOf(LongIdPairParameter.class);
-        assertThat(restored.value().first()).isEqualTo(id);
-        assertThat(restored.value().second()).isEqualTo(id + 1);
     }
 
     @Test
@@ -227,29 +210,12 @@ class CommandMessageJsonSerializationTest {
     }
 
     @Test
-    void shouldDeserializeInputUsingInputParameterDeserializer_PayloadPairParameter() throws IOException {
-        long id = 106L;
-        Input.ParameterDeserializer inputParameterDeserializer = new Input.ParameterDeserializer();
-        StudentPayload firstEntity = createStudent(id);
-        StudentPayload secondEntity = createStudent(id + 1);
-        PayloadPairParameter<StudentPayload> input = new PayloadPairParameter<>(firstEntity, secondEntity);
-        String json = objectMapper.writeValueAsString(input);
-        JsonParser parser = objectMapper.getFactory().createParser(json);
-
-        PayloadPairParameter<StudentPayload> restored = (PayloadPairParameter<StudentPayload>) inputParameterDeserializer.deserialize(parser, null);
-
-        assertThat(restored).isNotNull().isInstanceOf(PayloadPairParameter.class);
-        assertThat(restored.value().first()).isEqualTo(firstEntity);
-        assertThat(restored.value().second()).isEqualTo(secondEntity);
-    }
-
-    @Test
     void shouldDeserializeCompositeInputParameter_TheSameTypes_Long() throws IOException {
         Long id1 = 102L;
         Long id2 = 103L;
         Long id3 = 104L;
         Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
-        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        CompositeInputParameter<Long> input = new CompositeInputParameter<>(Input.of(id1), Input.of(id2), Input.of(id3));
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
@@ -267,7 +233,7 @@ class CommandMessageJsonSerializationTest {
         String id2 = "103L";
         String id3 = "104L";
         Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
-        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        CompositeInputParameter<String> input = new CompositeInputParameter<>(Input.of(id1), Input.of(id2), Input.of(id3));
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
@@ -286,7 +252,7 @@ class CommandMessageJsonSerializationTest {
         StudentPayload id2 = createStudent(id + 1);
         StudentPayload id3 = createStudent(id + 2);
         Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
-        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        CompositeInputParameter<Student> input = new CompositeInputParameter<>(Input.of(id1), Input.of(id2), Input.of(id3));
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 
@@ -305,7 +271,7 @@ class CommandMessageJsonSerializationTest {
         Long id2 = id + 1;
         String id3 = "id + 2";
         Input.ParameterDeserializer<Input<?>[]> inputParameterDeserializer = new Input.ParameterDeserializer<>();
-        CompositeInputParameter input = new CompositeInputParameter(Input.of(id1), Input.of(id2), Input.of(id3));
+        CompositeInputParameter<Object> input = new CompositeInputParameter<>(Input.of(id1), Input.of(id2), Input.of(id3));
         String json = objectMapper.writeValueAsString(input);
         JsonParser parser = objectMapper.getFactory().createParser(json);
 

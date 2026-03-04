@@ -16,7 +16,7 @@ import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandMessage;
@@ -109,10 +109,10 @@ public interface Input<P> extends IOBase<P> {
      *
      * @param id ID value
      * @return new instance of the input
-     * @see StringIdParameter
+     * @see StringParameter
      */
     static Input<String> of(final String id) {
-        return new StringIdParameter(id);
+        return new StringParameter(id);
     }
 
     /**

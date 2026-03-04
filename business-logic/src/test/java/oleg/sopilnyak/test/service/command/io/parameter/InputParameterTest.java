@@ -92,7 +92,7 @@ class InputParameterTest {
         Input<String> parameter = Input.of(stringId);
 
         assertThat(parameter.value()).isSameAs(stringId);
-        assertThat(parameter).isInstanceOf(StringIdParameter.class);
+        assertThat(parameter).isInstanceOf(StringParameter.class);
     }
 
     @Test
@@ -103,8 +103,8 @@ class InputParameterTest {
         Input<String> parameter = Input.of(stringId);
 
         String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(StringIdParameter.class.getName());
-        StringIdParameter restored = objectMapper.readValue(json, StringIdParameter.class);
+        assertThat(json).contains(StringParameter.class.getName());
+        StringParameter restored = objectMapper.readValue(json, StringParameter.class);
 
         assertThat(restored.value()).isEqualTo(stringId);
         assertThat(restored).isInstanceOf(Input.class);
