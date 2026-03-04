@@ -9,8 +9,8 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
+import oleg.sopilnyak.test.service.command.io.CompositeInput;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
@@ -85,9 +85,9 @@ public class LoginAuthorityPersonCommand extends BasicCommand<Optional<AccessCre
         try {
             checkNullParameter(parameter);
             log.debug("Trying to sign in authority person...");
-            final PairParameter<String> credentials = (PairParameter<String>) parameter;
-            final String username = credentials.first();
-            final String password = credentials.second();
+            final CompositeInput<String> credentials = (CompositeInput<String>) parameter;
+            final String username = credentials.value()[0].value();
+            final String password = credentials.value()[1].value();
 
             log.debug("Trying to sign in authority person with username:'{}'", username);
             final AccessCredentials accessCredentials = authenticationFacade.signIn(username, password)

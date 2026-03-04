@@ -98,7 +98,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         verify(command).executeDo(context);
         verify(persistence).findStudentById(studentId);
         verify(persistence).findCourseById(courseId);
-        assertThat(context.getUndoParameter().value()).isEqualTo(input);
+        assertThat(context.getUndoParameter()).isEqualTo(input);
         assertThat(findStudentById(studentId).getCourses()).isEmpty();
         assertThat(findCourseById(courseId).getStudents()).isEmpty();
         verify(persistence).unLink(student.getOriginal(), course.getOriginal());

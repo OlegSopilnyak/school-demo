@@ -83,7 +83,7 @@ class UnRegisterStudentFromCourseCommandTest {
         verify(command).executeDo(context);
         verify(persistence).findStudentById(id);
         verify(persistence).findCourseById(id);
-        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId));
+        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId).value());
         verify(persistence).unLink(student, course);
     }
 

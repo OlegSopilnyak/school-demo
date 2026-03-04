@@ -80,7 +80,7 @@ class RegisterStudentToCourseCommandTest {
         command.doCommand(context);
 
         assertThat(context.isDone()).isTrue();
-        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId));
+        assertThat(context.getUndoParameter().value()).isEqualTo(Input.of(studentId, courseId).value());
         assertThat(context.getResult()).isPresent();
         Boolean result = context.getResult().orElseThrow();
         assertThat(result).isTrue();

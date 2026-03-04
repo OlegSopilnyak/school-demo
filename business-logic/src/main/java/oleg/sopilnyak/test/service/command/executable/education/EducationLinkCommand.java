@@ -5,7 +5,7 @@ import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundExce
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
-import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
+import oleg.sopilnyak.test.service.command.io.CompositeInput;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 /**
@@ -27,8 +27,8 @@ public interface EducationLinkCommand {
      * @return found student
      * @throws StudentNotFoundException when student with provided id is not found
      */
-    default Student retrieveStudent(final PairParameter<Long> input) {
-        final Long studentId = input.first();
+    default Student retrieveStudent(final CompositeInput<Long> input) {
+        final Long studentId = input.value()[0].value();
         return getPersistenceFacade().findStudentById(studentId)
                 .orElseThrow(
                         () -> new StudentNotFoundException(LINK_STUDENT_WITH_ID_PREFIX + studentId + IS_NOT_EXISTS_SUFFIX)
@@ -42,8 +42,8 @@ public interface EducationLinkCommand {
      * @return found course
      * @throws CourseNotFoundException when course with provided id is not found
      */
-    default Course retrieveCourse(final PairParameter<Long> input) {
-        final Long courseId = input.second();
+    default Course retrieveCourse(final CompositeInput<Long> input) {
+        final Long courseId = input.value()[1].value();
         return getPersistenceFacade().findCourseById(courseId)
                 .orElseThrow(
                         () -> new CourseNotFoundException(LINK_COURSE_WITH_ID_PREFIX + courseId + IS_NOT_EXISTS_SUFFIX)

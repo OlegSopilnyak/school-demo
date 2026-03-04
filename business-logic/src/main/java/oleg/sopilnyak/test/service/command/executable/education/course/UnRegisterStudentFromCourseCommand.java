@@ -6,11 +6,11 @@ import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.persistence.education.joint.EducationPersistenceFacade;
-import oleg.sopilnyak.test.service.command.executable.education.EducationLinkCommand;
 import oleg.sopilnyak.test.service.command.executable.core.BasicCommand;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
+import oleg.sopilnyak.test.service.command.executable.education.EducationLinkCommand;
+import oleg.sopilnyak.test.service.command.io.CompositeInput;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -79,7 +79,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
             log.debug("Trying to un-link student from course: {}", parameter);
             checkNullParameter(parameter);
             log.debug("Trying to register student to course: {}", parameter);
-            final PairParameter<Long> input = (PairParameter) parameter;
+            final CompositeInput<Long> input = (CompositeInput<Long>) parameter;
             final Student student = retrieveStudent(input);
             final Course course = retrieveCourse(input);
             final Long studentId = student.getId();
@@ -122,7 +122,7 @@ public class UnRegisterStudentFromCourseCommand extends BasicCommand<Boolean> im
         }
         log.debug("Trying to undo student to course un-linking using: {}", parameter);
         try {
-            final PairParameter<Long> input = (PairParameter) parameter;
+            final CompositeInput<Long> input = (CompositeInput<Long>) parameter;
 
             final boolean successful = persistenceFacade.link(retrieveStudent(input), retrieveCourse(input));
 

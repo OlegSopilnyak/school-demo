@@ -6,7 +6,9 @@ import oleg.sopilnyak.test.service.command.io.Input;
  * Type: I/O school-command pair input parameter
  * @see LongIdPairParameter
  * @see PayloadPairParameter
+ * @deprecated
  */
+@Deprecated(forRemoval = true, since = "CompositeInput will be applied")
 public interface PairParameter<P> extends Input<PairParameter<P>> {
     String FIRST_FIELD_NAME = "first";
     String SECOND_FIELD_NAME = "second";

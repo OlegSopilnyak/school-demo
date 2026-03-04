@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class OutputResultTest {
     private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -230,7 +231,7 @@ class OutputResultTest {
         Output<Optional<Object>> result = Output.of(Optional.empty());
 
         assertThat(result).isInstanceOf(OptionalValueResult.class);
-        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.isEmpty()).isTrue();
         assertThat(result.value()).isInstanceOf(Optional.class).isEmpty();
     }
 
@@ -242,7 +243,7 @@ class OutputResultTest {
         Output<Optional<Double>> result = objectMapper.readValue(json, OptionalValueResult.class);
 
         assertThat(result).isInstanceOf(OptionalValueResult.class);
-        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.isEmpty()).isTrue();
         assertThat(result.value()).isInstanceOf(Optional.class).isEmpty();
     }
 

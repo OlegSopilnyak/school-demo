@@ -15,8 +15,6 @@ import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.PairParameter;
-import oleg.sopilnyak.test.service.command.io.parameter.PayloadPairParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringIdParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -57,8 +55,8 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      * @see CompositeInputParameter
      */
-    static CompositeInput of(Input<?>... inputs) {
-        return new CompositeInputParameter(inputs);
+    static <T> CompositeInput<T> of(Input<?>... inputs) {
+        return new CompositeInputParameter<>(inputs);
     }
 
     /**
@@ -102,7 +100,7 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      * @see Input#of(Input[])
      */
-    static CompositeInput of(final Long firstId, final Long secondId) {
+    static CompositeInput<Long> of(final Long firstId, final Long secondId) {
         return of(of(firstId), of(secondId));
     }
 
@@ -125,7 +123,7 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      * @see Input#of(Input[])
      */
-    static CompositeInput of(final String firstValue, final String secondValue) {
+    static CompositeInput<String> of(final String firstValue, final String secondValue) {
         return of(of(firstValue), of(secondValue));
     }
 
@@ -150,12 +148,11 @@ public interface Input<P> extends IOBase<P> {
      * @param firstPayload  first payload value
      * @param secondPayload second payload value
      * @return new instance of the input
-     * @see PayloadPairParameter
-     * @see PairParameter
+     * @see CompositeInput
      * @see BasePayload
      * @see BaseType
      */
-    static <T extends BasePayload<? extends BaseType>> CompositeInput of(final T firstPayload, final T secondPayload) {
+    static <T extends BasePayload<? extends BaseType>> CompositeInput<T> of(final T firstPayload, final T secondPayload) {
         return of(of(firstPayload), of(secondPayload));
     }
 

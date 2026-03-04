@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.springframework.util.ObjectUtils;
@@ -31,10 +32,21 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
  */
 @JsonSerialize(using = CompositeInputParameter.Serializer.class)
 @JsonDeserialize(using = CompositeInputParameter.Deserializer.class)
-public final class CompositeInputParameter implements CompositeInput {
+public final class CompositeInputParameter<T> implements CompositeInput<T> {
     // the nest of gathered inputs
-    private final Input<?>[] nest;
+    private final Input<T>[] nest;
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof CompositeInputParameter<?> that && Arrays.equals(nest, that.nest);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(nest);
+    }
+
+    @SuppressWarnings("unchecked")
     public CompositeInputParameter(Input<?>... inputs) {
         if (ObjectUtils.isEmpty(inputs)) {
             this.nest = new Input[0];
@@ -50,7 +62,7 @@ public final class CompositeInputParameter implements CompositeInput {
      * @return value of the parameter
      */
     @Override
-    public Input<?>[] value() {
+    public Input<T>[] value() {
         return nest;
     }
 
@@ -70,12 +82,12 @@ public final class CompositeInputParameter implements CompositeInput {
      * @see StdSerializer
      * @see CompositeInputParameter
      */
-    static class Serializer extends StdSerializer<CompositeInputParameter> {
+    static class Serializer extends StdSerializer<CompositeInputParameter<?>> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<CompositeInputParameter> t) {
+        protected Serializer(Class<CompositeInputParameter<?>> t) {
             super(t);
         }
 
@@ -107,7 +119,7 @@ public final class CompositeInputParameter implements CompositeInput {
      * @see StdDeserializer
      * @see CompositeInputParameter
      */
-    static class Deserializer extends StdDeserializer<CompositeInputParameter> {
+    static class Deserializer extends StdDeserializer<CompositeInputParameter<?>> {
         public Deserializer() {
             this(CompositeInputParameter.class);
         }

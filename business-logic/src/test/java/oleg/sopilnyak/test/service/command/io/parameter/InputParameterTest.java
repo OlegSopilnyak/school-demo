@@ -11,6 +11,7 @@ import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 import oleg.sopilnyak.test.service.command.io.CompositeInput;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
+import oleg.sopilnyak.test.service.message.payload.BasePayload;
 import oleg.sopilnyak.test.service.message.payload.CoursePayload;
 import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {
     private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -372,7 +374,7 @@ class InputParameterTest {
         long firstId = 5L;
         long secondId = 6L;
 
-        var parameter = Input.of(firstId, secondId);
+        CompositeInput<Long> parameter = Input.of(firstId, secondId);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstId);
         assertThat(parameter.value()[1].value()).isSameAs(secondId);
@@ -399,7 +401,7 @@ class InputParameterTest {
         String first = "first";
         String second = "second";
 
-        var parameter = Input.of(first, second);
+        CompositeInput<String> parameter = Input.of(first, second);
 
         assertThat(parameter.value()[0].value()).isSameAs(first);
         assertThat(parameter.value()[1].value()).isSameAs(second);
@@ -433,7 +435,7 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondEntity.setCourses(List.of(secondCourse));
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(((Student) parameter.value()[0].value()).getCourses()).contains(firstCourse);
@@ -477,7 +479,7 @@ class InputParameterTest {
         CoursePayload secondCourse = createCourse(secondId + 10);
         secondCourse.setStudents(List.of(secondEntity));
 
-        var parameter = Input.of(firstCourse, secondCourse);
+        CompositeInput<BasePayload> parameter = Input.of(firstCourse, secondCourse);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstCourse);
         assertThat(((Course) parameter.value()[0].value()).getStudents()).contains(firstEntity);
@@ -521,7 +523,7 @@ class InputParameterTest {
         firstEntity.setFaculties(List.of(firstFaculty));
         secondEntity.setFaculties(List.of(secondFaculty));
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(((AuthorityPerson) parameter.value()[0].value()).getFaculties()).contains(firstFaculty);
@@ -569,7 +571,7 @@ class InputParameterTest {
         firstEntity.setDean(firstDean);
         secondEntity.setDean(secondDean);
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(((Faculty) parameter.value()[0].value()).getDean()).isSameAs(firstDean);
@@ -623,7 +625,7 @@ class InputParameterTest {
         secondEntity.setStudents(List.of(secondStudent));
         secondEntity.setLeader(secondStudent);
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(((StudentsGroup) parameter.value()[0].value()).getLeader()).isSameAs(firstStudent);
@@ -669,7 +671,7 @@ class InputParameterTest {
         StudentProfilePayload firstEntity = createStudentProfile(firstId);
         StudentProfilePayload secondEntity = createStudentProfile(secondId);
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(parameter.value()[1].value()).isSameAs(secondEntity);
@@ -701,7 +703,7 @@ class InputParameterTest {
         PrincipalProfilePayload firstEntity = createPrincipalProfile(firstId);
         PrincipalProfilePayload secondEntity = createPrincipalProfile(secondId);
 
-        var parameter = Input.of(firstEntity, secondEntity);
+        CompositeInput<BasePayload> parameter = Input.of(firstEntity, secondEntity);
 
         assertThat(parameter.value()[0].value()).isSameAs(firstEntity);
         assertThat(parameter.value()[1].value()).isSameAs(secondEntity);
