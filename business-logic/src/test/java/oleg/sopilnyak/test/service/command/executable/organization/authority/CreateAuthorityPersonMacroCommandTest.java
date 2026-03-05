@@ -68,13 +68,13 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     @Mock
     CommandActionExecutor actionExecutor;
 
-    CreateAuthorityPersonMacroCommand command;
+    CreateAuthorityPersonTask command;
     @Mock
     ApplicationContext applicationContext;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
+        command = spy(new CreateAuthorityPersonTask(personCommand, profileCommand, payloadMapper, actionExecutor));
         ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         doReturn(personCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);

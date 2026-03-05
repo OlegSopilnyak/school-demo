@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentTask;
 import oleg.sopilnyak.test.service.command.executable.profile.student.CreateOrUpdateStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
@@ -73,11 +73,11 @@ class CreateStudentMacroCommandTest extends TestModelFactory {
     @Mock
     ApplicationContext applicationContext;
 
-    CreateStudentMacroCommand command;
+    CreateStudentTask command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateStudentMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
+        command = spy(new CreateStudentTask(personCommand, profileCommand, payloadMapper, actionExecutor));
         // setup nested commands
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         doReturn(profileCommand).when(applicationContext).getBean("profileStudentUpdate", StudentProfileCommand.class);

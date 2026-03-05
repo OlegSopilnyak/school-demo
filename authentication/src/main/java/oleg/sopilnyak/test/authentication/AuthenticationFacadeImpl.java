@@ -97,8 +97,9 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {
             log.debug("Regenerating and store tokens of '{}'", username);
+            final String password = entity.getUser().getPassword();
             // regenerating access credentials with fresh tokens
-            return makeAccessCredentialsFor(entity.getUser().getUsername(), entity.getUser().getPassword());
+            return makeAccessCredentialsFor(username, password);
         } else {
             // wrong type of the AccessCredentials ¯\_(ツ)_/¯
             throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");

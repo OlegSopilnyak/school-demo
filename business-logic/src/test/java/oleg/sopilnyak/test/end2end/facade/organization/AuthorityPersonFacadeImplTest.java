@@ -29,10 +29,10 @@ import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonTask;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateOrUpdateAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonCommand;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonTask;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAllAuthorityPersonsCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.FindAuthorityPersonCommand;
 import oleg.sopilnyak.test.service.command.executable.organization.authority.LoginAuthorityPersonCommand;
@@ -388,16 +388,16 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new CreateOrUpdateAuthorityPersonCommand(persistenceFacade, payloadMapper));
         CreateOrUpdatePrincipalProfileCommand createOrUpdatePrincipalProfileCommand =
                 spy(new CreateOrUpdatePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        CreateAuthorityPersonMacroCommand createAuthorityPersonMacroCommand =
-                spy(new CreateAuthorityPersonMacroCommand(
+        CreateAuthorityPersonTask createAuthorityPersonMacroCommand =
+                spy(new CreateAuthorityPersonTask(
                         createOrUpdateAuthorityPersonCommand, createOrUpdatePrincipalProfileCommand, payloadMapper, actionExecutor
                 ));
         DeleteAuthorityPersonCommand deleteAuthorityPersonCommand =
                 spy(new DeleteAuthorityPersonCommand(persistenceFacade, payloadMapper));
         DeletePrincipalProfileCommand deletePrincipalProfileCommand =
                 spy(new DeletePrincipalProfileCommand(persistenceFacade, payloadMapper));
-        DeleteAuthorityPersonMacroCommand deleteAuthorityPersonMacroCommand =
-                spy(new DeleteAuthorityPersonMacroCommand(
+        DeleteAuthorityPersonTask deleteAuthorityPersonMacroCommand =
+                spy(new DeleteAuthorityPersonTask(
                         deleteAuthorityPersonCommand, deletePrincipalProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
                 ));
 

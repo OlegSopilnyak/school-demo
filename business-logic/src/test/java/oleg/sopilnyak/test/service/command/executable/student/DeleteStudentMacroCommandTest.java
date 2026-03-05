@@ -23,7 +23,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentTask;
 import oleg.sopilnyak.test.service.command.executable.education.student.MacroDeleteStudent;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -77,7 +77,7 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
     SchedulingTaskExecutor schedulingTaskExecutor;
     ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
-    DeleteStudentMacroCommand command;
+    DeleteStudentTask command;
     @Mock
     ApplicationContext applicationContext;
 
@@ -88,11 +88,11 @@ class DeleteStudentMacroCommandTest extends TestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteStudentMacroCommand(
+        command = spy(new DeleteStudentTask(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setThreadNamePrefix("DeleteStudentMacroCommand-");
+        threadPoolTaskExecutor.setThreadNamePrefix("DeleteStudentTask-");
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));

@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component(StudentCommand.Component.DELETE_ALL)
-public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
+public class DeleteStudentTask extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
     // beans factory to prepare the current command for transactional operations
     protected transient BeanFactory applicationContext;
     @Autowired
@@ -102,7 +102,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
         return StudentsFacade.DELETE_MACRO;
     }
 
-    public DeleteStudentMacroCommand(
+    public DeleteStudentTask(
             @Qualifier(StudentCommand.Component.DELETE) StudentCommand<?> personCommand,
             @Qualifier(StudentProfileCommand.Component.DELETE_BY_ID) StudentProfileCommand<?> profileCommand,
             @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
@@ -147,7 +147,7 @@ public class DeleteStudentMacroCommand extends ParallelMacroCommand<Boolean> imp
      * @see Input
      * @see Student
      * @see StudentProfileCommand
-     * @see DeleteStudentMacroCommand#createStudentProfileContext(StudentProfileCommand, Long)
+     * @see DeleteStudentTask#createStudentProfileContext(StudentProfileCommand, Long)
      * @see Context
      */
     @Override

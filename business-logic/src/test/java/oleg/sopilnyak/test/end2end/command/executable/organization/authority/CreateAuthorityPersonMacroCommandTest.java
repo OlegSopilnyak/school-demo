@@ -25,7 +25,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.CreateAuthorityPersonTask;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -85,11 +85,11 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
     @Autowired
     CommandActionExecutor actionExecutor;
 
-    CreateAuthorityPersonMacroCommand command;
+    CreateAuthorityPersonTask command;
 
     @BeforeEach
     void setUp() {
-        command = spy(new CreateAuthorityPersonMacroCommand(personCommand, profileCommand, payloadMapper, actionExecutor));
+        command = spy(new CreateAuthorityPersonTask(personCommand, profileCommand, payloadMapper, actionExecutor));
         ActionContext.setup("test-facade", "test-action");
     }
 

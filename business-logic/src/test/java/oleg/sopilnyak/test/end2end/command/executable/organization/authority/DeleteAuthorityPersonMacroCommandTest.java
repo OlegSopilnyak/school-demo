@@ -27,7 +27,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.organization.authority.DeleteAuthorityPersonTask;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -100,7 +100,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @Qualifier("authorityPersonDelete")
     AuthorityPersonCommand personCommand;
     // delete person macro command
-    DeleteAuthorityPersonMacroCommand command;
+    DeleteAuthorityPersonTask command;
 
     @Captor
     ArgumentCaptor<AuthorityPersonCommand> personCaptor;
@@ -111,7 +111,7 @@ class DeleteAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void setUp() {
         Assertions.setMaxStackTraceElementsDisplayed(1000);
-        command = spy(new DeleteAuthorityPersonMacroCommand(
+        command = spy(new DeleteAuthorityPersonTask(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);

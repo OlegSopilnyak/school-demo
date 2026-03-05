@@ -28,9 +28,9 @@ import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentTask;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentTask;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindNotEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindStudentCommand;
@@ -432,9 +432,9 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
                 spy(new FindEnrolledStudentsCommand(persistenceFacade, payloadMapper)), "studentFindEnrolled",
                 spy(new FindNotEnrolledStudentsCommand(persistenceFacade, payloadMapper)), "studentFindNotEnrolled",
                 createStudentCommand, "studentUpdate",
-                spy(new CreateStudentMacroCommand(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)), "studentMacroCreate",
+                spy(new CreateStudentTask(createStudentCommand, createProfileCommand, payloadMapper, actionExecutor)), "studentMacroCreate",
                 deleteStudentCommand, "studentDelete",
-                spy(new DeleteStudentMacroCommand(
+                spy(new DeleteStudentTask(
                         deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
                 )), "studentMacroDelete"
         );

@@ -23,9 +23,9 @@ import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.education.student.CreateOrUpdateStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.CreateStudentTask;
 import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentCommand;
-import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentTask;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindNotEnrolledStudentsCommand;
 import oleg.sopilnyak.test.service.command.executable.education.student.FindStudentCommand;
@@ -89,10 +89,10 @@ class StudentsFacadeImplTest {
 
     CreateOrUpdateStudentCommand createStudentCommand;
     CreateOrUpdateStudentProfileCommand createProfileCommand;
-    CreateStudentMacroCommand createMacroCommand;
+    CreateStudentTask createMacroCommand;
     DeleteStudentCommand deleteStudentCommand;
     DeleteStudentProfileCommand deleteProfileCommand;
-    DeleteStudentMacroCommand deleteStudentMacroCommand;
+    DeleteStudentTask deleteStudentMacroCommand;
 
     CommandsFactory<StudentCommand<?>> factory;
     @Mock
@@ -509,11 +509,11 @@ class StudentsFacadeImplTest {
         ReflectionTestUtils.setField(deleteProfileCommand, acName, applicationContext);
 
         createStudentCommand = spy(new CreateOrUpdateStudentCommand(persistenceFacade, payloadMapper));
-        createMacroCommand = spy(new CreateStudentMacroCommand(
+        createMacroCommand = spy(new CreateStudentTask(
                 createStudentCommand, createProfileCommand, payloadMapper, actionExecutor
         ));
         deleteStudentCommand = spy(new DeleteStudentCommand(persistenceFacade, payloadMapper));
-        deleteStudentMacroCommand = spy(new DeleteStudentMacroCommand(
+        deleteStudentMacroCommand = spy(new DeleteStudentTask(
                 deleteStudentCommand, deleteProfileCommand, schedulingTaskExecutor, persistenceFacade, actionExecutor
         ));
         List<StudentCommand<?>> commands = List.of(

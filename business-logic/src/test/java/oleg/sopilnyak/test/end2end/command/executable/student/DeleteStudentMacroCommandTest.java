@@ -27,7 +27,7 @@ import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.education.student.DeleteStudentTask;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -97,7 +97,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
     @Qualifier("parallelCommandNestedCommandsExecutor")
     Executor schedulingTaskExecutor;
     // delete student macro command
-    DeleteStudentMacroCommand command;
+    DeleteStudentTask command;
 
     @Captor
     ArgumentCaptor<StudentCommand> personCaptor;
@@ -106,7 +106,7 @@ class DeleteStudentMacroCommandTest extends MysqlTestModelFactory {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteStudentMacroCommand(
+        command = spy(new DeleteStudentTask(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);

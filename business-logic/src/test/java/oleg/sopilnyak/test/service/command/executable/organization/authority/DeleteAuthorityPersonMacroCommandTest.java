@@ -72,7 +72,7 @@ class DeleteAuthorityPersonMacroCommandTest {
     DeleteAuthorityPersonCommand personCommand;
     @Mock
     ApplicationContext applicationContext;
-    DeleteAuthorityPersonMacroCommand command;
+    DeleteAuthorityPersonTask command;
 
     @Mock
     AuthorityPerson person;
@@ -82,14 +82,14 @@ class DeleteAuthorityPersonMacroCommandTest {
 
     @BeforeEach
     void setUp() {
-        command = spy(new DeleteAuthorityPersonMacroCommand(
+        command = spy(new DeleteAuthorityPersonTask(
                 personCommand, profileCommand, schedulingTaskExecutor, persistence, actionExecutor
         ));
         ReflectionTestUtils.setField(command, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(profileCommand, "applicationContext", applicationContext);
         ReflectionTestUtils.setField(personCommand, "applicationContext", applicationContext);
         threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setThreadNamePrefix("DeleteAuthorityPersonMacroCommand-");
+        threadPoolTaskExecutor.setThreadNamePrefix("DeleteAuthorityPersonTask-");
         threadPoolTaskExecutor.initialize();
         doAnswer((Answer<Void>) invocationOnMock -> {
             threadPoolTaskExecutor.execute(invocationOnMock.getArgument(0, Runnable.class));

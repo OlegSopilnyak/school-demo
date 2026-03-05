@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component(AuthorityPersonCommand.Component.DELETE_ALL)
-public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Boolean>
+public class DeleteAuthorityPersonTask extends ParallelMacroCommand<Boolean>
         implements MacroDeleteAuthorityPerson<Boolean> {
     // beans factory to prepare the current command for transactional operations
     private transient BeanFactory applicationContext;
@@ -105,7 +105,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
         return this;
     }
 
-    public DeleteAuthorityPersonMacroCommand(
+    public DeleteAuthorityPersonTask(
             @Qualifier(AuthorityPersonCommand.Component.DELETE) AuthorityPersonCommand<?> personCommand,
             @Qualifier(PrincipalProfileCommand.Component.DELETE_BY_ID) PrincipalProfileCommand<?> profileCommand,
             @Qualifier(EXECUTOR_BEAN_NAME) Executor executor,
@@ -151,7 +151,7 @@ public class DeleteAuthorityPersonMacroCommand extends ParallelMacroCommand<Bool
      * @see Input
      * @see AuthorityPerson
      * @see PrincipalProfileCommand
-     * @see DeleteAuthorityPersonMacroCommand#createPrincipalProfileContext(PrincipalProfileCommand, Long)
+     * @see DeleteAuthorityPersonTask#createPrincipalProfileContext(PrincipalProfileCommand, Long)
      * @see Context
      */
     @Override
