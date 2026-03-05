@@ -4,8 +4,8 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityP
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.io.Input;
@@ -36,12 +36,12 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see AuthorityPerson
  * @see PrincipalProfile
- * @see SequentialMacroCommand
+ * @see SequentialCommandsTask
  * @see AuthorityPersonCommand
  */
 @Slf4j
 @Component(AuthorityPersonCommand.Component.CREATE_NEW)
-public class CreateAuthorityPersonTask extends SequentialMacroCommand<Optional<AuthorityPerson>>
+public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<AuthorityPerson>>
         implements AuthorityPersonCommand<Optional<AuthorityPerson>> {
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -237,8 +237,8 @@ public class CreateAuthorityPersonTask extends SequentialMacroCommand<Optional<A
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input parameter
      * @return prepared for nested command context
-     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialCommandsTask, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelCommandsTask, Input)
      * @see oleg.sopilnyak.test.service.command.type.core.CompositeCommand#createContext(Input)
      */
     @Override

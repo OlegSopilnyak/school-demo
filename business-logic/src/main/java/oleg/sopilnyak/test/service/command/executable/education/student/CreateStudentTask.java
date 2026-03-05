@@ -4,9 +4,9 @@ import oleg.sopilnyak.test.school.common.business.facade.education.StudentsFacad
 import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -35,12 +35,12 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see Student
  * @see StudentProfile
- * @see SequentialMacroCommand
+ * @see SequentialCommandsTask
  * @see StudentCommand
  */
 @Slf4j
 @Component(StudentCommand.Component.CREATE_NEW)
-public class CreateStudentTask extends SequentialMacroCommand<Optional<Student>>
+public class CreateStudentTask extends SequentialCommandsTask<Optional<Student>>
         implements StudentCommand<Optional<Student>> {
     @Getter
     private final transient BusinessMessagePayloadMapper payloadMapper;
@@ -229,8 +229,8 @@ public class CreateStudentTask extends SequentialMacroCommand<Optional<Student>>
      * @param visitor visitor of prepared contexts
      * @param input   Macro-Command call's input
      * @return prepared for nested command context
-     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialCommandsTask, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelCommandsTask, Input)
      * @see oleg.sopilnyak.test.service.command.executable.core.MacroCommand#createContext(Input)
      */
     @Override

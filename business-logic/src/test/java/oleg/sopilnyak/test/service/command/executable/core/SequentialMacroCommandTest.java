@@ -605,7 +605,7 @@ class SequentialMacroCommandTest {
         verify(intCommand, times(2)).doCommand(any(Context.class));
     }
 
-    static class FakeSequentialCommand extends SequentialMacroCommand<Double> {
+    static class FakeSequentialCommand extends SequentialCommandsTask<Double> {
         static CommandContext<Double> overrideStudentContext;
         static CommandContext<Double> overrideCourseContext;
         private final Logger logger = LoggerFactory.getLogger(FakeSequentialCommand.class);

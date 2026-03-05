@@ -68,7 +68,7 @@ class ParallelMacroCommandTest {
     @BeforeEach
     void setUp() {
         executor.initialize();
-        executor.setThreadNamePrefix("ParallelMacroCommand-");
+        executor.setThreadNamePrefix("ParallelCommandsTask-");
         command.toNest(doubleCommand);
         command.toNest(booleanCommand);
         command.toNest(intCommand);
@@ -435,7 +435,7 @@ class ParallelMacroCommandTest {
     }
 
     //    // inner classes
-    static class FakeParallelCommand extends ParallelMacroCommand<Double> {
+    static class FakeParallelCommand extends ParallelCommandsTask<Double> {
         static CommandContext<Double> overrideStudentContext;
         private final Logger logger = LoggerFactory.getLogger(FakeParallelCommand.class);
 

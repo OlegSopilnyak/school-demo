@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.service.command.type.core.nested;
 
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
@@ -48,32 +48,32 @@ public interface PrepareNestedContextVisitor {
     }
 
     /**
-     * To prepare context for particular type (SequentialMacroCommand) of the nested command
+     * To prepare context for particular type (SequentialCommandsTask) of the nested command
      *
      * @param command            nested command instance
      * @param mainInputParameter macro-command input parameter
      * @param <T>                type of command's do result
      * @return built context of the nested command for the macro input parameter
-     * @see SequentialMacroCommand
-     * @see SequentialMacroCommand#createContext(Input)
+     * @see SequentialCommandsTask
+     * @see SequentialCommandsTask#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final SequentialMacroCommand<T> command, final Input<?> mainInputParameter) {
+    default <T> Context<T> prepareContext(final SequentialCommandsTask<T> command, final Input<?> mainInputParameter) {
         return command.createContext(mainInputParameter);
     }
 
     /**
-     * To prepare context for particular type (ParallelMacroCommand) of the nested command
+     * To prepare context for particular type (ParallelCommandsTask) of the nested command
      *
      * @param command            nested command instance
      * @param mainInputParameter macro-command input parameter
      * @param <T>                type of command's do result
      * @return built context of the nested command for the macro input parameter
-     * @see ParallelMacroCommand
-     * @see ParallelMacroCommand#createContext(Input)
+     * @see ParallelCommandsTask
+     * @see ParallelCommandsTask#createContext(Input)
      * @see Context
      */
-    default <T> Context<T> prepareContext(final ParallelMacroCommand<T> command, final Input<?> mainInputParameter) {
+    default <T> Context<T> prepareContext(final ParallelCommandsTask<T> command, final Input<?> mainInputParameter) {
         return command.createContext(mainInputParameter);
     }
 

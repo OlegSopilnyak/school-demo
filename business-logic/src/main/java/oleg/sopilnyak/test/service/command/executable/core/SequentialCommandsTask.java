@@ -22,8 +22,8 @@ import org.springframework.util.ObjectUtils;
  * @see CompositeCommand
  * @see MacroCommand
  */
-public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
-    protected SequentialMacroCommand(CommandActionExecutor actionExecutor) {
+public abstract class SequentialCommandsTask<T> extends MacroCommand<T> {
+    protected SequentialCommandsTask(CommandActionExecutor actionExecutor) {
         super(actionExecutor);
     }
 
@@ -34,8 +34,8 @@ public abstract class SequentialMacroCommand<T> extends MacroCommand<T> {
      * @param contexts nested command contexts deque to do
      * @param listener listener of the nested command context state-change
      * @return nested command-contexts deque after execution of all nested commands
-     * @see SequentialMacroCommand#cancelSequentialNestedCommandContext(Context, Context.StateChangedListener)
-     * @see SequentialMacroCommand#doSequentialNestedCommand(Context, AtomicReference, Context.StateChangedListener, AtomicBoolean)
+     * @see SequentialCommandsTask#cancelSequentialNestedCommandContext(Context, Context.StateChangedListener)
+     * @see SequentialCommandsTask#doSequentialNestedCommand(Context, AtomicReference, Context.StateChangedListener, AtomicBoolean)
      * @see AtomicReference
      * @see AtomicBoolean
      */

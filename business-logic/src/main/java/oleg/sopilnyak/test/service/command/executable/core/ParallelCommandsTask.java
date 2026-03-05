@@ -28,11 +28,11 @@ import org.springframework.util.ObjectUtils;
  * @see SchedulingTaskExecutor
  * @see CompletableFuture
  */
-public abstract class ParallelMacroCommand<T> extends MacroCommand<T> {
+public abstract class ParallelCommandsTask<T> extends MacroCommand<T> {
     public static final String EXECUTOR_BEAN_NAME = "parallelCommandNestedCommandsExecutor";
     protected final transient Executor executor;
 
-    protected ParallelMacroCommand(CommandActionExecutor actionExecutor, @Qualifier(EXECUTOR_BEAN_NAME) Executor executor) {
+    protected ParallelCommandsTask(CommandActionExecutor actionExecutor, @Qualifier(EXECUTOR_BEAN_NAME) Executor executor) {
         super(actionExecutor);
         this.executor = executor;
     }

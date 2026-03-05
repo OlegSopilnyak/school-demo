@@ -8,11 +8,11 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.organization.AuthorityPersonPersistenceFacade;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.principal.DeletePrincipalProfileCommand;
 import oleg.sopilnyak.test.service.command.executable.core.MacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.CompositeCommand;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -40,14 +40,14 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see AuthorityPerson
  * @see PrincipalProfile
- * @see ParallelMacroCommand
+ * @see ParallelCommandsTask
  * @see DeleteAuthorityPersonCommand
  * @see DeletePrincipalProfileCommand
  * @see AuthorityPersonPersistenceFacade
  */
 @Slf4j
 @Component(AuthorityPersonCommand.Component.DELETE_ALL)
-public class DeleteAuthorityPersonTask extends ParallelMacroCommand<Boolean>
+public class DeleteAuthorityPersonTask extends ParallelCommandsTask<Boolean>
         implements MacroDeleteAuthorityPerson<Boolean> {
     // beans factory to prepare the current command for transactional operations
     private transient BeanFactory applicationContext;
@@ -190,8 +190,8 @@ public class DeleteAuthorityPersonTask extends ParallelMacroCommand<Boolean>
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command call's input parameter
      * @return prepared for nested command context
-     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialCommandsTask, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelCommandsTask, Input)
      * @see CompositeCommand#createContext(Input)
      */
     @Override

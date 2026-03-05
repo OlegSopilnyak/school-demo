@@ -150,7 +150,6 @@ class AuthenticationFacadeImplTest {
     void shouldRefreshToken() {
         String refreshToken = "refresh-token";
         doReturn(username).when(jwtService).extractUserName(refreshToken);
-        doReturn(username).when(userDetails).getUsername();
         doReturn(password).when(userDetails).getPassword();
         AccessCredentialsEntity entity = AccessCredentialsEntity.builder().user(userDetails).build();
         doReturn(Optional.of(entity)).when(tokenStorage).findCredentials(username);

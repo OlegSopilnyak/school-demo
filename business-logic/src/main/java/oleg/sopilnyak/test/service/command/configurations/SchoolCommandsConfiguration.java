@@ -1,11 +1,11 @@
 package oleg.sopilnyak.test.service.command.configurations;
 
-import static oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand.EXECUTOR_BEAN_NAME;
+import static oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask.EXECUTOR_BEAN_NAME;
 import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME;
 import static oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandThroughMessagesExecutor.JSON_CONTEXT_MODULE_BEAN_NAME;
 
 import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local.LocalQueueCommandExecutor;
 import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
@@ -101,8 +101,8 @@ public class SchoolCommandsConfiguration {
      * @param maxPoolSize maximum size of threads-pool
      * @return ready to use executor
      * @see Executor
-     * @see ParallelMacroCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see ParallelMacroCommand#rollbackNested(Deque)
+     * @see ParallelCommandsTask#executeNested(Deque, Context.StateChangedListener)
+     * @see ParallelCommandsTask#rollbackNested(Deque)
      */
     @Bean(name = EXECUTOR_BEAN_NAME)
     public Executor parallelCommandNestedCommandsExecutor(

@@ -11,8 +11,8 @@ import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.education.StudentsPersistenceFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.profile.student.DeleteStudentProfileCommand;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
@@ -38,14 +38,14 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @see Student
  * @see StudentProfile
- * @see ParallelMacroCommand
+ * @see ParallelCommandsTask
  * @see DeleteStudentCommand
  * @see DeleteStudentProfileCommand
  * @see StudentsPersistenceFacade
  */
 @Slf4j
 @Component(StudentCommand.Component.DELETE_ALL)
-public class DeleteStudentTask extends ParallelMacroCommand<Boolean> implements MacroDeleteStudent<Boolean> {
+public class DeleteStudentTask extends ParallelCommandsTask<Boolean> implements MacroDeleteStudent<Boolean> {
     // beans factory to prepare the current command for transactional operations
     protected transient BeanFactory applicationContext;
     @Autowired
@@ -188,8 +188,8 @@ public class DeleteStudentTask extends ParallelMacroCommand<Boolean> implements 
      * @param visitor             visitor of prepared contexts
      * @param macroInputParameter Macro-Command execute input parameter
      * @return prepared for nested command context
-     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialCommandsTask, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelCommandsTask, Input)
      * @see oleg.sopilnyak.test.service.command.type.core.CompositeCommand#createContext(Input)
      */
     @Override

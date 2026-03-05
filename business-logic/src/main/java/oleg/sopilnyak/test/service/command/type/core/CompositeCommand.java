@@ -3,9 +3,9 @@ package oleg.sopilnyak.test.service.command.type.core;
 import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
+import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.executable.core.ParallelMacroCommand;
-import oleg.sopilnyak.test.service.command.executable.core.SequentialMacroCommand;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.nested.NestedCommand;
 import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
@@ -81,8 +81,8 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
      * @param visitor            visitor to make prepared contexts for nested command
      * @param mainInputParameter composite command call's input
      * @return prepared for nested command context
-     * @see PrepareNestedContextVisitor#prepareContext(SequentialMacroCommand, Input)
-     * @see PrepareNestedContextVisitor#prepareContext(ParallelMacroCommand, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(SequentialCommandsTask, Input)
+     * @see PrepareNestedContextVisitor#prepareContext(ParallelCommandsTask, Input)
      */
     @Override
     default Context<T> acceptPreparedContext(final PrepareNestedContextVisitor visitor, final Input<?> mainInputParameter) {
