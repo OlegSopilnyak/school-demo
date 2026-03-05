@@ -728,6 +728,30 @@ class InputParameterTest {
         assertThat(restored).isInstanceOf(CompositeInput.class).isInstanceOf(Input.class);
     }
 
+    @Test
+    void shouldCreateStaffRole() {
+        Role value = Role.TEACHER;
+
+        var parameter = Input.of(value);
+
+        assertThat(parameter.value()).isEqualTo(value);
+        assertThat(parameter).isInstanceOf(StaffRoleParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldRestoreStaffRole() throws JsonProcessingException {
+        Role value = Role.TEACHER;
+
+        var parameter = Input.of(value);
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(StaffRoleParameter.class.getName());
+
+        var restored = objectMapper.readValue(json, StaffRoleParameter.class);
+
+        assertThat(restored.value()).isEqualTo(value);
+        assertThat(restored).isInstanceOf(StaffRoleParameter.class).isInstanceOf(Input.class);
+    }
+
     // private methods
     private static StudentPayload createStudent(long id) {
         return StudentPayload.builder()

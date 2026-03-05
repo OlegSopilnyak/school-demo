@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.io;
 
 import oleg.sopilnyak.test.school.common.model.BaseType;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
+import oleg.sopilnyak.test.service.command.io.result.CompositeOutputParameter;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.NumberIdResult;
 import oleg.sopilnyak.test.service.command.io.result.OptionalValueResult;
@@ -41,6 +42,18 @@ public interface Output<O> extends IOBase<O> {
      */
     static <T> Output<T> empty() {
         return new EmptyResult<>();
+    }
+
+    /**
+     * To create new composite output instance (many outputs inside)
+     *
+     * @param outputs couple of outputs to join in composite
+     * @return new instance of the output
+     * @param <T> common type of output instance
+     * @see CompositeOutputParameter
+     */
+    static <T> CompositeOutput<T> of(Output<?>... outputs) {
+        return new CompositeOutputParameter<>(outputs);
     }
 
     /**

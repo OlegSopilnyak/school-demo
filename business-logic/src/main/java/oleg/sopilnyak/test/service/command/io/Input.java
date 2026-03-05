@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.io;
 
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
@@ -16,6 +17,7 @@ import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StaffRoleParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -52,8 +54,9 @@ public interface Input<P> extends IOBase<P> {
     /**
      * To create new composite input instance (many inputs inside)
      *
+     * @param inputs couple of inputs to join in composite
      * @return new instance of the input
-     * @see CompositeInputParameter
+     * @param <T> common type of input instance
      */
     static <T> CompositeInput<T> of(Input<?>... inputs) {
         return new CompositeInputParameter<>(inputs);
@@ -154,6 +157,18 @@ public interface Input<P> extends IOBase<P> {
      */
     static <T extends BasePayload<? extends BaseType>> CompositeInput<T> of(final T firstPayload, final T secondPayload) {
         return of(of(firstPayload), of(secondPayload));
+    }
+
+    /**
+     * To create new input instance for Staff Role
+     *
+     * @param role value of the role
+     * @return new instance of the input
+     * @see Role
+     * @see StaffRoleParameter
+     */
+    static Input<Role> of(final Role role) {
+        return new StaffRoleParameter(role);
     }
 
     /**

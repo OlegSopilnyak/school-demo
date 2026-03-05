@@ -1,11 +1,11 @@
-package oleg.sopilnyak.test.service.command.io.parameter;
+package oleg.sopilnyak.test.service.command.io.result;
 
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.TYPE_FIELD_NAME;
 import static oleg.sopilnyak.test.service.command.io.IOFieldNames.VALUE_FIELD_NAME;
 
-import oleg.sopilnyak.test.service.command.io.CompositeInput;
+import oleg.sopilnyak.test.service.command.io.CompositeOutput;
 import oleg.sopilnyak.test.service.command.io.IOBase;
-import oleg.sopilnyak.test.service.command.io.Input;
+import oleg.sopilnyak.test.service.command.io.Output;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,19 +28,19 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 /**
  * Type: I/O school-command the composite array of inputs parameter
  *
- * @see Input
+ * @see Output
  */
-@JsonSerialize(using = CompositeInputParameter.Serializer.class)
-@JsonDeserialize(using = CompositeInputParameter.Deserializer.class)
-public final class CompositeInputParameter<T> implements CompositeInput<T> {
-    // empty composite input parameter
-    public static final CompositeInputParameter EMPTY = new CompositeInputParameter<>();
-    // the nest of gathered inputs
-    private final Input<T>[] nest;
+@JsonSerialize(using = CompositeOutputParameter.Serializer.class)
+@JsonDeserialize(using = CompositeOutputParameter.Deserializer.class)
+public final class CompositeOutputParameter<T> implements CompositeOutput<T> {
+    // empty composite output parameter
+    public static final CompositeOutputParameter EMPTY = new CompositeOutputParameter<>();
+    // the nest of gathered outputs
+    private final Output<T>[] nest;
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof CompositeInputParameter<?> that && Arrays.equals(nest, that.nest);
+        return o instanceof CompositeOutputParameter<?> that && Arrays.equals(nest, that.nest);
     }
 
     @Override
@@ -49,12 +49,12 @@ public final class CompositeInputParameter<T> implements CompositeInput<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public CompositeInputParameter(Input<?>... inputs) {
-        if (ObjectUtils.isEmpty(inputs)) {
-            this.nest = new Input[0];
+    public CompositeOutputParameter(Output<?>... outputs) {
+        if (ObjectUtils.isEmpty(outputs)) {
+            this.nest = new Output[0];
         } else {
-            this.nest = new Input[inputs.length];
-            System.arraycopy(inputs, 0, this.nest, 0, inputs.length);
+            this.nest = new Output[outputs.length];
+            System.arraycopy(outputs, 0, this.nest, 0, outputs.length);
         }
     }
 
@@ -64,7 +64,7 @@ public final class CompositeInputParameter<T> implements CompositeInput<T> {
      * @return value of the parameter
      */
     @Override
-    public Input<T>[] value() {
+    public Output<T>[] value() {
         return nest;
     }
 
@@ -79,92 +79,92 @@ public final class CompositeInputParameter<T> implements CompositeInput<T> {
     }
 
     /**
-     * JSON: Serializer for CompositeInputParameter
+     * JSON: Serializer for CompositeOutputParameter
      *
      * @see StdSerializer
-     * @see CompositeInputParameter
+     * @see CompositeOutputParameter
      */
-    static class Serializer extends StdSerializer<CompositeInputParameter<?>> {
+    static class Serializer extends StdSerializer<CompositeOutputParameter<?>> {
         public Serializer() {
             this(null);
         }
 
-        protected Serializer(Class<CompositeInputParameter<?>> t) {
+        protected Serializer(Class<CompositeOutputParameter<?>> t) {
             super(t);
         }
 
         @Override
-        public void serialize(final CompositeInputParameter parameter, final JsonGenerator generator,
+        public void serialize(final CompositeOutputParameter parameter, final JsonGenerator generator,
                               final SerializerProvider notUsed) throws IOException {
             generator.writeStartObject();
-            generator.writeStringField(TYPE_FIELD_NAME, CompositeInputParameter.class.getName());
+            generator.writeStringField(TYPE_FIELD_NAME, CompositeOutputParameter.class.getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
-            serializeInputsArray(parameter.nest, generator);
+            serializeOutputsArray(parameter.nest, generator);
             generator.writeEndObject();
         }
 
         // private methods
         // store inputs array body as JSON
-        private void serializeInputsArray(final Input<?>[] inputs, final JsonGenerator generator) throws IOException {
+        private void serializeOutputsArray(final Output<?>[] outputs, final JsonGenerator generator) throws IOException {
             generator.writeStartArray();
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
-            for (final Input<?> input : inputs) {
-                generator.writeRawValue(mapper.writeValueAsString(input));
+            for (final Output<?> output : outputs) {
+                generator.writeRawValue(mapper.writeValueAsString(output));
             }
             generator.writeEndArray();
         }
     }
 
     /**
-     * JSON: Deserializer for CompositeInputParameter
+     * JSON: Deserializer for CompositeOutputParameter
      *
      * @see StdDeserializer
-     * @see CompositeInputParameter
+     * @see CompositeOutputParameter
      */
-    static class Deserializer<T> extends StdDeserializer<CompositeInputParameter<T>> {
+    static class Deserializer<T> extends StdDeserializer<CompositeOutputParameter<T>> {
         public Deserializer() {
-            this(CompositeInputParameter.class);
+            this(CompositeOutputParameter.class);
         }
 
-        protected Deserializer(Class<CompositeInputParameter> vc) {
+        protected Deserializer(Class<CompositeOutputParameter> vc) {
             super(vc);
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        public CompositeInputParameter<T> deserialize(
+        public CompositeOutputParameter<T> deserialize(
                 final JsonParser jsonParser, final DeserializationContext notUsed
         ) throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
-            final Class<?> parameterClass = IOBase.restoreIoBaseClass(treeNode, CompositeInput.class);
-            if (!parameterClass.isAssignableFrom(CompositeInputParameter.class)) {
+            final Class<?> parameterClass = IOBase.restoreIoBaseClass(treeNode, CompositeOutput.class);
+            if (!parameterClass.isAssignableFrom(CompositeOutputParameter.class)) {
                 return EMPTY;
             }
-            final Input<T>[] contexts = deserializeInputsArray(
+            final Output<T>[] outputs = deserializeOutputsArray(
                     treeNode.get(VALUE_FIELD_NAME), (ObjectMapper) jsonParser.getCodec()
             );
-            return new CompositeInputParameter<>(contexts);
+            return new CompositeOutputParameter<>(outputs);
         }
 
         // private methods
         // restore inputs array from JSON
         @SuppressWarnings("unchecked")
-        private Input<T>[] deserializeInputsArray(final TreeNode valueNode, final ObjectMapper mapper) throws IOException {
+        private Output<T>[] deserializeOutputsArray(final TreeNode valueNode, final ObjectMapper mapper) throws IOException {
             if (valueNode instanceof ArrayNode arrayNode) {
-                final List<Input<?>> result = new LinkedList<>();
+                final List<Output<?>> result = new LinkedList<>();
                 for (final JsonNode node : arrayNode) {
-                    result.add(deserializeInput(node, mapper));
+                    result.add(deserializeOutput(node, mapper));
                 }
-                return result.toArray(Input[]::new);
+                return result.toArray(Output[]::new);
             } else {
-                throw new IOException("Wrong type of inputs array node " + valueNode.toString());
+                throw new IOException("Wrong type of outputs array node " + valueNode.toString());
             }
         }
 
         // restore input from JSON
         @SuppressWarnings("unchecked")
-        private Input<T> deserializeInput(final JsonNode parameterNode, final ObjectMapper mapper) throws IOException {
-            final var inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Input.class);
+        private Output<T> deserializeOutput(final JsonNode parameterNode, final ObjectMapper mapper) throws IOException {
+            final var inputParameterClass = IOBase.restoreIoBaseClass(parameterNode, Output.class);
             return mapper.readValue(parameterNode.toString(), inputParameterClass);
         }
 

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
+import oleg.sopilnyak.test.service.command.io.CompositeOutput;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
@@ -821,6 +822,34 @@ class OutputResultTest {
         assertThat(restored.value()).hasSize(size);
         entitySet.forEach(payload -> assertThat(restored.value()).contains(payload));
         assertThat(restored).isInstanceOf(Output.class);
+    }
+
+    @Test
+    void shouldCreateCompositeOutputResult() throws JsonProcessingException {
+        boolean boolTrueValue = true;
+        boolean boolFalseValue = false;
+
+        CompositeOutput<Boolean> result = Output.of(Output.of(boolTrueValue), Output.of(boolFalseValue));
+        String json = objectMapper.writeValueAsString(result);
+        var restored = objectMapper.readValue(json, CompositeOutputParameter.class);
+
+        assertThat(restored).isInstanceOf(CompositeOutputParameter.class).isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
+        assertThat(restored.isEmpty()).isFalse();
+        assertThat(restored.value()[0].value()).isEqualTo(boolTrueValue);
+        assertThat(restored.value()[1].value()).isEqualTo(boolFalseValue);
+    }
+
+    @Test
+    void shouldRestoreCompositeOutputResult() {
+        boolean boolTrueValue = true;
+        boolean boolFalseValue = false;
+
+        CompositeOutput<Boolean> result = Output.of(Output.of(boolTrueValue), Output.of(boolFalseValue));
+
+        assertThat(result).isInstanceOf(CompositeOutputParameter.class).isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
+        assertThat(result.isEmpty()).isFalse();
+        assertThat(result.value()[0].value()).isEqualTo(boolTrueValue);
+        assertThat(result.value()[1].value()).isEqualTo(boolFalseValue);
     }
 
     // private methods

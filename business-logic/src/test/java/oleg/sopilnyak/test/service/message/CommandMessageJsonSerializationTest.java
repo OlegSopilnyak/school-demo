@@ -4,15 +4,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.service.command.io.CompositeOutput;
 import oleg.sopilnyak.test.service.command.io.IOBase;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.io.Output;
 import oleg.sopilnyak.test.service.command.io.parameter.CompositeInputParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StaffRoleParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
+import oleg.sopilnyak.test.service.command.io.result.CompositeOutputParameter;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
@@ -303,6 +307,68 @@ class CommandMessageJsonSerializationTest {
     }
 
     @Test
+    void shouldDeserializeCompositeOutputResult_Boolean() throws IOException {
+        boolean boolTrueValue = true;
+        boolean boolFalseValue = false;
+
+        Output.ResultDeserializer<Boolean> outputResultDeserializer = new Output.ResultDeserializer<>();
+        CompositeOutput<Boolean> result = Output.of(Output.of(boolTrueValue), Output.of(boolFalseValue));
+        String json = objectMapper.writeValueAsString(result);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        CompositeOutput<Boolean> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
+                .isInstanceOf(CompositeOutput.class)
+                .isInstanceOf(Output.class);
+        assertThat(restored.isEmpty()).isFalse();
+        assertThat(restored.value()[0].value()).isEqualTo(boolTrueValue);
+        assertThat(restored.value()[1].value()).isEqualTo(boolFalseValue);
+    }
+
+    @Test
+    void shouldDeserializeCompositeOutputResult_StudentPayload() throws IOException {
+        long id = 211L;
+        StudentPayload firstStudentValue = createStudent(id);
+        StudentPayload secondStudentValue = createStudent(id + 10);
+
+        Output.ResultDeserializer<Boolean> outputResultDeserializer = new Output.ResultDeserializer<>();
+        CompositeOutput<Student> result = Output.of(Output.of(firstStudentValue), Output.of(secondStudentValue));
+        String json = objectMapper.writeValueAsString(result);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        CompositeOutput<Student> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
+                .isInstanceOf(CompositeOutput.class)
+                .isInstanceOf(Output.class);
+        assertThat(restored.isEmpty()).isFalse();
+        assertThat(restored.value()[0].value()).isEqualTo(firstStudentValue);
+        assertThat(restored.value()[1].value()).isEqualTo(secondStudentValue);
+    }
+
+    @Test
+    void shouldDeserializeCompositeOutputResult_TypesMix() throws IOException {
+        long id = 221L;
+        StudentPayload studentValue = createStudent(id);
+        boolean boolTrueValue = true;
+
+        Output.ResultDeserializer<Boolean> outputResultDeserializer = new Output.ResultDeserializer<>();
+        CompositeOutput<Student> result = Output.of(Output.of(studentValue), Output.of(boolTrueValue));
+        String json = objectMapper.writeValueAsString(result);
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        CompositeOutput<Object> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
+
+        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
+                .isInstanceOf(CompositeOutput.class)
+                .isInstanceOf(Output.class);
+        assertThat(restored.isEmpty()).isFalse();
+        assertThat(restored.value()[0].value()).isEqualTo(studentValue);
+        assertThat(restored.value()[1].value()).isEqualTo(boolTrueValue);
+    }
+
+    @Test
     void shouldDeserializeOutputUsingOutputResultDeserializer_BooleanResult() throws IOException {
         boolean resultValue = true;
         Output.ResultDeserializer outputResultDeserializer = new Output.ResultDeserializer();
@@ -364,6 +430,22 @@ class CommandMessageJsonSerializationTest {
         assertThat(restored.value()).isNotNull().isInstanceOf(Set.class);
         assertThat(restored.value()).contains(entity1, entity2, entity3);
         assertThat(restored.isEmpty()).isFalse();
+    }
+
+    @Test
+    void shouldDeserializeInputUsingInputParameterDeserializer_StaffRole() throws IOException {
+        Role value = Role.TEACHER;
+        Input.ParameterDeserializer<Role> inputParameterDeserializer = new Input.ParameterDeserializer<>();
+
+        var parameter = Input.of(value);
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(StaffRoleParameter.class.getName());
+        JsonParser parser = objectMapper.getFactory().createParser(json);
+
+        var restored = inputParameterDeserializer.deserialize(parser, null);
+
+        assertThat(restored.value()).isEqualTo(value);
+        assertThat(restored).isInstanceOf(StaffRoleParameter.class).isInstanceOf(Input.class);
     }
 
     // private methods
