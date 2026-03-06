@@ -169,7 +169,7 @@ public class MacroCommandParameter implements Input<MacroCommandParameter> {
         private static Input<?> deserializeRootInputParameter(final TreeNode treeNode,
                                                               final ObjectMapper mapper) throws IOException {
             if (treeNode == null) {
-                return Input.empty();
+                return Input.emptyParameter();
             }
             // restore redo parameter
             final JsonParser parser = mapper.getFactory().createParser(treeNode.toString());

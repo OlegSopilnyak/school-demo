@@ -158,7 +158,7 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
     // To get courses without registered students (for internal usage)
     private Set<Course> internalFindWithoutStudents() {
         log.debug("Finding no-students courses");
-        final Optional<Set<Course>> result = executeCommand(FIND_NOT_REGISTERED, factory, Input.empty());
+        final Optional<Set<Course>> result = executeCommand(FIND_NOT_REGISTERED, factory, Input.emptyParameter());
         return result.map(entities -> {
             log.debug("Found no-students courses {}", entities);
             return entities.stream().map(toPayload).collect(Collectors.toSet());

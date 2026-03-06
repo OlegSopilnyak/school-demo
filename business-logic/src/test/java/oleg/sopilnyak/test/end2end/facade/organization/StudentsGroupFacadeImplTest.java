@@ -142,7 +142,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Collection<StudentsGroup> groups = facade.doActionAndResult(commandId);
 
         assertThat(groups).contains(group);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllStudentsGroups();
     }
 
@@ -153,7 +153,7 @@ class StudentsGroupFacadeImplTest extends MysqlTestModelFactory {
         Collection<StudentsGroup> groups = facade.doActionAndResult(commandId);
 
         assertThat(groups).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllStudentsGroups();
     }
 

@@ -235,7 +235,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper, never()).toPayload(any(AuthorityPerson.class));
@@ -254,7 +254,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).hasSize(1).contains(mockPersonPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper).toPayload(mockPerson);
@@ -273,7 +273,7 @@ class AuthorityPersonFacadeImplTest {
 
         assertThat(result).hasSize(1).contains(mockPersonPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllAuthorityPersons();
         verify(payloadMapper).toPayload(mockPerson);

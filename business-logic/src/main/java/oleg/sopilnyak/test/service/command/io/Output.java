@@ -14,8 +14,10 @@ import oleg.sopilnyak.test.service.message.CommandMessage;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonParser;
@@ -32,24 +34,81 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
  * @see oleg.sopilnyak.test.service.command.type.core.RootCommand#executeDo(Context)
  * @see Context#setResult(Object)
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public interface Output<O> extends IOBase<O> {
+    // declared emptyValue output
+    Output EMPTY = new EmptyResult<>();
 
     /**
-     * To create empty result output
+     * To get emptyResult value of parameter
+     *
+     * @return emptyResult parameter value
+     */
+    @Override
+    default <T> IOBase<T> emptyValue() {
+        return EMPTY;
+    }
+
+    /**
+     * If a value is present, returns an {@code Output} describing
+     * the result of applying the given mapping function to
+     * the value, otherwise returns an emptyResult {@code Output}.
+     *
+     * <p>If the mapping function returns a {@code null} result then this method
+     * returns an emptyResult {@code Output}.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @return an {@code Output} describing the result of applying a mapping
+     * function to the value of this {@code Output}, if a value is
+     * present, otherwise an emptyResult {@code Output}
+     * @throws NullPointerException if the mapping function is {@code null}
+     * @apiNote This method supports post-processing on {@code Output} values, without
+     * the need to explicitly check for a return status.  For example, the
+     * following code traverses a stream of URIs, selects one that has not
+     * yet been processed, and creates a path from that URI, returning
+     * an {@code Output<Path>}:
+     *
+     * <pre>{@code
+     *     Output<Path> p =
+     *         uris.stream().filter(uri -> !isProcessedYet(uri))
+     *                       .findFirst().orElseThrow()
+     *                       .map(Output::of).map(Paths::get);
+     * }</pre>
+     * <p>
+     * Here, {@code findFirst} returns an {@code Optional<URI>}, and then
+     * {@code orElseThrow} returns value of {@code URI} which transformed to {@code Output<URI>}
+     * then {@code map} returns an {@code Output<Path>} for the desired
+     * URI if one exists.
+     * @see Optional#map(Function)
+     * @see Output#emptyResult()
+     * @see Output#of
+     */
+    @Override
+    default <U> Output<U> map(Function<? super O, ? extends U> mapper) {
+        Objects.requireNonNull(mapper);
+        if (isEmpty()) {
+            return EMPTY;
+        } else {
+            return (Output<U>) Output.of(mapper.apply(value()));
+        }
+    }
+
+    /**
+     * To get emptyResult result output
      *
      * @return new instance of the output
      * @see EmptyResult
      */
-    static <T> Output<T> empty() {
-        return new EmptyResult<>();
+    static <T> Output<T> emptyResult() {
+        return EMPTY;
     }
 
     /**
      * To create new composite output instance (many outputs inside)
      *
      * @param outputs couple of outputs to join in composite
+     * @param <T>     common type of output instance
      * @return new instance of the output
-     * @param <T> common type of output instance
      * @see CompositeOutputParameter
      */
     static <T> CompositeOutput<T> of(Output<?>... outputs) {
@@ -93,9 +152,10 @@ public interface Output<O> extends IOBase<O> {
      * @return new instance of the output
      * @see OptionalValueResult
      */
-    static <T> Output<Optional<T>> of (final Optional<T> result) {
+    static <T> Output<Optional<T>> of(final Optional<T> result) {
         return new OptionalValueResult<>(result);
     }
+
     /**
      * To create payload result output
      *
@@ -127,7 +187,7 @@ public interface Output<O> extends IOBase<O> {
             final Set<P> payloadsSet = result.stream().map(i -> (P) i).collect(Collectors.toSet());
             return new PayloadSetResult<>(payloadsSet);
         }
-        return empty();
+        return emptyResult();
     }
 
     /**
@@ -138,11 +198,11 @@ public interface Output<O> extends IOBase<O> {
      * @see Output#of(Boolean)
      * @see Output#of(BasePayload)
      * @see Output#of(Set)
-     * @see Output#empty()
+     * @see Output#emptyResult()
      */
     static Output<?> of(final Object result) {
         return switch (result) {
-            case null -> empty();
+            case null -> emptyResult();
             // primitive output types
             case Boolean booleanResult -> of(booleanResult);
             case String stringResult -> of(stringResult);

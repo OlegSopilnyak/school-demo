@@ -95,7 +95,7 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(result).hasSize(1);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllStudentsGroups();
     }
@@ -112,7 +112,7 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(result).hasSize(1);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllStudentsGroups();
     }
@@ -128,7 +128,7 @@ class StudentsGroupFacadeImplTest {
 
         assertThat(result).isEmpty();
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findAllStudentsGroups();
     }

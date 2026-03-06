@@ -209,16 +209,21 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
     }
 
     // private methods
-    private Context<?> buildCommandContextFor(final NestedCommand<?> nestedCommand, final Input<?> input) {
-        // nested command context to build
-        Context<?> nestedContext;
+    /**
+     * To build execution context of the nested command
+     *
+     * @param nested nested command instance
+     * @param parameter command execution input parameter
+     * @return built nested command execution context or failed one if something went wrong
+     */
+    private Context<?> buildCommandContextFor(final NestedCommand<?> nested, final Input<?> parameter) {
         try {
-            nestedContext = nestedCommand.acceptPreparedContext(this, input);
+            // returns built well context for the nested command
+            return nested.acceptPreparedContext(this, parameter);
         } catch (Exception e) {
-            getLog().error("Cannot prepare nested command context '{}' for value {}", nestedCommand.getId(), input, e);
-            nestedContext = nestedCommand.createFailedContext(e);
+            getLog().error("Cannot prepare nested command '{}' context for input parameter {}", nested.getId(), parameter, e);
+            // returns fail context for the nested command
+            return nested.createFailedContext(e);
         }
-        // return built nested command context
-        return nestedContext;
     }
 }

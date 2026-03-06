@@ -33,6 +33,9 @@ import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import org.mockito.internal.util.MockUtil;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
@@ -48,8 +51,50 @@ import org.mapstruct.factory.Mappers;
  * @see oleg.sopilnyak.test.service.command.type.core.RootCommand#executeDo(Context)
  * @see CommandContext#setRedoParameter(Input)
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public interface Input<P> extends IOBase<P> {
+    // declared emptyValue output
+    Input EMPTY = new EmptyParameter();
+    // The mapper for incoming values to module's model types
     BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
+
+    /**
+     * To get emptyResult value of parameter similar like Optional#emptyResult()
+     *
+     * @return emptyResult parameter value
+     * @see Optional#empty()
+     */
+    @Override
+    default <T> IOBase<T> emptyValue() {
+        return EMPTY;
+    }
+
+    /**
+     * If a value is present, returns an {@code Input} describing
+     * the result of applying the given mapping function to
+     * the value, otherwise returns an emptyResult {@code Input}.
+     *
+     * <p>If the mapping function returns a {@code null} result then this method
+     * returns an emptyResult {@code Input}.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @return an {@code Input} describing the result of applying a mapping
+     * function to the value of this {@code Input}, if a value is
+     * present, otherwise an emptyResult {@code Input}
+     * @throws NullPointerException if the mapping function is {@code null}
+     * @see Optional#map(Function)
+     * @see Input#emptyParameter()
+     * @see Input#of
+     */
+    @Override
+    default <U> Input<U> map(Function<? super P, ? extends U> mapper) {
+        Objects.requireNonNull(mapper);
+        if (isEmpty()) {
+            return EMPTY;
+        } else {
+            return (Input<U>) Input.of(mapper.apply(value()));
+        }
+    }
 
     /**
      * To create new composite input instance (many inputs inside)
@@ -63,13 +108,13 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new empty input instance
+     * To create new emptyValue input instance
      *
      * @return new instance of the input
      * @see EmptyParameter
      */
-    static Input<Void> empty() {
-        return new EmptyParameter();
+    static <T> Input<T> emptyParameter() {
+        return EMPTY;
     }
 
     /**
@@ -208,7 +253,7 @@ public interface Input<P> extends IOBase<P> {
     static Input<?> of(final Object parameter) {
         return MockUtil.isMock(parameter) ? mock(parameter)
                 : switch (parameter) {
-            case null -> empty();
+            case null -> emptyParameter();
             case Input<?> input -> input;
             case Number numberId -> of(numberId);
             case String stringId -> of(stringId);
@@ -217,14 +262,14 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input by parameter type
+     * To build new input instance by parameter type
      *
      * @param type instance to wrap
      * @return new instance of the input
      */
     static <T extends BaseType> Input<?> of(final T type) {
         return switch (type) {
-            case null -> empty();
+            case null -> emptyParameter();
             case T base when MockUtil.isMock(base) -> mock(base);
             // education types
             case StudentPayload payload -> of(payload);

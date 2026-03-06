@@ -211,7 +211,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         Set<Course> courses = facade.doActionAndResult(commandId);
 
         assertThat(courses).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 
@@ -226,7 +226,7 @@ class CoursesFacadeImplTest extends MysqlTestModelFactory {
         assertThat(courses).isNotEmpty();
         assertCourseEquals(newCourse, courses.iterator().next(), false);
         assertThat(courses).hasSize(1);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistenceFacade).findCoursesWithoutStudents();
     }
 

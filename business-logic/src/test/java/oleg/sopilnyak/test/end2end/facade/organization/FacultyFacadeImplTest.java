@@ -137,7 +137,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         Collection<Faculty> faculties = facade.doActionAndResult(commandId);
 
         assertThat(faculties).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllFaculties();
     }
 
@@ -149,7 +149,7 @@ class FacultyFacadeImplTest extends MysqlTestModelFactory {
         Collection<Faculty> faculties = facade.doActionAndResult(commandId);
 
         assertThat(faculties).contains(faculty);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllFaculties();
     }
 

@@ -182,7 +182,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     // To get all authority persons (for internal usage)
     private Collection<AuthorityPerson> internalFindAll() {
         log.debug("Finding all authority persons");
-        final Optional<Set<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.FIND_ALL, factory, Input.empty());
+        final Optional<Set<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.FIND_ALL, factory, Input.emptyParameter());
         return result.map(entities -> {
             log.debug("Found all authority persons {}", entities);
             return entities.stream().map(toPayload).collect(Collectors.toSet());

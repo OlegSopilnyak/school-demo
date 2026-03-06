@@ -234,7 +234,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).hasSize(1).contains(mockedStudentPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
         verify(payloadMapper).toPayload(mockedStudent);
@@ -253,7 +253,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).hasSize(1).contains(mockedStudentPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
         verify(payloadMapper).toPayload(mockedStudent);
@@ -270,7 +270,7 @@ class StudentsFacadeImplTest {
 
         assertThat(students).isEmpty();
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.empty());
+        verify(factory.command(commandId)).createContext(Input.emptyParameter());
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).findNotEnrolledStudents();
     }

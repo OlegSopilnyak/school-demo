@@ -222,7 +222,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Collection<AuthorityPerson> persons = facade.doActionAndResult(commandId);
 
         assertThat(persons).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllAuthorityPersons();
     }
 
@@ -235,7 +235,7 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
         Collection<AuthorityPerson> persons = facade.doActionAndResult(commandId);
 
         assertThat(persons).contains(payloadMapper.toPayload(person));
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistence).findAllAuthorityPersons();
     }
 

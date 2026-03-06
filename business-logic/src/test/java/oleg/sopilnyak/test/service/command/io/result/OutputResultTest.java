@@ -41,7 +41,7 @@ class OutputResultTest {
 
     @Test
     void shouldCreateEmptyResult() {
-        Output<Void> result = Output.empty();
+        Output<Void> result = Output.emptyResult();
 
         assertThat(result).isNotNull();
         assertThat(result.value()).isNull();
@@ -51,7 +51,7 @@ class OutputResultTest {
 
     @Test
     void shouldRestoreEmptyResult() throws JsonProcessingException {
-        Output<Void> result = Output.empty();
+        Output<Void> result = Output.emptyResult();
         String json = objectMapper.writeValueAsString(result);
         var restored = objectMapper.readValue(json, EmptyResult.class);
 
@@ -850,6 +850,33 @@ class OutputResultTest {
         assertThat(result.isEmpty()).isFalse();
         assertThat(result.value()[0].value()).isEqualTo(boolTrueValue);
         assertThat(result.value()[1].value()).isEqualTo(boolFalseValue);
+    }
+
+    @Test
+    void shouldMapPrincipalProfileOutputToUsername() {
+        long id = 1231L;
+        PrincipalProfilePayload entity = createPrincipalProfile(id);
+
+        Output<PrincipalProfilePayload> parameter = Output.of(entity);
+
+        assertThat(parameter.value()).isEqualTo(entity);
+        assertThat(parameter).isInstanceOf(PayloadResult.class).isInstanceOf(Output.class);
+        assertThat(parameter.map(PrincipalProfilePayload::getUsername).value()).isEqualTo(entity.getUsername());
+    }
+
+    @Test
+    void shouldFlatMapPrincipalProfileOutputToUsername() {
+        long id = 1231L;
+        PrincipalProfilePayload entity = createPrincipalProfile(id);
+
+        Output<PrincipalProfilePayload> result = Output.of(entity);
+        Output<String> usernameInput = result.flatMap(value -> Output.of(value.getUsername()));
+
+        assertThat(result.value()).isEqualTo(entity);
+        assertThat(result).isInstanceOf(PayloadResult.class).isInstanceOf(Output.class);
+        assertThat(result.map(PrincipalProfilePayload::getUsername).value()).isEqualTo(entity.getUsername());
+        assertThat(usernameInput.value()).isEqualTo(entity.getUsername());
+        assertThat(usernameInput).isInstanceOf(StringIdResult.class).isInstanceOf(Output.class);
     }
 
     // private methods

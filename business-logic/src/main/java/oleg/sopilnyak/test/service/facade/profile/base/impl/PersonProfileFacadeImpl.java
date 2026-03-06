@@ -81,7 +81,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      *
      * @param actionId the action-id for feature
      * @param argument person instance id
-     * @return found profile instance or empty
+     * @return found profile instance or emptyValue
      * @see Optional
      */
     protected Optional<PersonProfile> internalFindById(final String actionId, final Object argument) {
@@ -101,7 +101,7 @@ public abstract class PersonProfileFacadeImpl<P extends ProfileCommand<?>> imple
      *
      * @param actionId the action-id for feature
      * @param argument person instance to create or update
-     * @return updated profile instance or empty
+     * @return updated profile instance or emptyValue
      * @see Optional
      */
     protected Optional<PersonProfile> internalCreateOrUpdate(final String actionId, final Object argument) {

@@ -133,7 +133,7 @@ class CreateOrUpdateCourseCommandTest {
 
     @Test
     void shouldNotDoCommand_EmptyParameter() {
-        Context<Optional<Course>> context = command.createContext(Input.empty());
+        Context<Optional<Course>> context = command.createContext(Input.emptyParameter());
 
         command.doCommand(context);
 
@@ -243,7 +243,7 @@ class CreateOrUpdateCourseCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
         verify(persistence, never()).deleteCourse(anyLong());
     }

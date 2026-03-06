@@ -51,7 +51,7 @@ public abstract class BaseCommandMessage<T> implements CommandMessage<T> {
      */
     public final void validate() {
         if (correlationId == null || correlationId.isBlank()) {
-            throw new IllegalArgumentException("Correlation ID must not be null or empty");
+            throw new IllegalArgumentException("Correlation ID must not be null or emptyValue");
         }
         if (actionContext == null) {
             throw new IllegalArgumentException("Action context must not be null");

@@ -240,7 +240,7 @@ class SchoolCommandCacheTest {
     void shouldNotRestoreInitialCommandState_UndoParameterIsEmpty() {
         Context<BaseType> context = mock(Context.class);
         BaseType value = mock(BaseType.class);
-        doReturn(Input.empty()).when(context).getUndoParameter();
+        doReturn(Input.emptyParameter()).when(context).getUndoParameter();
         Function<BaseType, Optional<BaseType>> facadeSave = spy(new SaveEntity(value));
 
         cache.restoreInitialCommandState(context, facadeSave);

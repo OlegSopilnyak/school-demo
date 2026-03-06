@@ -176,7 +176,7 @@ class StudentsRestControllerTest extends MysqlTestModelFactory {
         int studentsAmount = 5;
         Set<Student> students = IntStream.range(0, studentsAmount)
                 .mapToObj(i -> getPersistent(makeClearStudent(i))).collect(Collectors.toSet());
-        String requestPath = ROOT + "/empty";
+        String requestPath = ROOT + "/emptyValue";
 
         MvcResult result =
                 mockMvc.perform(

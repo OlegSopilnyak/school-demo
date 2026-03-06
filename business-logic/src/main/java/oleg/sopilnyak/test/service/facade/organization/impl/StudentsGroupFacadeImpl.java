@@ -106,7 +106,7 @@ public class StudentsGroupFacadeImpl extends OrganizationFacadeImpl<StudentsGrou
     // to get all students groups (for internal usage)
     private Collection<StudentsGroup> internalFindAll() {
         log.debug("Finding all students groups");
-        final Optional<Set<StudentsGroup>> result = executeCommand(StudentsGroupFacade.FIND_ALL, factory, Input.empty());
+        final Optional<Set<StudentsGroup>> result = executeCommand(StudentsGroupFacade.FIND_ALL, factory, Input.emptyParameter());
         return result.map(entities -> {
             log.debug("Found all students groups {}", entities);
             return entities.stream().map(toPayload).collect(Collectors.toSet());

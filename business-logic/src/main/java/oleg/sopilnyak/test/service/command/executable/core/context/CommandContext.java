@@ -45,10 +45,10 @@ public class CommandContext<T> implements Context<T> {
     private RootCommand<T> command;
     @JsonDeserialize(using = Input.ParameterDeserializer.class)
     @Builder.Default
-    private Input<?> redoParameter = Input.empty();
+    private Input<?> redoParameter = Input.emptyParameter();
     @JsonDeserialize(using = Input.ParameterDeserializer.class)
     @Builder.Default
-    private Input<?> undoParameter = Input.empty();
+    private Input<?> undoParameter = Input.emptyParameter();
     private transient T resultData;
     private Exception exception;
     // the time when execution starts
@@ -117,7 +117,7 @@ public class CommandContext<T> implements Context<T> {
      */
     public <U> void setUndoParameter(final Input<U> parameter) {
         if (Set.of(DONE, WORK).contains(state)) {
-            undoParameter = nonNull(parameter) ? parameter : Input.empty();
+            undoParameter = nonNull(parameter) ? parameter : Input.emptyParameter();
         }
     }
 

@@ -57,7 +57,7 @@ public interface RootCommand<T> extends CommandExecutable<T>, NestedCommand<T> {
      */
     default <I> void checkNullParameter(Input<I> parameter) {
         if (isNull(parameter) || parameter.isEmpty()) {
-            throw new NullPointerException("Wrong input parameter value (cannot be null or empty).");
+            throw new NullPointerException("Wrong input parameter value (cannot be null or emptyValue).");
         }
     }
 

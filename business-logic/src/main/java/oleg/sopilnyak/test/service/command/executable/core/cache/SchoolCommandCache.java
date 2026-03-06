@@ -128,7 +128,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
             context.setResult(null);
             final Input<?> doInput = context.getRedoParameter();
             if (isNull(doInput) || doInput.isEmpty()) {
-                // command do input is empty
+                // command do input is emptyValue
                 getLog().debug("No input entity to clean entity-id.");
                 return Optional.empty();
             }
@@ -176,7 +176,7 @@ public abstract class SchoolCommandCache<T extends BaseType, R> extends BasicCom
      *
      * @param context    command's do context
      * @param facadeSave function for saving the entity
-     * @return saved instance or empty
+     * @return saved instance or emptyValue
      * @see Optional#empty()
      * @see StudentNotFoundException
      */

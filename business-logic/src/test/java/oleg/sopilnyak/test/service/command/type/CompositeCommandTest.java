@@ -47,7 +47,7 @@ class CompositeCommandTest {
 
     @Test
     void shouldCreateContext() {
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         NestedCommand<Void> firstCommand = mock(NestedCommand.class);
         Context<?> firstContext = mock(Context.class);
         doReturn(firstContext).when(firstCommand).acceptPreparedContext(compositeCommand, input);
@@ -79,7 +79,7 @@ class CompositeCommandTest {
 
     @Test
     void shouldNotCreateContext_FailedBuiltContext() {
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         NestedCommand<Void> firstCommand = mock(NestedCommand.class);
         Context<?> firstContext = mock(Context.class);
         doReturn(firstContext).when(firstCommand).acceptPreparedContext(compositeCommand, input);
@@ -111,7 +111,7 @@ class CompositeCommandTest {
     void shouldNotCreateContext_FirstNestedContextBuildingThrows() {
         Logger logger = mock(Logger.class);
         doReturn(logger).when(compositeCommand).getLog();
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         NestedCommand<Void> firstCommand = mock(NestedCommand.class);
         String commandId = "first.command.id";
         doReturn(commandId).when(firstCommand).getId();
@@ -149,7 +149,7 @@ class CompositeCommandTest {
     void shouldNotCreateContext_LastNestedContextBuildingThrows() {
         Logger logger = mock(Logger.class);
         doReturn(logger).when(compositeCommand).getLog();
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         NestedCommand<Void> firstCommand = mock(NestedCommand.class);
         Context<?> firstContext = mock(Context.class);
         doReturn(firstContext).when(firstCommand).acceptPreparedContext(compositeCommand, input);
@@ -185,7 +185,7 @@ class CompositeCommandTest {
 
     @Test
     void shouldAcceptPreparedContext() {
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         doCallRealMethod().when(compositeCommand).acceptPreparedContext(compositeCommand, input);
 
         compositeCommand.acceptPreparedContext(compositeCommand, input);
@@ -195,7 +195,7 @@ class CompositeCommandTest {
 
     @Test
     void shouldNotAcceptPreparedContext_PrepareContextThrows() {
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         doCallRealMethod().when(compositeCommand).acceptPreparedContext(compositeCommand, input);
         Exception exception = new RuntimeException("Failed");
         doThrow(exception).when(compositeCommand).prepareContext(compositeCommand, input);
@@ -227,7 +227,7 @@ class CompositeCommandTest {
     void shouldExecuteDoNested_WithStateChangeListener() {
         ActionContext actionContext = ActionContext.current();
         RootCommand<?> nestedCommand = mock(RootCommand.class);
-        Input<Void> input = Input.empty();
+        Input<Void> input = Input.emptyParameter();
         doCallRealMethod().when(nestedCommand).createContext(input);
         Context<?> nestedContext = nestedCommand.createContext(input);
         assertThat(nestedContext.isReady()).isTrue();

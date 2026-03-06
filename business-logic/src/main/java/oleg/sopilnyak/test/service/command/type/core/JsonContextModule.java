@@ -113,7 +113,7 @@ public class JsonContextModule<T> extends SimpleModule {
 
         private void serializeExecutionResult(final T executionResult, final JsonGenerator generator) throws IOException {
             generator.writeFieldName(RESULT_FIELD_NAME);
-            final Output<?> result = isNull(executionResult) ?  Output.empty() : Output.of(executionResult);
+            final Output<?> result = isNull(executionResult) ?  Output.emptyResult() : Output.of(executionResult);
             generator.writeRawValue(((ObjectMapper) generator.getCodec()).writeValueAsString(result));
         }
 
@@ -122,7 +122,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                                    final JsonGenerator generator,
                                                    final String fieldName) throws IOException {
             if (isNull(input) || input.isEmpty()) {
-                // if input is null or empty, do not serialize
+                // if input is null or emptyValue, do not serialize
                 return;
             }
             generator.writeFieldName(fieldName);
@@ -237,7 +237,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                               final CommandContext.CommandContextBuilder<T> contextBuilder,
                                               final ObjectMapper mapper) throws IOException {
             if (treeNode == null) {
-                contextBuilder.redoParameter(Input.empty());
+                contextBuilder.redoParameter(Input.emptyParameter());
                 return;
             }
             // restore redo parameter
@@ -250,7 +250,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                               final CommandContext.CommandContextBuilder<T> contextBuilder,
                                               final ObjectMapper mapper) throws IOException {
             if (treeNode == null) {
-                contextBuilder.undoParameter(Input.empty());
+                contextBuilder.undoParameter(Input.emptyParameter());
                 return;
             }
             // restore undo parameter

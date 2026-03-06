@@ -226,7 +226,7 @@ class DeletePrincipalProfileCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.empty());
+            commandContext.setUndoParameter(Input.emptyParameter());
         }
 
         command.undoCommand(context);
@@ -234,7 +234,7 @@ class DeletePrincipalProfileCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .startsWith("Wrong input parameter value (cannot be null or empty).");
+                .startsWith("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(profile);
     }

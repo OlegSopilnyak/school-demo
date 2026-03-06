@@ -15,6 +15,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -30,7 +33,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 /**
  * Type: I/O school-command input-output base type
  *
- * @param <P> the type of command input-output entity
+ * @param <P> the type of command input-output value
  */
 public interface IOBase<P> extends Serializable {
     String EXCEPTION_MESSAGE_FIELD_NAME = "message";
@@ -45,12 +48,92 @@ public interface IOBase<P> extends Serializable {
     P value();
 
     /**
-     * To check is result's output value is empty
+     * To check is result's output value is emptyValue
      *
      * @return true if no data in the output result
      */
     default boolean isEmpty() {
         return ObjectUtils.isEmpty(value());
+    }
+
+    /**
+     * To get empty value of parameter similar like Optional#empty()
+     *
+     * @return empty parameter value
+     * @param <T> parameter's type
+     * @see Optional#empty()
+     */
+    default <T> IOBase<T> emptyValue() {
+        throw new UnsupportedOperationException("Not supported yet. Please implement this method.");
+    }
+
+    /**
+     * If a value is present, returns the result of applying the given
+     * {@code IOBase}-bearing mapping function to the value, otherwise returns
+     * an emptyResult {@code IOBase}.
+     *
+     * <p>This method is similar to {@link #map(Function)}, but the mapping
+     * function is one whose result is already an {@code IOBase}, and if
+     * invoked, {@code flatMap} does not wrap it within an additional
+     * {@code IOBase}.
+     *
+     * @param <U> The type of value of the {@code IOBase} returned by the
+     *            mapping function
+     * @param mapper the mapping function to apply to a value, if present
+     * @return the result of applying an {@code IOBase}-bearing mapping
+     *         function to the value of this {@code IOBase}, if a value is
+     *         present, otherwise an emptyResult {@code IOBase}
+     * @throws NullPointerException if the mapping function is {@code null} or
+     *         returns a {@code null} result
+     * @see Optional#flatMap(Function)
+     */
+    @SuppressWarnings("unchecked")
+    default <U, T extends IOBase<? extends U>> T flatMap(Function<? super P, T> mapper) {
+        Objects.requireNonNull(mapper);
+        if (isEmpty()) {
+            return (T) emptyValue();
+        } else {
+            return Objects.requireNonNull(mapper.apply(value()));
+        }
+    }
+
+    /**
+     * If a value is present, returns an {@code IOBase} describing
+     * the result of applying the given mapping function to
+     * the value, otherwise returns an emptyResult {@code IOBase}.
+     *
+     * <p>If the mapping function returns a {@code null} result then this method
+     * returns an emptyResult {@code IOBase}.
+     *
+     * @apiNote
+     * This method supports post-processing on {@code IOBase} values, without
+     * the need to explicitly check for a return status.  For example, the
+     * following code traverses a stream of URIs, selects one that has not
+     * yet been processed, and creates a path from that URI, returning
+     * an {@code IOBase<Path>}:
+     *
+     * <pre>{@code
+     *     IOBase<Path> p =
+     *         uris.stream().filter(uri -> !isProcessedYet(uri))
+     *                       .findFirst()
+     *                       .map(Paths::get);
+     * }</pre>
+     *
+     * Here, {@code findFirst} returns an {@code IOBase<URI>}, and then
+     * {@code map} returns an {@code IOBase<Path>} for the desired
+     * URI if one exists.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @param <U> The type of the value returned from the mapping function
+     * @return an {@code IOBase} describing the result of applying a mapping
+     *         function to the value of this {@code IOBase}, if a value is
+     *         present, otherwise an emptyResult {@code IOBase}
+     * @throws NullPointerException if the mapping function is {@code null}
+     * @see Optional#map(Function)
+     */
+
+    default <U> IOBase<U> map(Function<? super P, ? extends U> mapper) {
+        throw new UnsupportedOperationException("Not supported yet. Please implement this method.");
     }
 
     /**
@@ -63,16 +146,14 @@ public interface IOBase<P> extends Serializable {
      * @throws IOException throws if it cannot restore the class
      */
     @SuppressWarnings("unchecked")
-    static <T extends IOBase<?>> Class<T> restoreIoBaseClass(
-            final TreeNode ioTreeNode, final Class<T> shouldBeType
-    ) throws IOException {
+    static <T extends IOBase<?>> Class<T> restoreIoBaseClass(final TreeNode ioTreeNode, final Class<T> shouldBeType) throws IOException {
         final TreeNode ioClassNameNode = ioTreeNode.get(TYPE_FIELD_NAME);
         if (ioClassNameNode instanceof TextNode node) {
             final String ioTypeClassName = node.asText();
             try {
                 return (Class<T>) Class.forName(ioTypeClassName).asSubclass(shouldBeType);
             } catch (ClassNotFoundException | ClassCastException e) {
-                // class not found or class is not ioClass
+                // class not found or class is not subclass of required type
                 throw new IOException("Wrong class name in node-type: " + ioTypeClassName, e);
             }
         } else {

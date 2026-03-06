@@ -74,7 +74,7 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      * @param input     input parameter for the command execution
      * @param <I>       type of input parameter
      * @param <R>       type of command result
-     * @return command context or empty if not registered
+     * @return command context or emptyValue if not registered
      * @see CommandsFactory#command(String)
      * @see RootCommand#createContext(Input)
      * @see Context
@@ -91,7 +91,7 @@ public class CommandsFactoriesFarm<T extends RootCommand<?>> implements Commands
      * To find factory by name
      *
      * @param factoryName the name of the commands factory
-     * @return found factory or empty
+     * @return found factory or emptyValue
      * @see CommandsFactory
      * @see Optional
      */

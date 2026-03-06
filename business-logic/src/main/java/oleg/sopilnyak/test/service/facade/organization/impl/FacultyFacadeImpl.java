@@ -108,7 +108,7 @@ public class FacultyFacadeImpl extends OrganizationFacadeImpl<FacultyCommand<?>>
     // to get all faculties (for internal usage)
     private Collection<Faculty> internalFindAll() {
         log.debug("Finding all faculties");
-        final Optional<Set<Faculty>> result = executeCommand(FacultyFacade.FIND_ALL, factory, Input.empty());
+        final Optional<Set<Faculty>> result = executeCommand(FacultyFacade.FIND_ALL, factory, Input.emptyParameter());
         return result.map(entities -> {
             log.debug("Found faculties {}", entities);
             return entities.stream().map(toPayload).collect(Collectors.toSet());

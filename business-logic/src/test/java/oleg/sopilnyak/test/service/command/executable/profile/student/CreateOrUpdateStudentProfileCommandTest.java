@@ -332,7 +332,7 @@ class CreateOrUpdateStudentProfileCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .startsWith("Wrong input parameter value (cannot be null or empty).");
+                .startsWith("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
     }
 

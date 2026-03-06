@@ -54,7 +54,7 @@ public record OptionalValueResult<T>(Optional<T> value) implements Output<Option
             // storing result value
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
             generator.writeFieldName(VALUE_FIELD_NAME);
-            final Output<?> valueResult = result.value.isEmpty() ? Output.empty() : Output.of(result.value.get());
+            final Output<?> valueResult = result.value.isEmpty() ? Output.emptyResult() : Output.of(result.value.get());
             final String valueJson = mapper.writeValueAsString(valueResult);
             generator.writeRawValue(valueJson);
             generator.writeEndObject();

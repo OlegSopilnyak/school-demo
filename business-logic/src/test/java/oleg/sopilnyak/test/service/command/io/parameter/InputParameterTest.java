@@ -39,7 +39,7 @@ class InputParameterTest {
     @Test
     void shouldCreateEmptyParameter() {
 
-        Input<Void> parameter = Input.empty();
+        Input<Void> parameter = Input.emptyParameter();
 
         assertThat(parameter.isEmpty()).isTrue();
         assertThat(parameter.value()).isNull();
@@ -49,7 +49,7 @@ class InputParameterTest {
     @Test
     void shouldRestoreEmptyParameter() throws JsonProcessingException {
 
-        Input<Void> parameter = Input.empty();
+        Input<Void> parameter = Input.emptyParameter();
 
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(EmptyParameter.class.getName());
@@ -750,6 +750,33 @@ class InputParameterTest {
 
         assertThat(restored.value()).isEqualTo(value);
         assertThat(restored).isInstanceOf(StaffRoleParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldMapPrincipalProfileInputToUsername() {
+        long id = 1231L;
+        PrincipalProfilePayload entity = createPrincipalProfile(id);
+
+        Input<PrincipalProfilePayload> parameter = Input.of(entity);
+
+        assertThat(parameter.value()).isEqualTo(entity);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter.map(PrincipalProfilePayload::getUsername).value()).isEqualTo(entity.getUsername());
+    }
+
+    @Test
+    void shouldFlatMapPrincipalProfileInputToUsernameInput() {
+        long id = 1231L;
+        PrincipalProfilePayload entity = createPrincipalProfile(id);
+
+        Input<PrincipalProfilePayload> parameter = Input.of(entity);
+        Input<String> usernameInput = parameter.flatMap(value -> Input.of(value.getUsername()));
+
+        assertThat(parameter.value()).isEqualTo(entity);
+        assertThat(parameter).isInstanceOf(PayloadParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter.map(PrincipalProfilePayload::getUsername).value()).isEqualTo(entity.getUsername());
+        assertThat(usernameInput.value()).isEqualTo(entity.getUsername());
+        assertThat(usernameInput).isInstanceOf(StringParameter.class).isInstanceOf(Input.class);
     }
 
     // private methods

@@ -196,7 +196,7 @@ class UnRegisterStudentFromCourseCommandTest extends MysqlTestModelFactory {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.empty());
+            commandContext.setUndoParameter(Input.emptyParameter());
         }
 
         command.undoCommand(context);

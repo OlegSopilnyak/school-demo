@@ -118,7 +118,7 @@ class DeleteFacultyCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeDo(context);
         verify(persistence, never()).findFacultyById(anyLong());
     }
@@ -180,7 +180,7 @@ class DeleteFacultyCommandTest {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.empty());
+            commandContext.setUndoParameter(Input.emptyParameter());
         }
 
         command.undoCommand(context);
@@ -188,7 +188,7 @@ class DeleteFacultyCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(entity);
     }

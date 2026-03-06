@@ -151,7 +151,7 @@ class StudentsRestControllerTest extends TestModelFactory {
         Set<Student> students = LongStream.range(0, studentsAmount).mapToObj(this::makeTestStudent).collect(Collectors.toSet());
         List<Student> selectedStudentsList = students.stream().sorted(Comparator.comparing(Student::getId)).toList();
         doReturn(students).when(facade).doActionAndResult(STUDENT_FIND_NOT_ENROLLED);
-        String requestPath = ROOT + "/empty";
+        String requestPath = ROOT + "/emptyValue";
 
         MvcResult result =
                 mockMvc.perform(
@@ -339,7 +339,7 @@ class StudentsRestControllerTest extends TestModelFactory {
     void shouldNotDeleteStudentValidId_StudentWithCoursesException() throws Exception {
         Long id = 104L;
         String requestPath = ROOT + "/" + id;
-        String errorMessage = "Not empty courses set";
+        String errorMessage = "Not emptyValue courses set";
         doThrow(new StudentWithCoursesException(errorMessage)).when(facade).doActionAndResult(STUDENT_DELETE_ALL, id);
         MvcResult result =
                 mockMvc.perform(

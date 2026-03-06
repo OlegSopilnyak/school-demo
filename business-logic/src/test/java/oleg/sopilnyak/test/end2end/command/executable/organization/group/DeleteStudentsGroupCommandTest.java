@@ -139,7 +139,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeDo(context);
         verify(persistence, never()).findStudentsGroupById(anyLong());
     }
@@ -205,7 +205,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         Context<Boolean> context = command.createContext();
         context.setState(Context.State.DONE);
         if (context instanceof CommandContext<?> commandContext) {
-            commandContext.setUndoParameter(Input.empty());
+            commandContext.setUndoParameter(Input.emptyParameter());
         }
 
         command.undoCommand(context);
@@ -213,7 +213,7 @@ class DeleteStudentsGroupCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(any(StudentsGroup.class));
     }

@@ -125,7 +125,7 @@ public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsF
     // To get students not enrolled to any course (for internal usage)
     private Set<Student> internalFindNotEnrolled() {
         log.debug("Finding students not enrolled to any course");
-        final Optional<Set<Student>> result = executeCommand(FIND_NOT_ENROLLED, factory, Input.empty());
+        final Optional<Set<Student>> result = executeCommand(FIND_NOT_ENROLLED, factory, Input.emptyParameter());
         return result.map(entities -> {
             log.debug("Found students not enrolled to any course {}", entities);
             return entities.stream().map(toPayload).collect(Collectors.toSet());

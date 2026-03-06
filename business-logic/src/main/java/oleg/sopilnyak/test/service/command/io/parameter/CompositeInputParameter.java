@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 @JsonSerialize(using = CompositeInputParameter.Serializer.class)
 @JsonDeserialize(using = CompositeInputParameter.Deserializer.class)
 public final class CompositeInputParameter<T> implements CompositeInput<T> {
-    // empty composite input parameter
+    // emptyValue composite input parameter
     public static final CompositeInputParameter EMPTY = new CompositeInputParameter<>();
     // the nest of gathered inputs
     private final Input<T>[] nest;
@@ -69,7 +69,7 @@ public final class CompositeInputParameter<T> implements CompositeInput<T> {
     }
 
     /**
-     * To check is result's output value is empty
+     * To check is result's output value is emptyValue
      *
      * @return true if no data in the output result
      */

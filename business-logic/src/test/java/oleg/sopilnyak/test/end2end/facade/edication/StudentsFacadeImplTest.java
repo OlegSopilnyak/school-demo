@@ -233,7 +233,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
 
         assertThat(students).hasSize(1);
         assertStudentEquals(newStudent, students.iterator().next(), false);
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -244,7 +244,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Set<Student> students = facade.doActionAndResult(commandId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 
@@ -256,7 +256,7 @@ class StudentsFacadeImplTest extends MysqlTestModelFactory {
         Set<Student> students = facade.doActionAndResult(commandId);
 
         assertThat(students).isEmpty();
-        verifyAfterCommand(commandId, Input.empty());
+        verifyAfterCommand(commandId, Input.emptyParameter());
         verify(persistenceFacade).findNotEnrolledStudents();
     }
 

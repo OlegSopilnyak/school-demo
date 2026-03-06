@@ -286,7 +286,7 @@ class CreateOrUpdateAuthorityPersonCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
+                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
         verify(command).executeUndo(context);
     }
 
