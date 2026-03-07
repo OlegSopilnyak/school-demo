@@ -1,6 +1,15 @@
 package oleg.sopilnyak.test.service.command.io;
 
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.education.Course;
+import oleg.sopilnyak.test.school.common.model.education.Student;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
+import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.CompositeOutputParameter;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
@@ -10,8 +19,16 @@ import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
 import oleg.sopilnyak.test.service.command.io.result.StringIdResult;
 import oleg.sopilnyak.test.service.command.type.core.Context;
+import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.CommandMessage;
+import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.BasePayload;
+import oleg.sopilnyak.test.service.message.payload.CoursePayload;
+import oleg.sopilnyak.test.service.message.payload.FacultyPayload;
+import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentPayload;
+import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
+import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -19,12 +36,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.mockito.internal.util.MockUtil;
 import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import org.mapstruct.factory.Mappers;
 
 
 /**
@@ -38,6 +57,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 public interface Output<O> extends IOBase<O> {
     // declared emptyValue output
     Output EMPTY = new EmptyResult<>();
+    // The mapper for incoming values to module's model types
+    BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
 
     /**
      * To get emptyResult value of parameter
@@ -156,16 +177,20 @@ public interface Output<O> extends IOBase<O> {
         return new OptionalValueResult<>(result);
     }
 
+
     /**
-     * To create payload result output
+     * To create new output instance for DataMode base type (Payload)
      *
-     * @return new instance of the output
-     * @see PayloadResult
+     * @param payload value of the payload
+     * @param <T>     type of payload
+     * @return new instance of the input
+     * @see Input#mock(Object)
+     * @see PayloadParameter
      * @see BasePayload
      * @see BaseType
      */
-    static <P extends BasePayload<? extends BaseType>> Output<P> of(final P result) {
-        return new PayloadResult<>(result);
+    static <T extends BasePayload<? extends BaseType>> Output<T> of(final T payload) {
+        return MockUtil.isMock(payload) ? mock(payload) : new PayloadResult<>(payload);
     }
 
     /**
@@ -191,7 +216,7 @@ public interface Output<O> extends IOBase<O> {
     }
 
     /**
-     * To create result output by result type
+     * To create result output by result type (used in deserialization mostly)
      *
      * @param result instance to wrap
      * @return new instance of the output
@@ -203,6 +228,8 @@ public interface Output<O> extends IOBase<O> {
     static Output<?> of(final Object result) {
         return switch (result) {
             case null -> emptyResult();
+            // check mocked objects
+            case Object object when MockUtil.isMock(object) -> mock(object);
             // primitive output types
             case Boolean booleanResult -> of(booleanResult);
             case String stringResult -> of(stringResult);
@@ -214,6 +241,65 @@ public interface Output<O> extends IOBase<O> {
             // unknown result type
             default -> throw new IllegalArgumentException("Output result type isn't supported: " + result.getClass());
         };
+    }
+
+    /**
+     * To build new output instance by parameter type
+     *
+     * @param type instance to wrap
+     * @return new instance of the output
+     */
+    static <T extends BaseType> Output<?> of(final T type) {
+        return switch (type) {
+            case null -> emptyResult();
+            case T base when MockUtil.isMock(base) -> mock(base);
+            // education types
+            case StudentPayload payload -> of(payload);
+            case Student base -> of(payloadMapper.toPayload(base));
+            case CoursePayload payload -> of(payload);
+            case Course base -> of(payloadMapper.toPayload(base));
+            // organization types
+            case AuthorityPersonPayload payload -> of(payload);
+            case AuthorityPerson base -> of(payloadMapper.toPayload(base));
+            case FacultyPayload payload -> of(payload);
+            case Faculty base -> of(payloadMapper.toPayload(base));
+            case StudentsGroupPayload payload -> of(payload);
+            case StudentsGroup base -> of(payloadMapper.toPayload(base));
+            // profile types
+            case PrincipalProfilePayload payload -> of(payload);
+            case PrincipalProfile base -> of(payloadMapper.toPayload(base));
+            case StudentProfilePayload payload -> of(payload);
+            case StudentProfile base -> of(payloadMapper.toPayload(base));
+            default -> throw new InvalidParameterTypeException("Model's BaseType", type);
+        };
+    }
+
+    /**
+     * To create new mocked output instance
+     *
+     * @param instance mocked value instance
+     * @param <T>      type of the output
+     * @return new instance of the output
+     * @see Mocked
+     */
+    static <T> Output<T> mock(T instance) {
+        return new Mocked<>(instance);
+    }
+
+    // inner class for mocked values
+
+    /**
+     * Output wrapper for mocked object
+     *
+     * @param value mocked value instance
+     * @param <T>   type of the output
+     */
+    record Mocked<T>(T value) implements Output<T> {
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Mocked(Object val) && value.equals(val);
+        }
     }
 
     // inner classes for JSON serializing/deserializing

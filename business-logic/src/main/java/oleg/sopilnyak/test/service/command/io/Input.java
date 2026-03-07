@@ -100,8 +100,8 @@ public interface Input<P> extends IOBase<P> {
      * To create new composite input instance (many inputs inside)
      *
      * @param inputs couple of inputs to join in composite
+     * @param <T>    common type of input instance
      * @return new instance of the input
-     * @param <T> common type of input instance
      */
     static <T> CompositeInput<T> of(Input<?>... inputs) {
         return new CompositeInputParameter<>(inputs);
@@ -115,18 +115,6 @@ public interface Input<P> extends IOBase<P> {
      */
     static <T> Input<T> emptyParameter() {
         return EMPTY;
-    }
-
-    /**
-     * To create new mocked input instance
-     *
-     * @param instance mocked value instance
-     * @param <T>      type of the input
-     * @return new instance of the input
-     * @see MockedInput
-     */
-    static <T> Input<T> mock(T instance) {
-        return new MockedInput<>(instance);
     }
 
     /**
@@ -176,7 +164,7 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new input instance for Payload
+     * To create new input instance for DataMode base type (Payload)
      *
      * @param payload value of the payload
      * @param <T>     type of payload
@@ -251,12 +239,14 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      */
     static Input<?> of(final Object parameter) {
-        return MockUtil.isMock(parameter) ? mock(parameter)
-                : switch (parameter) {
+        return switch (parameter) {
             case null -> emptyParameter();
+            // check mocked objects
+            case Object object when MockUtil.isMock(object) -> mock(object);
+            // primitive output types
             case Input<?> input -> input;
-            case Number numberId -> of(numberId);
-            case String stringId -> of(stringId);
+            case Number number -> of(number);
+            case String string -> of(string);
             default -> throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
         };
     }
@@ -293,18 +283,31 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * Input for mocked object
+     * To create new mocked input instance
+     *
+     * @param instance mocked value instance
+     * @param <T>      type of the input
+     * @return new instance of the input
+     * @see Mocked
+     */
+    static <T> Input<T> mock(T instance) {
+        return new Mocked<>(instance);
+    }
+
+    // inner class for mocked values
+
+    /**
+     * Input wrapper for mocked object
      *
      * @param value mocked value instance
      * @param <T>   type of the input
      */
-    record MockedInput<T>(T value) implements Input<T> {
+    record Mocked<T>(T value) implements Input<T> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof MockedInput(Object val) && value.equals(val);
+            return o instanceof Mocked(Object val) && value.equals(val);
         }
-
     }
 
     // inner classes for JSON serializing/deserializing
