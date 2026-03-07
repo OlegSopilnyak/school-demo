@@ -234,7 +234,7 @@ class DeletePrincipalProfileCommandTest {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .startsWith("Wrong input parameter value (cannot be null or emptyValue).");
+                .startsWith("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
         verify(persistence, never()).save(profile);
     }

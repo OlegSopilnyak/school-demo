@@ -86,7 +86,7 @@ public abstract class MessagesExchange {
         final ActionContext requestActionContext = request.getActionContext();
         final String correlationId = request.getCorrelationId();
         if (requestActionContext == null) {
-            getLogger().error("== Couldn't process message request with correlation-id:{} action-context is emptyValue", correlationId);
+            getLogger().error("== Couldn't process message request with correlation-id:{} action-context is empty", correlationId);
             onErrorRequestMessage(request, new IllegalArgumentException("Action context must not be null"));
         } else {
             getLogger().debug("Executing request with correlation-id:{} in action-context:{}", correlationId, requestActionContext);

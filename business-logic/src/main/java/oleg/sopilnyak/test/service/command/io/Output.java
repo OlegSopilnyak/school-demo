@@ -55,7 +55,7 @@ import org.mapstruct.factory.Mappers;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public interface Output<O> extends IOBase<O> {
-    // declared emptyValue output
+    // declared empty output
     Output EMPTY = new EmptyResult<>();
     // The mapper for incoming values to module's model types
     BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
@@ -100,9 +100,9 @@ public interface Output<O> extends IOBase<O> {
      * {@code orElseThrow} returns value of {@code URI} which transformed to {@code Output<URI>}
      * then {@code map} returns an {@code Output<Path>} for the desired
      * URI if one exists.
-     * @see Optional#map(Function)
      * @see Output#emptyResult()
      * @see Output#of
+     * @see Optional#map(Function)
      */
     @Override
     default <U> Output<U> map(Function<? super O, ? extends U> mapper) {
@@ -176,7 +176,6 @@ public interface Output<O> extends IOBase<O> {
     static <T> Output<Optional<T>> of(final Optional<T> result) {
         return new OptionalValueResult<>(result);
     }
-
 
     /**
      * To create new output instance for DataMode base type (Payload)

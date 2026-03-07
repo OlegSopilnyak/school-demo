@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Type: I/O school-command emptyValue command execution result (no results)
+ * Type: I/O school-command empty command execution result (no results)
  *
  * @see Output
  * @see Void
@@ -33,7 +33,7 @@ public record EmptyResult<T>() implements Output<T> {
     }
 
     /**
-     * To check is result's output value is emptyValue
+     * To check is result's output value is empty
      *
      * @return true if no data in the output result
      */

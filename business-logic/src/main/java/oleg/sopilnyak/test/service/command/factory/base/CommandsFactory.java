@@ -40,7 +40,7 @@ public interface CommandsFactory<C extends RootCommand<?>> {
      * @param input     input parameter for the command execution
      * @param <I>       type of input parameter
      * @param <R>       type of command result
-     * @return command context or emptyValue if not registered
+     * @return command context or null if not registered
      * @see CommandsFactory#command(String)
      * @see RootCommand#createContext(Input)
      * @see Context

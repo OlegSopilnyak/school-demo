@@ -53,7 +53,7 @@ import org.mapstruct.factory.Mappers;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public interface Input<P> extends IOBase<P> {
-    // declared emptyValue output
+    // declared empty output
     Input EMPTY = new EmptyParameter();
     // The mapper for incoming values to module's model types
     BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
@@ -108,7 +108,7 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
-     * To create new emptyValue input instance
+     * To create new empty input instance
      *
      * @return new instance of the input
      * @see EmptyParameter

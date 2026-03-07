@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Type: I/O school-command emptyValue command input parameter (no results)
+ * Type: I/O school-command empty command input parameter (no results)
  *
  * @see Input
  * @see Void
@@ -44,7 +44,7 @@ public final class EmptyParameter implements Input<Void> {
     }
 
     /**
-     * To check is result's output value is emptyValue
+     * To check is result's output value is empty
      *
      * @return true if no data in the output result
      */

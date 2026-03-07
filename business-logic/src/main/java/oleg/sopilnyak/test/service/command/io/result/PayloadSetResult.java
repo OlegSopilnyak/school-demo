@@ -78,7 +78,7 @@ public record PayloadSetResult<P extends BasePayload<? extends BaseType>>(Set<P>
         // private methods
         private Class<?> checkElementTypes(final Set<T> set) throws IOException {
             if (CollectionUtils.isEmpty(set)) {
-                // set is emptyValue, type of elements in collection doesn't matter
+                // set is empty, type of elements in collection doesn't matter
                 return BasePayload.class;
             }
             // checking the types of the elements in set

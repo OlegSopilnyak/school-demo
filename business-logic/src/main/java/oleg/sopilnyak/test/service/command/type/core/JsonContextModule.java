@@ -122,7 +122,7 @@ public class JsonContextModule<T> extends SimpleModule {
                                                    final JsonGenerator generator,
                                                    final String fieldName) throws IOException {
             if (isNull(input) || input.isEmpty()) {
-                // if input is null or emptyValue, do not serialize
+                // if input is null or empty, do not serialize
                 return;
             }
             generator.writeFieldName(fieldName);

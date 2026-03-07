@@ -304,7 +304,7 @@ class CreateOrUpdateStudentProfileCommandTest extends MysqlTestModelFactory {
         assertThat(context.isFailed()).isTrue();
         assertThat(context.getException()).isInstanceOf(NullPointerException.class);
         assertThat(context.getException().getMessage())
-                .isEqualTo("Wrong input parameter value (cannot be null or emptyValue).");
+                .isEqualTo("Wrong input parameter value (cannot be null or empty).");
         verify(command).executeUndo(context);
     }
 

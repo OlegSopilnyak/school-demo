@@ -48,7 +48,7 @@ public interface IOBase<P> extends Serializable {
     P value();
 
     /**
-     * To check is result's output value is emptyValue
+     * To check is result's output value is empty
      *
      * @return true if no data in the output result
      */

@@ -180,7 +180,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     void shouldFindEmptyCourses() throws Exception {
         int coursesAmount = 5;
         IntStream.range(0, coursesAmount).forEach(i -> getPersistent(makeClearCourse(i + 1)));
-        String requestPath = ROOT + "/emptyValue";
+        String requestPath = ROOT + "/empty";
 
         MvcResult result =
                 mockMvc.perform(

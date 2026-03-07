@@ -101,7 +101,7 @@ public abstract class RootMessageProcessor implements MessagesProcessor {
      */
     @Override
     public void shutdown() {
-        // put the emptyValue message as a last one to the processor
+        // put the empty message as a last one to the processor
         accept(EMPTY);
         // waiting for processor is active
         while (isProcessorActive()) synchronized (processorStateMonitor) {

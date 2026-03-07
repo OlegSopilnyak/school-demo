@@ -59,7 +59,7 @@ public abstract class BaseProfilePayload<T extends PersonProfile> extends BasePa
      * To get the value of extra parameter by key
      *
      * @param key key of extra parameter
-     * @return parameter value or emptyValue
+     * @return parameter value or empty
      * @see Optional
      * @see Optional#get()
      * @see Optional#empty()

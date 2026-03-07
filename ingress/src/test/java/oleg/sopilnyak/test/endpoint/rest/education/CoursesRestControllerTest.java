@@ -143,7 +143,7 @@ class CoursesRestControllerTest extends TestModelFactory {
         Set<Course> courses = LongStream.range(0, coursesAmount).mapToObj(this::makeTestCourse).collect(Collectors.toSet());
         doReturn(courses).when(persistenceFacade).findCoursesWithoutStudents();
         List<Course> selectedCoursesList = courses.stream().sorted(Comparator.comparing(Course::getId)).toList();
-        String requestPath = "/courses/emptyValue";
+        String requestPath = "/courses/empty";
 
         MvcResult result =
                 mockMvc.perform(
