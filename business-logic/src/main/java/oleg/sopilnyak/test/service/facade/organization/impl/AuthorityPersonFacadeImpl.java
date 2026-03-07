@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonM
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
@@ -73,8 +74,8 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
             case AuthorityPersonFacade.FIND_ALL -> internalFindAll();
             case AuthorityPersonFacade.FIND_BY_ID -> internalFindById(parameters);
             case AuthorityPersonFacade.CREATE_OR_UPDATE -> internalCreateOrUpdate(parameters);
-            case AuthorityPersonFacade.CREATE_MACRO -> internalCreateComposite(parameters);
-            case AuthorityPersonFacade.DELETE_MACRO -> internalDeleteComposite(parameters);
+            case AuthorityPersonFacade.CREATE_MACRO -> internalCreatePersonTask(parameters);
+            case AuthorityPersonFacade.DELETE_MACRO -> internalDeletePersonTask(parameters);
             default -> throwsUnknownActionId(actionId).apply(null);
         };
     }
@@ -110,7 +111,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     // to decode authority person from parameters array
-    private static AuthorityPerson decodePersonArgument(final Object... parameters) {
+    private static AuthorityPerson decodePersonInstance(final Object... parameters) {
         if (parameters == null || parameters.length < 1) {
             throw new IllegalArgumentException("Wrong number of parameters");
         }
@@ -118,6 +119,17 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
             return value;
         } else {
             throw new InvalidParameterTypeException("AuthorityPerson", parameters[0]);
+        }
+    }
+
+    private static Role decodePersonRole(final Object... parameters) {
+        if (parameters == null || parameters.length < 2) {
+            throw new IllegalArgumentException("Wrong number of parameters");
+        }
+        if (parameters[1] instanceof Role value) {
+            return value;
+        } else {
+            throw new InvalidParameterTypeException("Role", parameters[0]);
         }
     }
 
@@ -206,7 +218,7 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
 
     // To create or update authority person instance (for entry-point)
     private Optional<AuthorityPerson> internalCreateOrUpdate(final Object... parameters) {
-        return internalCreateOrUpdate(decodePersonArgument(parameters));
+        return internalCreateOrUpdate(decodePersonInstance(parameters));
     }
 
     // To create or update authority person instance (for internal usage)
@@ -221,14 +233,14 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
     }
 
     // To create person instance + it's profile (for entry-point)
-    private Optional<AuthorityPerson> internalCreateComposite(final Object... parameters) {
-        return internalCreateComposite(decodePersonArgument(parameters));
+    private Optional<AuthorityPerson> internalCreatePersonTask(final Object... parameters) {
+        return internalCreatePersonTask(decodePersonInstance(parameters), decodePersonRole(parameters));
     }
 
     // To create person instance + it's profile (for internal usage)
-    private Optional<AuthorityPerson> internalCreateComposite(final AuthorityPerson instance) {
+    private Optional<AuthorityPerson> internalCreatePersonTask(final AuthorityPerson instance, final Role role) {
         log.debug("Creating authority person with new profile {}", instance);
-        final var input = Input.of(toPayload.apply(instance));
+        final var input = Input.of(Input.of(toPayload.apply(instance)), Input.of(role));
         final Optional<Optional<AuthorityPerson>> result = executeCommand(AuthorityPersonFacade.CREATE_MACRO, factory, input);
         return result.flatMap( person ->{
             log.debug("Created authority person {}", person);
@@ -238,13 +250,13 @@ public class AuthorityPersonFacadeImpl extends OrganizationFacadeImpl<AuthorityP
 
 
     // To delete authority person from the school (with profile at once) (for entry-point)
-    private Void internalDeleteComposite(final Object... parameters) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
-        internalDeleteComposite(decodeLongArgument(parameters));
+    private Void internalDeletePersonTask(final Object... parameters) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
+        internalDeletePersonTask(decodeLongArgument(parameters));
         return null;
     }
 
     // To delete authority person from the school (with profile at once) (for internal usage)
-    private void internalDeleteComposite(final Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
+    private void internalDeletePersonTask(final Long id) throws AuthorityPersonNotFoundException, AuthorityPersonManagesFacultyException {
         final String commandId = AuthorityPersonFacade.DELETE_MACRO;
         final Consumer<Exception> doOnError = exception -> {
             switch (exception) {

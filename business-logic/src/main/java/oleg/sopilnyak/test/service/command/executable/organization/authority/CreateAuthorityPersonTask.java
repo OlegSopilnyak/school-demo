@@ -2,12 +2,15 @@ package oleg.sopilnyak.test.service.command.executable.organization.authority;
 
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
+import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.io.CompositeInput;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
@@ -97,10 +100,10 @@ public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<A
     /**
      * To prepare context for particular type of the nested command
      *
-     * @param command             nested command instance
-     * @param macroInputParameter macro-command input parameter
-     * @param <N>                 type of create-or-update person nested command result
-     * @return built context of the command for input parameter
+     * @param command   nested command instance
+     * @param taskInput macro-command input parameter
+     * @param <N>       type of create person nested command result
+     * @return built context of the command for person create input parameter
      * @see Input
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
@@ -108,30 +111,38 @@ public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<A
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof AuthorityPerson person && isUpdatePersonCommand(command.getId())
-                ? createPersonContext(command, person)
-                : cannotCreateNestedContextFor(command);
+    public <N> Context<N> prepareContext(final AuthorityPersonCommand<N> command, final Input<?> taskInput) {
+        if (!isUpdatePersonCommand(command.getId())) {
+            return cannotCreateNestedContextFor(command);
+        } else if (taskInput instanceof CompositeInput<?> compositeInput) {
+            return preparePersonContext(command, compositeInput);
+        } else {
+            throw new InvalidParameterTypeException("CompositeInput", taskInput.getClass());
+        }
     }
 
     /**
      * To prepare context for particular type of the nested command
      *
      * @param command             nested command instance
-     * @param macroInputParameter macro-command input parameter
+     * @param taskInput macro-command input parameter
      * @param <N>                 type of create-or-update principal-profile nested command result
      * @return built context of the command for input parameter
      * @see Input
      * @see AuthorityPerson
      * @see AuthorityPersonCommand
-     * @see CreateAuthorityPersonTask#createProfileContext(PrincipalProfileCommand, AuthorityPerson)
+     * @see CreateAuthorityPersonTask#createProfileContext(PrincipalProfileCommand, AuthorityPerson, Role)
      * @see Context
      */
     @Override
-    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> macroInputParameter) {
-        return macroInputParameter.value() instanceof AuthorityPerson person && isUpdateProfileCommand(command.getId())
-                ? createProfileContext(command, person)
-                : cannotCreateNestedContextFor(command);
+    public <N> Context<N> prepareContext(final PrincipalProfileCommand<N> command, final Input<?> taskInput) {
+        if (!isUpdateProfileCommand(command.getId())) {
+            return cannotCreateNestedContextFor(command);
+        } else if (taskInput instanceof CompositeInput<?> compositeInput) {
+            return prepareProfileContext(command, compositeInput);
+        } else {
+            throw new InvalidParameterTypeException("CompositeInput", taskInput.getClass());
+        }
     }
 
     /**
@@ -155,17 +166,21 @@ public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<A
     /**
      * To create context for create-or-update person profile command
      *
+     * @param <N>     type of create-or-update principal-profile nested command result
      * @param command create-or-update person profile command instance
      * @param person  input parameter of person to create
-     * @param <N>     type of create-or-update principal-profile nested command result
+     * @param role the role of the person to create
      * @return built context of the command for input parameter
      * @see PrincipalProfilePayload
      */
-    public <N> Context<N> createProfileContext(final PrincipalProfileCommand<N> command, final AuthorityPerson person) {
+    public <N> Context<N> createProfileContext(
+            final PrincipalProfileCommand<N> command, final AuthorityPerson person, final Role role
+    ) {
         final String emailPrefix = person.getFirstName().trim().toLowerCase() + "." + person.getLastName().trim().toLowerCase();
         final PrincipalProfilePayload payload = PrincipalProfilePayload.builder().id(null)
                 .phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
                 .username(emailPrefix)
+                .role(role)
                 .build();
         try {
             payload.setSignature(payload.makeSignatureFor(""));
@@ -249,6 +264,18 @@ public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<A
     }
 
     // private methods
+    // preparing create person nested command context
+    private <N> Context<N> preparePersonContext(final AuthorityPersonCommand<N> command, final CompositeInput<?> compositeInput) {
+        return compositeInput.value()[0].value() instanceof AuthorityPerson person
+                ? createPersonContext(command, person) : cannotCreateNestedContextFor(command);
+    }
+
+    // preparing create profile nested command context
+    private <N> Context<N> prepareProfileContext(final PrincipalProfileCommand<N> command, final CompositeInput<?> input) {
+        return input.value()[0].value() instanceof AuthorityPerson person && input.value()[1].value() instanceof Role role
+                ? createProfileContext(command, person, role) : cannotCreateNestedContextFor(command);
+    }
+
     // to check the command types
     // is update person command-id
     private static boolean isUpdatePersonCommand(final String commandId) {

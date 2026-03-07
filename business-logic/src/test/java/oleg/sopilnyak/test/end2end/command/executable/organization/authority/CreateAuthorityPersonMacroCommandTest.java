@@ -19,6 +19,7 @@ import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -65,7 +66,7 @@ import org.springframework.test.util.ReflectionTestUtils;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked","rawtypes"})
 public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory {
     private static final String PROFILE_CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
     @MockitoSpyBean
@@ -180,7 +181,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         assertEquals(profileCmdCaptor.getValue(), nestedProfileCommand);
         nestedProfileCommand = profileCmdCaptor.getValue();
         assertThat(profileInputCaptor.getValue()).isSameAs(wrongInputParameter);
-        verify(command, never()).createProfileContext(any(PrincipalProfileCommand.class), any());
+        verify(command, never()).createProfileContext(any(PrincipalProfileCommand.class), any(), any(Role.class));
         verify(nestedProfileCommand, never()).createContext(any(Input.class));
 
         verify(nestedPersonCommand).acceptPreparedContext(command, wrongInputParameter);
@@ -239,7 +240,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(nestedProfileCommand).createContext(profileInputCaptor.capture());
         assertThat(profileInputCaptor.getValue().value()).isInstanceOf(PrincipalProfilePayload.class);
         // create particular context
-        verify(command).createProfileContext(nestedProfileCommand, inputParameter);
+        verify(command).createProfileContext(nestedProfileCommand, inputParameter, null);
     }
 
     @Test
@@ -288,7 +289,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         verify(nestedProfileCommand).createContext(profileInputCaptor.capture());
         assertThat(profileInputCaptor.getValue().value()).isInstanceOf(PrincipalProfilePayload.class);
         // create particular context instance
-        verify(command).createProfileContext(nestedProfileCommand, inputParameter);
+        verify(command).createProfileContext(nestedProfileCommand, inputParameter, null);
     }
 
     @Test
@@ -798,7 +799,7 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Input<?> newPersonInput = Input.of(newPerson);
         verify(profileCommand).acceptPreparedContext(command, newPersonInput);
         verify(command).prepareContext(profileCommand, newPersonInput);
-        verify(command).createProfileContext(profileCommand, newPerson);
+        verify(command).createProfileContext(profileCommand, newPerson, null);
         verify(profileCommand).createContext(any(Input.class));
     }
 }

@@ -33,9 +33,9 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
         public static final String FIND_ALL = "authorityPersonFindAll";
         public static final String FIND_BY_ID = "authorityPersonFind";
         public static final String CREATE_OR_UPDATE = "authorityPersonUpdate";
-        public static final String CREATE_NEW = "authorityPersonMacroCreate";
         public static final String DELETE = "authorityPersonDelete";
-        public static final String DELETE_ALL = "authorityPersonMacroDelete";
+        public static final String CREATE_NEW = "authorityPersonCreateTask";
+        public static final String DELETE_ALL = "authorityPersonDeleteTask";
     }
 
     /**
@@ -45,7 +45,7 @@ public interface AuthorityPersonCommand<T> extends OrganizationCommand<T> {
      * @see BasicCommand#self()
      */
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked","rawtypes"})
     default <F extends RootCommand> Class<F> commandFamily() {
         return (Class<F>) AuthorityPersonCommand.class;
     }

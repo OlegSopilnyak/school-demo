@@ -24,6 +24,7 @@ import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedExce
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
@@ -338,6 +339,7 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldCreateNewAuthorityPerson_Unified() {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW;
+        Role role = Role.PRINCIPAL;
         doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
         doReturn(createProfileCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(mockPersonPayload.getFirstName()).thenReturn("John");
@@ -346,12 +348,13 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPerson));
         when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfile));
+        Input<?> taskContextInput = Input.of(Input.of(mockPersonPayload), Input.of(role));
 
-        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, mockPerson);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, mockPerson, role);
 
         assertThat(result.orElseThrow()).isEqualTo(mockPersonPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(mockPersonPayload));
+        verify(factory.command(commandId)).createContext(taskContextInput);
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper, times(2)).toPayload(mockPerson);
@@ -362,6 +365,7 @@ class AuthorityPersonFacadeImplTest {
     @Test
     void shouldCreateNewAuthorityPerson() {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW;
+        Role role = Role.PRINCIPAL;
         doReturn(createPersonCommand).when(applicationContext).getBean("authorityPersonUpdate", AuthorityPersonCommand.class);
         doReturn(createProfileCommand).when(applicationContext).getBean("profilePrincipalUpdate", PrincipalProfileCommand.class);
         when(mockPersonPayload.getFirstName()).thenReturn("John");
@@ -370,13 +374,14 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
         when(persistenceFacade.save(mockPersonPayload)).thenReturn(Optional.of(mockPerson));
         when(persistenceFacade.save(any(PrincipalProfilePayload.class))).thenReturn(Optional.of(mockProfile));
+        Input<?> taskContextInput = Input.of(Input.of(mockPersonPayload), Input.of(role));
 
-        Optional<AuthorityPerson> result = ReflectionTestUtils.invokeMethod(facade, "internalCreateComposite", mockPerson);
+        Optional<AuthorityPerson> result = ReflectionTestUtils.invokeMethod(facade, "internalCreatePersonTask", mockPerson, role);
 
         assertThat(result).isNotNull();
         assertThat(result.orElseThrow()).isEqualTo(mockPersonPayload);
         verify(factory).command(commandId);
-        verify(factory.command(commandId)).createContext(Input.of(mockPersonPayload));
+        verify(factory.command(commandId)).createContext(taskContextInput);
         verify(factory.command(commandId)).doCommand(any(Context.class));
         verify(persistenceFacade).save(mockPersonPayload);
         verify(payloadMapper, times(2)).toPayload(mockPerson);
@@ -446,7 +451,7 @@ class AuthorityPersonFacadeImplTest {
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 302L;
         Long profileId = 402L;
-        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonDeleteTask", MacroDeleteAuthorityPerson.class);
         doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doReturn(deleteProfileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -481,7 +486,7 @@ class AuthorityPersonFacadeImplTest {
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 302L;
         Long profileId = 402L;
-        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonDeleteTask", MacroDeleteAuthorityPerson.class);
         doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doReturn(deleteProfileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -491,7 +496,7 @@ class AuthorityPersonFacadeImplTest {
         when(payloadMapper.toPayload(mockPerson)).thenReturn(mockPersonPayload);
         when(payloadMapper.toPayload(mockProfile)).thenReturn(mockProfilePayload);
 
-        ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", id);
+        ReflectionTestUtils.invokeMethod(facade, "internalDeletePersonTask", id);
         threadPoolTaskExecutor.shutdown();
 
         verify(factory).command(commandId);
@@ -509,10 +514,10 @@ class AuthorityPersonFacadeImplTest {
     void shouldNotDeleteAuthorityPersonById_PersonNotExists() throws AuthorityPersonManagesFacultyException, AuthorityPersonNotFoundException {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_DELETE_ALL;
         Long id = 303L;
-        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonDeleteTask", MacroDeleteAuthorityPerson.class);
 
         AuthorityPersonNotFoundException thrown = assertThrows(AuthorityPersonNotFoundException.class,
-                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", id)
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeletePersonTask", id)
         );
 
         assertEquals("AuthorityPerson with ID:303 is not exists.", thrown.getMessage());
@@ -535,7 +540,7 @@ class AuthorityPersonFacadeImplTest {
         }).when(schedulingTaskExecutor).execute(any(Runnable.class));
         Long id = 304L;
         Long profileId = 404L;
-        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonMacroDelete", MacroDeleteAuthorityPerson.class);
+        doReturn(deletePersonMacroCommand).when(applicationContext).getBean("authorityPersonDeleteTask", MacroDeleteAuthorityPerson.class);
         doReturn(deletePersonCommand).when(applicationContext).getBean("authorityPersonDelete", AuthorityPersonCommand.class);
         doReturn(deleteProfileCommand).when(applicationContext).getBean("profilePrincipalDelete", PrincipalProfileCommand.class);
         when(mockPerson.getProfileId()).thenReturn(profileId);
@@ -547,7 +552,7 @@ class AuthorityPersonFacadeImplTest {
         when(mockPersonPayload.getFaculties()).thenReturn(List.of(mockFaculty));
 
         AuthorityPersonManagesFacultyException thrown = assertThrows(AuthorityPersonManagesFacultyException.class,
-                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeleteComposite", id)
+                () -> ReflectionTestUtils.invokeMethod(facade, "internalDeletePersonTask", id)
         );
         threadPoolTaskExecutor.shutdown();
 
@@ -578,9 +583,9 @@ class AuthorityPersonFacadeImplTest {
                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)), "authorityPersonFindAll",
                 spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonFind",
                 createPersonCommand, "authorityPersonUpdate",
-                spy(new CreateAuthorityPersonTask(createPersonCommand, createProfileCommand, payloadMapper, actionExecutor)), "authorityPersonMacroCreate",
+                spy(new CreateAuthorityPersonTask(createPersonCommand, createProfileCommand, payloadMapper, actionExecutor)), "authorityPersonCreateTask",
                 deletePersonCommand, "authorityPersonDelete",
-                deletePersonMacroCommand, "authorityPersonMacroDelete"
+                deletePersonMacroCommand, "authorityPersonDeleteTask"
         );
         String acName = "applicationContext";
         commands.forEach((command, _) -> {

@@ -88,7 +88,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked","rawtypes"})
 class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGIN = "school::organization::authority::persons:login";
     private static final String ORGANIZATION_AUTHORITY_PERSON_LOGOUT = "school::organization::authority::persons:logout";
@@ -410,9 +410,9 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
                 spy(new LoginAuthorityPersonCommand(authenticationFacade, payloadMapper)), "authorityPersonLogin",
                 spy(new LogoutAuthorityPersonCommand(authenticationFacade,payloadMapper)), "authorityPersonLogout",
                 createOrUpdateAuthorityPersonCommand, "authorityPersonUpdate",
-                createAuthorityPersonMacroCommand, "authorityPersonMacroCreate",
+                createAuthorityPersonMacroCommand, "authorityPersonCreateTask",
                 deleteAuthorityPersonCommand, "authorityPersonDelete",
-                deleteAuthorityPersonMacroCommand, "authorityPersonMacroDelete",
+                deleteAuthorityPersonMacroCommand, "authorityPersonDeleteTask",
                 spy(new FindAllAuthorityPersonsCommand(persistenceFacade, payloadMapper)), "authorityPersonFindAll",
                 spy(new FindAuthorityPersonCommand(persistenceFacade, payloadMapper)), "authorityPersonFind"
         );
