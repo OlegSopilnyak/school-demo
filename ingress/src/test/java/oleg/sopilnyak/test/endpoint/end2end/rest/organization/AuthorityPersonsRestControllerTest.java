@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.endpoint.end2end.rest.organization;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -20,6 +21,7 @@ import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -61,9 +63,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         AuthorityPersonsRestController.class, AspectForRestConfiguration.class,
         BusinessLogicConfiguration.class, PersistenceConfiguration.class
 })
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
-    private static final String LOGOUT = "school::organization::authority::persons:logout";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
 
@@ -327,12 +331,14 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
 
     @Test
     void shouldCreateAuthorityPerson() throws Exception {
+        Role role = Role.TEACHER;
         AuthorityPerson person = makeCleanAuthorityPerson(200);
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .param("role", role.name())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -340,7 +346,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).createPerson(any(AuthorityPersonDto.class));
+        verify(controller).createPerson(any(AuthorityPersonDto.class), eq(role));
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 

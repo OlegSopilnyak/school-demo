@@ -20,6 +20,7 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -141,18 +142,20 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
 
     @Test
     void shouldCreateAuthorityPerson() throws Exception {
+        Role role = Role.HEAD_TEACHER;
         AuthorityPerson person = makeTestAuthorityPerson(null);
         doAnswer(invocation -> {
             AuthorityPerson received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
             assertAuthorityPersonEquals(person, received);
             return Optional.of(person);
-        }).when(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class));
+        }).when(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class), eq(role));
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .param("role", role.name())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -160,8 +163,8 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).createPerson(any(AuthorityPersonDto.class));
-        verify(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class));
+        verify(controller).createPerson(any(AuthorityPersonDto.class), eq(role));
+        verify(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class), eq(role));
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 

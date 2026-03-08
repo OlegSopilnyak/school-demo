@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.endpoint.rest.RequestMappingRoot;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 
 import java.util.Collection;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.AllArgsConstructor;
@@ -59,7 +61,7 @@ public class AuthorityPersonsRestController {
     }
 
     @GetMapping("/{" + VAR_NAME + "}")
-    public AuthorityPersonDto findById(@PathVariable(VAR_NAME) String personId) {
+    public AuthorityPersonDto findById(@PathVariable String personId) {
         log.debug("Trying to get authority person by Id: '{}'", personId);
         try {
             final long id = Long.parseLong(personId);
@@ -75,10 +77,10 @@ public class AuthorityPersonsRestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthorityPersonDto createPerson(@RequestBody AuthorityPersonDto person) {
+    public AuthorityPersonDto createPerson(@RequestBody AuthorityPersonDto person, @RequestParam Role role) {
         log.debug("Trying to create the authority person {}", person);
         try {
-            return resultToDto(facade.<Optional<AuthorityPerson>>doActionAndResult(CREATE_MACRO, person));
+            return resultToDto(facade.<Optional<AuthorityPerson>>doActionAndResult(CREATE_MACRO, person, role));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot create new authority person " + person.toString(), e);
         }
