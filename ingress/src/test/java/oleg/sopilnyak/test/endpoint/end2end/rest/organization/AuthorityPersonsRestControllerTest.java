@@ -32,7 +32,6 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import jakarta.persistence.EntityManager;
-import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -119,164 +118,6 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
-//
-//    @Test
-//    void shouldLogoutAuthorityPerson() throws Exception {
-//        String headerName = "Authorization";
-//        String token = "logged_in_person_token";
-//        String bearer = "Bearer " + token;
-//        String requestPath = ROOT + "/logout";
-//
-//        mockMvc.perform(
-//                        MockMvcRequestBuilders.delete(requestPath)
-//                                .header(headerName, bearer)
-//                                .contentType(APPLICATION_JSON)
-//                )
-//                .andExpect(status().isOk())
-//                .andDo(print())
-//                .andReturn();
-//
-//        verify(controller).logout(bearer);
-//        verify(facade).doActionAndResult(LOGOUT, token);
-//        checkControllerAspect();
-//    }
-//
-//    @Test
-//    void shouldNotLogoutAuthorityPerson_WrongHeaderValue() throws Exception {
-//        String headerName = "Authorization";
-//        String token = "logged_in_person_token";
-//        String bearer = "bearer " + token;
-//        String requestPath = ROOT + "/logout";
-//
-//        mockMvc.perform(
-//                        MockMvcRequestBuilders.delete(requestPath)
-//                                .header(headerName, bearer)
-//                                .contentType(APPLICATION_JSON)
-//                )
-//                .andExpect(status().isOk())
-//                .andDo(print())
-//                .andReturn();
-//
-//        verify(controller).logout(bearer);
-//        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
-//        checkControllerAspect();
-//    }
-//
-//    @Test
-//    void shouldNotLogoutAuthorityPerson_WrongHeaderName() throws Exception {
-//        String headerName = "AuthoriSation";
-//        String token = "logged_in_person_token";
-//        String bearer = "Bearer " + token;
-//        String requestPath = ROOT + "/logout";
-//
-//        mockMvc.perform(
-//                        MockMvcRequestBuilders.delete(requestPath)
-//                                .header(headerName, bearer)
-//                                .contentType(APPLICATION_JSON)
-//                )
-//                .andExpect(status().isBadRequest())
-//                .andDo(print())
-//                .andReturn();
-//
-//        verify(controller, never()).logout(anyString());
-//        verify(facade, never()).doActionAndResult(eq(LOGOUT), anyString());
-//    }
-//
-//    @Test
-//    void shouldLoginAuthorityPerson() throws Exception {
-//        String username = "test-username";
-//        String password = "test-password";
-//        AuthorityPerson person = create(makeCleanAuthorityPerson(212));
-//        setPersonPermissions(person, username, password);
-//        assertThat(database.updateAccess(person, username, password)).isTrue();
-//        if (person instanceof AuthorityPersonEntity entity) {
-//            entity.setFaculties(List.of());
-//            merge(entity);
-//        }
-//        String requestPath = ROOT + "/login";
-//
-//        MvcResult result =
-//                mockMvc.perform(
-//                                MockMvcRequestBuilders.post(requestPath)
-//                                        .param("username", username)
-//                                        .param("password", password)
-//                                        .contentType(APPLICATION_JSON)
-//                        )
-//                        .andExpect(status().isOk())
-//                        .andDo(print())
-//                        .andReturn();
-//
-//        verify(controller).login(username, password);
-//        String responseString = result.getResponse().getContentAsString();
-//        AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
-//        assertAuthorityPersonEquals(person, personDto, false);
-//        checkControllerAspect();
-//    }
-//
-//    @Test
-//    void shouldNotLoginAuthorityPerson_WrongLoginUsername() throws Exception {
-//        String username = "test-username";
-//        String password = "test-password";
-//        AuthorityPerson person = create(makeCleanAuthorityPerson(213));
-//        setPersonPermissions(person, username, password);
-//        if (person instanceof AuthorityPersonEntity entity) {
-//            entity.setFaculties(List.of());
-//            merge(entity);
-//        }
-//        String requestPath = ROOT + "/login";
-//
-//        MvcResult result =
-//                mockMvc.perform(
-//                                MockMvcRequestBuilders.post(requestPath)
-//                                        .param("username", "username")
-//                                        .param("password", password)
-//                                        .contentType(APPLICATION_JSON)
-//                        )
-//                        .andExpect(status().isNotFound())
-//                        .andDo(print())
-//                        .andReturn();
-//
-//        verify(controller).login("username", password);
-//        String responseString = result.getResponse().getContentAsString();
-//        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-//
-//        assertThat(error.getErrorCode()).isEqualTo(404);
-//        assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'username', is not found");
-//        checkControllerAspect();
-//    }
-//
-//    @Test
-//    void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
-//        String username = "test-username";
-//        String password = "test-password";
-//        String wrongPassword = "wrong-password";
-//        AuthorityPerson person = create(makeCleanAuthorityPerson(214));
-//        setPersonPermissions(person, username, password);
-//        if (person instanceof AuthorityPersonEntity entity) {
-//            entity.setFaculties(List.of());
-//            merge(entity);
-//        }
-//        String requestPath = ROOT + "/login";
-//
-//        MvcResult result =
-//                mockMvc.perform(
-//                                MockMvcRequestBuilders.post(requestPath)
-//                                        .param("username", username)
-//                                        .param("password", wrongPassword)
-//                                        .contentType(APPLICATION_JSON)
-//                        )
-//                        .andExpect(status().isForbidden())
-//                        .andDo(print())
-//                        .andReturn();
-//
-//        verify(controller).login(username, wrongPassword);
-//        String responseString = result.getResponse().getContentAsString();
-//        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-//
-//        assertThat(error.getErrorCode()).isEqualTo(403);
-//        assertThat(error.getErrorMessage()).isEqualTo("Login authority person command failed for username:" + username);
-//        checkControllerAspect();
-//    }
 
     @Test
     void shouldFindAllAuthorities() throws Exception {
@@ -547,37 +388,8 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthorityPersonsRestController.class);
     }
 
-    private void setPersonPermissions(AuthorityPerson person, String username, String password) {
-        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
-        profile.setUsername(username);
-        try {
-            profile.setSignature(profile.makeSignatureFor(password));
-            merge(profile);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace(System.err);
-        }
-    }
-
-    private void merge(PrincipalProfile instance) {
-        PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        try (EntityManager em = entityManagerFactory.createEntityManager()) {
-            em.getTransaction().begin();
-            em.merge(entity);
-            em.getTransaction().commit();
-        }
-    }
-
     private AuthorityPerson findAuthorityPersonById(Long id) {
         return findEntity(AuthorityPersonEntity.class, id, e -> e.getFacultyEntitySet().size());
-    }
-
-    private void merge(AuthorityPerson instance) {
-        AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        try (EntityManager em = entityManagerFactory.createEntityManager()) {
-            em.getTransaction().begin();
-            em.merge(entity);
-            em.getTransaction().commit();
-        }
     }
 
     private AuthorityPerson persist(AuthorityPerson newInstance) {

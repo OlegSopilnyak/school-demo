@@ -14,7 +14,9 @@ import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,20 +69,30 @@ public class AuthenticationRestController {
 
     @PreAuthorize("isFullyAuthenticated()")
     @DeleteMapping("/logout")
-    public void logout() {
-        final String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<String> logout() {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return new ResponseEntity<>("SecurityContext is empty", HttpStatus.UNAUTHORIZED);
+        }
+        final String username = authentication.getName();
         log.debug("Trying to sign out authority person with login: '{}'", username);
 
-        personFacade.doActionAndResult(LOGOUT, username);
+        final Optional<AccessCredentials> result = personFacade.doActionAndResult(LOGOUT, username);
+
+        if (result.isEmpty()) {
+            log.warn("Not signed in person with username {}", username);
+            return ResponseEntity.notFound().build();
+        }
 
         log.debug("Authority person with login: '{}' is signed out.", username );
+        return  ResponseEntity.ok().build();
     }
 
     // private methods
     private AccessCredentialsDto resultToDto(Optional<AccessCredentials> credentials) {
         log.debug("Converting {} to DTO", credentials);
         return mapper.toDto(credentials
-                .orElseThrow(() -> new SchoolAccessDeniedException("authority person is not authorized"))
+                .orElseThrow(() -> new SchoolAccessDeniedException("Authority Person is not authorized"))
         );
     }
 }
