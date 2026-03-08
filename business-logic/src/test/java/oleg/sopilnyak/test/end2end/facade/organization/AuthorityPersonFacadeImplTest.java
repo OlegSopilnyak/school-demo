@@ -22,6 +22,7 @@ import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedExce
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
 import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
@@ -267,13 +268,14 @@ class AuthorityPersonFacadeImplTest extends MysqlTestModelFactory {
     @Test
     void shouldCreateOrUpdateAuthorityPerson_Create() {
         String commandId = ORGANIZATION_AUTHORITY_PERSON_CREATE_NEW;
+        Role role = Role.PRINCIPAL;
         AuthorityPerson authorityPerson = payloadMapper.toPayload(makeCleanAuthorityPerson(2));
 
-        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, authorityPerson);
+        Optional<AuthorityPerson> result = facade.doActionAndResult(commandId, authorityPerson, role);
 
         assertThat(result).isPresent();
         assertAuthorityPersonEquals(authorityPerson, result.get(), false);
-        verifyAfterCommand(commandId, Input.of(authorityPerson));
+        verifyAfterCommand(commandId, Input.of(Input.of(authorityPerson), Input.of(role)));
         ArgumentCaptor<AuthorityPerson> captor = ArgumentCaptor.forClass(AuthorityPerson.class);
         verify(persistence).save(captor.capture());
         assertAuthorityPersonEquals(captor.getValue(), authorityPerson);

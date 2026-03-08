@@ -177,8 +177,8 @@ class CreateAuthorityPersonMacroCommandTest extends TestModelFactory {
     void shouldNotCreateMacroCommandContext_CreateProfileContextThrows() {
         reset(actionExecutor);
         String errorMessage = "Cannot create nested profile context";
-        Role role = Role.PRINCIPAL;
         RuntimeException exception = new RuntimeException(errorMessage);
+        Role role = Role.PRINCIPAL;
         AuthorityPerson newPerson = makeCleanAuthorityPerson(2);
         Deque<NestedCommand<?>> nested = new LinkedList<>(command.fromNest());
         PrincipalProfileCommand<?> nestedProfileCommand = (PrincipalProfileCommand<?>) nested.pop();
