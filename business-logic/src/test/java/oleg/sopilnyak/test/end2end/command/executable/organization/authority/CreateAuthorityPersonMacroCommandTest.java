@@ -311,8 +311,10 @@ public class CreateAuthorityPersonMacroCommandTest extends MysqlTestModelFactory
         Context<Optional<AuthorityPerson>> personContext = (Context<Optional<AuthorityPerson>>) parameter.getNestedContexts().pop();
 
         checkContextAfterDoCommand(profileContext);
-        Optional<PrincipalProfile> profileResult = profileContext.getResult().orElseThrow();
-        Long profileId = profileResult.orElseThrow().getId();
+        PrincipalProfile profileResult = profileContext.getResult().orElseThrow().orElseThrow();
+        assertThat(profileResult.getRole()).isEqualTo(role);
+        assertThat(profileResult.getPermissions()).hasSizeGreaterThan(1);
+        Long profileId = profileResult.getId();
         assertThat(profileContext.<Long>getUndoParameter().value()).isEqualTo(profileId);
 
         checkContextAfterDoCommand(context);

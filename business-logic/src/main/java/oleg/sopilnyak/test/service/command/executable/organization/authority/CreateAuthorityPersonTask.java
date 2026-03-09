@@ -24,7 +24,9 @@ import oleg.sopilnyak.test.service.message.payload.AuthorityPersonPayload;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -180,7 +182,7 @@ public class CreateAuthorityPersonTask extends SequentialCommandsTask<Optional<A
         final PrincipalProfilePayload payload = PrincipalProfilePayload.builder().id(null)
                 .phone("Not-Exists-Yet").email(emailPrefix + "@" + emailDomain)
                 .username(emailPrefix)
-                .role(role)
+                .role(role).permissions(new LinkedHashSet<>(Arrays.asList(role.getDefaultPermissions())))
                 .build();
         try {
             payload.setSignature(payload.makeSignatureFor(""));
