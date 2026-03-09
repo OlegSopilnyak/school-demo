@@ -34,6 +34,7 @@ import oleg.sopilnyak.test.service.message.payload.AccessCredentialsPayload;
 import jakarta.persistence.EntityManager;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -253,8 +254,65 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
         checkControllerAspect();
     }
 
+
     @Test
-    void refresh() {
+    void shouldRefreshSignedInUserToken() throws Exception {
+        String username = "test-username";
+        String password = "test-password";
+        createAuthorityPerson(5, username, password);
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isNotNull().isNotEmpty();
+        String refreshToken = credentials.orElseThrow().getToken();
+        String requestPath = ROOT + "/refresh";
+
+        MvcResult result = mockMvc.perform(
+                        MockMvcRequestBuilders.post(requestPath)
+                                .param("token", refreshToken)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        AccessCredentials freshCredentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
+        assertThat(freshCredentials).isNotNull();
+        assertThat(freshCredentials.getToken()).isNotBlank();
+        assertThat(freshCredentials.getRefreshToken()).isNotBlank();
+        // check the behavior
+        verify(controller).refresh(refreshToken);
+        verify(authenticationFacade).refresh(refreshToken);
+        verify(facade, never()).doActionAndResult(anyString(), anyString());
+        checkControllerAspect();
+    }
+
+    @Test
+    void shouldNotRefreshSignedInUserToken_NoTokens() throws Exception {
+        String refreshToken = "logged.in_person.refresh_token";
+        String requestPath = ROOT + "/refresh";
+
+        MvcResult result = mockMvc.perform(
+                        MockMvcRequestBuilders.post(requestPath)
+                                .param("token", refreshToken)
+                                .contentType(APPLICATION_JSON)
+                )
+                .andExpect(status().isForbidden())
+                .andDo(print())
+                .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(403);
+        assertThat(error.getErrorMessage()).isEqualTo("Authority Person is not authorized");
+        // check the behavior
+        verify(controller).refresh(refreshToken);
+        verify(authenticationFacade).refresh(refreshToken);
+        verify(facade, never()).doActionAndResult(anyString(), anyString());
+        checkControllerAspect();
     }
 
     // private methods
