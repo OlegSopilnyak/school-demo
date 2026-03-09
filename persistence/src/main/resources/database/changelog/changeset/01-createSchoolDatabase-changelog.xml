@@ -38,10 +38,10 @@
     </changeSet>
     <changeSet id="1771664687427-4" author="oleg.sopilnyak@gmail.com">
         <createTable tableName="person_permissions">
-            <column name="permission" type="BIGINT">
+            <column name="profile_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="person_permissions" type="SMALLINT">
+            <column name="permission_name" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -146,7 +146,7 @@
 <!--                                 referencedTableName="students_groups"/>-->
 <!--    </changeSet>-->
     <changeSet id="1771664687427-16" author="oleg.sopilnyak@gmail.com">
-        <addForeignKeyConstraint baseColumnNames="permission" baseTableName="person_permissions"
+        <addForeignKeyConstraint baseColumnNames="profile_id" baseTableName="person_permissions"
                                  constraintName="fk_person_permissions_on_principal_profile_entity"
                                  referencedColumnNames="id" referencedTableName="profiles"/>
     </changeSet>

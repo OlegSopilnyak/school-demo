@@ -49,8 +49,9 @@ public class PrincipalProfileEntity extends PersonProfileEntity implements Princ
     private Role role;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @Column(name = "person_permissions")
-    @CollectionTable(name = "person_permissions", joinColumns = @JoinColumn(name = "permission", referencedColumnName = "id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "permission_name", length = 50, nullable = false)
+    @CollectionTable(name = "person_permissions", joinColumns = @JoinColumn(name = "profile_id", referencedColumnName = "id"))
     @Builder.Default
     private Set<Permission> permissions = new HashSet<>();
 

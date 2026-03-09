@@ -279,6 +279,7 @@ public class TestModelFactory {
                 .username("login-" + id)
                 .signature("signature-" + id)
                 .role(Role.SUPPORT_STAFF)
+                .permissions(Set.of(Permission.EDU_CREATE, Permission.EDU_UPDATE))
                 .build();
     }
 
@@ -316,6 +317,9 @@ public class TestModelFactory {
         assertPersonProfilesEquals(actual, expected, checkId);
         assertThat(actual.getUsername()).isEqualTo(expected.getUsername());
         assertThat(actual.isPassword("")).isEqualTo(expected.isPassword(""));
+        assertThat(actual.getRole()).isEqualTo(expected.getRole());
+        assertThat(actual.getPermissions()).hasSameSizeAs(expected.getPermissions());
+        assertThat(actual.getPermissions()).containsAll(expected.getPermissions());
     }
 
     protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected) {
