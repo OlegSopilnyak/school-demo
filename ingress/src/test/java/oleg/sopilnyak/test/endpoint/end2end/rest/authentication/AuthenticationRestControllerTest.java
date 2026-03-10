@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -41,7 +44,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -117,7 +124,7 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
 
     @Test
     @WithMockUser(username = "username", roles = {"PRINCIPAL"})
-    void shouldLogoutAuthorityPerson() throws Exception {
+    void shouldLogoutAuthorityPerson_MockedUser() throws Exception {
         String username = "username";
         String password = "password";
         AuthorityPerson person = createAuthorityPerson(1, username, password);
@@ -132,6 +139,39 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn();
+
+        // check the behavior
+        verify(controller).logout();
+        verify(facade).doActionAndResult(LOGOUT, username);
+        verify(authenticationFacade).signOut(username);
+        checkControllerAspect();
+    }
+
+    @Test
+    void shouldLogoutAuthorityPerson_MockedSecurityContextHolder() throws Exception {
+        String username = "username";
+        String password = "password";
+        AuthorityPerson person = createAuthorityPerson(11, username, password);
+        assertThat(person).isNotNull();
+        authenticationFacade.signIn(username, password);
+        String requestPath = ROOT + "/logout";
+
+        // do testing in mocked SecurityContextHolder
+        try (MockedStatic<SecurityContextHolder> mockedContext = mockStatic(SecurityContextHolder.class)) {
+            SecurityContext context = mock(SecurityContext.class);
+            Authentication authentication = mock(Authentication.class);
+            doReturn(username).when(authentication).getName();
+            doReturn(authentication).when(context).getAuthentication();
+            mockedContext.when(SecurityContextHolder::getContext).thenReturn(context);
+
+            mockMvc.perform(
+                            MockMvcRequestBuilders.delete(requestPath)
+                                    .contentType(APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn();
+        }
 
         // check the behavior
         verify(controller).logout();
