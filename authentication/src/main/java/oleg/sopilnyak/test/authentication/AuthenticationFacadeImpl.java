@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import java.util.Optional;
+import org.springframework.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,6 +77,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * To refresh active token
      *
      * @param refreshToken active refresh token of signed in person
+     * @param activeUsername username from active SecurityContext
      * @return refreshed credentials
      * @throws SchoolAccessDeniedException person signed out
      * @see AuthenticationFacade#signIn(String, String)
@@ -83,7 +85,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * @see AccessCredentials#getRefreshToken()
      */
     @Override
-    public Optional<AccessCredentials> refresh(final String refreshToken) throws SchoolAccessDeniedException {
+    public Optional<AccessCredentials> refresh(final String refreshToken, final String activeUsername) throws SchoolAccessDeniedException {
         if (jwtService.isTokenExpired(refreshToken)) {
             log.warn("Refresh token is expired '{}'", refreshToken);
             // removing entity with refresh-token from storage
@@ -91,6 +93,10 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             return Optional.empty();
         }
         final String username = jwtService.extractUserName(refreshToken);
+        if (!ObjectUtils.nullSafeEquals(username, activeUsername)) {
+            log.error("Active user '{}' isn't equals to '{}' from refresh token!", activeUsername, username);
+            throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
+        }
         log.debug("Refreshing token for person with username '{}'", username);
         final AccessCredentials signedIn = tokenStorage.findCredentials(username)
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));

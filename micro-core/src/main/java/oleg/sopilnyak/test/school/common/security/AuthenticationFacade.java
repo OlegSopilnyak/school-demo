@@ -39,11 +39,12 @@ public interface AuthenticationFacade {
      * To refresh active token
      *
      * @param refreshToken active refresh token of signed in person
+     * @param username current username from request
      * @return refreshed credentials or empty
      * @throws SchoolAccessDeniedException person signed out
      * @see Optional
      */
-    Optional<AccessCredentials> refresh(String refreshToken) throws SchoolAccessDeniedException;
+    Optional<AccessCredentials> refresh(String refreshToken, String username) throws SchoolAccessDeniedException;
 
     /**
      * To find credentials of the signed in person

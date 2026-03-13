@@ -18,7 +18,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
@@ -44,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (EMPTY_HEADER.or(HEADER_WITH_BEARER.negate()).test(authHeader)) {
             // there is no valid Authorization:Bearer header in request
+            log.debug("Authorization Header is invalid. Doing default action.");
             // do default filter-chain flow
             filterChain.doFilter(request, response);
             return;
@@ -52,18 +55,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jsonWebToken = authHeader.substring(BEARER_PREFIX.length());
         // extracting username from the token
         final String userName = jwtService.extractUserName(jsonWebToken);
-        if (!ObjectUtils.isEmpty(userName) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // retrieving user-details for valid access token
-            final UserDetails userDetails = users.loadUserByUsername(userName);
-            if (jwtService.isTokenValid(jsonWebToken, userDetails)) {
-                final var authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                final var context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authentication);
-                SecurityContextHolder.setContext(context);
-            }
+        if (ObjectUtils.isEmpty(userName)) {
+            log.warn("In token the Username is empty. Doing default action.");
+            // do default filter-chain flow
+            filterChain.doFilter(request, response);
+        }
+        log.debug("Preparing security-context for username '{}'...", userName);
+        // retrieving user-details for valid access token
+        final UserDetails userDetails = users.loadUserByUsername(userName);
+        if (jwtService.isTokenValid(jsonWebToken, userDetails)) {
+            final var authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            final var context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
         }
         filterChain.doFilter(request, response);
     }

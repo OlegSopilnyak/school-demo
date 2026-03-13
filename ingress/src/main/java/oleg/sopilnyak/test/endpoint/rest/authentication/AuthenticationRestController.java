@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,11 +58,25 @@ public class AuthenticationRestController {
         }
     }
 
+    @PreAuthorize("isFullyAuthenticated()")
     @PostMapping("/refresh")
-    public AccessCredentialsDto refresh(@RequestParam(TOKEN_NAME) String refreshToken) {
+    public ResponseEntity<Object> refresh(@RequestParam(TOKEN_NAME) String refreshToken) {
         log.debug("Trying to refresh access token using: '{}'", refreshToken);
         try {
-            return resultToDto(facade.refresh(refreshToken));
+            final SecurityContext securityContext = SecurityContextHolder.getContext();
+            if (securityContext == null) {
+                return new ResponseEntity<>("SecurityContext is empty", HttpStatus.UNAUTHORIZED);
+            }
+            final Authentication authentication = securityContext.getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return new ResponseEntity<>("Authentication is empty", HttpStatus.UNAUTHORIZED);
+            }
+            final String username = authentication.getName();
+            if (username == null) {
+                throw new SchoolAccessDeniedException("Authentication username is empty");
+            }
+            log.debug("Trying to refresh token of user with login: '{}'", username);
+            return ResponseEntity.ok(resultToDto(facade.refresh(refreshToken, username)));
         } catch (Exception e) {
             throw new CannotProcessActionException("Cannot refresh access token using: " + refreshToken, e);
         }
@@ -70,18 +85,25 @@ public class AuthenticationRestController {
     @PreAuthorize("isFullyAuthenticated()")
     @DeleteMapping("/logout")
     public ResponseEntity<String> logout() {
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
+        final SecurityContext securityContext = SecurityContextHolder.getContext();
+        if (securityContext == null) {
             return new ResponseEntity<>("SecurityContext is empty", HttpStatus.UNAUTHORIZED);
         }
+        final Authentication authentication = securityContext.getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ResponseEntity<>("Authentication is empty", HttpStatus.UNAUTHORIZED);
+        }
         final String username = authentication.getName();
+        if (username == null) {
+            return new ResponseEntity<>("Authentication username is empty", HttpStatus.UNAUTHORIZED);
+        }
         log.debug("Trying to sign out authority person with login: '{}'", username);
 
         final Optional<AccessCredentials> result = personFacade.doActionAndResult(LOGOUT, username);
 
         if (result.isEmpty()) {
-            log.warn("Not signed in person with username {}", username);
-            return ResponseEntity.notFound().build();
+            log.warn("No signed in person with username {}", username);
+            return new ResponseEntity<>("Not signed in person with username " + username, HttpStatus.NOT_FOUND);
         }
 
         log.debug("Authority person with login: '{}' is signed out.", username );

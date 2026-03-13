@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SchoolAuthenticationConfiguration {
     private static final String AUTHENTICATION = "/authentication";
-    private final PersistenceFacade profilePersistenceFacade;
+    private final PersistenceFacade persistenceFacade;
 
     @Bean
     public JwtService jwtService() {
@@ -53,7 +53,7 @@ public class SchoolAuthenticationConfiguration {
 
     @Bean
     public UserService userService() {
-        return new UserServiceImpl(profilePersistenceFacade, tokenStorage());
+        return new UserServiceImpl(persistenceFacade, tokenStorage());
     }
 
     @Bean

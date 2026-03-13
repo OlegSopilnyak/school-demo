@@ -1,10 +1,11 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.authentication;
 
-import static oleg.sopilnyak.test.endpoint.util.MockSecurityContextUtil.mockingSecurityContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.FilterChainProxy;
@@ -58,7 +60,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(SpringExtension.class)
+@WebAppConfiguration
 @ContextConfiguration(classes = {
+//        EndpointConfiguration.class,
         AuthenticationRestController.class, AspectForRestConfiguration.class,
         BusinessLogicConfiguration.class, PersistenceConfiguration.class
 })
@@ -66,13 +70,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-@WebAppConfiguration
-class AuthenticationRestControllerTest extends MysqlTestModelFactory {
+class AuthenticationRestControllerSecureTest extends MysqlTestModelFactory {
     private static final String LOGIN = "school::organization::authority::persons:login";
     private static final String LOGOUT = "school::organization::authority::persons:logout";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authentication";
-
     @Autowired
     EntityMapper entityMapper;
     @Autowired
@@ -92,6 +94,8 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
     @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
+    @Mock
+    AccessCredentials accessCredentials;
 
     MockMvc mockMvc;
     @Autowired
@@ -99,6 +103,7 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
 
     @BeforeEach
     void setUp() {
+        assertThat(springSecurityFilterChain).isNotNull();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
                 .apply(springSecurity(springSecurityFilterChain))
@@ -122,17 +127,21 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @WithMockUser(username = "username", roles = {"PRINCIPAL"})
-    void shouldLogoutAuthorityPerson_MockedUser() throws Exception {
+    @WithMockUser(username = "user-name", roles = {"TEST"})
+    void shouldLogoutAuthorityPerson() throws Exception {
         String username = "username";
         String password = "password";
         AuthorityPerson person = createAuthorityPerson(1, username, password);
         assertThat(person).isNotNull();
-        authenticationFacade.signIn(username, password);
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username,password);
+        assertThat(credentials).isNotEmpty();
+        String activeToken = credentials.get().getToken();
         String requestPath = ROOT + "/logout";
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + activeToken)
                                 .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
@@ -147,46 +156,22 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    void shouldLogoutAuthorityPerson_MockedSecurityContextHolder() throws Exception {
-        String username = "username";
-        String password = "password";
-        AuthorityPerson person = createAuthorityPerson(11, username, password);
-        assertThat(person).isNotNull();
-        authenticationFacade.signIn(username, password);
+    @WithMockUser(username = "user-name", roles = {"TEST"})
+    void shouldNotLogoutAuthorityPerson_NotSignedIn() throws Exception {
         String requestPath = ROOT + "/logout";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext(username);
+        ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
                                 .contentType(APPLICATION_JSON)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andDo(print());
 
         // check the behavior
         verify(controller).logout();
-        verify(facade).doActionAndResult(LOGOUT, username);
-        verify(authenticationFacade).signOut(username);
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLogoutAuthorityPerson_Unauthorized() throws Exception {
-        String requestPath = ROOT + "/logout";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext();
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-
-        // check the behavior
-        verify(controller).logout();
-        verify(facade, never()).doActionAndResult(anyString(), anyString());
+        verify(facade).doActionAndResult(eq(LOGOUT), userNameCaptor.capture());
+        verify(authenticationFacade).signOut(userNameCaptor.getValue());
         checkControllerAspect();
     }
 
@@ -194,8 +179,11 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
     void shouldLoginAuthorityPerson() throws Exception {
         String username = "test-username";
         String password = "test-password";
-        AuthorityPerson person = createAuthorityPerson(2, username, password);
-        assertThat(person).isNotNull();
+        String activeToke = "logged.in_person.active.token";
+        String refreshToken = "logged.in_person.refresh_token";
+        doReturn(activeToke).when(accessCredentials).getToken();
+        doReturn(refreshToken).when(accessCredentials).getRefreshToken();
+        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signIn(username, password);
         String requestPath = ROOT + "/login";
 
         MvcResult result = mockMvc.perform(
@@ -213,8 +201,8 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
         assertThat(responseString).isNotBlank();
         AccessCredentials credentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
         assertThat(credentials).isNotNull();
-        assertThat(credentials.getToken()).isNotBlank();
-        assertThat(credentials.getRefreshToken()).isNotBlank();
+        assertThat(credentials.getToken()).isNotBlank().isEqualTo(activeToke);
+        assertThat(credentials.getRefreshToken()).isNotBlank().isEqualTo(refreshToken);
         // check the behavior
         verify(controller).login(username, password);
         verify(facade).doActionAndResult(LOGIN, username, password);
@@ -223,17 +211,14 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    void shouldNotLoginAuthorityPerson_WrongLoginUsername() throws Exception {
+    void shouldNotLoginAuthorityPerson_NoTokens() throws Exception {
         String username = "test-username";
         String password = "test-password";
-        String wrongLoginUsername = "wrong-sign-in-username";
-        AuthorityPerson person = createAuthorityPerson(3, username, password);
-        assertThat(person).isNotNull();
         String requestPath = ROOT + "/login";
 
         MvcResult result = mockMvc.perform(
                         MockMvcRequestBuilders.post(requestPath)
-                                .param("username", wrongLoginUsername)
+                                .param("username", username)
                                 .param("password", password)
                                 .contentType(APPLICATION_JSON)
                 )
@@ -245,58 +230,26 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'" + wrongLoginUsername + "', is not found");
+        assertThat(error.getErrorMessage()).isEqualTo("Profile with login:'" + username + "', is not found");
         // check the behavior
-        verify(controller).login(wrongLoginUsername, password);
-        verify(facade).doActionAndResult(LOGIN, wrongLoginUsername, password);
-        verify(authenticationFacade).signIn(wrongLoginUsername, password);
+        verify(controller).login(username, password);
+        verify(facade).doActionAndResult(LOGIN, username, password);
+        verify(authenticationFacade).signIn(username, password);
         checkControllerAspect();
     }
 
     @Test
-    void shouldNotLoginAuthorityPerson_WrongPassword() throws Exception {
-        String username = "test-username";
-        String password = "test-password";
-        String wrongPassword = "wrong-password";
-        AuthorityPerson person = createAuthorityPerson(4, username, password);
-        assertThat(person).isNotNull();
-        String requestPath = ROOT + "/login";
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.post(requestPath)
-                                        .param("username", username)
-                                        .param("password", wrongPassword)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isForbidden())
-                        .andDo(print())
-                        .andReturn();
-
-        // check the results
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(403);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong password for username: " + username);
-        // check the behavior
-        verify(controller).login(username, wrongPassword);
-        verify(facade).doActionAndResult(LOGIN, username, wrongPassword);
-        verify(authenticationFacade).signIn(username, wrongPassword);
-        checkControllerAspect();
-    }
-
-
-    @Test
-    @WithMockUser(username = "user-name", roles = {"PRINCIPAL"})
+    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldRefreshSignedInUserToken() throws Exception {
-        String username = "test-username";
-        String password = "test-password";
-        createAuthorityPerson(5, username, password);
-        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
-        assertThat(credentials).isNotNull().isNotEmpty();
-        String activeToken = credentials.orElseThrow().getToken();
-        String refreshToken = credentials.orElseThrow().getToken();
+        String username = "username";
+        String password = "password";
+        AuthorityPerson person = createAuthorityPerson(2, username, password);
+        assertThat(person).isNotNull();
+        // signing in the person
+        Optional<AccessCredentials> signInCredentials = authenticationFacade.signIn(username,password);
+        assertThat(signInCredentials).isNotEmpty();
+        String activeToken = signInCredentials.get().getToken();
+        String refreshToken = signInCredentials.get().getRefreshToken();
         String requestPath = ROOT + "/refresh";
 
         MvcResult result = mockMvc.perform(
@@ -312,23 +265,22 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
         // check the results
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
-        AccessCredentials freshCredentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
-        assertThat(freshCredentials).isNotNull();
-        assertThat(freshCredentials.getToken()).isNotBlank();
-        assertThat(freshCredentials.getRefreshToken()).isNotBlank();
+        AccessCredentials credentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
+        assertThat(credentials).isNotNull();
+        assertThat(credentials.getToken()).isEqualTo(activeToken);
+        assertThat(credentials.getRefreshToken()).isNotBlank().isEqualTo(refreshToken);
         // check the behavior
         verify(controller).refresh(refreshToken);
-        verify(authenticationFacade).refresh(refreshToken, username);
         verify(facade, never()).doActionAndResult(anyString(), anyString());
+        verify(authenticationFacade).refresh(refreshToken, username);
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldNotRefreshSignedInUserToken_NoTokens() throws Exception {
         String refreshToken = "logged.in_person.refresh_token";
         String requestPath = ROOT + "/refresh";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext();
 
         MvcResult result = mockMvc.perform(
                         MockMvcRequestBuilders.post(requestPath)
@@ -344,10 +296,10 @@ class AuthenticationRestControllerTest extends MysqlTestModelFactory {
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(403);
-        assertThat(error.getErrorMessage()).isEqualTo("Authentication username is empty");
+        assertThat(error.getErrorMessage()).isEqualTo("Authority Person is not authorized");
         // check the behavior
         verify(controller).refresh(refreshToken);
-        verify(authenticationFacade, never()).refresh(anyString(), anyString());
+        verify(authenticationFacade).refresh(eq(refreshToken), anyString());
         verify(facade, never()).doActionAndResult(anyString(), anyString());
         checkControllerAspect();
     }

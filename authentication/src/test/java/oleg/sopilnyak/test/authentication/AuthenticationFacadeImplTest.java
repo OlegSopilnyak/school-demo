@@ -155,7 +155,7 @@ class AuthenticationFacadeImplTest {
         doReturn(Optional.of(entity)).when(tokenStorage).findCredentials(username);
         doReturn(Optional.of(userDetails)).when(userService).prepareUserDetails(username, password);
 
-        Optional<AccessCredentials> fresh = facade.refresh(refreshToken);
+        Optional<AccessCredentials> fresh = facade.refresh(refreshToken, username);
 
         // check the result
         assertThat(fresh).isNotNull().isNotEmpty();
@@ -171,7 +171,7 @@ class AuthenticationFacadeImplTest {
         String refreshToken = "refresh-token";
         doReturn(username).when(jwtService).extractUserName(refreshToken);
 
-        var fresh = assertThrows(Exception.class, () -> facade.refresh(refreshToken));
+        var fresh = assertThrows(Exception.class, () -> facade.refresh(refreshToken, username));
 
         // check the result
         assertThat(fresh).isNotNull().isInstanceOf(SchoolAccessDeniedException.class);
@@ -189,7 +189,7 @@ class AuthenticationFacadeImplTest {
         AccessCredentials credentials = mock(AccessCredentials.class);
         doReturn(Optional.of(credentials)).when(tokenStorage).findCredentials(username);
 
-        var fresh = assertThrows(Exception.class, () -> facade.refresh(refreshToken));
+        var fresh = assertThrows(Exception.class, () -> facade.refresh(refreshToken, username));
 
         // check the result
         assertThat(fresh).isNotNull().isInstanceOf(SchoolAccessDeniedException.class);

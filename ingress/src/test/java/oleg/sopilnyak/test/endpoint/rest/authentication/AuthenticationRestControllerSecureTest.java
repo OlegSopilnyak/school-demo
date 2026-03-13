@@ -1,7 +1,7 @@
 package oleg.sopilnyak.test.endpoint.rest.authentication;
 
-import static oleg.sopilnyak.test.endpoint.util.MockSecurityContextUtil.mockingSecurityContext;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -18,6 +19,8 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -34,6 +37,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -48,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-class AuthenticationRestControllerTest extends TestModelFactory {
+class AuthenticationRestControllerSecureTest extends TestModelFactory {
     private static final String LOGIN = "school::organization::authority::persons:login";
     private static final String LOGOUT = "school::organization::authority::persons:logout";
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -74,27 +78,41 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     AccessCredentials accessCredentials;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
 
     @BeforeEach
     void setUp() {
+        assertThat(springSecurityFilterChain).isNotNull();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
     @Test
-    @WithMockUser(username = "username", roles = {"PRINCIPAL"})
-    void shouldLogoutAuthorityPerson_MockedUser() throws Exception {
+    @WithMockUser(username = "user-name", roles = {"TEST"})
+    void shouldLogoutAuthorityPerson() throws Exception {
+        Long profileId = 1L;
+        Long personId = 2L;
         String username = "username";
-        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signOut(username);
+        String password = "password";
+        // prepare dataset
+        mockingDataSet(personId, profileId, username, password);
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username,password);
+        assertThat(credentials).isNotEmpty();
+        String activeToken = credentials.get().getToken();
         String requestPath = ROOT + "/logout";
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + activeToken)
                                 .contentType(APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andDo(print());
+                .andDo(print())
+                .andReturn();
 
         // check the behavior
         verify(controller).logout();
@@ -104,32 +122,10 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    void shouldLogoutAuthorityPerson_MockedSecurityContextHolder() throws Exception {
-        String username = "username";
-        doReturn(Optional.of(accessCredentials)).when(authenticationFacade).signOut(username);
-        String requestPath = ROOT + "/logout";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext(username);
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andDo(print());
-
-        // check the behavior
-        verify(controller).logout();
-        verify(facade).doActionAndResult(LOGOUT, username);
-        verify(authenticationFacade).signOut(username);
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(username = "username", roles = {"PRINCIPAL"})
+    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldNotLogoutAuthorityPerson_NotSignedIn() throws Exception {
-        String username = "username";
         String requestPath = ROOT + "/logout";
+        ArgumentCaptor<String> userNameCaptor = ArgumentCaptor.forClass(String.class);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
@@ -140,27 +136,8 @@ class AuthenticationRestControllerTest extends TestModelFactory {
 
         // check the behavior
         verify(controller).logout();
-        verify(facade).doActionAndResult(LOGOUT, username);
-        verify(authenticationFacade).signOut(username);
-        checkControllerAspect();
-    }
-
-    @Test
-    void shouldNotLogoutAuthorityPerson_Unauthorized() throws Exception {
-        String requestPath = ROOT + "/logout";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext();
-
-        mockMvc.perform(
-                        MockMvcRequestBuilders.delete(requestPath)
-                                .contentType(APPLICATION_JSON)
-                )
-                .andExpect(status().isUnauthorized())
-                .andDo(print());
-
-        // check the behavior
-        verify(controller).logout();
-        verify(facade, never()).doActionAndResult(anyString(), anyString());
+        verify(facade).doActionAndResult(eq(LOGOUT), userNameCaptor.capture());
+        verify(authenticationFacade).signOut(userNameCaptor.getValue());
         checkControllerAspect();
     }
 
@@ -190,8 +167,8 @@ class AuthenticationRestControllerTest extends TestModelFactory {
         assertThat(responseString).isNotBlank();
         AccessCredentials credentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
         assertThat(credentials).isNotNull();
-        assertThat(credentials.getToken()).isEqualTo(activeToke);
-        assertThat(credentials.getRefreshToken()).isEqualTo(refreshToken);
+        assertThat(credentials.getToken()).isNotBlank().isEqualTo(activeToke);
+        assertThat(credentials.getRefreshToken()).isNotBlank().isEqualTo(refreshToken);
         // check the behavior
         verify(controller).login(username, password);
         verify(facade).doActionAndResult(LOGIN, username, password);
@@ -228,7 +205,7 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(username = "username", roles = {"PRINCIPAL"})
+    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldRefreshSignedInUserToken() throws Exception {
         String activeToke = "logged.in_person.active.token";
         String refreshToken = "logged.in_person.refresh_token";
@@ -252,7 +229,7 @@ class AuthenticationRestControllerTest extends TestModelFactory {
         AccessCredentials credentials = MAPPER.readValue(responseString, AccessCredentialsPayload.class);
         assertThat(credentials).isNotNull();
         assertThat(credentials.getToken()).isEqualTo(activeToke);
-        assertThat(credentials.getRefreshToken()).isEqualTo(refreshToken);
+        assertThat(credentials.getRefreshToken()).isNotBlank().isEqualTo(refreshToken);
         // check the behavior
         verify(controller).refresh(refreshToken);
         verify(facade, never()).doActionAndResult(anyString(), anyString());
@@ -261,11 +238,10 @@ class AuthenticationRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldNotRefreshSignedInUserToken_NoTokens() throws Exception {
         String refreshToken = "logged.in_person.refresh_token";
         String requestPath = ROOT + "/refresh";
-        // do testing in mocked SecurityContextHolder
-        mockingSecurityContext();
 
         MvcResult result = mockMvc.perform(
                         MockMvcRequestBuilders.post(requestPath)
@@ -281,10 +257,10 @@ class AuthenticationRestControllerTest extends TestModelFactory {
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(403);
-        assertThat(error.getErrorMessage()).isEqualTo("Authentication username is empty");
+        assertThat(error.getErrorMessage()).isEqualTo("Authority Person is not authorized");
         // check the behavior
         verify(controller).refresh(refreshToken);
-        verify(authenticationFacade, never()).refresh(anyString(), anyString());
+        verify(authenticationFacade).refresh(eq(refreshToken), anyString());
         verify(facade, never()).doActionAndResult(anyString(), anyString());
         checkControllerAspect();
     }
@@ -296,5 +272,23 @@ class AuthenticationRestControllerTest extends TestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
         verify(delegate, atLeastOnce()).afterCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthenticationRestController.class);
+    }
+
+    private void mockingDataSet(Long personId, Long profileId, String username, String password) throws Exception {
+        PrincipalProfile profile = makePrincipalProfile(profileId);
+        if(profile instanceof FakePrincipalProfile fakeProfile) {
+            fakeProfile.setUsername(username);
+            fakeProfile.setSignature(profile.makeSignatureFor(password));
+        } else {
+            fail("Invalid type of profile");
+        }
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
+        AuthorityPerson person = makeCleanAuthorityPerson(personId.intValue());
+        if (person instanceof FakeAuthorityPerson fakeAuthorityPerson) {
+            fakeAuthorityPerson.setId(personId);
+        } else {
+            fail("Invalid type of person");
+        }
+        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 }
