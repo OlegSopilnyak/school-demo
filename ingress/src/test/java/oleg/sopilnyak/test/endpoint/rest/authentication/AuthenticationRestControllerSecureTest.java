@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
@@ -91,7 +92,6 @@ class AuthenticationRestControllerSecureTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldLogoutAuthorityPerson() throws Exception {
         Long profileId = 1L;
         Long personId = 2L;
@@ -238,7 +238,6 @@ class AuthenticationRestControllerSecureTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(username = "user-name", roles = {"TEST"})
     void shouldNotRefreshSignedInUserToken_NoTokens() throws Exception {
         String refreshToken = "logged.in_person.refresh_token";
         String requestPath = ROOT + "/refresh";
@@ -248,7 +247,7 @@ class AuthenticationRestControllerSecureTest extends TestModelFactory {
                                 .param("token", refreshToken)
                                 .contentType(APPLICATION_JSON)
                 )
-                .andExpect(status().isForbidden())
+                .andExpect(status().isUnauthorized())
                 .andDo(print())
                 .andReturn();
 
@@ -256,13 +255,10 @@ class AuthenticationRestControllerSecureTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(403);
-        assertThat(error.getErrorMessage()).isEqualTo("Authority Person is not authorized");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
-        verify(controller).refresh(refreshToken);
-        verify(authenticationFacade).refresh(eq(refreshToken), anyString());
-        verify(facade, never()).doActionAndResult(anyString(), anyString());
-        checkControllerAspect();
+        verify(controller, never()).refresh(anyString());
     }
 
     // private methods

@@ -16,6 +16,7 @@ import oleg.sopilnyak.test.school.common.model.education.Student;
 
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,9 +35,11 @@ public class RegisterCourseController {
     private final CoursesFacade coursesFacade;
     private final StudentsFacade studentsFacade;
 
+    @PreAuthorize("hasAuthority('EDU_UPDATE')")
     @PutMapping("/{studentId}/to/{courseId}")
-    public void registerToCourse(@PathVariable("studentId") String strStudentId,
-                                 @PathVariable("courseId") String strCourseId) {
+    public void registerToCourse(
+            @PathVariable("studentId") String strStudentId, @PathVariable("courseId") String strCourseId
+    ) {
         final Student student = restoreEntity(strStudentId, studentsFacade);
         final Course course = restoreEntity(strCourseId, coursesFacade);
         final long studentId = student.getId();
@@ -58,6 +61,7 @@ public class RegisterCourseController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_UPDATE')")
     @DeleteMapping("/{studentId}/to/{courseId}")
     public void unRegisterCourse(@PathVariable("studentId") String strStudentId,
                                  @PathVariable("courseId") String strCourseId) {

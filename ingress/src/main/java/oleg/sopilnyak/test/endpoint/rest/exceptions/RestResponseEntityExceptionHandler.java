@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.core.GeneralCannotDeleteException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,6 +29,13 @@ public class RestResponseEntityExceptionHandler {
         log.error("Cannot do facade's action", exception);
         final var response = prepareResponseFor(exception, request);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
+    }
+
+    @ExceptionHandler(value = {AuthorizationDeniedException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ActionErrorMessage onException(AuthorizationDeniedException exception, WebRequest req) {
+        log.error("Access denied", exception);
+        return errorMessageFor(HttpStatus.UNAUTHORIZED, exception, req);
     }
 
     @ExceptionHandler(value = {SchoolAccessDeniedException.class})
