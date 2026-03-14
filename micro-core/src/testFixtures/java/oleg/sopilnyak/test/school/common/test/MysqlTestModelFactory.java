@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
@@ -62,8 +63,7 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
     }
 
     protected <T> T findEntity(Class<T> entityClass, Object pk, Consumer<T> refreshEntity) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             T entity = em.find(entityClass, pk);
             if (entity != null) {
                 em.refresh(entity);
@@ -72,8 +72,6 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
                 }
             }
             return entity;
-        } finally {
-            em.close();
         }
     }
 
@@ -82,8 +80,7 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
     }
 
     protected <T> T findEntityByFK(Class<T> entityClass, String fkAttributeName, Object fk, Consumer<T> refreshEntity) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
             CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
             Root<T> entityRoot = criteriaQuery.from(entityClass);
@@ -92,20 +89,17 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
             if (ObjectUtils.isEmpty(entities)) {
                 return null;
             }
-            final T entity = entities.get(0);
+            final T entity = entities.getFirst();
             if (refreshEntity != null) {
                 refreshEntity.accept(entity);
             }
             return entity;
-        } finally {
-            em.close();
         }
     }
 
 
     protected <T> T deleteEntity(Class<T> entityClass, Object pk) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             T entity = em.find(entityClass, pk);
             if (entity != null) {
                 EntityTransaction transaction = em.getTransaction();
@@ -117,11 +111,10 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
                 return em.find(entityClass, pk);
             }
             return null;
-        } finally {
-            em.close();
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T> void deleteEntities(Class<T> entityClass) {
         EntityManager em = entityManagerFactory.createEntityManager();
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
@@ -129,7 +122,7 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         Root<T> entityRoot = criteriaQuery.from(entityClass);
         criteriaQuery.select(entityRoot);
         Query query = em.createQuery(criteriaQuery);
-        try{
+        try {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             List<T> entities = query.getResultList();
@@ -144,26 +137,19 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         }
     }
 
-    protected <T> boolean isEmpty(Class<T> entityClass) {
-        return findAllFor(entityClass).isEmpty();
-    }
-
-    protected <T> List<T>  findAllFor(Class<T> entityClass) {
-        return findAllFor(entityClass, null);
-    }
-        protected <T> List<T>  findAllFor(Class<T> entityClass, Consumer<T> refreshEntity) {
+    protected <T> List<T> findFor(Class<T> entityType, Predicate<T> predicate, Consumer<T> refresh) {
         EntityManager em = entityManagerFactory.createEntityManager();
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
-        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityClass);
-        Root<T> entityRoot = criteriaQuery.from(entityClass);
+        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(entityType);
+        Root<T> entityRoot = criteriaQuery.from(entityType);
         criteriaQuery.select(entityRoot);
         TypedQuery<T> query = em.createQuery(criteriaQuery);
-        try{
+        try {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
-            List<T> entities = query.getResultList();
-            if (refreshEntity != null) {
-                entities.forEach(refreshEntity::accept);
+            List<T> entities = query.getResultList().stream().filter(predicate).toList();
+            if (refresh != null) {
+                entities.forEach(refresh);
             }
             em.clear();
             transaction.commit();
@@ -173,30 +159,46 @@ public abstract class MysqlTestModelFactory extends TestModelFactory {
         }
     }
 
+    protected <T> List<T> findFor(Class<T> entityType, Predicate<T> predicate) {
+        return findFor(entityType, predicate, _ -> {
+        });
+    }
+
+    protected <T> boolean isEmpty(Class<T> entityClass) {
+        return findAllFor(entityClass).isEmpty();
+    }
+
+    protected <T> List<T> findAllFor(Class<T> entityClass) {
+        return findAllFor(entityClass, _ -> {
+        });
+    }
+
+    protected <T> List<T> findAllFor(Class<T> entityClass, Consumer<T> refreshEntity) {
+        return findFor(entityClass, _ -> true, refreshEntity);
+    }
+
     protected <T> T transactional(Supplier<T> activity) {
-        EntityManager em = entityManagerFactory.createEntityManager();
-        try {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             EntityTransaction transaction = em.getTransaction();
             transaction.begin();
             T result = activity.get();
             em.flush();
             transaction.commit();
             return result;
-        } finally {
-            em.close();
         }
     }
 
     @Autowired
     PlatformTransactionManager ptm;
+
     protected Object transactCommand(final Object targetBean) {
         TransactionInterceptor interceptor = new TransactionInterceptor();
         interceptor.setTransactionManager(ptm);
         // Configure transaction attributes for methods if needed
         // Example:
-         Properties transactionAttributes = new Properties();
-         transactionAttributes.setProperty("execute*", "PROPAGATION_REQUIRES_NEW");
-         interceptor.setTransactionAttributes(transactionAttributes);
+        Properties transactionAttributes = new Properties();
+        transactionAttributes.setProperty("execute*", "PROPAGATION_REQUIRES_NEW");
+        interceptor.setTransactionAttributes(transactionAttributes);
         interceptor.afterPropertiesSet();
         final Object realBean = MockUtil.isSpy(targetBean)
                 ?

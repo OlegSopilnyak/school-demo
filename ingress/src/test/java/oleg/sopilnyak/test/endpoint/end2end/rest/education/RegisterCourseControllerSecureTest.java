@@ -387,6 +387,7 @@ class RegisterCourseControllerSecureTest extends MysqlTestModelFactory {
             return Optional.ofNullable(entity);
         }
     }
+
     private AuthorityPerson createAuthorityPerson(int id, String username, String password, Permission permission) {
         AuthorityPerson person = create(makeCleanAuthorityPerson(id));
         setPersonPermissions(person, username, password, permission);

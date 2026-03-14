@@ -18,8 +18,11 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.education.Course;
+
+import jakarta.validation.Valid;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +48,7 @@ public class CoursesRestController {
     // delegate for requests processing
     private final CoursesFacade facade;
 
+    @PreAuthorize("hasAuthority('EDU_GET')")
     @GetMapping("/{" + COURSE_VAR_NAME + "}")
     public CourseDto findCourse(@PathVariable String courseId) {
         log.debug("Trying to get course by Id: '{}'", courseId);
@@ -60,6 +64,7 @@ public class CoursesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_LIST') and hasAuthority('EDU_GET')")
     @GetMapping("/registered/{" + STUDENT_VAR_NAME + "}")
     public List<CourseDto> findRegisteredFor(@PathVariable String studentId) {
         log.debug("Trying to get courses for student Id: '{}'", studentId);
@@ -75,6 +80,7 @@ public class CoursesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_LIST') and hasAuthority('EDU_GET')")
     @GetMapping("/empty")
     public List<CourseDto> findEmptyCourses() {
         log.debug("Trying to get empty courses");
@@ -85,9 +91,10 @@ public class CoursesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_CREATE') and hasAuthority('EDU_GET')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CourseDto createCourse(@RequestBody CourseDto courseDto) {
+    public CourseDto createCourse(@RequestBody @Valid CourseDto courseDto) {
         log.debug("Trying to create the course {}", courseDto);
         try {
             courseDto.setId(null);
@@ -97,8 +104,9 @@ public class CoursesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_UPDATE') and hasAuthority('EDU_GET')")
     @PutMapping
-    public CourseDto updateCourse(@RequestBody CourseDto courseDto) {
+    public CourseDto updateCourse(@RequestBody @Valid CourseDto courseDto) {
         log.debug("Trying to update the course {}", courseDto);
         try {
             final Long id = courseDto.getId();
@@ -112,8 +120,9 @@ public class CoursesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_DELETE')")
     @DeleteMapping("/{" + COURSE_VAR_NAME + "}")
-    public void deleteCourse(@PathVariable(COURSE_VAR_NAME) String courseId) {
+    public void deleteCourse(@PathVariable String courseId) {
         log.debug("Trying to delete course for Id: '{}'", courseId);
         try {
             final long id = Long.parseLong(courseId);
