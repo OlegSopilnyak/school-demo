@@ -9,6 +9,7 @@ import oleg.sopilnyak.test.school.common.exception.core.GeneralCannotDeleteExcep
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -63,6 +64,13 @@ public class RestResponseEntityExceptionHandler {
     public ResponseEntity<ActionErrorMessage> onException(GeneralCannotDeleteException exception, WebRequest request) {
         log.error("Cannot delete entity", exception);
         final var response = prepareResponseFor(exception, request);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
+    }
+
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+    public ResponseEntity<ActionErrorMessage> onException(MethodArgumentNotValidException exception, WebRequest request) {
+        log.error("Input is not valid", exception);
+        final var response = errorMessageFor(HttpStatus.BAD_REQUEST, exception, request);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.errorCode));
     }
 

@@ -18,8 +18,11 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.education.StudentNotFoundException;
 import oleg.sopilnyak.test.school.common.model.education.Student;
+
+import jakarta.validation.Valid;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,6 +47,7 @@ public class StudentsRestController {
     // delegate for requests processing
     private final StudentsFacade facade;
 
+    @PreAuthorize("hasAuthority('EDU_GET')")
     @GetMapping("/{" + STUDENT_ID_VAR_NAME + "}")
     public StudentDto findStudent(@PathVariable String studentId) {
         log.debug("Trying to get student by Id: '{}'", studentId);
@@ -60,6 +64,7 @@ public class StudentsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_LIST') and hasAuthority('EDU_GET')")
     @GetMapping("/enrolled/{" + COURSE_ID_VAR_NAME + "}")
     public List<StudentDto> findEnrolledTo(@PathVariable String courseId) {
         log.debug("Trying to get students for course Id: '{}'", courseId);
@@ -76,6 +81,7 @@ public class StudentsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_LIST') and hasAuthority('EDU_GET')")
     @GetMapping("/empty")
     public List<StudentDto> findNotEnrolledStudents() {
         log.debug("Trying to get not enrolled students");
@@ -87,9 +93,10 @@ public class StudentsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_CREATE') and hasAuthority('EDU_GET')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public StudentDto createStudent(@RequestBody StudentDto studentDto) {
+    public StudentDto createStudent(@RequestBody @Valid StudentDto studentDto) {
         log.debug("Trying to create the student {}", studentDto);
         try {
             final Optional<Student> student = facade.doActionAndResult(StudentsFacade.CREATE_MACRO, studentDto);
@@ -99,8 +106,9 @@ public class StudentsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_UPDATE') and hasAuthority('EDU_GET')")
     @PutMapping
-    public StudentDto updateStudent(@RequestBody StudentDto studentDto) {
+    public StudentDto updateStudent(@RequestBody @Valid StudentDto studentDto) {
         log.debug("Trying to update the student {}", studentDto);
         try {
             final Long id = studentDto.getId();
@@ -114,8 +122,9 @@ public class StudentsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('EDU_DELETE')")
     @DeleteMapping("/{" + STUDENT_ID_VAR_NAME + "}")
-    public void deleteStudent(@PathVariable(STUDENT_ID_VAR_NAME) String studentId) {
+    public void deleteStudent(@PathVariable String studentId) {
         log.debug("Trying to delete student by Id: '{}'", studentId);
         try {
             final long id = Long.parseLong(studentId);

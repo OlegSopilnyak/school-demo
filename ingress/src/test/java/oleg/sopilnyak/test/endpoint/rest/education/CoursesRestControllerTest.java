@@ -1,12 +1,14 @@
 package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -37,6 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -202,6 +205,38 @@ class CoursesRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"EDU_CREATE", "EDU_GET"})
+    void shouldNotCreateCourse_CourseStudentsRepetition() throws Exception {
+        Course course = makeTestCourse(null);
+        if (course instanceof FakeCourse entity) {
+            entity.setStudents(List.of(makeClearStudent(10),  makeClearStudent(10)));
+        } else {
+            fail("Wrong course type");
+        }
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isBadRequest())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Students should be unique");
+        // check the behavior
+        verify(controller, never()).createCourse(any(CourseDto.class));
+    }
+
+    @Test
     @WithMockUser(authorities = {"EDU_UPDATE", "EDU_GET"})
     void shouldUpdateValidCourse() throws Exception {
         Long id = 101L;
@@ -234,6 +269,39 @@ class CoursesRestControllerTest extends TestModelFactory {
         assertThat(course.getDescription()).isEqualTo(courseDto.getDescription());
         assertStudentLists(course.getStudents(), courseDto.getStudents());
         checkControllerAspect();
+    }
+
+    @Test
+    @WithMockUser(authorities = {"EDU_UPDATE", "EDU_GET"})
+    void shouldNotUpdateValidCourse_CourseStudentsRepetition() throws Exception {
+        Long id = 101L;
+        Course course = makeTestCourse(id);
+        if (course instanceof FakeCourse entity) {
+            entity.setStudents(List.of(makeClearStudent(20),  makeClearStudent(20)));
+        } else {
+            fail("Wrong course type");
+        }
+        String requestPath = "/courses";
+        String jsonContent = MAPPER.writeValueAsString(course);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(requestPath)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isBadRequest())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Students should be unique");
+        // check the behavior
+        verify(controller, never()).updateCourse(any(CourseDto.class));
     }
 
     @Test

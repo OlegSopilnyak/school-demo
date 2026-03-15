@@ -16,14 +16,10 @@ import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionH
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.education.StudentEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
-import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.education.CoursesFacade;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
@@ -31,10 +27,12 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +52,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -71,10 +70,6 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/courses";
 
-    @Autowired
-    PersistenceFacade database;
-    @Autowired
-    EntityManagerFactory emf;
     @Autowired
     EntityMapper entityMapper;
     @Autowired
@@ -104,16 +99,12 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     void tearDown() {
         deleteEntities(StudentEntity.class);
         deleteEntities(CourseEntity.class);
-        deleteEntities(FacultyEntity.class);
-        deleteEntities(PrincipalProfileEntity.class);
-        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
-        assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
@@ -201,7 +192,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
         }).stream().map(Course.class::cast).toList();
 
         assertThat(courseList).hasSize(coursesAmount);
-        List<Course> courses = database.findCoursesWithoutStudents().stream()
+        List<Course> courses = findCoursesWithoutStudents().stream()
                 .sorted(Comparator.comparing(Course::getName)).toList();
         assertCourseLists(courses, courseList);
         checkControllerAspect();
@@ -385,7 +376,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
     private void persist(Student instance) {
         StudentEntity entity = instance instanceof StudentEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
-        try (EntityManager em = emf.createEntityManager()) {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.merge(entity);
             em.getTransaction().commit();
@@ -394,7 +385,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
     private Student getPersistent(Student newInstance) {
         StudentEntity entity = entityMapper.toEntity(newInstance);
-        try (EntityManager em = emf.createEntityManager()) {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
@@ -403,7 +394,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     private Optional<Student> findStudentById(Long id) {
-        try (EntityManager em = emf.createEntityManager()) {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             StudentEntity entity = em.find(StudentEntity.class, id);
             if (entity != null) {
                 entity.getCourseSet().forEach(course -> course.getStudents().size());
@@ -414,7 +405,7 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
 
     private Course getPersistent(Course newInstance) {
         CourseEntity entity = entityMapper.toEntity(newInstance);
-        try (EntityManager em = emf.createEntityManager()) {
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);
             entity.getStudents().forEach(em::persist);
@@ -424,12 +415,12 @@ class CoursesRestControllerTest extends MysqlTestModelFactory {
     }
 
     private Optional<Course> findCourseById(Long id) {
-        try (EntityManager em = emf.createEntityManager()) {
-            CourseEntity entity = em.find(CourseEntity.class, id);
-            if (entity != null) {
-                entity.getStudents().forEach(student -> student.getCourses().size());
-            }
-            return Optional.ofNullable(entity);
-        }
+        return Optional.ofNullable(findEntity(CourseEntity.class, id, entity -> entity.getStudents().size()));
+    }
+
+    private Collection<Course> findCoursesWithoutStudents() {
+        Predicate<CourseEntity> restriction = entity -> ObjectUtils.isEmpty(entity.getStudents());
+        Consumer<CourseEntity> forEachEntity = entity -> entity.getStudents().size();
+        return findFor(CourseEntity.class, restriction, forEachEntity).stream().map(Course.class::cast).toList();
     }
 }

@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.school.common.model.BaseType;
 @Getter
 @Setter
 @SuperBuilder
+@EqualsAndHashCode
 @ToString(doNotUseGetters = true)
 @NoArgsConstructor
 @AllArgsConstructor
