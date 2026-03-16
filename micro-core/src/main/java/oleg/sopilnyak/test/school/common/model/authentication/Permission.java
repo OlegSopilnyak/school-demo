@@ -11,6 +11,9 @@ public enum Permission {
     EDU_GET("Can get the instance of Student or Course"),
     EDU_UPDATE("Can update the instance of Student or Course"),
     EDU_DELETE("Can remove the instance of Student or Course"),
+    // profile part permissions
+    PROF_GET("Can get the instance of Profile"),
+    PROF_UPDATE("Can update the instance of Profile"),
     // organization part permissions
     ORG_PERSON_CREATE("Can create new instances of AuthorityPersons"),
     ORG_CREATE("Can create new instances of Faculties or StudentsGroups"),

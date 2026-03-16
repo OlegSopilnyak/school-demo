@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -108,6 +109,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findStudent(id.toString());
+        verify(facade).doActionAndResult(STUDENT_FIND_BY_ID, id);
         String responseString = result.getResponse().getContentAsString();
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
@@ -140,6 +142,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findEnrolledTo(courseId.toString());
+        verify(facade).doActionAndResult(STUDENT_FIND_ENROLLED_TO, courseId);
         String responseString = result.getResponse().getContentAsString();
         List<Student> receivedStudentsList =
                 MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
@@ -168,6 +171,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findNotEnrolledStudents();
+        verify(facade).doActionAndResult(STUDENT_FIND_NOT_ENROLLED);
         String responseString = result.getResponse().getContentAsString();
         List<Student> receivedStudentsList =
                 MAPPER.readValue(responseString, new TypeReference<List<StudentDto>>() {
@@ -201,6 +205,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).createStudent(any(StudentDto.class));
+        verify(facade).doActionAndResult(eq(STUDENT_CREATE_NEW), any(StudentDto.class));
         String responseString = result.getResponse().getContentAsString();
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
@@ -256,7 +261,6 @@ class StudentsRestControllerTest extends TestModelFactory {
         }).when(facade).doActionAndResult(eq(STUDENT_CREATE_OR_UPDATE), any(Student.class));
         String jsonContent = MAPPER.writeValueAsString(student);
 
-
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
@@ -268,6 +272,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateStudent(any(StudentDto.class));
+        verify(facade).doActionAndResult(eq(STUDENT_CREATE_OR_UPDATE), any(StudentDto.class));
         String responseString = result.getResponse().getContentAsString();
         StudentDto studentDto = MAPPER.readValue(responseString, StudentDto.class);
 
@@ -329,6 +334,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateStudent(any(StudentDto.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(StudentDto.class));
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -355,6 +361,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateStudent(any(StudentDto.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(StudentDto.class));
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -403,6 +410,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deleteStudent(id.toString());
+        verify(facade).doActionAndResult(STUDENT_DELETE_ALL, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -427,6 +435,7 @@ class StudentsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deleteStudent(id.toString());
+        verify(facade).doActionAndResult(STUDENT_DELETE_ALL, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 

@@ -20,6 +20,10 @@ import java.util.stream.Stream;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 
 /**
  * DataTransportObject: POJO for PersonProfile type (the parent of any type of profiles)
@@ -37,7 +41,12 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class BaseProfileDto extends BaseDto implements PersonProfile {
     private String photoUrl;
+    @NotNull
+    @NotBlank(message = "E-Mail cannot be blank")
+    @Email
     private String email;
+    @NotNull
+    @NotBlank(message = "Phone Number cannot be blank")
     private String phone;
     private String location;
     private Extra[] extras;

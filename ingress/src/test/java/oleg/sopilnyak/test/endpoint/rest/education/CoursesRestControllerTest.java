@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.education;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -57,6 +58,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
 class CoursesRestControllerTest extends TestModelFactory {
+    private static final String COURSE_FIND_BY_ID = "school::education::courses:find.By.Id";
+    private static final String COURSE_FIND_REGISTERED = "school::education::courses:find.Registered.To.The.Student";
+    private static final String COURSE_FIND_NOT_REGISTERED = "school::education::courses:find.Without.Any.Student";
     private static final String COURSE_CREATE_OR_UPDATE = "school::education::courses:create.Or.Update";
     private static final String COURSE_DELETE = "school::education::courses:delete";
 
@@ -101,6 +105,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findCourse(id.toString());
+        verify(facade).doActionAndResult(COURSE_FIND_BY_ID, id);
         String responseString = result.getResponse().getContentAsString();
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
@@ -131,6 +136,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findRegisteredFor(studentId.toString());
+        verify(facade).doActionAndResult(COURSE_FIND_REGISTERED, studentId);
         String responseString = result.getResponse().getContentAsString();
         List<Course> courseList =
                 MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
@@ -160,6 +166,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findEmptyCourses();
+        verify(facade).doActionAndResult(COURSE_FIND_NOT_REGISTERED);
         String responseString = result.getResponse().getContentAsString();
         List<Course> courseList =
                 MAPPER.readValue(responseString, new TypeReference<List<CourseDto>>() {
@@ -195,6 +202,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).createCourse(any(CourseDto.class));
+        verify(facade).doActionAndResult(eq(COURSE_CREATE_OR_UPDATE), any(CourseDto.class));
         String responseString = result.getResponse().getContentAsString();
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
@@ -262,6 +270,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateCourse(any(CourseDto.class));
+        verify(facade).doActionAndResult(eq(COURSE_CREATE_OR_UPDATE), any(CourseDto.class));
         String responseString = result.getResponse().getContentAsString();
         CourseDto courseDto = MAPPER.readValue(responseString, CourseDto.class);
 
@@ -322,6 +331,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateCourse(any(CourseDto.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(CourseDto.class));
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error =
                 MAPPER.readValue(responseString, ActionErrorMessage.class);
@@ -350,6 +360,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updateCourse(any(CourseDto.class));
+        verify(facade, never()).doActionAndResult(anyString(), any(CourseDto.class));
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error =
                 MAPPER.readValue(responseString, ActionErrorMessage.class);
@@ -391,6 +402,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deleteCourse(id.toString());
+        verify(facade).doActionAndResult(COURSE_DELETE, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error =
                 MAPPER.readValue(responseString, ActionErrorMessage.class);
@@ -417,6 +429,7 @@ class CoursesRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deleteCourse(id.toString());
+        verify(facade).doActionAndResult(COURSE_DELETE, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error =
                 MAPPER.readValue(responseString, ActionErrorMessage.class);

@@ -63,7 +63,7 @@ class RegisterCourseControllerTest {
     PersistenceFacade persistenceFacade;
     @MockitoSpyBean
     @Autowired
-    CoursesFacade coursesFacade;
+    CoursesFacade facade;
     @MockitoSpyBean
     @Autowired
     RegisterCourseController controller;
@@ -98,7 +98,7 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
+        verify(facade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
         checkControllerAspect();
@@ -127,7 +127,7 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
+        verify(facade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
 
@@ -161,7 +161,7 @@ class RegisterCourseControllerTest {
                         .andReturn();
 
         verify(controller).registerToCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
+        verify(facade).doActionAndResult(eq(COURSE_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
 
@@ -190,7 +190,7 @@ class RegisterCourseControllerTest {
                 .andDo(print());
 
         verify(controller).unRegisterCourse(studentId.toString(), courseId.toString());
-        verify(coursesFacade).doActionAndResult(eq(COURSE_UN_REGISTER), studentCapture.capture(), courseCapture.capture());
+        verify(facade).doActionAndResult(eq(COURSE_UN_REGISTER), studentCapture.capture(), courseCapture.capture());
         assertThat(studentCapture.getValue().getId()).isEqualTo(studentId);
         assertThat(courseCapture.getValue().getId()).isEqualTo(courseId);
         checkControllerAspect();

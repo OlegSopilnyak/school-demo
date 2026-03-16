@@ -12,8 +12,10 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.profile.ProfileNotFoundException;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 
+import jakarta.validation.Valid;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -34,27 +36,29 @@ import org.mapstruct.factory.Mappers;
 @ResponseStatus(HttpStatus.OK)
 public class StudentProfileRestController {
     private static final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
-    public static final String PROFILE_ID_VAR_NAME = "personProfileId";
+    public static final String PROFILE_ID_VAR_NAME = "profileId";
     public static final String WRONG_STUDENT_PROFILE_ID = "Wrong student profile-id: '";
     private StudentProfileFacade facade;
 
+    @PreAuthorize("hasAuthority('PROF_GET')")
     @GetMapping("/{" + PROFILE_ID_VAR_NAME + "}")
-    public StudentProfileDto findById(@PathVariable(PROFILE_ID_VAR_NAME) String personId) {
-        log.debug("Trying to get student-profile by Id: '{}'", personId);
+    public StudentProfileDto findById(@PathVariable String profileId) {
+        log.debug("Trying to get student-profile by Id: '{}'", profileId);
         try {
-            final Long id = Long.parseLong(personId);
+            final Long id = Long.parseLong(profileId);
             log.debug("Getting student-profile for id: {}", id);
 
             return toDto(id, findStudentProfileById(id));
         } catch (NumberFormatException _) {
-            throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + personId + "'");
+            throw new ProfileNotFoundException(WRONG_STUDENT_PROFILE_ID + profileId + "'");
         } catch (Exception e) {
-            throw new CannotProcessActionException("Cannot get student-profile for id: " + personId, e);
+            throw new CannotProcessActionException("Cannot get student-profile for id: " + profileId, e);
         }
     }
 
+    @PreAuthorize("hasAuthority('PROF_UPDATE')")
     @PutMapping
-    public StudentProfileDto update(@RequestBody StudentProfileDto profileDto) {
+    public StudentProfileDto update(@RequestBody @Valid StudentProfileDto profileDto) {
         log.debug("Trying to update student-profile {}", profileDto);
         try {
             final Long id = profileDto.getId();
