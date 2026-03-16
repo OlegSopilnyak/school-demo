@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,8 +21,13 @@ import oleg.sopilnyak.test.endpoint.dto.StudentsGroupDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGroupFacade;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 
@@ -28,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -51,7 +59,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-class StudentsGroupsRestControllerTest extends TestModelFactory {
+class StudentsGroupsRestControllerSecureTest extends TestModelFactory {
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_ALL = "school::organization::student::groups:find.All";
     private static final String ORGANIZATION_STUDENTS_GROUP_FIND_BY_ID = "school::organization::student::groups:find.By.Id";
     private static final String ORGANIZATION_STUDENTS_GROUP_CREATE_OR_UPDATE = "school::organization::student::groups:create.Or.Update";
@@ -65,24 +73,31 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     StudentsGroupFacade facade;
     @MockitoSpyBean
     @Autowired
+    AuthenticationFacade authenticationFacade;
+    @MockitoSpyBean
+    @Autowired
     StudentsGroupsRestController controller;
     @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
-
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllStudentsGroups() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         int groupsAmount = 5;
         Collection<StudentsGroup> studentsGroups = makeStudentsGroups(groupsAmount);
         doReturn(Set.copyOf(studentsGroups)).when(persistenceFacade).findAllStudentsGroups();
@@ -90,6 +105,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -109,8 +125,36 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
+    void shouldNotFindAllStudentsGroups_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findAll();
+    }
+
+    @Test
     void shouldFindStudentsGroupById() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         Long id = 500L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
         doReturn(Optional.of(studentsGroup)).when(persistenceFacade).findStudentsGroupById(id);
@@ -118,6 +162,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -134,8 +179,38 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
+    void shouldNotFindStudentsGroupById_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 5001L;
+        String requestPath = ROOT + "/" + id;
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findById(anyString());
+    }
+
+    @Test
     void shouldCreateStudentsGroup() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_CREATE, Permission.ORG_GET));
+        // prepare the test
         StudentsGroup studentsGroup = makeTestStudentsGroup(null);
         doAnswer(invocation -> {
             StudentsGroup received = invocation.getArgument(1);
@@ -148,6 +223,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -165,23 +241,21 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
-    void shouldNotCreateStudentsGroup_GroupStudentsRepetition() throws Exception {
+    void shouldNotCreateStudentsGroup_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
         StudentsGroup studentsGroup = makeTestStudentsGroup(null);
-        if (studentsGroup instanceof FakeStudentsGroup group) {
-            group.setStudents(List.of(makeClearStudent(10),  makeClearStudent(10)));
-        } else {
-            fail("Invalid type of StudentsGroup");
-        }
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -189,15 +263,17 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Students should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).create(any(StudentsGroupDto.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateStudentsGroup() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_UPDATE, Permission.ORG_GET));
+        // prepare the test
         Long id = 501L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
         doAnswer(invocation -> {
@@ -211,6 +287,7 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -228,24 +305,22 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateStudentsGroup_GroupStudentsRepetition() throws Exception {
-        Long id = 501L;
+    void shouldNotUpdateStudentsGroup_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 5011L;
         StudentsGroup studentsGroup = makeTestStudentsGroup(id);
-        if (studentsGroup instanceof FakeStudentsGroup group) {
-            group.setStudents(List.of(makeClearStudent(20),  makeClearStudent(20)));
-        } else {
-            fail("Invalid type of StudentsGroup");
-        }
         String jsonContent = MAPPER.writeValueAsString(studentsGroup);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -253,71 +328,24 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Students should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).update(any(StudentsGroupDto.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateStudentsGroup_WrongId_Null() throws Exception {
-        StudentsGroup studentsGroup = makeTestStudentsGroup(null);
-        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).update(any(StudentsGroupDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateStudentsGroup_WrongId_Negative() throws Exception {
-        Long id = -502L;
-        StudentsGroup studentsGroup = makeTestStudentsGroup(id);
-        String jsonContent = MAPPER.writeValueAsString(studentsGroup);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).update(any(StudentsGroupDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-502'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteStudentsGroup() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_DELETE));
+        // prepare the test
         Long id = 510L;
         doReturn(Optional.of(mock(StudentsGroup.class))).when(persistenceFacade).findStudentsGroupById(id);
         String requestPath = ROOT + "/" + id;
+
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
                 )
                 .andExpect(status().isOk())
                 .andDo(print());
@@ -328,46 +356,30 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteStudentsGroup_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/null";
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).delete("null");
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteStudentsGroup_WrongId_Negative() throws Exception {
-        long id = -511L;
+    void shouldNotDeleteStudentsGroup_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 5101L;
         String requestPath = ROOT + "/" + id;
+
         MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
+                )
+                .andExpect(status().isUnauthorized())
+                .andDo(print())
                         .andReturn();
 
-        verify(controller).delete(Long.toString(id));
+        // check the results
         String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong students-group-id: '-511'");
-        checkControllerAspect();
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).delete(anyString());
     }
 
     // private methods
@@ -377,5 +389,37 @@ class StudentsGroupsRestControllerTest extends TestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
         verify(delegate).afterCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentsGroupsRestController.class);
+    }
+
+    private AccessCredentials signInWith(List<Permission> permissions) throws Exception {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        // prepare dataset
+        mockingDataSet(username, password, permissions);
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isPresent();
+        return credentials.orElseThrow();
+    }
+
+    private void mockingDataSet(String username, String password, List<Permission> permissions) throws Exception {
+        Long personId = 1L;
+        Long profileId = 2L;
+        PrincipalProfile profile = makePrincipalProfile(profileId);
+        if (profile instanceof TestModelFactory.FakePrincipalProfile fakeProfile) {
+            fakeProfile.setUsername(username);
+            fakeProfile.setSignature(profile.makeSignatureFor(password));
+            fakeProfile.setPermissions(Set.copyOf(permissions));
+        } else {
+            fail("Invalid type of profile");
+        }
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
+        AuthorityPerson person = makeCleanAuthorityPerson(personId.intValue());
+        if (person instanceof TestModelFactory.FakeAuthorityPerson fakeAuthorityPerson) {
+            fakeAuthorityPerson.setId(personId);
+        } else {
+            fail("Invalid type of person");
+        }
+        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 }

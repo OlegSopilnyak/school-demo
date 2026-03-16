@@ -17,8 +17,11 @@ import oleg.sopilnyak.test.school.common.business.facade.organization.StudentsGr
 import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionException;
 import oleg.sopilnyak.test.school.common.exception.organization.StudentsGroupNotFoundException;
 import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
+
+import jakarta.validation.Valid;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +45,7 @@ public class StudentsGroupsRestController {
     // delegate for requests processing
     private final StudentsGroupFacade facade;
 
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     @GetMapping
     public List<StudentsGroupDto> findAll() {
         log.debug("Trying to get all school's students groups");
@@ -53,8 +57,9 @@ public class StudentsGroupsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     @GetMapping("/{" + VAR_NAME + "}")
-    public StudentsGroupDto findById(@PathVariable(VAR_NAME) String groupId) {
+    public StudentsGroupDto findById(@PathVariable String groupId) {
         log.debug("Trying to get students group by Id: '{}'", groupId);
         try {
             final Long id = Long.parseLong(groupId);
@@ -69,9 +74,10 @@ public class StudentsGroupsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_CREATE') and hasAuthority('ORG_GET')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public StudentsGroupDto create(@RequestBody StudentsGroupDto studentsGroupDto) {
+    public StudentsGroupDto create(@RequestBody @Valid StudentsGroupDto studentsGroupDto) {
         log.debug("Trying to create the students group {}", studentsGroupDto);
         try {
             studentsGroupDto.setId(null);
@@ -81,8 +87,9 @@ public class StudentsGroupsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_UPDATE') and hasAuthority('ORG_GET')")
     @PutMapping
-    public StudentsGroupDto update(@RequestBody StudentsGroupDto studentsGroupDto) {
+    public StudentsGroupDto update(@RequestBody @Valid StudentsGroupDto studentsGroupDto) {
         log.debug("Trying to update students group {}", studentsGroupDto);
         try {
             final Long id = studentsGroupDto.getId();
@@ -95,8 +102,9 @@ public class StudentsGroupsRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_DELETE')")
     @DeleteMapping("/{" + VAR_NAME + "}")
-    public void delete(@PathVariable(VAR_NAME) String groupId) {
+    public void delete(@PathVariable String groupId) {
         log.debug("Trying to delete students group for Id: '{}'", groupId);
         try {
             final Long id = Long.parseLong(groupId);
