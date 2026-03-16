@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -38,6 +39,7 @@ public class PrincipalProfileRestController {
     private PrincipalProfileFacade facade;
 
 
+    @PreAuthorize("hasAuthority('PROF_GET')")
     @GetMapping("/{" + PROFILE_ID_VAR_NAME + "}")
     public PrincipalProfileDto findById(@PathVariable(PROFILE_ID_VAR_NAME) String personId) {
         log.debug("Trying to get principal-profile by Id: '{}'", personId);
@@ -54,6 +56,7 @@ public class PrincipalProfileRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('PROF_UPDATE')")
     @PutMapping
     public PrincipalProfileDto update(@RequestBody PrincipalProfileDto profileDto) {
         log.debug("Trying to update principal-profile {}", profileDto);

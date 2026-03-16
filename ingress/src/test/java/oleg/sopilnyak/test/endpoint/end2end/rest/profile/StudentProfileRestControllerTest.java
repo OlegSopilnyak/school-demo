@@ -185,7 +185,7 @@ class StudentProfileRestControllerTest extends MysqlTestModelFactory {
     void shouldUpdateStudentProfile() throws Exception {
         StudentProfilePayload profile = payloadMapper.toPayload(getPersistent(makeStudentProfile(null)));
         String originalEmail = profile.getEmail();
-        profile.setEmail("profile@email.com");
+        profile.setEmail("student.profile@email.com");
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(

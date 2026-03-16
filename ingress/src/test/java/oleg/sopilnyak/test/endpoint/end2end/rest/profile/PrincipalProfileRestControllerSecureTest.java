@@ -1,14 +1,11 @@
 package oleg.sopilnyak.test.endpoint.end2end.rest.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,14 +13,19 @@ import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
-import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.profile.PrincipalProfileRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.PrincipalProfileCommand;
@@ -32,15 +34,20 @@ import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 import oleg.sopilnyak.test.service.message.payload.PrincipalProfilePayload;
 
 import jakarta.persistence.EntityManager;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.aspectj.lang.JoinPoint;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -64,13 +71,15 @@ import org.mapstruct.factory.Mappers;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
+class PrincipalProfileRestControllerSecureTest extends MysqlTestModelFactory {
     private static final String PROFILE_PRINCIPAL_FIND_BY_ID = "school::person::profile::principal:find.By.Id";
     private static final String PROFILE_PRINCIPAL_CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
 
+    @Autowired
+    PersistenceFacade database;
     @Autowired
     EntityMapper entityMapper;
     @MockitoSpyBean
@@ -89,41 +98,54 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     PrincipalProfileRestController controller;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
+    @MockitoSpyBean
+    @Autowired
+    AuthenticationFacade authenticationFacade;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
     @AfterEach
     void tearDown() {
         deleteEntities(PrincipalProfileEntity.class);
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
+        assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
 
         assertThat(controller).isNotNull();
+        assertThat(springSecurityFilterChain).isNotNull();
+        assertThat(authenticationFacade).isNotNull();
         assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
     @Test
-    @WithMockUser(authorities = {"PROF_GET"})
     void shouldFindPrincipalProfile() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(1, List.of(Permission.PROF_GET));
+        // prepare the test
         var profile = getPersistent(makePrincipalProfile(null));
         Long id = profile.getId();
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -140,54 +162,10 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"PROF_GET"})
-    void shouldNotFoundPrincipalProfile_NotExists() throws Exception {
-        long id = -402L;
-        String requestPath = ROOT + "/" + id;
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.get(requestPath)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        // check the results
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
-        // check the behavior
-        verify(controller).findById(Long.toString(id));
-        verify(facade).doActionAndResult(PROFILE_PRINCIPAL_FIND_BY_ID, id);
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"PROF_GET"})
-    void shouldNotFoundPrincipalProfile_WrongId() throws Exception {
-        long id = -402L;
-        String requestPath = ROOT + "/" + id + "!";
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.get(requestPath)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).findById(id + "!");
-        verify(facade, never()).doActionAndResult(anyString(), anyLong());
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"PROF_UPDATE"})
     void shouldUpdatePrincipalProfile() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(2, List.of(Permission.PROF_UPDATE));
+        // prepare the test
         PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
         String originalEmail = profile.getEmail();
         profile.setEmail("principal.profile@email.com");
@@ -195,6 +173,7 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -202,86 +181,13 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).doActionAndResult(eq(PROFILE_PRINCIPAL_CREATE_OR_UPDATE), any(PrincipalProfile.class));
+        // check the results
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
         assertThat(originalEmail).isNotEqualTo(dto.getEmail());
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"PROF_UPDATE"})
-    void shouldNotUpdatePrincipalProfile_NullId() throws Exception {
-        PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
-        profile.setId(null);
-        String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"PROF_UPDATE"})
-    void shouldNotUpdatePrincipalProfile_NegativeId() throws Exception {
-        PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
-        profile.setId(-profile.getId());
-        String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '" + profile.getId() + "'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"PROF_UPDATE"})
-    void shouldNotUpdatePrincipalProfile_ExceptionThrown() throws Exception {
-        PrincipalProfilePayload profile = mapper.toPayload(getPersistent(makePrincipalProfile(null)));
-        String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
-        String message = "Cannot update principal profile: '406!'";
-        Exception exception = new RuntimeException(message);
-        doThrow(exception).when(facade).doActionAndResult(eq(PROFILE_PRINCIPAL_CREATE_OR_UPDATE), any(PrincipalProfile.class));
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isInternalServerError())
-                        .andDo(print())
-                        .andReturn();
-
+        // check the behavior
         verify(controller).update(any(PrincipalProfileDto.class));
         verify(facade).doActionAndResult(eq(PROFILE_PRINCIPAL_CREATE_OR_UPDATE), any(PrincipalProfile.class));
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        assertThat(error.getErrorMessage()).isEqualTo(message);
         checkControllerAspect();
     }
 
@@ -296,6 +202,79 @@ class PrincipalProfileRestControllerTest extends MysqlTestModelFactory {
 
     private PrincipalProfile getPersistent(PrincipalProfile newInstance) {
         PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        }
+    }
+
+    private AccessCredentials signInWith(int order, List<Permission> permissions) {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        // prepare dataset
+        AuthorityPerson person = createAuthorityPerson(order, username, password, permissions);
+        assertThat(person).isNotNull();
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isPresent();
+        return credentials.orElseThrow();
+    }
+
+    private AuthorityPerson createAuthorityPerson(int id, String username, String password, List<Permission> permissions) {
+        AuthorityPerson person = create(makeCleanAuthorityPerson(id));
+        setPersonPermissions(person, username, password, permissions);
+        assertThat(database.updateAccess(person, username, password)).isTrue();
+        if (person instanceof AuthorityPersonEntity entity) {
+            entity.setFaculties(List.of());
+            merge(entity);
+        }
+        return person;
+    }
+
+    private void setPersonPermissions(AuthorityPerson person, String username, String password, List<Permission> permissions) {
+        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
+        profile.setUsername(username);
+        profile.setPermissions(Set.copyOf(permissions));
+        try {
+            profile.setSignature(profile.makeSignatureFor(password));
+            merge(profile);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void merge(PrincipalProfile instance) {
+        PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        }
+    }
+
+    private void merge(AuthorityPerson instance) {
+        AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        }
+    }
+
+    private AuthorityPerson create(AuthorityPerson person) {
+        PrincipalProfile profile = getPersistent(makePrincipalProfile(null));
+        if (person instanceof FakeAuthorityPerson fake) {
+            fake.setProfileId(profile.getId());
+        } else {
+            Assertions.fail("Invalid person type '{}'", person.getClass());
+        }
+        return persist(person);
+    }
+
+    private AuthorityPerson persist(AuthorityPerson newInstance) {
+        AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
         try (EntityManager em = entityManagerFactory.createEntityManager()) {
             em.getTransaction().begin();
             em.persist(entity);

@@ -36,7 +36,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -52,13 +52,13 @@ import org.mapstruct.factory.Mappers;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-@DirtiesContext
 class PrincipalProfileRestControllerTest extends TestModelFactory {
-    private static final String FIND_BY_ID = "school::person::profile::principal:find.By.Id";
-    private static final String CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
+    private static final String PROFILE_PRINCIPAL_FIND_BY_ID = "school::person::profile::principal:find.By.Id";
+    private static final String PROFILE_PRINCIPAL_CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
     private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
+
     @MockitoBean
     PersistenceFacade persistenceFacade;
     @MockitoSpyBean
@@ -81,8 +81,9 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_GET"})
     void shouldFindPrincipalProfile() throws Exception {
-        String commandId = FIND_BY_ID;
+        String commandId = PROFILE_PRINCIPAL_FIND_BY_ID;
         Long id = 402L;
         PrincipalProfile profile = makePrincipalProfile(id);
         doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileById(id);
@@ -109,15 +110,18 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).findById(id.toString());
-        verify(facade).doActionAndResult(commandId, id);
+        // check the results
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertThat(dto.getId()).isEqualTo(id);
         assertProfilesEquals(profile, dto);
+        // check the behavior
+        verify(controller).findById(id.toString());
+        verify(facade).doActionAndResult(commandId, id);
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_GET"})
     void shouldNotFoundPrincipalProfile_NotExists() throws Exception {
         long id = -402L;
         String requestPath = ROOT + "/" + id;
@@ -130,15 +134,18 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).findById(Long.toString(id));
-        verify(facade).doActionAndResult(FIND_BY_ID, id);
+        // check the results
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
         assertThat(error.getErrorMessage()).isEqualTo("Profile with id: -402 is not found");
+        // check the behavior
+        verify(controller).findById(Long.toString(id));
+        verify(facade).doActionAndResult(PROFILE_PRINCIPAL_FIND_BY_ID, id);
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_GET"})
     void shouldNotFoundPrincipalProfile_WrongId() throws Exception {
         Long id = -402L;
         String requestPath = ROOT + "/" + id + "!";
@@ -151,16 +158,20 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
+        // check the results
+        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
+        // check the behavior
         verify(controller).findById(id + "!");
         verify(facade, never()).doActionAndResult(anyString(), anyLong());
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-402!'");
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_UPDATE"})
     void shouldUpdatePrincipalProfile() throws Exception {
+        String commandId = PROFILE_PRINCIPAL_CREATE_OR_UPDATE;
         Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(id);
         doAnswer(invocation -> {
@@ -168,7 +179,7 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
             assertThat(received.getId()).isEqualTo(id);
             assertProfilesEquals(profile, received);
             return Optional.of(received);
-        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
+        }).when(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         MvcResult result =
                 mockMvc.perform(
@@ -180,14 +191,17 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
+        // check the results
         var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
         assertProfilesEquals(profile, dto);
+        // check the behavior
+        verify(controller).update(any(PrincipalProfileDto.class));
+        verify(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_UPDATE"})
     void shouldNotUpdatePrincipalProfile_NullId() throws Exception {
         PrincipalProfile profile = makePrincipalProfile(null);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
@@ -201,15 +215,18 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
+        // check the results
+        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
+        // check the behavior
         verify(controller).update(any(PrincipalProfileDto.class));
         verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: 'null'");
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_UPDATE"})
     void shouldNotUpdatePrincipalProfile_NegativeId() throws Exception {
         Long id = -406L;
         PrincipalProfile profile = makePrincipalProfile(id);
@@ -224,22 +241,26 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
+        // check the results
+        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-406'");
+        // check the behavior
         verify(controller).update(any(PrincipalProfileDto.class));
         verify(facade, never()).doActionAndResult(anyString(), any(PrincipalProfile.class));
-        var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong principal profile-id: '-406'");
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"PROF_UPDATE"})
     void shouldNotUpdatePrincipalProfile_ExceptionThrown() throws Exception {
+        String commandId = PROFILE_PRINCIPAL_CREATE_OR_UPDATE;
         Long id = 406L;
         PrincipalProfile profile = makePrincipalProfile(id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
         String message = "Cannot update principal profile: '406!'";
         Exception exception = new RuntimeException(message);
-        doThrow(exception).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
+        doThrow(exception).when(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
 
         MvcResult result =
                 mockMvc.perform(
@@ -251,11 +272,13 @@ class PrincipalProfileRestControllerTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).update(any(PrincipalProfileDto.class));
-        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(PrincipalProfile.class));
+        // check the results
         var error = MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR.value());
         assertThat(error.getErrorMessage()).isEqualTo(message);
+        // check the behavior
+        verify(controller).update(any(PrincipalProfileDto.class));
+        verify(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
         checkControllerAspect();
     }
 

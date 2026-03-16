@@ -16,16 +16,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.EndpointConfiguration;
-import oleg.sopilnyak.test.endpoint.dto.StudentProfileDto;
+import oleg.sopilnyak.test.endpoint.dto.PrincipalProfileDto;
 import oleg.sopilnyak.test.endpoint.mapper.EndpointMapper;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
-import oleg.sopilnyak.test.school.common.business.facade.profile.StudentProfileFacade;
+import oleg.sopilnyak.test.school.common.business.facade.ActionContext;
+import oleg.sopilnyak.test.school.common.business.facade.profile.PrincipalProfileFacade;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
-import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.FilterChainProxy;
@@ -58,10 +59,10 @@ import org.mapstruct.factory.Mappers;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-class StudentProfileRestControllerSecureTest extends TestModelFactory {
-    private static final String PROFILE_STUDENT_FIND_BY_ID = "school::person::profile::student:find.By.Id";
-    private static final String PROFILE_STUDENT_CREATE_OR_UPDATE = "school::person::profile::student:create.Or.Update";
-    private static final String ROOT = "/profiles/students";
+class PrincipalProfileRestControllerSecureTest extends TestModelFactory {
+    private static final String PROFILE_PRINCIPAL_FIND_BY_ID = "school::person::profile::principal:find.By.Id";
+    private static final String PROFILE_PRINCIPAL_CREATE_OR_UPDATE = "school::person::profile::principal:create.Or.Update";
+    private static final String ROOT = "/profiles/principals";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final EndpointMapper MAPPER_DTO = Mappers.getMapper(EndpointMapper.class);
 
@@ -69,13 +70,13 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
     PersistenceFacade persistenceFacade;
     @MockitoSpyBean
     @Autowired
-    StudentProfileFacade facade;
+    PrincipalProfileFacade facade;
     @MockitoSpyBean
     @Autowired
     AuthenticationFacade authenticationFacade;
     @MockitoSpyBean
     @Autowired
-    StudentProfileRestController controller;
+    PrincipalProfileRestController controller;
     @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
@@ -93,14 +94,28 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
     }
 
     @Test
-    void shouldFindStudentProfile() throws Exception {
+    void shouldFindPrincipalProfile() throws Exception {
         // signing in person with proper permissions
         AccessCredentials credentials = signInWith(List.of(Permission.PROF_GET));
         // prepare the test
-        Long id = 401L;
+        String commandId = PROFILE_PRINCIPAL_FIND_BY_ID;
+        Long id = 402L;
+        PrincipalProfile profile = makePrincipalProfile(id);
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileById(id);
         String requestPath = ROOT + "/" + id;
-        StudentProfile profile = makeStudentProfile(id);
-        doReturn(Optional.of(profile)).when(persistenceFacade).findStudentProfileById(id);
+        ActionContext context = ActionContext.current();
+        assertThat(context).isNull();
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            ActionContext context1 = ActionContext.current();
+            assertThat(context1).isNotNull();
+            context1.finish();
+            assertThat(context1.getEntryPointMethod()).isEqualTo("findById");
+            assertThat(context1.getActionProcessorFacade()).isEqualTo(facade.getName());
+            assertThat(context1.getActionId()).isEqualTo(commandId);
+            invocationOnMock.callRealMethod();
+            return null;
+        }).when(delegate).afterCall(any(JoinPoint.class));
+
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
@@ -112,20 +127,21 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
                         .andReturn();
 
         // check the results
-        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
+        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
+        assertThat(dto.getId()).isEqualTo(id);
         assertProfilesEquals(profile, dto);
         // check the behavior
         verify(controller).findById(id.toString());
-        verify(facade).doActionAndResult(PROFILE_STUDENT_FIND_BY_ID, id);
+        verify(facade).doActionAndResult(commandId, id);
         checkControllerAspect();
     }
 
     @Test
-    void shouldNotFindStudentProfile_WrongPermissions() throws Exception {
+    void shouldNotFindPrincipalProfile_WrongPermissions() throws Exception {
         // signing in person with wrong permissions
         AccessCredentials credentials = signInWith(List.of(Permission.PROF_UPDATE));
         // prepare the test
-        long id = 4011L;
+        long id = 4021L;
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
@@ -149,18 +165,19 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
     }
 
     @Test
-    void shouldUpdateStudentProfile() throws Exception {
+    void shouldUpdatePrincipalProfile() throws Exception {
         // signing in person with proper permissions
         AccessCredentials credentials = signInWith(List.of(Permission.PROF_UPDATE));
         // prepare the test
-        Long id = 404L;
-        StudentProfile profile = makeStudentProfile(id);
+        String commandId = PROFILE_PRINCIPAL_CREATE_OR_UPDATE;
+        Long id = 406L;
+        PrincipalProfile profile = makePrincipalProfile(id);
         doAnswer(invocation -> {
-            StudentProfile received = invocation.getArgument(1);
+            PrincipalProfile received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
-            assertProfilesEquals(received, profile);
+            assertProfilesEquals(profile, received);
             return Optional.of(received);
-        }).when(facade).doActionAndResult(eq(PROFILE_STUDENT_CREATE_OR_UPDATE), any(StudentProfile.class));
+        }).when(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
 
         MvcResult result =
@@ -174,20 +191,22 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).update(any(StudentProfileDto.class));
-        verify(facade).doActionAndResult(eq(PROFILE_STUDENT_CREATE_OR_UPDATE), any(StudentProfile.class));
-        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), StudentProfileDto.class);
-        assertProfilesEquals(dto, profile);
+        // check the results
+        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), PrincipalProfileDto.class);
+        assertProfilesEquals(profile, dto);
+        // check the behavior
+        verify(controller).update(any(PrincipalProfileDto.class));
+        verify(facade).doActionAndResult(eq(commandId), any(PrincipalProfile.class));
         checkControllerAspect();
     }
 
     @Test
-    void shouldNotUpdateStudentProfile_WrongPermissions() throws Exception {
+    void shouldNotUpdatePrincipalProfile_WrongPermissions() throws Exception {
         // signing in person with wrong permissions
         AccessCredentials credentials = signInWith(List.of(Permission.PROF_GET));
         // prepare the test
-        Long id = 4041L;
-        StudentProfile profile = makeStudentProfile(id);
+        long id = 406L;
+        PrincipalProfile profile = makePrincipalProfile(id);
         String jsonContent = MAPPER.writeValueAsString(MAPPER_DTO.toDto(profile));
 
         MvcResult result =
@@ -208,16 +227,16 @@ class StudentProfileRestControllerSecureTest extends TestModelFactory {
         assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
         assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
-        verify(controller, never()).update(any(StudentProfileDto.class));
+        verify(controller, never()).update(any(PrincipalProfileDto.class));
     }
 
     // private methods
     private void checkControllerAspect() {
         final ArgumentCaptor<JoinPoint> aspectCapture = ArgumentCaptor.forClass(JoinPoint.class);
         verify(delegate).beforeCall(aspectCapture.capture());
-        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentProfileRestController.class);
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(PrincipalProfileRestController.class);
         verify(delegate).afterCall(aspectCapture.capture());
-        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(StudentProfileRestController.class);
+        assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(PrincipalProfileRestController.class);
     }
 
     private AccessCredentials signInWith(List<Permission> permissions) throws Exception {
