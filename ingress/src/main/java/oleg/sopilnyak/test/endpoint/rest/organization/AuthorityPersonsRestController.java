@@ -16,12 +16,14 @@ import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonN
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 
+import jakarta.validation.Valid;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +53,7 @@ public class AuthorityPersonsRestController {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     public List<AuthorityPersonDto> findAll() {
         log.debug("Trying to get all school's authorities");
         try {
@@ -61,6 +64,7 @@ public class AuthorityPersonsRestController {
     }
 
     @GetMapping("/{" + VAR_NAME + "}")
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     public AuthorityPersonDto findById(@PathVariable String personId) {
         log.debug("Trying to get authority person by Id: '{}'", personId);
         try {
@@ -76,8 +80,9 @@ public class AuthorityPersonsRestController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ORG_CREATE') and hasAuthority('ORG_GET')")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthorityPersonDto createPerson(@RequestBody AuthorityPersonDto person, @RequestParam Role role) {
+    public AuthorityPersonDto createPerson(@RequestBody @Valid AuthorityPersonDto person, @RequestParam Role role) {
         log.debug("Trying to create the authority person {}", person);
         try {
             return resultToDto(facade.<Optional<AuthorityPerson>>doActionAndResult(CREATE_MACRO, person, role));
@@ -87,7 +92,8 @@ public class AuthorityPersonsRestController {
     }
 
     @PutMapping
-    public AuthorityPersonDto updatePerson(@RequestBody AuthorityPersonDto person) {
+    @PreAuthorize("hasAuthority('ORG_UPDATE') and hasAuthority('ORG_GET')")
+    public AuthorityPersonDto updatePerson(@RequestBody @Valid AuthorityPersonDto person) {
         log.debug("Trying to update authority person {}", person);
         try {
             final Long id = person.getId();
@@ -101,7 +107,8 @@ public class AuthorityPersonsRestController {
     }
 
     @DeleteMapping("/{" + VAR_NAME + "}")
-    public void deletePerson(@PathVariable(VAR_NAME) String personId) {
+    @PreAuthorize("hasAuthority('ORG_DELETE')")
+    public void deletePerson(@PathVariable String personId) {
         log.debug("Trying to delete authority person for Id: '{}'", personId);
         try {
             final long id = Long.parseLong(personId);

@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -71,9 +72,9 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     private static final String ROOT = "/authorities";
 
     @Autowired
-    EntityMapper entityMapper;
-    @Autowired
     PersistenceFacade database;
+    @Autowired
+    EntityMapper entityMapper;
     @Autowired
     CommandsFactory<AuthorityPersonCommand<?>> factory;
     @MockitoSpyBean
@@ -120,6 +121,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllAuthorities() throws Exception {
         int personsAmount = 30;
         List<AuthorityPerson> staff = IntStream.range(0, personsAmount)
@@ -148,6 +150,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAuthorityPersonById() throws Exception {
         AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(100));
         Long id = person.getId();
@@ -171,6 +174,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
     void shouldCreateAuthorityPerson() throws Exception {
         Role role = Role.TEACHER;
         AuthorityPerson person = makeCleanAuthorityPerson(200);
@@ -196,6 +200,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateAuthorityPerson() throws Exception {
         AuthorityPerson person = getPersistent(makeCleanAuthorityPerson(201));
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -219,6 +224,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
         Long id = -301L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
@@ -244,6 +250,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
         AuthorityPerson person = makeTestAuthorityPerson(null);
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -268,6 +275,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteAuthorityPerson() throws Exception {
         AuthorityPerson person = create(makeCleanAuthorityPerson(202));
         if (person instanceof AuthorityPersonEntity) {
@@ -289,6 +297,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
         String requestPath = ROOT + "/" + null;
 
@@ -310,6 +319,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
         long id = -303L;
         String requestPath = ROOT + "/" + id;
@@ -331,6 +341,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
         long id = 304L;
         String requestPath = ROOT + "/" + id;
@@ -352,6 +363,7 @@ class AuthorityPersonsRestControllerTest extends MysqlTestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
         AuthorityPerson source = makeCleanAuthorityPerson(203);
         if (source instanceof FakeAuthorityPerson fake) {

@@ -1,11 +1,13 @@
 package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -38,7 +40,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -54,15 +57,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-@DirtiesContext
 class AuthorityPersonsRestControllerTest extends TestModelFactory {
-    private static final String FIND_ALL = "school::organization::authority::persons:find.All";
-    private static final String FIND_BY_ID = "school::organization::authority::persons:find.By.Id";
-    private static final String CREATE_NEW = "school::organization::authority::persons:create.Macro";
-    private static final String CREATE_OR_UPDATE = "school::organization::authority::persons:create.Or.Update";
-    private static final String DELETE_ALL = "school::organization::authority::persons:delete.Macro";
+    private static final String AUTHORITY_PERSONS_FIND_ALL = "school::organization::authority::persons:find.All";
+    private static final String AUTHORITY_PERSONS_FIND_BY_ID = "school::organization::authority::persons:find.By.Id";
+    private static final String AUTHORITY_PERSONS_UPDATE = "school::organization::authority::persons:create.Or.Update";
+    private static final String AUTHORITY_PERSONS_CREATE_TASK = "school::organization::authority::persons:create.Macro";
+    private static final String AUTHORITY_PERSONS_DELETE_TASK = "school::organization::authority::persons:delete.Macro";
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/authorities";
+
     @MockitoBean
     PersistenceFacade persistenceFacade;
     @MockitoSpyBean
@@ -88,6 +91,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllAuthorities() throws Exception {
         int personsAmount = 10;
         Collection<AuthorityPerson> staff = makeAuthorityPersons(personsAmount);
@@ -103,7 +107,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        verify(facade).doActionAndResult(FIND_ALL);
+        verify(facade).doActionAndResult(AUTHORITY_PERSONS_FIND_ALL);
         String responseString = result.getResponse().getContentAsString();
 
         List<AuthorityPerson> authorityPersonList =
@@ -116,6 +120,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAuthorityPersonById() throws Exception {
         Long id = 300L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
@@ -132,7 +137,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        verify(facade).doActionAndResult(FIND_BY_ID, id);
+        verify(facade).doActionAndResult(AUTHORITY_PERSONS_FIND_BY_ID, id);
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 
@@ -141,6 +146,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
     void shouldCreateAuthorityPerson() throws Exception {
         Role role = Role.HEAD_TEACHER;
         AuthorityPerson person = makeTestAuthorityPerson(null);
@@ -149,7 +155,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
             assertThat(received.getId()).isNull();
             assertAuthorityPersonEquals(person, received);
             return Optional.of(person);
-        }).when(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class), eq(role));
+        }).when(facade).doActionAndResult(eq(AUTHORITY_PERSONS_CREATE_TASK), any(AuthorityPerson.class), eq(role));
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
@@ -164,7 +170,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).createPerson(any(AuthorityPersonDto.class), eq(role));
-        verify(facade).doActionAndResult(eq(CREATE_NEW), any(AuthorityPerson.class), eq(role));
+        verify(facade).doActionAndResult(eq(AUTHORITY_PERSONS_CREATE_TASK), any(AuthorityPerson.class), eq(role));
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 
@@ -173,6 +179,40 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
+    void shouldNotCreateAuthorityPerson_FacultiesRepetition() throws Exception {
+        Role role = Role.HEAD_TEACHER;
+        AuthorityPerson person = makeTestAuthorityPerson(null);
+        if (person instanceof FakeAuthorityPerson entity) {
+            entity.setFaculties(List.of(makeFaculty(10), makeFaculty(10)));
+        } else {
+            fail("Wrong person type");
+        }
+        String jsonContent = MAPPER.writeValueAsString(person);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.post(ROOT)
+                                        .param("role", role.name())
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isBadRequest())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Faculties should be unique");
+        // check the behavior
+        verify(controller, never()).createPerson(any(AuthorityPersonDto.class), any(Role.class));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateAuthorityPerson() throws Exception {
         Long id = 301L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
@@ -181,7 +221,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
             assertThat(received.getId()).isEqualTo(id);
             assertAuthorityPersonEquals(person, received);
             return Optional.of(person);
-        }).when(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(AuthorityPerson.class));
+        }).when(facade).doActionAndResult(eq(AUTHORITY_PERSONS_UPDATE), any(AuthorityPerson.class));
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
@@ -195,7 +235,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).updatePerson(any(AuthorityPersonDto.class));
-        verify(facade).doActionAndResult(eq(CREATE_OR_UPDATE), any(AuthorityPerson.class));
+        verify(facade).doActionAndResult(eq(AUTHORITY_PERSONS_UPDATE), any(AuthorityPerson.class));
         String responseString = result.getResponse().getContentAsString();
         AuthorityPerson personDto = MAPPER.readValue(responseString, AuthorityPersonDto.class);
 
@@ -204,6 +244,39 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
+    void shouldNotUpdateAuthorityPerson_FacultiesRepetition() throws Exception {
+        Long id = 3011L;
+        AuthorityPerson person = makeTestAuthorityPerson(id);
+        if (person instanceof FakeAuthorityPerson entity) {
+            entity.setFaculties(List.of(makeFaculty(20), makeFaculty(20)));
+        } else {
+            fail("Wrong person type");
+        }
+        String jsonContent = MAPPER.writeValueAsString(person);
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.put(ROOT)
+                                        .content(jsonContent)
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isBadRequest())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Faculties should be unique");
+        // check the behavior
+        verify(controller, never()).updatePerson(any(AuthorityPersonDto.class));
+    }
+
+    @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
         Long id = -301L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
@@ -229,6 +302,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
         AuthorityPerson person = makeTestAuthorityPerson(null);
         String jsonContent = MAPPER.writeValueAsString(person);
@@ -253,6 +327,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteAuthorityPerson() throws Exception {
         Long id = 302L;
         Long profileId = id + 100;
@@ -272,11 +347,12 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                 .andDo(print());
 
         verify(controller).deletePerson(id.toString());
-        verify(facade).doActionAndResult(DELETE_ALL, id);
+        verify(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
         checkControllerAspect();
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
         String requestPath = ROOT + "/" + null;
         MvcResult result =
@@ -297,6 +373,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
         long id = -303L;
         String requestPath = ROOT + "/" + id;
@@ -318,11 +395,12 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
         Long id = 304L;
         String requestPath = ROOT + "/" + id;
         doThrow(new AuthorityPersonNotFoundException("Cannot delete not exists authority-person"))
-                .when(facade).doActionAndResult(DELETE_ALL, id);
+                .when(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -332,7 +410,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deletePerson(id.toString());
-        verify(facade).doActionAndResult(DELETE_ALL, id);
+        verify(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
@@ -342,11 +420,12 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
+    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
         Long id = 305L;
         String requestPath = ROOT + "/" + id;
         String errorMessage = "Cannot delete not free authority-person";
-        doThrow(new AuthorityPersonManagesFacultyException(errorMessage)).when(facade).doActionAndResult(DELETE_ALL, id);
+        doThrow(new AuthorityPersonManagesFacultyException(errorMessage)).when(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
@@ -356,7 +435,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
                         .andReturn();
 
         verify(controller).deletePerson(id.toString());
-        verify(facade).doActionAndResult(DELETE_ALL, id);
+        verify(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
         String responseString = result.getResponse().getContentAsString();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
 
