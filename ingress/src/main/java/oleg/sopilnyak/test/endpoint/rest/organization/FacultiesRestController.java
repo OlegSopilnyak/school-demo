@@ -18,8 +18,11 @@ import oleg.sopilnyak.test.school.common.exception.core.CannotProcessActionExcep
 import oleg.sopilnyak.test.school.common.exception.education.CourseNotFoundException;
 import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+
+import jakarta.validation.Valid;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,6 +47,7 @@ public class FacultiesRestController {
     private final EndpointMapper mapper = Mappers.getMapper(EndpointMapper.class);
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     public List<FacultyDto> findAll() {
         log.debug("Trying to get all school's faculties");
         try {
@@ -54,8 +58,9 @@ public class FacultiesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_LIST') and hasAuthority('ORG_GET')")
     @GetMapping("/{" + VAR_NAME + "}")
-    public FacultyDto findById(@PathVariable(VAR_NAME) String facultyId) {
+    public FacultyDto findById(@PathVariable String facultyId) {
         log.debug("Trying to get faculty by Id: '{}'", facultyId);
         try {
             final Long id = Long.parseLong(facultyId);
@@ -70,9 +75,10 @@ public class FacultiesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_CREATE') and hasAuthority('ORG_GET')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FacultyDto create(@RequestBody FacultyDto facultyDto) {
+    public FacultyDto create(@RequestBody @Valid FacultyDto facultyDto) {
         log.debug("Trying to create the faculty {}", facultyDto);
         try {
             facultyDto.setId(null);
@@ -83,8 +89,9 @@ public class FacultiesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_UPDATE') and hasAuthority('ORG_GET')")
     @PutMapping
-    public FacultyDto update(@RequestBody FacultyDto facultyDto) {
+    public FacultyDto update(@RequestBody @Valid FacultyDto facultyDto) {
         log.debug("Trying to update faculty {}", facultyDto);
         try {
             final Long id = facultyDto.getId();
@@ -98,8 +105,9 @@ public class FacultiesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_DELETE')")
     @DeleteMapping
-    public void delete(@RequestBody FacultyDto facultyDto) {
+    public void delete(@RequestBody @Valid FacultyDto facultyDto) {
         log.debug("Trying to delete faculty {}", facultyDto);
         try {
             log.debug("Deleting faculty {}", facultyDto);
@@ -111,6 +119,7 @@ public class FacultiesRestController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ORG_DELETE')")
     @DeleteMapping("/{" + VAR_NAME + "}")
     public void deleteById(@PathVariable String facultyId) {
         log.debug("Trying to delete faculty for Id: '{}'", facultyId);

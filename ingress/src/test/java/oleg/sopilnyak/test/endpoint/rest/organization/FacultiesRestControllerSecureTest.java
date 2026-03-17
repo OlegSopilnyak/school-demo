@@ -7,11 +7,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,9 +21,13 @@ import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
-import oleg.sopilnyak.test.school.common.exception.organization.FacultyNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 
@@ -31,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -54,7 +59,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-class FacultiesRestControllerTest extends TestModelFactory {
+class FacultiesRestControllerSecureTest extends TestModelFactory {
     private static final String FACULTIES_FIND_ALL = "school::organization::faculties:find.All";
     private static final String FACULTIES_FIND_BY_ID = "school::organization::faculties:find.By.Id";
     private static final String FACULTIES_CREATE_OR_UPDATE = "school::organization::faculties:create.Or.Update";
@@ -69,24 +74,32 @@ class FacultiesRestControllerTest extends TestModelFactory {
     FacultyFacade facade;
     @MockitoSpyBean
     @Autowired
+    AuthenticationFacade authenticationFacade;
+    @MockitoSpyBean
+    @Autowired
     FacultiesRestController controller;
     @MockitoSpyBean
     @Autowired
     AdviseDelegate delegate;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllFaculties() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         int personsAmount = 10;
         Collection<Faculty> faculties = makeFaculties(personsAmount);
         doReturn(Set.copyOf(faculties)).when(persistenceFacade).findAllFaculties();
@@ -94,6 +107,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -114,8 +128,36 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
+    void shouldNotFindAllFaculties_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findAll();
+    }
+
+    @Test
     void shouldFindFacultyById() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         Long id = 400L;
         Faculty faculty = makeTestFaculty(id);
         doReturn(Optional.of(faculty)).when(persistenceFacade).findFacultyById(id);
@@ -123,6 +165,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -138,33 +181,37 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
-    void shouldNotFindFacultyById_NotFound() throws Exception {
-        Long id = 400L;
-        doReturn(Optional.empty()).when(persistenceFacade).findFacultyById(id);
+    void shouldNotFindFacultyById_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 4001L;
         String requestPath = ROOT + "/" + id;
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isNotFound())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).findById(id.toString());
-        verify(facade).doActionAndResult(FACULTIES_FIND_BY_ID, id);
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Faculty with id: 400 is not found");
-        checkControllerAspect();
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findById(anyString());
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
     void shouldCreateFaculty() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_CREATE, Permission.ORG_GET));
+        // prepare the test
         Faculty faculty = makeTestFaculty(null);
         doAnswer(invocation -> {
             Faculty received = invocation.getArgument(1);
@@ -177,6 +224,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -193,23 +241,21 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
-    void shouldNotCreateFaculty_StudentsCoursesRepetition() throws Exception {
+    void shouldNotCreateFaculty_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
         Faculty faculty = makeTestFaculty(null);
-        if (faculty instanceof FakeFaculty entity) {
-            entity.setCourses(List.of(makeClearCourse(10),  makeClearCourse(10)));
-        } else {
-            fail("Wrong faculty type");
-        }
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -217,15 +263,17 @@ class FacultiesRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Courses should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).create(any(FacultyDto.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateFaculty() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_UPDATE, Permission.ORG_GET));
+        // prepare the test
         Long id = 402L;
         Faculty faculty = makeTestFaculty(id);
         doAnswer(invocation -> {
@@ -239,6 +287,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -255,24 +304,22 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateFaculty_StudentsCoursesRepetition() throws Exception {
+    void shouldNotUpdateFaculty_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
         long id = 4021L;
         Faculty faculty = makeTestFaculty(id);
-        if (faculty instanceof FakeFaculty entity) {
-            entity.setCourses(List.of(makeClearCourse(20),  makeClearCourse(20)));
-        } else {
-            fail("Wrong faculty type");
-        }
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -280,75 +327,24 @@ class FacultiesRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Courses should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).update(any(FacultyDto.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateFaculty_WrongId_Null() throws Exception {
-        Faculty faculty = makeTestFaculty(null);
-        String jsonContent = MAPPER.writeValueAsString(faculty);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-
-        verify(controller).update(any(FacultyDto.class));
-        verify(facade, never()).doActionAndResult(anyString(), any(Faculty.class));
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateFaculty_WrongId_Negative() throws Exception {
-        Long id = -403L;
-        Faculty faculty = makeTestFaculty(id);
-        String jsonContent = MAPPER.writeValueAsString(faculty);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-
-        verify(controller).update(any(FacultyDto.class));
-        verify(facade, never()).doActionAndResult(anyString(), any(Faculty.class));
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-403'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteFaculty() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_DELETE, Permission.ORG_GET));
+        // prepare the test
         Long id = 410L;
         doReturn(Optional.of(mock(Faculty.class))).when(persistenceFacade).findFacultyById(id);
         String requestPath = ROOT + "/" + id;
+
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
                 )
                 .andExpect(status().isOk())
                 .andDo(print());
@@ -359,53 +355,38 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFaculty_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/null";
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deleteById("null");
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFaculty_WrongId_Negative() throws Exception {
-        long id = -411L;
+    void shouldNotDeleteFaculty_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 4101L;
         String requestPath = ROOT + "/" + id;
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                         )
-                        .andExpect(status().isNotFound())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).deleteById(Long.toString(id));
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-411'");
-        checkControllerAspect();
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).deleteById(anyString());
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteFacultyInstance() throws Exception {
-        Long id = 410L;
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_DELETE));
+        // prepare the test
+        Long id = 411L;
         Faculty faculty = makeTestFaculty(id);
         if (faculty instanceof FakeFaculty fake) {
             fake.setCourses(List.of());
@@ -417,6 +398,7 @@ class FacultiesRestControllerTest extends TestModelFactory {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(ROOT)
+                                .header("Authorization", "Bearer " + credentials.getToken())
                                 .content(jsonContent)
                                 .contentType(APPLICATION_JSON)
                 )
@@ -429,32 +411,38 @@ class FacultiesRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFacultyInstance_NotFound() throws Exception {
-        Long id = 410L;
+    void shouldNotDeleteFacultyInstance_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        Long id = 4111L;
         Faculty faculty = makeTestFaculty(id);
+        if (faculty instanceof FakeFaculty fake) {
+            fake.setCourses(List.of());
+        } else {
+            fail("Wrong type of the %s", faculty.toString());
+        }
         String jsonContent = MAPPER.writeValueAsString(faculty);
-        String errorMessage = "Faculty with ID:" + id + " is not exists.";
-        doThrow(new FacultyNotFoundException(errorMessage)).when(facade).doActionAndResult(eq(FACULTIES_DELETE), any(FacultyDto.class));
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.delete(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isNotFound())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
-        verify(controller).delete(any(FacultyDto.class));
-        verify(facade).doActionAndResult(FACULTIES_DELETE, id);
-
-        ActionErrorMessage error =
-                MAPPER.readValue(result.getResponse().getContentAsString(), ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo(errorMessage);
-        checkControllerAspect();
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).delete(any(FacultyDto.class));
     }
 
     // private methods
@@ -464,5 +452,37 @@ class FacultiesRestControllerTest extends TestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(FacultiesRestController.class);
         verify(delegate).afterCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(FacultiesRestController.class);
+    }
+
+    private AccessCredentials signInWith(List<Permission> permissions) throws Exception {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        // prepare dataset
+        mockingDataSet(username, password, permissions);
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isPresent();
+        return credentials.orElseThrow();
+    }
+
+    private void mockingDataSet(String username, String password, List<Permission> permissions) throws Exception {
+        Long personId = 1L;
+        Long profileId = 2L;
+        PrincipalProfile profile = makePrincipalProfile(profileId);
+        if (profile instanceof TestModelFactory.FakePrincipalProfile fakeProfile) {
+            fakeProfile.setUsername(username);
+            fakeProfile.setSignature(profile.makeSignatureFor(password));
+            fakeProfile.setPermissions(Set.copyOf(permissions));
+        } else {
+            fail("Invalid type of profile");
+        }
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
+        AuthorityPerson person = makeCleanAuthorityPerson(personId.intValue());
+        if (person instanceof TestModelFactory.FakeAuthorityPerson fakeAuthorityPerson) {
+            fakeAuthorityPerson.setId(personId);
+        } else {
+            fail("Invalid type of person");
+        }
+        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 }

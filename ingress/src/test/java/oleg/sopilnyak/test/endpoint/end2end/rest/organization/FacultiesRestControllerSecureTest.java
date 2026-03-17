@@ -4,21 +4,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import oleg.sopilnyak.test.endpoint.aspect.AdviseDelegate;
 import oleg.sopilnyak.test.endpoint.configuration.AspectForRestConfiguration;
 import oleg.sopilnyak.test.endpoint.dto.FacultyDto;
-import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.endpoint.rest.organization.FacultiesRestController;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.education.CourseEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.FacultyEntity;
+import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
 import oleg.sopilnyak.test.persistence.sql.mapper.EntityMapper;
 import oleg.sopilnyak.test.school.common.business.facade.organization.FacultyFacade;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.organization.Faculty;
+import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
+import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.MysqlTestModelFactory;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.FacultyCommand;
@@ -26,15 +34,20 @@ import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
 
 import jakarta.persistence.EntityManager;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.aspectj.lang.JoinPoint;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -58,10 +71,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-class FacultiesRestControllerTest extends MysqlTestModelFactory {
+class FacultiesRestControllerSecureTest extends MysqlTestModelFactory {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ROOT = "/faculties";
 
+    @Autowired
+    PersistenceFacade database;
     @Autowired
     EntityMapper entityMapper;
     @Autowired
@@ -79,11 +94,17 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     FacultiesRestController controller;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
+    @MockitoSpyBean
+    @Autowired
+    AuthenticationFacade authenticationFacade;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
@@ -91,30 +112,38 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
     void tearDown() {
         deleteEntities(CourseEntity.class);
         deleteEntities(FacultyEntity.class);
+        deleteEntities(PrincipalProfileEntity.class);
+        deleteEntities(AuthorityPersonEntity.class);
     }
 
     @Test
     void everythingShouldBeValid() {
         assertThat(factory).isNotNull();
         assertThat(mapper).isNotNull();
+        assertThat(database).isNotNull();
 
         assertThat(facade).isNotNull();
         assertThat(factory).isEqualTo(ReflectionTestUtils.getField(facade, "factory"));
 
         assertThat(controller).isNotNull();
+        assertThat(springSecurityFilterChain).isNotNull();
+        assertThat(authenticationFacade).isNotNull();
         assertThat(delegate).isNotNull();
         assertThat(facade).isEqualTo(ReflectionTestUtils.getField(controller, "facade"));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllFaculties() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(1, List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         int personsAmount = 10;
         List<Faculty> faculties = makeCleanFaculties(personsAmount).stream().map(this::getPersistent).toList();
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -122,19 +151,19 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findAll();
-        String responseString = result.getResponse().getContentAsString();
 
-        var facultyList = MAPPER.<List<FacultyDto>>readValue(responseString, new TypeReference<>() {
+        var facultyList = MAPPER.<List<FacultyDto>>readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
         }).stream().map(Faculty.class::cast).toList();
-
         assertThat(facultyList).hasSize(personsAmount);
         assertFacultyLists(faculties, facultyList, true);
         checkControllerAspect();
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindFacultyById() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(2, List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         Faculty faculty = getPersistent(makeCleanFaculty(0));
         Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
@@ -142,6 +171,7 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -149,21 +179,23 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).findById(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        var dto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, dto);
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
     void shouldCreateFaculty() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(3, List.of(Permission.ORG_CREATE, Permission.ORG_GET));
+        // prepare the test
         Faculty faculty = makeCleanFaculty(1);
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -172,22 +204,24 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).create(any(FacultyDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        var dto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertThat(dto.getId()).isNotNull();
         assertFacultyEquals(faculty, dto, false);
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateFaculty() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(4, List.of(Permission.ORG_UPDATE, Permission.ORG_GET));
+        // prepare the test
         Faculty faculty = getPersistent(makeCleanFaculty(2));
         String jsonContent = MAPPER.writeValueAsString(faculty);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -196,152 +230,34 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
                         .andReturn();
 
         verify(controller).update(any(FacultyDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        var dto = MAPPER.readValue(responseString, FacultyDto.class);
 
+        var dto = MAPPER.readValue(result.getResponse().getContentAsString(), FacultyDto.class);
         assertFacultyEquals(faculty, dto);
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateFaculty_WrongId_Null() throws Exception {
-        Faculty faculty = makeTestFaculty(null);
-        String jsonContent = MAPPER.writeValueAsString(faculty);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-
-        verify(controller).update(any(FacultyDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateFaculty_WrongId_Negative() throws Exception {
-        Long id = -403L;
-        Faculty faculty = makeTestFaculty(id);
-        String jsonContent = MAPPER.writeValueAsString(faculty);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-
-        verify(controller).update(any(FacultyDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-403'");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteFaculty() throws Exception {
+        // signing in person with proper permission
+        AccessCredentials credentials = signInWith(5, List.of(Permission.ORG_DELETE));
+        // prepare the test
         Faculty faculty = getPersistent(makeCleanFaculty(2));
-        if (faculty instanceof FacultyEntity fe) {
-            fe.setCourses(List.of());
-            merge(fe);
+        if (faculty instanceof FacultyEntity entity) {
+            entity.setCourses(List.of());
+            merge(entity);
         }
         Long id = faculty.getId();
         String requestPath = ROOT + "/" + id;
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
                 )
                 .andExpect(status().isOk())
                 .andDo(print());
 
         verify(controller).deleteById(id.toString());
+
         assertThat(findFacultyById(id)).isNull();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFaculty_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/" + null;
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deleteById("null");
-        String responseString = result.getResponse().getContentAsString();
-        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: 'null'");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFaculty_WrongId_Negative() throws Exception {
-        long id = -411L;
-        String requestPath = ROOT + "/" + id;
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deleteById(String.valueOf(id));
-        String responseString = result.getResponse().getContentAsString();
-        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong faculty-id: '-411'");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteFaculty_NotEmptyFaculty() throws Exception {
-        Faculty source = makeCleanFaculty(2);
-        if (source instanceof FakeFaculty fake) {
-            fake.setCourses(makeClearCourses(3));
-        }
-        Faculty faculty = getPersistent(source);
-        Long id = faculty.getId();
-        String requestPath = ROOT + "/" + id;
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isConflict())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deleteById(id.toString());
-        String responseString = result.getResponse().getContentAsString();
-        var error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(409);
-        assertThat(error.getErrorMessage()).isEqualTo("Faculty with ID:" + id + " has courses.");
     }
 
     // private methods
@@ -373,6 +289,89 @@ class FacultiesRestControllerTest extends MysqlTestModelFactory {
             em.getTransaction().begin();
             em.merge(entity);
             em.getTransaction().commit();
+        }
+    }
+
+    private AccessCredentials signInWith(int order, List<Permission> permissions) {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        // prepare dataset
+        AuthorityPerson person = createAuthorityPerson(order, username, password, permissions);
+        assertThat(person).isNotNull();
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isPresent();
+        return credentials.orElseThrow();
+    }
+
+    private AuthorityPerson createAuthorityPerson(int id, String username, String password, List<Permission> permissions) {
+        AuthorityPerson person = create(makeCleanAuthorityPerson(id));
+        setPersonPermissions(person, username, password, permissions);
+        assertThat(database.updateAccess(person, username, password)).isTrue();
+        if (person instanceof AuthorityPersonEntity entity) {
+            entity.setFaculties(List.of());
+            merge(entity);
+        }
+        return person;
+    }
+
+    private void setPersonPermissions(AuthorityPerson person, String username, String password, List<Permission> permissions) {
+        PrincipalProfileEntity profile = findEntity(PrincipalProfileEntity.class, person.getProfileId());
+        profile.setUsername(username);
+        profile.setPermissions(Set.copyOf(permissions));
+        try {
+            profile.setSignature(profile.makeSignatureFor(password));
+            merge(profile);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    private void merge(PrincipalProfile instance) {
+        PrincipalProfileEntity entity = instance instanceof PrincipalProfileEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        }
+    }
+
+    private void merge(AuthorityPerson instance) {
+        AuthorityPersonEntity entity = instance instanceof AuthorityPersonEntity instanceEntity ? instanceEntity : entityMapper.toEntity(instance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+        }
+    }
+
+    private PrincipalProfile persist(PrincipalProfile newInstance) {
+        PrincipalProfileEntity entity = entityMapper.toEntity(newInstance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
+        }
+    }
+
+    private AuthorityPerson create(AuthorityPerson person) {
+        PrincipalProfile profile = persist(makePrincipalProfile(null));
+        if (person instanceof FakeAuthorityPerson fake) {
+            fake.setProfileId(profile.getId());
+        } else {
+            Assertions.fail("Invalid person type '{}'", person.getClass());
+        }
+        return persist(person);
+    }
+
+    private AuthorityPerson persist(AuthorityPerson newInstance) {
+        AuthorityPersonEntity entity = entityMapper.toEntity(newInstance);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            em.persist(entity);
+            em.getTransaction().commit();
+            return entity;
         }
     }
 }
