@@ -2,15 +2,16 @@ package oleg.sopilnyak.test.endpoint.rest.organization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,12 +21,13 @@ import oleg.sopilnyak.test.endpoint.dto.AuthorityPersonDto;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.ActionErrorMessage;
 import oleg.sopilnyak.test.endpoint.rest.exceptions.RestResponseEntityExceptionHandler;
 import oleg.sopilnyak.test.school.common.business.facade.organization.AuthorityPersonFacade;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonManagesFacultyException;
-import oleg.sopilnyak.test.school.common.exception.organization.AuthorityPersonNotFoundException;
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
+import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 import oleg.sopilnyak.test.school.common.test.TestModelFactory;
 import oleg.sopilnyak.test.service.configuration.BusinessLogicConfiguration;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -34,6 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.aspectj.lang.JoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -57,7 +60,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {EndpointConfiguration.class, BusinessLogicConfiguration.class})
-class AuthorityPersonsRestControllerTest extends TestModelFactory {
+class AuthorityPersonsRestControllerSecureTest extends TestModelFactory {
     private static final String AUTHORITY_PERSONS_FIND_ALL = "school::organization::authority::persons:find.All";
     private static final String AUTHORITY_PERSONS_FIND_BY_ID = "school::organization::authority::persons:find.By.Id";
     private static final String AUTHORITY_PERSONS_UPDATE = "school::organization::authority::persons:create.Or.Update";
@@ -73,6 +76,9 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     AuthorityPersonFacade facade;
     @MockitoSpyBean
     @Autowired
+    AuthenticationFacade authenticationFacade;
+    @MockitoSpyBean
+    @Autowired
     private BusinessMessagePayloadMapper messagePayloadMapper;
     @MockitoSpyBean
     @Autowired
@@ -82,17 +88,22 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     AdviseDelegate delegate;
 
     MockMvc mockMvc;
+    @Autowired
+    FilterChainProxy springSecurityFilterChain;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new RestResponseEntityExceptionHandler())
+                .apply(springSecurity(springSecurityFilterChain))
                 .build();
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
     void shouldFindAllAuthorities() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         int personsAmount = 10;
         Collection<AuthorityPerson> staff = makeAuthorityPersons(personsAmount);
         doReturn(Set.copyOf(staff)).when(persistenceFacade).findAllAuthorityPersons();
@@ -100,6 +111,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -120,8 +132,36 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_LIST", "ORG_GET"})
+    void shouldNotFindAllAuthorities_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findAll();
+    }
+
+    @Test
     void shouldFindAuthorityPersonById() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST, Permission.ORG_GET));
+        // prepare the test
         Long id = 300L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
         doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonById(id);
@@ -130,6 +170,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .contentType(APPLICATION_JSON)
                         )
                         .andExpect(status().isOk())
@@ -146,11 +187,41 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
+    void shouldNotFindAuthorityPersonById_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 3001L;
+        String requestPath = ROOT + "/" + id;
+
+        MvcResult result =
+                mockMvc.perform(
+                                MockMvcRequestBuilders.get(requestPath)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
+                                        .contentType(APPLICATION_JSON)
+                        )
+                        .andExpect(status().isUnauthorized())
+                        .andDo(print())
+                        .andReturn();
+
+        // check the results
+        String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
+        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).findById(anyString());
+    }
+
+    @Test
     void shouldCreateAuthorityPerson() throws Exception {
-        String commandId = AUTHORITY_PERSONS_CREATE_TASK;
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_CREATE, Permission.ORG_GET));
+        // prepare the test
         Role role = Role.HEAD_TEACHER;
         AuthorityPerson person = makeTestAuthorityPerson(null);
+        String commandId = AUTHORITY_PERSONS_CREATE_TASK;
         doAnswer(invocation -> {
             AuthorityPerson received = invocation.getArgument(1);
             assertThat(received.getId()).isNull();
@@ -162,6 +233,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .param("role", role.name())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
@@ -180,25 +252,23 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_CREATE", "ORG_GET"})
-    void shouldNotCreateAuthorityPerson_FacultiesRepetition() throws Exception {
+    void shouldNotCreateAuthorityPerson_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
         Role role = Role.HEAD_TEACHER;
         AuthorityPerson person = makeTestAuthorityPerson(null);
-        if (person instanceof FakeAuthorityPerson entity) {
-            entity.setFaculties(List.of(makeFaculty(10), makeFaculty(10)));
-        } else {
-            fail("Wrong person type");
-        }
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.post(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .param("role", role.name())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -206,18 +276,20 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Faculties should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).createPerson(any(AuthorityPersonDto.class), any(Role.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
     void shouldUpdateAuthorityPerson() throws Exception {
-        String commandId = AUTHORITY_PERSONS_UPDATE;
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_UPDATE, Permission.ORG_GET));
+        // prepare the test
         Long id = 301L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
+        String commandId = AUTHORITY_PERSONS_UPDATE;
         doAnswer(invocation -> {
             AuthorityPerson received = invocation.getArgument(1);
             assertThat(received.getId()).isEqualTo(id);
@@ -229,6 +301,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
@@ -246,24 +319,22 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateAuthorityPerson_FacultiesRepetition() throws Exception {
-        Long id = 3011L;
+    void shouldNotUpdateAuthorityPerson_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 3011L;
         AuthorityPerson person = makeTestAuthorityPerson(id);
-        if (person instanceof FakeAuthorityPerson entity) {
-            entity.setFaculties(List.of(makeFaculty(20), makeFaculty(20)));
-        } else {
-            fail("Wrong person type");
-        }
         String jsonContent = MAPPER.writeValueAsString(person);
 
         MvcResult result =
                 mockMvc.perform(
                                 MockMvcRequestBuilders.put(ROOT)
+                                        .header("Authorization", "Bearer " + credentials.getToken())
                                         .content(jsonContent)
                                         .contentType(APPLICATION_JSON)
                         )
-                        .andExpect(status().isBadRequest())
+                        .andExpect(status().isUnauthorized())
                         .andDo(print())
                         .andReturn();
 
@@ -271,66 +342,17 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         String responseString = result.getResponse().getContentAsString();
         assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-        assertThat(error.getErrorMessage()).startsWith("Validation failed for argument").contains("Faculties should be unique");
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
         // check the behavior
         verify(controller, never()).updatePerson(any(AuthorityPersonDto.class));
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateAuthorityPerson_WrongId_Negative() throws Exception {
-        Long id = -301L;
-        AuthorityPerson person = makeTestAuthorityPerson(id);
-        String jsonContent = MAPPER.writeValueAsString(person);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-301'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_UPDATE", "ORG_GET"})
-    void shouldNotUpdateAuthorityPerson_WrongId_Null() throws Exception {
-        AuthorityPerson person = makeTestAuthorityPerson(null);
-        String jsonContent = MAPPER.writeValueAsString(person);
-
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.put(ROOT)
-                                        .content(jsonContent)
-                                        .contentType(APPLICATION_JSON)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).updatePerson(any(AuthorityPersonDto.class));
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
     void shouldDeleteAuthorityPerson() throws Exception {
+        // signing in person with proper permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_DELETE));
+        // prepare the test
         Long id = 302L;
         Long profileId = id + 100;
         AuthorityPerson person = spy(makeCleanAuthorityPerson(100));
@@ -344,6 +366,7 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
 
         mockMvc.perform(
                         MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
                 )
                 .andExpect(status().isOk())
                 .andDo(print());
@@ -354,97 +377,30 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
     }
 
     @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteAuthorityPerson_WrongId_Null() throws Exception {
-        String requestPath = ROOT + "/" + null;
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deletePerson("null");
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: 'null'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteAuthorityPerson_WrongId_Negative() throws Exception {
-        long id = -303L;
+    void shouldNotDeleteAuthorityPerson_WrongPermissions() throws Exception {
+        // signing in person with wrong permissions
+        AccessCredentials credentials = signInWith(List.of(Permission.ORG_LIST));
+        // prepare the test
+        long id = 3021L;
         String requestPath = ROOT + "/" + id;
+
         MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
+        mockMvc.perform(
+                        MockMvcRequestBuilders.delete(requestPath)
+                                .header("Authorization", "Bearer " + credentials.getToken())
+                )
+                .andExpect(status().isUnauthorized())
+                .andDo(print())
+                .andReturn();
 
-        verify(controller).deletePerson(Long.toString(id));
+        // check the results
         String responseString = result.getResponse().getContentAsString();
+        assertThat(responseString).isNotBlank();
         ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '-303'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteAuthorityPerson_NotExists() throws Exception {
-        String commandId = AUTHORITY_PERSONS_DELETE_TASK;
-        Long id = 304L;
-        String requestPath = ROOT + "/" + id;
-        doThrow(new AuthorityPersonNotFoundException("Cannot delete not exists authority-person"))
-                .when(facade).doActionAndResult(commandId, id);
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isNotFound())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deletePerson(id.toString());
-        verify(facade).doActionAndResult(commandId, id);
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(404);
-        assertThat(error.getErrorMessage()).isEqualTo("Wrong authority-person-id: '304'");
-        checkControllerAspect();
-    }
-
-    @Test
-    @WithMockUser(authorities = {"ORG_DELETE"})
-    void shouldNotDeleteAuthorityPerson_PersonAssignedToFaculty() throws Exception {
-        Long id = 305L;
-        String requestPath = ROOT + "/" + id;
-        String errorMessage = "Cannot delete not free authority-person";
-        doThrow(new AuthorityPersonManagesFacultyException(errorMessage)).when(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
-        MvcResult result =
-                mockMvc.perform(
-                                MockMvcRequestBuilders.delete(requestPath)
-                        )
-                        .andExpect(status().isConflict())
-                        .andDo(print())
-                        .andReturn();
-
-        verify(controller).deletePerson(id.toString());
-        verify(facade).doActionAndResult(AUTHORITY_PERSONS_DELETE_TASK, id);
-        String responseString = result.getResponse().getContentAsString();
-        ActionErrorMessage error = MAPPER.readValue(responseString, ActionErrorMessage.class);
-
-        assertThat(error.getErrorCode()).isEqualTo(409);
-        assertThat(error.getErrorMessage()).isEqualTo(errorMessage);
-        checkControllerAspect();
+        assertThat(error.getErrorCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(error.getErrorMessage()).isEqualTo("Access Denied");
+        // check the behavior
+        verify(controller, never()).deletePerson(anyString());
     }
 
     // private methods
@@ -454,5 +410,37 @@ class AuthorityPersonsRestControllerTest extends TestModelFactory {
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthorityPersonsRestController.class);
         verify(delegate).afterCall(aspectCapture.capture());
         assertThat(aspectCapture.getValue().getTarget()).isInstanceOf(AuthorityPersonsRestController.class);
+    }
+
+    private AccessCredentials signInWith(List<Permission> permissions) throws Exception {
+        String username = UUID.randomUUID().toString();
+        String password = "password";
+        // prepare dataset
+        mockingDataSet(username, password, permissions);
+        // signing in the person
+        Optional<AccessCredentials> credentials = authenticationFacade.signIn(username, password);
+        assertThat(credentials).isPresent();
+        return credentials.orElseThrow();
+    }
+
+    private void mockingDataSet(String username, String password, List<Permission> permissions) throws Exception {
+        Long personId = 1L;
+        Long profileId = 2L;
+        PrincipalProfile profile = makePrincipalProfile(profileId);
+        if (profile instanceof TestModelFactory.FakePrincipalProfile fakeProfile) {
+            fakeProfile.setUsername(username);
+            fakeProfile.setSignature(profile.makeSignatureFor(password));
+            fakeProfile.setPermissions(Set.copyOf(permissions));
+        } else {
+            fail("Invalid type of profile");
+        }
+        doReturn(Optional.of(profile)).when(persistenceFacade).findPrincipalProfileByLogin(username);
+        AuthorityPerson person = makeCleanAuthorityPerson(personId.intValue());
+        if (person instanceof TestModelFactory.FakeAuthorityPerson fakeAuthorityPerson) {
+            fakeAuthorityPerson.setId(personId);
+        } else {
+            fail("Invalid type of person");
+        }
+        doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
     }
 }
