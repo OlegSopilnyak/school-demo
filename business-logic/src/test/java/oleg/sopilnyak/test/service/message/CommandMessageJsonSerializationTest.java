@@ -16,10 +16,11 @@ import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StaffRoleParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
-import oleg.sopilnyak.test.service.command.io.result.CompositeOutputParameter;
+import oleg.sopilnyak.test.service.command.io.result.CompositeResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
+import oleg.sopilnyak.test.service.command.io.result.ResultsContainer;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 class CommandMessageJsonSerializationTest {
     private static final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -318,9 +319,8 @@ class CommandMessageJsonSerializationTest {
 
         CompositeOutput<Boolean> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
 
-        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
-                .isInstanceOf(CompositeOutput.class)
-                .isInstanceOf(Output.class);
+        assertThat(restored).isNotNull().isInstanceOf(CompositeResult.class).isInstanceOf(ResultsContainer.class)
+                .isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
         assertThat(restored.isEmpty()).isFalse();
         assertThat(restored.value()[0].value()).isEqualTo(boolTrueValue);
         assertThat(restored.value()[1].value()).isEqualTo(boolFalseValue);
@@ -339,7 +339,7 @@ class CommandMessageJsonSerializationTest {
 
         CompositeOutput<Student> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
 
-        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
+        assertThat(restored).isNotNull().isInstanceOf(CompositeResult.class)
                 .isInstanceOf(CompositeOutput.class)
                 .isInstanceOf(Output.class);
         assertThat(restored.isEmpty()).isFalse();
@@ -360,7 +360,7 @@ class CommandMessageJsonSerializationTest {
 
         CompositeOutput<Object> restored = (CompositeOutput) outputResultDeserializer.deserialize(parser, null);
 
-        assertThat(restored).isNotNull().isInstanceOf(CompositeOutputParameter.class)
+        assertThat(restored).isNotNull().isInstanceOf(CompositeResult.class)
                 .isInstanceOf(CompositeOutput.class)
                 .isInstanceOf(Output.class);
         assertThat(restored.isEmpty()).isFalse();

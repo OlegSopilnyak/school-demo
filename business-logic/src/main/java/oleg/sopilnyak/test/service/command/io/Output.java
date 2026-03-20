@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
-import oleg.sopilnyak.test.service.command.io.result.CompositeOutputParameter;
+import oleg.sopilnyak.test.service.command.io.result.CompositeResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
 import oleg.sopilnyak.test.service.command.io.result.NumberIdResult;
 import oleg.sopilnyak.test.service.command.io.result.OptionalValueResult;
@@ -130,10 +130,10 @@ public interface Output<O> extends IOBase<O> {
      * @param outputs couple of outputs to join in composite
      * @param <T>     common type of output instance
      * @return new instance of the output
-     * @see CompositeOutputParameter
+     * @see CompositeResult
      */
     static <T> CompositeOutput<T> of(Output<?>... outputs) {
-        return new CompositeOutputParameter<>(outputs);
+        return new CompositeResult<>(outputs);
     }
 
     /**
@@ -205,13 +205,15 @@ public interface Output<O> extends IOBase<O> {
     static <P extends BasePayload<? extends BaseType>> Output<Set<P>> of(final Set<?> result) {
         if (CollectionUtils.isEmpty(result)) {
             return new PayloadSetResult<>(Set.of());
+        } else {
+            final Object item = result.iterator().next();
+            if (item instanceof BasePayload<?>) {
+                final Set<P> payloadsSet = result.stream().map(i -> (P) i).collect(Collectors.toSet());
+                return new PayloadSetResult<>(payloadsSet);
+            } else {
+                return emptyResult();
+            }
         }
-        final Object item = result.iterator().next();
-        if (item instanceof BasePayload<?>) {
-            final Set<P> payloadsSet = result.stream().map(i -> (P) i).collect(Collectors.toSet());
-            return new PayloadSetResult<>(payloadsSet);
-        }
-        return emptyResult();
     }
 
     /**

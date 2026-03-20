@@ -16,6 +16,8 @@ import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,10 +26,13 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
@@ -526,6 +531,49 @@ class OutputResultTest {
     }
 
     @Test
+    void shouldCreateResultsContainerFromArray() {
+        Boolean resultValue = true;
+        Output<Boolean> result = new TestResultsContainer<>(resultValue, false);
+
+        assertThat(result.value()).isSameAs(resultValue);
+    }
+
+    @Test
+    void shouldRestoreResultsContainerFromArray() throws JsonProcessingException {
+        Boolean resultValue = true;
+        Output<Boolean> result = new TestResultsContainer<>(resultValue, false);
+        assertThat(result.value()).isSameAs(resultValue);
+        String json = objectMapper.writeValueAsString(result);
+
+        Output<Boolean> restored = objectMapper.readValue(json, TestResultsContainer.class);
+
+        assertThat(restored).isInstanceOf(ResultsContainer.class).isInstanceOf(Output.class);
+        assertThat(restored.value()).isSameAs(resultValue);
+    }
+
+    @Test
+    void shouldCreateResultsContainerFromCollection() {
+        Number resultValue = 1L;
+        Output<Number> result = new TestResultsContainer<>(List.of(resultValue, 2L));
+
+        assertThat(result.value()).isSameAs(resultValue);
+    }
+
+    @Test
+    void shouldRestoreResultsContainerFromCollection() throws JsonProcessingException {
+        Number resultValue = 10L;
+        Output<Number> result = new TestResultsContainer<>(List.of(resultValue, 20L));
+
+        assertThat(result.value()).isSameAs(resultValue);
+        String json = objectMapper.writeValueAsString(result);
+
+        Output<Number> restored = objectMapper.readValue(json, TestResultsContainer.class);
+
+        assertThat(restored).isInstanceOf(ResultsContainer.class).isInstanceOf(Output.class);
+        assertThat(restored.value()).isEqualTo(resultValue);
+    }
+
+    @Test
     void shouldCreateStudentPayloadSetResult() {
         int size = 1;
         long id = 21L;
@@ -567,7 +615,7 @@ class OutputResultTest {
     }
 
     @Test
-    void shouldNotRestoreStudentPayloadSetResult() {
+    void shouldNotRestoreStudentPayloadSetResult_TypesMix() {
         int size = 1;
         long id = 121L;
         Set<BasePayload<?>> entitySet = IntStream.range(0, size).mapToObj(i -> {
@@ -831,9 +879,10 @@ class OutputResultTest {
 
         CompositeOutput<Boolean> result = Output.of(Output.of(boolTrueValue), Output.of(boolFalseValue));
         String json = objectMapper.writeValueAsString(result);
-        var restored = objectMapper.readValue(json, CompositeOutputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeResult.class);
 
-        assertThat(restored).isInstanceOf(CompositeOutputParameter.class).isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
+        assertThat(restored).isInstanceOf(CompositeResult.class).isInstanceOf(ResultsContainer.class)
+                .isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
         assertThat(restored.isEmpty()).isFalse();
         assertThat(restored.value()[0].value()).isEqualTo(boolTrueValue);
         assertThat(restored.value()[1].value()).isEqualTo(boolFalseValue);
@@ -846,7 +895,7 @@ class OutputResultTest {
 
         CompositeOutput<Boolean> result = Output.of(Output.of(boolTrueValue), Output.of(boolFalseValue));
 
-        assertThat(result).isInstanceOf(CompositeOutputParameter.class).isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
+        assertThat(result).isInstanceOf(CompositeResult.class).isInstanceOf(CompositeOutput.class).isInstanceOf(Output.class);
         assertThat(result.isEmpty()).isFalse();
         assertThat(result.value()[0].value()).isEqualTo(boolTrueValue);
         assertThat(result.value()[1].value()).isEqualTo(boolFalseValue);
@@ -957,5 +1006,23 @@ class OutputResultTest {
                 .role(Role.SUPPORT_STAFF)
                 .signature("signature-" + id)
                 .build();
+    }
+
+    // inner test classes
+    @JsonSerialize(using = ResultsContainer.Serializer.class)
+    @JsonDeserialize(using = ResultsContainer.Deserializer.class)
+    private static class TestResultsContainer<T> extends ResultsContainer<T> implements Output<T> {
+        public TestResultsContainer(T... results) {
+            super(Arrays.stream(results).map(Output::of).toArray(Output[]::new));
+        }
+
+        public TestResultsContainer(Collection<T> outputs) {
+            super(outputs);
+        }
+
+        @Override
+        public T value() {
+            return ObjectUtils.isEmpty(nest) ? null : nest[0].value();
+        }
     }
 }
