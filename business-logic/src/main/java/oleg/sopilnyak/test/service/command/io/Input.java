@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.io;
 
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
@@ -11,12 +12,13 @@ import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
-import oleg.sopilnyak.test.service.command.io.parameter.CompositeInputParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.CompositeParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.NumberIdParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.StaffPermissionParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StaffRoleParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.StringParameter;
 import oleg.sopilnyak.test.service.command.type.core.Context;
@@ -104,7 +106,7 @@ public interface Input<P> extends IOBase<P> {
      * @return new instance of the input
      */
     static <T> CompositeInput<T> of(Input<?>... inputs) {
-        return new CompositeInputParameter<>(inputs);
+        return new CompositeParameter<>(inputs);
     }
 
     /**
@@ -205,6 +207,18 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
+     * To create new input instance for Staff Permission
+     *
+     * @param permission value of the permission
+     * @return new instance of the input
+     * @see Permission
+     * @see StaffPermissionParameter
+     */
+    static Input<Permission> of(final Permission permission) {
+        return new StaffPermissionParameter(permission);
+    }
+
+    /**
      * To create new input for MacroCommand
      *
      * @param rootInput root command's input parameter instance
@@ -247,6 +261,12 @@ public interface Input<P> extends IOBase<P> {
             case Input<?> input -> input;
             case Number number -> of(number);
             case String string -> of(string);
+            // DataModel types
+            case BaseType baseType -> of(baseType);
+            // person access types
+            case Role role -> of(role);
+            case Permission permission -> of(permission);
+            // unknown type of the parameter
             default -> throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
         };
     }
@@ -260,6 +280,7 @@ public interface Input<P> extends IOBase<P> {
     static <T extends BaseType> Input<?> of(final T type) {
         return switch (type) {
             case null -> emptyParameter();
+            // check mocked objects
             case T base when MockUtil.isMock(base) -> mock(base);
             // education types
             case StudentPayload payload -> of(payload);

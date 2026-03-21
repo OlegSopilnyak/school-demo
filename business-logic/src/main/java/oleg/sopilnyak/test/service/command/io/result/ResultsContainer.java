@@ -26,12 +26,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Container: I/O school-command array of output results as one parameter (for multiple outputs gathered)
+ * Container: I/O school-command array of output results as one result (for multiple outputs gathered)
  *
  * @see CompositeOutput
  */
 public abstract class ResultsContainer<T> {
-    // empty output results (for deserialization purposes)
+    // empty output results container (for deserialization purposes)
     public static final ResultsContainer<?> EMPTY = new ResultsContainer<>(){};
     // the nest of joined output results
     protected final Output<T>[] nest;
@@ -78,13 +78,13 @@ public abstract class ResultsContainer<T> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public void serialize(final ResultsContainer parameter, final JsonGenerator generator,
+        public void serialize(final ResultsContainer result, final JsonGenerator generator,
                               final SerializerProvider notUsed) throws IOException {
-            checkBeforeSerialize(parameter.nest);
+            checkBeforeSerialize(result.nest);
             generator.writeStartObject();
-            generator.writeStringField(TYPE_FIELD_NAME, parameter.getClass().getName());
+            generator.writeStringField(TYPE_FIELD_NAME, result.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
-            serializeOutputsArray(parameter.nest, generator);
+            serializeOutputsArray(result.nest, generator);
             generator.writeEndObject();
         }
 
@@ -99,7 +99,7 @@ public abstract class ResultsContainer<T> {
         }
 
         // private methods
-        // store inputs array body as JSON
+        // store results array body as JSON
         private void serializeOutputsArray(final Output<?>[] outputs, final JsonGenerator generator) throws IOException {
             generator.writeStartArray();
             final ObjectMapper mapper = (ObjectMapper) generator.getCodec();
@@ -144,15 +144,15 @@ public abstract class ResultsContainer<T> {
         }
 
         // private methods
-        // restore inputs array from JSON
+        // restore results array from JSON
         @SuppressWarnings("unchecked")
         private Output<T>[] deserializeOutputsArray(final TreeNode valueNode, final ObjectMapper mapper) throws IOException {
             if (valueNode instanceof ArrayNode arrayNode) {
-                final List<Output<?>> result = new LinkedList<>();
+                final List<Output<?>> results = new LinkedList<>();
                 for (final JsonNode node : arrayNode) {
-                    result.add(deserializeResult(node, mapper));
+                    results.add(deserializeResult(node, mapper));
                 }
-                return result.toArray(Output[]::new);
+                return results.toArray(Output[]::new);
             } else {
                 throw new IOException("Wrong type of outputs array node " + valueNode.toString());
             }
@@ -160,9 +160,9 @@ public abstract class ResultsContainer<T> {
 
         // restore nested result from JSON
         @SuppressWarnings("unchecked")
-        private Output<T> deserializeResult(final JsonNode parameterNode, final ObjectMapper mapper) throws IOException {
-            final var resultParameterClass = IOBase.restoreIoBaseClass(parameterNode, Output.class);
-            return mapper.readValue(parameterNode.toString(), resultParameterClass);
+        private Output<T> deserializeResult(final JsonNode resultNode, final ObjectMapper mapper) throws IOException {
+            final var resultClass = IOBase.restoreIoBaseClass(resultNode, Output.class);
+            return mapper.readValue(resultNode.toString(), resultClass);
         }
 
     }

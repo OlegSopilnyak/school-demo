@@ -3,6 +3,7 @@ package oleg.sopilnyak.test.service.command.io.result;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.service.command.io.CompositeOutput;
 import oleg.sopilnyak.test.service.command.io.Output;
@@ -886,6 +887,50 @@ class OutputResultTest {
         assertThat(restored.isEmpty()).isFalse();
         assertThat(restored.value()[0].value()).isEqualTo(boolTrueValue);
         assertThat(restored.value()[1].value()).isEqualTo(boolFalseValue);
+    }
+
+    @Test
+    void shouldCreateStaffRoleResult() {
+        Role value = Role.DEPUTY_PRINCIPAL;
+
+        var result = Output.of(value);
+
+        assertThat(result.value()).isSameAs(value);
+        assertThat(result).isInstanceOf(StaffRoleResult.class).isInstanceOf(Output.class);
+    }
+
+    @Test
+    void shouldRestoreStaffRoleResult() throws JsonProcessingException {
+        Role value = Role.DEPUTY_PRINCIPAL;
+
+        var result = Output.of(value);
+        String json = objectMapper.writeValueAsString(result);
+        var restored = objectMapper.readValue(json, StaffRoleResult.class);
+
+        assertThat(restored.value()).isSameAs(value);
+        assertThat(restored).isInstanceOf(StaffRoleResult.class).isInstanceOf(Output.class);
+    }
+
+    @Test
+    void shouldCreateStaffPermissionResult() {
+        Permission value = Permission.EDU_CREATE;
+
+        var result = Output.of(value);
+
+        assertThat(result.value()).isSameAs(value);
+        assertThat(result).isInstanceOf(StaffPermissionResult.class).isInstanceOf(Output.class);
+    }
+
+    @Test
+    void shouldRestoreStaffPermissionResult() throws JsonProcessingException {
+        Permission value = Permission.EDU_CREATE;
+
+        var result = Output.of(value);
+        String json = objectMapper.writeValueAsString(result);
+        var restored = objectMapper.readValue(json, StaffPermissionResult.class);
+
+        assertThat(restored.value()).isSameAs(value);
+        assertThat(restored).isInstanceOf(StaffPermissionResult.class).isInstanceOf(Output.class);
     }
 
     @Test

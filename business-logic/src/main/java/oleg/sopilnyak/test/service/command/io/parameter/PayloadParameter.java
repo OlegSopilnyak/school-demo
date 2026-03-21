@@ -75,8 +75,9 @@ public record PayloadParameter<T extends BasePayload<?>>(T value) implements Inp
         }
 
         @Override
-        public PayloadParameter<T> deserialize(final JsonParser jsonParser,
-                                               final DeserializationContext deserializationContext) throws IOException {
+        public PayloadParameter<T> deserialize(
+                final JsonParser jsonParser, final DeserializationContext notUsed
+        ) throws IOException {
             final TreeNode treeNode = jsonParser.readValueAsTree();
             try {
                 final Class<?> nestedClass = restoreNestedClass(treeNode.get(NESTED_TYPE_FIELD_NAME));

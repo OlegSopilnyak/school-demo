@@ -2,6 +2,8 @@ package oleg.sopilnyak.test.service.command.io;
 
 import oleg.sopilnyak.test.school.common.exception.core.InvalidParameterTypeException;
 import oleg.sopilnyak.test.school.common.model.BaseType;
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
+import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.school.common.model.organization.AuthorityPerson;
@@ -9,7 +11,6 @@ import oleg.sopilnyak.test.school.common.model.organization.Faculty;
 import oleg.sopilnyak.test.school.common.model.organization.StudentsGroup;
 import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
-import oleg.sopilnyak.test.service.command.io.parameter.PayloadParameter;
 import oleg.sopilnyak.test.service.command.io.result.BooleanResult;
 import oleg.sopilnyak.test.service.command.io.result.CompositeResult;
 import oleg.sopilnyak.test.service.command.io.result.EmptyResult;
@@ -17,6 +18,8 @@ import oleg.sopilnyak.test.service.command.io.result.NumberIdResult;
 import oleg.sopilnyak.test.service.command.io.result.OptionalValueResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadResult;
 import oleg.sopilnyak.test.service.command.io.result.PayloadSetResult;
+import oleg.sopilnyak.test.service.command.io.result.StaffPermissionResult;
+import oleg.sopilnyak.test.service.command.io.result.StaffRoleResult;
 import oleg.sopilnyak.test.service.command.io.result.StringIdResult;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper;
@@ -61,9 +64,9 @@ public interface Output<O> extends IOBase<O> {
     BusinessMessagePayloadMapper payloadMapper = Mappers.getMapper(BusinessMessagePayloadMapper.class);
 
     /**
-     * To get emptyResult value of parameter
+     * To get emptyResult value of result
      *
-     * @return emptyResult parameter value
+     * @return emptyResult result value
      */
     @Override
     default <T> IOBase<T> emptyValue() {
@@ -184,7 +187,7 @@ public interface Output<O> extends IOBase<O> {
      * @param <T>     type of payload
      * @return new instance of the input
      * @see Input#mock(Object)
-     * @see PayloadParameter
+     * @see PayloadResult
      * @see BasePayload
      * @see BaseType
      */
@@ -217,6 +220,30 @@ public interface Output<O> extends IOBase<O> {
     }
 
     /**
+     * To create new output instance for Staff Role
+     *
+     * @param role value of the role
+     * @return new instance of the result
+     * @see Role
+     * @see StaffRoleResult
+     */
+    static Output<Role> of(final Role role) {
+        return new StaffRoleResult(role);
+    }
+
+    /**
+     * To create new output instance for Staff Permission
+     *
+     * @param permission value of the permission
+     * @return new instance of the result
+     * @see Role
+     * @see StaffPermissionResult
+     */
+    static Output<Permission> of(final Permission permission) {
+        return new StaffPermissionResult(permission);
+    }
+
+    /**
      * To create result output by result type (used in deserialization mostly)
      *
      * @param result instance to wrap
@@ -238,14 +265,18 @@ public interface Output<O> extends IOBase<O> {
             case Optional<?> optionalResult -> of(optionalResult);
             // payload output types
             case BasePayload<?> payloadResult -> of(payloadResult);
+            // set of results
             case Set<?> payloadSetResult -> of(payloadSetResult);
+            // person access types
+            case Role role -> of(role);
+            case Permission permission -> of(permission);
             // unknown result type
             default -> throw new IllegalArgumentException("Output result type isn't supported: " + result.getClass());
         };
     }
 
     /**
-     * To build new output instance by parameter type
+     * To build new output instance by result type
      *
      * @param type instance to wrap
      * @return new instance of the output
@@ -253,6 +284,7 @@ public interface Output<O> extends IOBase<O> {
     static <T extends BaseType> Output<?> of(final T type) {
         return switch (type) {
             case null -> emptyResult();
+            // check mocked objects
             case T base when MockUtil.isMock(base) -> mock(base);
             // education types
             case StudentPayload payload -> of(payload);

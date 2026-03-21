@@ -2,6 +2,7 @@ package oleg.sopilnyak.test.service.command.io.parameter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.education.Course;
 import oleg.sopilnyak.test.school.common.model.education.Student;
@@ -19,17 +20,22 @@ import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 import oleg.sopilnyak.test.service.message.payload.StudentProfilePayload;
 import oleg.sopilnyak.test.service.message.payload.StudentsGroupPayload;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.ObjectUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 @ExtendWith(MockitoExtension.class)
 class InputParameterTest {
     private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -351,7 +357,49 @@ class InputParameterTest {
 
         assertThat(parameter.value()[0].value()).isEqualTo(longId);
         assertThat(parameter.value()[1].value()).isEqualTo(stringId);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldCreateParametersContainerFromArray() {
+        Number parameterValue = 1L;
+        Input<Number> result = new TestParametersContainer<>(parameterValue, 2);
+
+        assertThat(result.value()).isSameAs(parameterValue);
+    }
+
+    @Test
+    void shouldRestoreParametersContainerFromArray() throws JsonProcessingException {
+        Number parameterValue = 2L;
+        Input<Number> result = new TestParametersContainer<>(parameterValue, 3.0);
+        assertThat(result.value()).isSameAs(parameterValue);
+        String json = objectMapper.writeValueAsString(result);
+
+        Input<Number> restored = objectMapper.readValue(json, TestParametersContainer.class);
+
+        assertThat(restored).isInstanceOf(ParametersContainer.class).isInstanceOf(Input.class);
+        assertThat(restored.value()).isEqualTo(parameterValue);
+    }
+
+    @Test
+    void shouldCreateParametersContainerFromCollection() {
+        Number parameterValue = 10L;
+        Input<Number> result = new TestParametersContainer<>(List.of(parameterValue, 20));
+
+        assertThat(result.value()).isSameAs(parameterValue);
+    }
+
+    @Test
+    void shouldRestoreParametersContainerFromCollection() throws JsonProcessingException {
+        Number parameterValue = 11L;
+        Input<Number> result = new TestParametersContainer<>(List.of(parameterValue, 21.0));
+        assertThat(result.value()).isSameAs(parameterValue);
+        String json = objectMapper.writeValueAsString(result);
+
+        Input<Number> restored = objectMapper.readValue(json, TestParametersContainer.class);
+
+        assertThat(restored).isInstanceOf(ParametersContainer.class).isInstanceOf(Input.class);
+        assertThat(restored.value()).isEqualTo(parameterValue);
     }
 
     @Test
@@ -361,12 +409,12 @@ class InputParameterTest {
 
         var parameter = Input.of(Input.of(longId), Input.of(stringId));
         String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(CompositeInputParameter.class.getName());
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        assertThat(json).contains(CompositeParameter.class.getName());
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(parameter.value()[0].value()).isEqualTo(longId);
         assertThat(parameter.value()[1].value()).isEqualTo(stringId);
-        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -378,7 +426,7 @@ class InputParameterTest {
 
         assertThat(parameter.value()[0].value()).isSameAs(firstId);
         assertThat(parameter.value()[1].value()).isSameAs(secondId);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -388,12 +436,12 @@ class InputParameterTest {
 
         var parameter = Input.of(firstId, secondId);
         String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(CompositeInputParameter.class.getName());
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        assertThat(json).contains(CompositeParameter.class.getName());
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstId);
         assertThat(restored.value()[1].value()).isEqualTo(secondId);
-        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -405,7 +453,7 @@ class InputParameterTest {
 
         assertThat(parameter.value()[0].value()).isSameAs(first);
         assertThat(parameter.value()[1].value()).isSameAs(second);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -416,12 +464,12 @@ class InputParameterTest {
         var parameter = Input.of(first, second);
 
         String json = objectMapper.writeValueAsString(parameter);
-        assertThat(json).contains(CompositeInputParameter.class.getName());
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        assertThat(json).contains(CompositeParameter.class.getName());
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(first);
         assertThat(restored.value()[1].value()).isEqualTo(second);
-        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -441,7 +489,7 @@ class InputParameterTest {
         assertThat(((Student) parameter.value()[0].value()).getCourses()).contains(firstCourse);
         assertThat(parameter.value()[1].value()).isSameAs(secondEntity);
         assertThat(((Student) parameter.value()[1].value()).getCourses()).contains(secondCourse);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -459,13 +507,13 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentPayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(((Student) restored.value()[0].value()).getCourses()).contains(firstCourse);
         assertThat(restored.value()[1].value()).isEqualTo(secondEntity);
         assertThat(((Student) restored.value()[1].value()).getCourses()).contains(secondCourse);
-        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -485,7 +533,7 @@ class InputParameterTest {
         assertThat(((Course) parameter.value()[0].value()).getStudents()).contains(firstEntity);
         assertThat(parameter.value()[1].value()).isSameAs(secondCourse);
         assertThat(((Course) parameter.value()[1].value()).getStudents()).contains(secondEntity);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -503,13 +551,13 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(CoursePayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstCourse);
         assertThat(((Course) restored.value()[0].value()).getStudents()).contains(firstEntity);
         assertThat(restored.value()[1].value()).isEqualTo(secondCourse);
         assertThat(((Course) restored.value()[1].value()).getStudents()).contains(secondEntity);
-        assertThat(restored).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(restored).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -529,7 +577,7 @@ class InputParameterTest {
         assertThat(((AuthorityPerson) parameter.value()[0].value()).getFaculties()).contains(firstFaculty);
         assertThat(parameter.value()[1].value()).isSameAs(secondEntity);
         assertThat(((AuthorityPerson) parameter.value()[1].value()).getFaculties()).contains(secondFaculty);
-        assertThat(parameter).isInstanceOf(CompositeInputParameter.class).isInstanceOf(Input.class);
+        assertThat(parameter).isInstanceOf(CompositeParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -547,7 +595,7 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(AuthorityPersonPayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(((AuthorityPerson) restored.value()[0].value()).getFaculties()).contains(firstFaculty);
@@ -601,7 +649,7 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(FacultyPayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(((Faculty) restored.value()[0].value()).getDean()).isEqualTo(firstDean);
@@ -653,7 +701,7 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentsGroupPayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(((StudentsGroup) restored.value()[0].value()).getLeader()).isEqualTo(firstStudent);
@@ -689,7 +737,7 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(StudentProfilePayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(restored.value()[1].value()).isEqualTo(secondEntity);
@@ -721,7 +769,7 @@ class InputParameterTest {
         String json = objectMapper.writeValueAsString(parameter);
         assertThat(json).contains(PrincipalProfilePayload.class.getName());
 
-        var restored = objectMapper.readValue(json, CompositeInputParameter.class);
+        var restored = objectMapper.readValue(json, CompositeParameter.class);
 
         assertThat(restored.value()[0].value()).isEqualTo(firstEntity);
         assertThat(restored.value()[1].value()).isEqualTo(secondEntity);
@@ -750,6 +798,30 @@ class InputParameterTest {
 
         assertThat(restored.value()).isEqualTo(value);
         assertThat(restored).isInstanceOf(StaffRoleParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldCreateStaffPermission() {
+        Permission value = Permission.ORG_CREATE;
+
+        var parameter = Input.of(value);
+
+        assertThat(parameter.value()).isEqualTo(value);
+        assertThat(parameter).isInstanceOf(StaffPermissionParameter.class).isInstanceOf(Input.class);
+    }
+
+    @Test
+    void shouldRestoreStaffPermission() throws JsonProcessingException {
+        Permission value = Permission.ORG_CREATE;
+
+        var parameter = Input.of(value);
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json).contains(StaffPermissionParameter.class.getName());
+
+        var restored = objectMapper.readValue(json, StaffPermissionParameter.class);
+
+        assertThat(restored.value()).isEqualTo(value);
+        assertThat(restored).isInstanceOf(StaffPermissionParameter.class).isInstanceOf(Input.class);
     }
 
     @Test
@@ -857,5 +929,23 @@ class InputParameterTest {
                 .role(Role.SUPPORT_STAFF)
                 .signature("signature-" + id)
                 .build();
+    }
+
+    // inner test classes
+    @JsonSerialize(using = ParametersContainer.Serializer.class)
+    @JsonDeserialize(using = ParametersContainer.Deserializer.class)
+    private static class TestParametersContainer<T> extends ParametersContainer<T> implements Input<T> {
+        public TestParametersContainer(T... results) {
+            super(Arrays.stream(results).map(Input::of).toArray(Input[]::new));
+        }
+
+        public TestParametersContainer(Collection<T> outputs) {
+            super(outputs);
+        }
+
+        @Override
+        public T value() {
+            return ObjectUtils.isEmpty(nest) ? null : nest[0].value();
+        }
     }
 }
