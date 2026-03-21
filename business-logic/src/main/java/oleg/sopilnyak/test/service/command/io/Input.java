@@ -13,6 +13,7 @@ import oleg.sopilnyak.test.school.common.model.person.profile.PrincipalProfile;
 import oleg.sopilnyak.test.school.common.model.person.profile.StudentProfile;
 import oleg.sopilnyak.test.service.command.executable.core.context.CommandContext;
 import oleg.sopilnyak.test.service.command.io.parameter.CompositeParameter;
+import oleg.sopilnyak.test.service.command.io.parameter.ContextParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.DequeContextsParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.EmptyParameter;
 import oleg.sopilnyak.test.service.command.io.parameter.MacroCommandParameter;
@@ -247,6 +248,19 @@ public interface Input<P> extends IOBase<P> {
     }
 
     /**
+     * To create new input command-context parameter instance<BR/>
+     * Used for in DequeContextsParameter
+     *
+     * @param context context for undo processing in CompositeCommand
+     * @return new instance of the input
+     * @see Context
+     * @see ContextParameter
+     */
+    static Input<Context<?>> of(final Context<?> context) {
+        return new ContextParameter(context);
+    }
+
+    /**
      * To create new input by parameter type
      *
      * @param parameter instance to wrap
@@ -266,6 +280,8 @@ public interface Input<P> extends IOBase<P> {
             // person access types
             case Role role -> of(role);
             case Permission permission -> of(permission);
+            // command execution context
+            case Context context -> of(context);
             // unknown type of the parameter
             default -> throw new IllegalArgumentException("Parameter type not supported: " + parameter.getClass());
         };

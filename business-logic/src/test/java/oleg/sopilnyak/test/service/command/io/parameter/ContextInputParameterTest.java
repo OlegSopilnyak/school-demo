@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SchoolCommandsConfiguration.class)
 @DirtiesContext
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 class ContextInputParameterTest {
     private static final String STUDENT_FIND_BY_ID = "school::education::students:find.By.Id";
     private static final String STUDENT_FIND_ENROLLED = "school::education::students:find.Enrolled.To.The.Course";
@@ -58,6 +58,37 @@ class ContextInputParameterTest {
     @Test
     void checkTestIntegrity() {
         assertThat(farm).isNotNull();
+    }
+
+    @Test
+    void shouldCreateContextParameter() {
+        Context<?> context = createContextFor(STUDENT_FIND_BY_ID, 1.0, 2L);
+
+        Input<Context<?>> parameter = Input.of(context);
+
+        assertThat(parameter).isInstanceOf(Input.class).isInstanceOf(ContextParameter.class);
+        assertThat(parameter.value()).isSameAs(context);
+    }
+
+    @Test
+    void shouldRestoreContextParameter() throws JsonProcessingException {
+        Context<Boolean> context = (Context<Boolean>) createContextFor(COURSE_FIND_BY_ID, createStudent(10L), 2.0);
+        context.setState(Context.State.WORK);
+        context.setResult(true);
+        context.setState(Context.State.DONE);
+        context.setState(Context.State.WORK);
+        context.failed(new UnableExecuteCommandException(STUDENT_FIND_ENROLLED));
+
+        Input<Context<?>> parameter = Input.of(context);
+        String json = objectMapper.writeValueAsString(parameter);
+        assertThat(json)
+                .contains(ContextParameter.class.getName())
+                .contains(UnableExecuteCommandException.class.getName())
+                .contains(STUDENT_FIND_ENROLLED);
+        var restored = objectMapper.readValue(json, ContextParameter.class);
+
+        assertThat(restored).isInstanceOf(Input.class).isInstanceOf(ContextParameter.class);
+        assertEquals(restored.value(), context);
     }
 
     @Test
@@ -249,6 +280,13 @@ class ContextInputParameterTest {
                 .description("student-description-" + id)
                 .courses(List.of())
                 .build();
+    }
+
+    private Context<?> createContextFor(String commandId, Object redoParameter, Object undoParameter) {
+        RootCommand<?> command = farm.command(commandId);
+        Context<?> context = command.createContext(Input.of(redoParameter));
+        setUndoParameter(context, Input.of(undoParameter));
+        return context;
     }
 
     private void setUndoParameter(Context<?> context, Input<?> parameter) {

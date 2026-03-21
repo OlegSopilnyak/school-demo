@@ -76,26 +76,14 @@ public abstract class ParametersContainer<T> {
             super(t);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void serialize(final ParametersContainer parameter, final JsonGenerator generator,
                               final SerializerProvider notUsed) throws IOException {
-            checkBeforeSerialize(parameter.nest);
             generator.writeStartObject();
             generator.writeStringField(TYPE_FIELD_NAME, parameter.getClass().getName());
             generator.writeFieldName(VALUE_FIELD_NAME);
             serializeInputsArray(parameter.nest, generator);
             generator.writeEndObject();
-        }
-
-        /**
-         * To check the nest before serialization
-         *
-         * @param parameters array of parameters (the nest) to check before
-         * @throws IOException if the nest cannot be serialized
-         */
-        protected <T> void checkBeforeSerialize(final Input<T>[] parameters) throws IOException {
-            // Usually does nothing but for Set of Payloads type checks mismatch types issue
         }
 
         // private methods

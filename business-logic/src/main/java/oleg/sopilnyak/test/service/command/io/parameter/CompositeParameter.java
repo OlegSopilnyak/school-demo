@@ -11,7 +11,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 /**
  * Type: I/O school-command the composite array of inputs parameter
  *
- * @see Input
+ * @see CompositeInput
+ * @see ParametersContainer
  */
 @JsonSerialize(using = ParametersContainer.Serializer.class)
 @JsonDeserialize(using = ParametersContainer.Deserializer.class)
