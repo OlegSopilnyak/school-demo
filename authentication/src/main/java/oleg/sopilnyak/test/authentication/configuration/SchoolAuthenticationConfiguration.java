@@ -1,5 +1,6 @@
 package oleg.sopilnyak.test.authentication.configuration;
 
+import static oleg.sopilnyak.test.school.common.security.AuthenticationFacade.AUTH_PATH_PREFIX;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 import oleg.sopilnyak.test.authentication.AuthenticationFacadeImpl;
@@ -7,8 +8,6 @@ import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
-import oleg.sopilnyak.test.authentication.service.impl.AccessTokensStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
@@ -17,6 +16,7 @@ import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -37,28 +37,25 @@ import lombok.extern.slf4j.Slf4j;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
+@Import(JwtConfiguration.class)
 public class SchoolAuthenticationConfiguration {
-    private static final String AUTHENTICATION = "/authentication";
+    private final JwtService jwtService;
+    private final AccessTokensStorage tokenStorage;
     private final PersistenceFacade persistenceFacade;
 
     @Bean
-    public JwtService jwtService() {
-        return new JwtServiceImpl();
-    }
-
-    @Bean
-    public AccessTokensStorage tokenStorage() {
-        return new AccessTokensStorageImpl(jwtService());
-    }
-
-    @Bean
     public UserService userService() {
-        return new UserServiceImpl(persistenceFacade, tokenStorage());
+        return new UserServiceImpl(persistenceFacade, tokenStorage);
+    }
+
+    @Bean
+    public AuthenticationFacade authenticationFacade() {
+        return new AuthenticationFacadeImpl(userService(), jwtService, tokenStorage);
     }
 
     @Bean
     public Filter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtService(), userService());
+        return new JwtAuthenticationFilter(jwtService, userService());
     }
 
     @Bean
@@ -73,7 +70,7 @@ public class SchoolAuthenticationConfiguration {
                         )
                 )
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(AUTHENTICATION + "/**").permitAll()
+                        .requestMatchers(AUTH_PATH_PREFIX + "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(
@@ -99,10 +96,5 @@ public class SchoolAuthenticationConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationFacade authenticationFacade() {
-        return new AuthenticationFacadeImpl(userService(), jwtService(), tokenStorage());
     }
 }

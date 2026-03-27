@@ -28,6 +28,13 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 
+    dependencies {
+        // distributed cache (infinispan) dependencies
+        implementation "org.infinispan:infinispan-core:+"
+        compileOnly 'org.infinispan:infinispan-component-annotations:+'
+        annotationProcessor "org.infinispan.protostream:protostream-processor:+"
+    }
+
     test {
         useJUnitPlatform()
     }

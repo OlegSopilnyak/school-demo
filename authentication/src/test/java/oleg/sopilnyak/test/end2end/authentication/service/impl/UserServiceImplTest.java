@@ -10,8 +10,8 @@ import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConf
 import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.AccessTokensStorageImpl;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
+import oleg.sopilnyak.test.authentication.service.local.AccessTokensStorageLocalImpl;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
@@ -31,16 +31,19 @@ import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {SchoolAuthenticationConfiguration.class, PersistenceConfiguration.class})
-@TestPropertySource(properties = {"school.spring.jpa.show-sql=true"})
+@TestPropertySource(properties = {
+        "school.spring.jpa.show-sql=true",
+        "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
+})
 class UserServiceImplTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
@@ -66,7 +69,7 @@ class UserServiceImplTest extends MysqlTestModelFactory {
     void checkAssociatedServices() {
         assertThat(entityMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
-        assertThat(accessTokensStorage).isNotNull().isInstanceOf(AccessTokensStorageImpl.class);
+        assertThat(accessTokensStorage).isNotNull().isInstanceOf(AccessTokensStorageLocalImpl.class);
         assertThat(service).isNotNull().isInstanceOf(UserServiceImpl.class);
     }
 

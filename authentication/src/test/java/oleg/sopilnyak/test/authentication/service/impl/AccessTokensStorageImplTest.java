@@ -6,6 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.local.AccessTokensStorageLocalImpl;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import java.util.Map;
@@ -34,7 +35,7 @@ class AccessTokensStorageImplTest {
     @BeforeEach
     void setUp() {
         jwtService = spy(new JwtServiceImpl());
-        storage = spy(new AccessTokensStorageImpl(jwtService));
+        storage = spy(new AccessTokensStorageLocalImpl(jwtService));
         accessCredentials = spy(new ConcurrentHashMap<>());
         blackList = ConcurrentHashMap.newKeySet();
         ReflectionTestUtils.setField(storage, "accessCredentials", accessCredentials);

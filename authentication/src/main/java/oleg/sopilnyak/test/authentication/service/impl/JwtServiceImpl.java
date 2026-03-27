@@ -17,12 +17,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JwtServiceImpl implements JwtService {
+    // The application name
+    @Value(value = "${application.full.name:Unknown Application}")
+    private String issuer;
     // secret key to sign and verify the token
     private SecretKey signingKey;
 
@@ -100,7 +104,7 @@ public class JwtServiceImpl implements JwtService {
     private JwtBuilder builderForUser(final UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .issuer(ISSUER)
+                .issuer(issuer)
                 .issuedAt(nowDate())
                 .signWith(signingKey)
                 ;

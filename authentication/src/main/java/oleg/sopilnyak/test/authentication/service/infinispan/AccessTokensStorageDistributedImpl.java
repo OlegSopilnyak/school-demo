@@ -1,27 +1,36 @@
-package oleg.sopilnyak.test.authentication.service.impl;
+package oleg.sopilnyak.test.authentication.service.infinispan;
+
+import static java.util.Objects.isNull;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.infinispan.manager.DefaultCacheManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Storage: Implementation of the storage of active tokens
+ * Storage: Implementation (through Infinispan) of the storage of active tokens
  */
 @Slf4j
 @RequiredArgsConstructor
-public class AccessTokensStorageImpl implements AccessTokensStorage {
+public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
+    private final DefaultCacheManager cacheManager;
     private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
     private final Set<String> blackList = ConcurrentHashMap.newKeySet();
 
+    @PostConstruct
+    public void buildCaches() {
+
+    }
     /**
      * Storing signed in credentials for further usage
      *
@@ -71,7 +80,7 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     @Override
     public Optional<AccessCredentials> findCredentials(final String username) {
         log.debug("Finding access credentials for {}", username);
-        return username == null ? Optional.empty() : Optional.ofNullable(accessCredentials.get(username));
+        return isNull(username) ? Optional.empty() : Optional.ofNullable(accessCredentials.get(username));
     }
 
     /**
@@ -83,6 +92,16 @@ public class AccessTokensStorageImpl implements AccessTokensStorage {
     public void toBlackList(final String token) {
         log.debug("Putting to black list token: '{}'", token);
         blackList.add(token);
+    }
+
+    /**
+     * To remove token from black list
+     *
+     * @param blackListedToken token to remove from black-list
+     */
+    @Override
+    public void removeFromBlackList(String blackListedToken) {
+
     }
 
     /**

@@ -49,6 +49,13 @@ public interface AccessTokensStorage {
     void toBlackList(String blackListedToken);
 
     /**
+     * To remove token from black list
+     *
+     * @param blackListedToken token to remove from black-list
+     */
+    void removeFromBlackList(String blackListedToken);
+
+    /**
      * To check is the token of signed-out person
      *
      * @param token active token of signed-out person

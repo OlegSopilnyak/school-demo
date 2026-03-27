@@ -1,7 +1,5 @@
 package oleg.sopilnyak.test.authentication.model;
 
-import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;
@@ -12,13 +10,10 @@ import lombok.Data;
 @Data
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AccessCredentialsEntity implements AccessCredentials {
-    // System-ID of the entity
-    @Builder.Default
-    private Long id = null;
-    // to current valid token
+public class AccessCredentialsEntity implements AccessCredentialsType {
+    // the current valid access token
     private String token;
-    // valid token for refreshing expired one
+    // valid token for refreshing current one
     private String refreshToken;
     // user-details used for tokens generation
     private UserDetailsEntity user;

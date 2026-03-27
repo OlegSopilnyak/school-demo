@@ -98,7 +98,7 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
             throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
         }
         log.debug("Refreshing token for person with username '{}'", username);
-        final AccessCredentials signedIn = tokenStorage.findCredentials(username)
+        final AccessCredentials signedIn = findCredentialsFor(username)
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
         // making new token
         if (signedIn instanceof AccessCredentialsEntity entity) {

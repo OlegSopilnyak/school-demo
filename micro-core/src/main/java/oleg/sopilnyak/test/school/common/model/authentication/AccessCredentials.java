@@ -7,6 +7,16 @@ import oleg.sopilnyak.test.school.common.model.BaseType;
  */
 public interface AccessCredentials extends BaseType {
     /**
+     * To get System-ID of the model's item
+     *
+     * @return the value (null by default)
+     */
+    @Override
+    default Long getId() {
+        return null;
+    }
+
+    /**
      * To get access to current valid token
      *
      * @return token's value usually JWT
