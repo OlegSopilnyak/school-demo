@@ -7,7 +7,7 @@ import static org.mockito.Mockito.reset;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.service.local.model.UserDetailsLocalEntity;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -31,13 +31,13 @@ class JwtServiceImplTest {
     @MockitoSpyBean
     @Autowired
     JwtServiceImpl service;
-    UserDetailsEntity userDetails;
+    UserDetailsLocalEntity userDetails;
 
     String username = "username";
 
     @BeforeEach
     void setUp() {
-        userDetails = mock(UserDetailsEntity.class);
+        userDetails = mock(UserDetailsLocalEntity.class);
         service.initSecurityKey();
         reset(service);
     }

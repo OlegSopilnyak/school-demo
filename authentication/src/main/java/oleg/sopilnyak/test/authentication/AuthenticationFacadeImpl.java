@@ -1,15 +1,11 @@
 package oleg.sopilnyak.test.authentication;
 
-import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
-import oleg.sopilnyak.test.authentication.service.JwtService;
-import oleg.sopilnyak.test.authentication.service.UserService;
+import oleg.sopilnyak.test.authentication.service.ApplicationAccessFacade;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import java.util.Optional;
-import org.springframework.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,12 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationFacadeImpl implements AuthenticationFacade {
-    // service to find user-details for signed-in users
-    private final UserService userService;
-    // JWT managing service
-    private final JwtService jwtService;
-    // the storage of active tokens
-    private final AccessTokensStorage tokenStorage;
+    // facade to manage person access credentials
+    private final ApplicationAccessFacade accessFacade;
 
 
     /**
@@ -32,22 +24,27 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      *
      * @param username person's access username
      * @param password person's access password
-     * @return signed in credentials or empty
+     * @return granted person's credentials or empty
      * @throws SchoolAccessDeniedException if access is denied
+     * @see ApplicationAccessFacade#findCredentialsFor(String)
+     * @see ApplicationAccessFacade#grantCredentialsFor(String, String)
      * @see AccessCredentials
      * @see Optional
      */
     @Override
     public Optional<AccessCredentials> signIn(final String username, final String password) throws SchoolAccessDeniedException {
-        final Optional<AccessCredentials> storedAccessCredentials = tokenStorage.findCredentials(username);
-        if (storedAccessCredentials.isPresent()) {
+        log.debug("Signing In person with username {}", username);
+        return accessFacade.findCredentialsFor(username).map(credentials -> {
+            // credentials for username is found
             log.debug("Found credentials for person with username '{}'", username);
-            return storedAccessCredentials;
-        }
-        // building credentials for signing in user by username
-        log.debug("Signing In person with username '{}'", username);
-        // making signed in user-details for username/password
-        return makeAccessCredentialsFor(username, password);
+            // returns gotten credentials
+            return Optional.of(credentials);
+        }).orElseGet(() -> {
+            // building credentials for signing in user by username
+            log.debug("Granting access credentials for the person with username '{}'", username);
+            // making signed in user-details for username/password using access-builder
+            return accessFacade.grantCredentialsFor(username, password);
+        });
     }
 
     /**
@@ -55,28 +52,32 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * Tokens won't be valid after
      *
      * @param username valid sign in username of the person
+     * @return revoked granted person's credentials or empty
+     * @see Optional
+     * @see AccessCredentials
+     * @see ApplicationAccessFacade#findCredentialsFor(String)
      * @see AuthenticationFacade#signIn(String, String)
-     * @see AccessCredentials#getToken()
      */
     @Override
     public Optional<AccessCredentials> signOut(final String username) {
-        final Optional<AccessCredentials> signedIn = tokenStorage.findCredentials(username);
-        signedIn.ifPresentOrElse(credentials -> {
-                    log.debug("Signing out user with username '{}' ...", username);
-                    tokenStorage.toBlackList(credentials.getToken());
-                    log.debug("Added token of '{}' to tokens black list", username);
-                    tokenStorage.deleteCredentials(username);
-                    log.debug("Deleted stored credentials of '{}'", username);
-                },
-                () -> log.warn("No stored credentials found for username '{}'", username)
-        );
-        return signedIn;
+        log.debug("Signing Out person with username {}", username);
+        return accessFacade.findCredentialsFor(username).map(_ -> {
+            // credentials for username is found
+            log.debug("Revoking credentials for person with username '{}'", username);
+            // returns revoked credentials
+            return accessFacade.revokeCredentialsFor(username);
+        }).orElseGet(() -> {
+            // credentials for username is not found
+            log.warn("No stored credentials found for username '{}'", username);
+            // returns empty
+            return Optional.empty();
+        });
     }
 
     /**
      * To refresh active token
      *
-     * @param refreshToken active refresh token of signed in person
+     * @param refreshToken   active refresh token of signed in person
      * @param activeUsername username from active SecurityContext
      * @return refreshed credentials
      * @throws SchoolAccessDeniedException person signed out
@@ -85,65 +86,8 @@ public class AuthenticationFacadeImpl implements AuthenticationFacade {
      * @see AccessCredentials#getRefreshToken()
      */
     @Override
-    public Optional<AccessCredentials> refresh(final String refreshToken, final String activeUsername) throws SchoolAccessDeniedException {
-        if (jwtService.isTokenExpired(refreshToken)) {
-            log.warn("Refresh token is expired '{}'", refreshToken);
-            // removing entity with refresh-token from storage
-            tokenStorage.deleteCredentialsWithRefreshToken(refreshToken);
-            return Optional.empty();
-        }
-        final String username = jwtService.extractUserName(refreshToken);
-        if (!ObjectUtils.nullSafeEquals(username, activeUsername)) {
-            log.error("Active user '{}' isn't equals to '{}' from refresh token!", activeUsername, username);
-            throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
-        }
-        log.debug("Refreshing token for person with username '{}'", username);
-        final AccessCredentials signedIn = findCredentialsFor(username)
-                .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
-        // making new token
-        if (signedIn instanceof AccessCredentialsEntity entity) {
-            log.debug("Regenerating and store tokens of '{}'", username);
-            final String password = entity.getUser().getPassword();
-            // regenerating access credentials with fresh tokens
-            return makeAccessCredentialsFor(username, password);
-        } else {
-            // wrong type of the AccessCredentials ¯\_(ツ)_/¯
-            throw new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in");
-        }
-    }
-
-    /**
-     * To find credentials of the signed in person
-     *
-     * @param username username of the person
-     * @return active credentials or empty
-     * @see Optional
-     * @see AccessCredentials
-     * @see AuthenticationFacade#signIn(String, String)
-     * @see AccessTokensStorage#findCredentials(String)
-     */
-    @Override
-    public Optional<AccessCredentials> findCredentialsFor(String username) {
-        return tokenStorage.findCredentials(username);
-    }
-
-    // private methods
-    // making access credentials for username/password
-    private Optional<AccessCredentials> makeAccessCredentialsFor(final String username, final String password) {
-        return userService.prepareUserDetails(username, password)
-                .map(signedInUserDetails -> {
-                            log.debug("Preparing user-details for person with username '{}'", username);
-                            // prepare access credentials tokens for signed-in user
-                            final AccessCredentials signedInCredentials = AccessCredentialsEntity.builder()
-                                    .user(signedInUserDetails)
-                                    .token(jwtService.generateAccessToken(signedInUserDetails))
-                                    .refreshToken(jwtService.generateRefreshToken(signedInUserDetails))
-                                    .build();
-                            log.debug("Storing built user-details for person with username '{}'", username);
-                            // storing built person's access-credentials
-                            tokenStorage.storeFor(username, signedInCredentials);
-                            return signedInCredentials;
-                        }
-                );
+    public Optional<AccessCredentials> refresh(final String refreshToken, final String activeUsername)
+            throws SchoolAccessDeniedException {
+        return accessFacade.refreshCredentialsFor(activeUsername, refreshToken);
     }
 }

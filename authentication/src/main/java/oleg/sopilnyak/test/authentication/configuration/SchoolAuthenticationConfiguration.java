@@ -5,11 +5,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 import oleg.sopilnyak.test.authentication.AuthenticationFacadeImpl;
 import oleg.sopilnyak.test.authentication.http.filter.JwtAuthenticationFilter;
+import oleg.sopilnyak.test.authentication.service.ApplicationAccessFacade;
 import oleg.sopilnyak.test.authentication.service.JwtService;
-import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
-import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 import oleg.sopilnyak.test.school.common.security.AuthenticationFacade;
 
 import jakarta.servlet.Filter;
@@ -20,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -39,23 +38,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Import(JwtConfiguration.class)
 public class SchoolAuthenticationConfiguration {
+    // depends on current sping profile from JwtConfiguration.class
+    private final ApplicationAccessFacade accessFacade;
     private final JwtService jwtService;
-    private final AccessTokensStorage tokenStorage;
-    private final PersistenceFacade persistenceFacade;
-
-    @Bean
-    public UserService userService() {
-        return new UserServiceImpl(persistenceFacade, tokenStorage);
-    }
+    private final UserService userService;
 
     @Bean
     public AuthenticationFacade authenticationFacade() {
-        return new AuthenticationFacadeImpl(userService(), jwtService, tokenStorage);
+        return new AuthenticationFacadeImpl(accessFacade);
     }
 
     @Bean
     public Filter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtService, userService());
+        return new JwtAuthenticationFilter(jwtService, userService);
     }
 
     @Bean
@@ -88,13 +83,13 @@ public class SchoolAuthenticationConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService());
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }

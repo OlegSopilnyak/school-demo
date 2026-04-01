@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.authentication.service.infinispan;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
+import oleg.sopilnyak.test.authentication.service.local.model.AccessCredentialsLocalEntity;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
+public class DistributeAccessTokensStorage implements AccessTokensStorage {
     private final DefaultCacheManager cacheManager;
     private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
@@ -29,7 +29,7 @@ public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
 
     @PostConstruct
     public void buildCaches() {
-
+        // prepare caches for infinispan
     }
     /**
      * Storing signed in credentials for further usage
@@ -64,7 +64,7 @@ public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
     public void deleteCredentialsWithRefreshToken(final String refreshToken) {
         accessCredentials.values().stream()
                 .filter(credentials -> credentials.getRefreshToken().equals(refreshToken))
-                .map(AccessCredentialsEntity.class::cast)
+                .map(AccessCredentialsLocalEntity.class::cast)
                 .map(credentials -> credentials.getUser().getUsername())
                 .findFirst().ifPresent(this::deleteCredentials);
     }
@@ -97,11 +97,11 @@ public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
     /**
      * To remove token from black list
      *
-     * @param blackListedToken token to remove from black-list
+     * @param token token to remove from black-list
      */
     @Override
-    public void removeFromBlackList(String blackListedToken) {
-
+    public void removeFromBlackList(String token) {
+        blackList.remove(token);
     }
 
     /**
@@ -115,7 +115,7 @@ public class AccessTokensStorageDistributedImpl implements AccessTokensStorage {
         log.debug("Checking in black list token: '{}'", token);
         if (jwtService.isTokenExpired(token)) {
             log.debug("Detected expired token: '{}'", token);
-            blackList.remove(token);
+            removeFromBlackList(token);
             return false;
         }
         return blackList.contains(token);

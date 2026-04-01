@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.end2end.authentication.service.impl;
+package oleg.sopilnyak.test.end2end.authentication.service.local;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,11 +7,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConfiguration;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.UserServiceImpl;
-import oleg.sopilnyak.test.authentication.service.local.AccessTokensStorageLocalImpl;
+import oleg.sopilnyak.test.authentication.service.impl.UserServiceAdapter;
+import oleg.sopilnyak.test.authentication.service.local.LocalAccessTokensStorage;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
@@ -33,18 +33,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {SchoolAuthenticationConfiguration.class, PersistenceConfiguration.class})
+@ContextConfiguration(classes = {
+        SchoolAuthenticationConfiguration.class, PersistenceConfiguration.class
+}, loader = AnnotationConfigContextLoader.class)
 @TestPropertySource(properties = {
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-class UserServiceImplTest extends MysqlTestModelFactory {
+@ActiveProfiles("local")
+class LocalUserServiceTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
     @MockitoSpyBean
@@ -69,8 +74,8 @@ class UserServiceImplTest extends MysqlTestModelFactory {
     void checkAssociatedServices() {
         assertThat(entityMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
-        assertThat(accessTokensStorage).isNotNull().isInstanceOf(AccessTokensStorageLocalImpl.class);
-        assertThat(service).isNotNull().isInstanceOf(UserServiceImpl.class);
+        assertThat(accessTokensStorage).isNotNull().isInstanceOf(LocalAccessTokensStorage.class);
+        assertThat(service).isNotNull().isInstanceOf(UserServiceAdapter.class);
     }
 
     @Test
@@ -89,7 +94,7 @@ class UserServiceImplTest extends MysqlTestModelFactory {
         Long personId = personEntity.getId();
         Set<String> authorities = Set.of("ROLE_SUPPORT_STAFF", "EDU_GET");
 
-        Optional<UserDetailsEntity> result = service.prepareUserDetails(username, password);
+        Optional<UserDetailsType> result = service.prepareUserDetails(username, password);
 
         // check the result
         assertThat(result).isNotNull().isNotEmpty();

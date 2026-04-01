@@ -1,8 +1,9 @@
 package oleg.sopilnyak.test.authentication.service.impl;
 
 
-import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.service.local.model.AccessCredentialsLocalEntity;
+import oleg.sopilnyak.test.authentication.model.AccessCredentialsType;
+import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,11 +29,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+/**
+ * Service: Adapter of UserDetails management service for authentication
+ */
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public abstract class UserServiceAdapter implements UserService {
+    public static final String PROFILE_SIGNATURE_GETTER = "getSignature";
     // principal person profile persistence facade
     private final PersistenceFacade persistenceFacade;
     // the storage of active tokes and users
@@ -46,13 +50,13 @@ public class UserServiceImpl implements UserService {
      * @see ProfilePersistenceFacade#findPersonProfileByLogin(String)
      */
     @Override
-    public Optional<UserDetailsEntity> prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
-        log.debug("Preparing user-details by username '{}' and password...", username);
+    public Optional<UserDetailsType> prepareUserDetails(final String username, final String password) throws UsernameNotFoundException {
+        getLogger().debug("Preparing user-details by username '{}' and password...", username);
         // making signing in user-details
         return persistenceFacade.findPrincipalProfileByLogin(username).map(profile -> {
-            log.debug("There is the profile for user with username '{}'", username);
+            getLogger().debug("There is the profile for user with username '{}'", username);
             if (!isPasswordValidFor(profile, password)) {
-                log.error("Wrong password for username: '{}'", username);
+                getLogger().error("Wrong password for username: '{}'", username);
                 throw new SchoolAccessDeniedException("Wrong password for username: " + username);
             }
             return makeUserDetailsFor(profile, password);
@@ -71,41 +75,62 @@ public class UserServiceImpl implements UserService {
      * @throws UsernameNotFoundException if the user could not be found or the user has no
      *                                   GrantedAuthority
      * @see AccessTokensStorage#findCredentials(String)
-     * @see AccessCredentialsEntity#getUser()
+     * @see AccessCredentialsLocalEntity#getUser()
      */
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         final Supplier<? extends UsernameNotFoundException> userNotFound =
                 () -> new UsernameNotFoundException("User with username: '" + username + "' isn't found!");
-        log.debug("Loading user by username '{}'...", username);
-        final AccessCredentials credentials = accessTokensStorage.findCredentials(username)
-                .orElseThrow(userNotFound);
+        getLogger().debug("Loading user by username '{}'...", username);
+        final AccessCredentials credentials = accessTokensStorage.findCredentials(username).orElseThrow(userNotFound);
         //
         // checking credentials of user with username
         if (accessTokensStorage.isInBlackList(credentials.getToken())) {
-            log.warn("Access token of user with username: '{}' is black-listed...", username);
+            getLogger().warn("Access token of user with username: '{}' is black-listed...", username);
             throw userNotFound.get();
-        } else if (credentials instanceof AccessCredentialsEntity entity) {
-            log.debug("Loaded user by username '{}'", username);
+        } else if (credentials instanceof AccessCredentialsType entity) {
+            getLogger().debug("Loaded user by username '{}'", username);
             return entity.getUser();
         } else {
-            log.error("Wrong stored credentials entity type for username: '{}' credentials: {}", username, credentials);
+            getLogger().error("Wrong stored credentials entity type for username: '{}' credentials: {}", username, credentials);
             throw userNotFound.get();
         }
     }
 
+    /**
+     * To map built data to common-model type
+     *
+     * @param id person-id (PK of principal person)
+     * @param username username of te person to sign in
+     * @param password password of te person to sign in
+     * @param authorities person access-permissions
+     * @return the instance of user-details-type
+     */
+    protected abstract UserDetailsType toModel(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities);
+
+    /**
+     * To get access to facade's logger
+     *
+     * @return concrete instance of the logger (from child class)
+     * @see Logger
+     */
+    protected abstract Logger getLogger();
+
     // private methods
     // to check is password correct for the person using profile
     private boolean isPasswordValidFor(final PrincipalProfile profile, final String password) {
-        final Method signatureGetter = ReflectionUtils.findMethod(profile.getClass(), "getSignature");
-        if (signatureGetter == null) {
-            return false;
+        final Method signatureGetter = ReflectionUtils.findMethod(profile.getClass(), PROFILE_SIGNATURE_GETTER);
+        if (signatureGetter != null) {
+            final String signature = (String) ReflectionUtils.invokeMethod(signatureGetter, profile);
+            return !ObjectUtils.isEmpty(profile.getUsername()) && !ObjectUtils.isEmpty(signature) &&
+                    isSignatureValidFor(profile, signature, password);
         }
-        final String username = profile.getUsername();
-        final String signature = (String) ReflectionUtils.invokeMethod(signatureGetter, profile);
-        if (ObjectUtils.isEmpty(signature) || ObjectUtils.isEmpty(username)) {
-            return false;
-        }
+        getLogger().warn("Not signature getter for profile class '{}'", profile.getClass());
+        return false;
+    }
+
+    // to check profile's password using the signature
+    private static boolean isSignatureValidFor(final PrincipalProfile profile, final String signature, final String password) {
         try {
             return signature.equals(profile.makeSignatureFor(password));
         } catch (NoSuchAlgorithmException _) {
@@ -114,23 +139,23 @@ public class UserServiceImpl implements UserService {
     }
 
     // to make user-details for the principal profile
-    private UserDetailsEntity makeUserDetailsFor(final PrincipalProfile profile, final String password)
+    private UserDetailsType makeUserDetailsFor(final PrincipalProfile profile, final String password)
             throws UsernameNotFoundException {
         final String username = profile.getUsername();
-        log.debug("Making user-details by username '{}' for the user's profile...", username);
+        getLogger().debug("Making user-details by username '{}' for the user's profile...", username);
         final Collection<? extends GrantedAuthority> authorities = authorities(profile);
         if (authorities.isEmpty()) {
-            log.error("User with username '{}' has no any authority!", username);
+            getLogger().error("User with username '{}' has no any authority!", username);
             throw new UsernameNotFoundException("User with username: '" + username + "' has no any authority!");
         }
         final AuthorityPerson person = persistenceFacade.findAuthorityPersonByProfileId(profile.getId())
                 .orElseThrow(() -> new UsernameNotFoundException("Person with username: '" + username + "' isn't found!"));
-        return new UserDetailsEntity(person.getId(), username, password, authorities);
+        return toModel(person.getId(), username, password, authorities);
     }
 
-    // to get user's authorities from principal's profile
+    // to build user's authorities from principal's profile
     private Collection<? extends GrantedAuthority> authorities(final PrincipalProfile profile) {
-        log.debug("Loading authorities for profile with username: '{}'...", profile.getUsername());
+        getLogger().debug("Loading authorities for profile with username: '{}'...", profile.getUsername());
         final Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + validAuthority(profile.getRole().name())));
         profile.getPermissions().stream().map(Enum::name)

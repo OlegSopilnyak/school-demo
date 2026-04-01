@@ -45,14 +45,4 @@ public interface AuthenticationFacade {
      * @see Optional
      */
     Optional<AccessCredentials> refresh(String refreshToken, String username) throws SchoolAccessDeniedException;
-
-    /**
-     * To find credentials of the signed in person
-     *
-     * @param username username of the person
-     * @return active credentials or empty
-     * @see Optional
-     * @see AccessCredentials
-     */
-    Optional<AccessCredentials> findCredentialsFor(String username);
 }

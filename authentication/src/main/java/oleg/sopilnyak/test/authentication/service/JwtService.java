@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.authentication.service;
 
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -75,8 +75,8 @@ public interface JwtService {
      */
     default String generateAccessToken(final UserDetails userDetails) {
         final HashMap<String, Object> claims = new HashMap<>();
-        if (userDetails instanceof UserDetailsEntity entity) {
-            claims.put(PERSON_ID_CLAIM, entity.getId());
+        if (userDetails instanceof UserDetailsType details) {
+            claims.put(PERSON_ID_CLAIM, details.getId());
             userDetails.getAuthorities().forEach(authority -> putAuthority(claims, authority));
         }
         // check user-details-authorities content

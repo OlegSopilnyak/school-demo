@@ -1,4 +1,6 @@
-package oleg.sopilnyak.test.authentication.model;
+package oleg.sopilnyak.test.authentication.service.local.model;
+
+import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +13,7 @@ import lombok.Getter;
  */
 @Getter
 @EqualsAndHashCode(callSuper = true)
-public class UserDetailsEntity extends User implements UserDetailsType {
+public class UserDetailsLocalEntity extends User implements UserDetailsType {
     // person id
     private final Long id;
 
@@ -25,7 +27,7 @@ public class UserDetailsEntity extends User implements UserDetailsType {
      * @param authorities the authorities that should be granted to the caller if they
      *                    presented the correct username and password and the user is enabled. Not null.
      */
-    public UserDetailsEntity(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsLocalEntity(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.id = id;
     }

@@ -85,8 +85,10 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public String generateAccessToken(final Map<String, Object> extraClaims, final UserDetails userDetails) {
-        final JwtBuilder builder = builderForUser(userDetails);
-        return builder.expiration(nowDatePlus(24, TimeUnit.MINUTES)).claims(extraClaims).compact();
+        return builderForUser(userDetails)
+                .expiration(nowDatePlus(24, TimeUnit.MINUTES))
+                .claims(extraClaims)
+                .compact();
     }
 
     /**
@@ -97,7 +99,9 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public String generateRefreshToken(final UserDetails userDetails) {
-        return builderForUser(userDetails).expiration(nowDatePlus(1, TimeUnit.HOURS)).compact();
+        return builderForUser(userDetails)
+                .expiration(nowDatePlus(1, TimeUnit.HOURS))
+                .compact();
     }
 
     // private methods

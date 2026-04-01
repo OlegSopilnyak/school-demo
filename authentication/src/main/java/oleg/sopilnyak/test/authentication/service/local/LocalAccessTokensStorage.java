@@ -1,8 +1,8 @@
 package oleg.sopilnyak.test.authentication.service.local;
 
-import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.JwtService;
+import oleg.sopilnyak.test.authentication.service.local.model.AccessCredentialsLocalEntity;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import java.util.Map;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class AccessTokensStorageLocalImpl implements AccessTokensStorage {
+public class LocalAccessTokensStorage implements AccessTokensStorage {
     private final JwtService jwtService;
     private final Map<String, AccessCredentials> accessCredentials = new ConcurrentHashMap<>();
     private final Set<String> blackList = ConcurrentHashMap.newKeySet();
@@ -55,7 +55,7 @@ public class AccessTokensStorageLocalImpl implements AccessTokensStorage {
     public void deleteCredentialsWithRefreshToken(final String refreshToken) {
         accessCredentials.values().stream()
                 .filter(credentials -> credentials.getRefreshToken().equals(refreshToken))
-                .map(AccessCredentialsEntity.class::cast)
+                .map(AccessCredentialsLocalEntity.class::cast)
                 .map(credentials -> credentials.getUser().getUsername())
                 .findFirst().ifPresent(this::deleteCredentials);
     }

@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.authentication.service.impl;
+package oleg.sopilnyak.test.authentication.service.local;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -6,7 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
-import oleg.sopilnyak.test.authentication.service.local.AccessTokensStorageLocalImpl;
+import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import java.util.Map;
@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-class AccessTokensStorageImplTest {
+class LocalAccessTokensStorageTest {
 
     JwtServiceImpl jwtService;
     AccessTokensStorage storage;
@@ -35,7 +35,7 @@ class AccessTokensStorageImplTest {
     @BeforeEach
     void setUp() {
         jwtService = spy(new JwtServiceImpl());
-        storage = spy(new AccessTokensStorageLocalImpl(jwtService));
+        storage = spy(new LocalAccessTokensStorage(jwtService));
         accessCredentials = spy(new ConcurrentHashMap<>());
         blackList = ConcurrentHashMap.newKeySet();
         ReflectionTestUtils.setField(storage, "accessCredentials", accessCredentials);

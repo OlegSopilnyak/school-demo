@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.authentication.service.impl;
+package oleg.sopilnyak.test.authentication.service.local;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,9 +10,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import oleg.sopilnyak.test.authentication.model.AccessCredentialsEntity;
-import oleg.sopilnyak.test.authentication.model.UserDetailsEntity;
+import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.UserService;
+import oleg.sopilnyak.test.authentication.service.local.model.AccessCredentialsLocalEntity;
+import oleg.sopilnyak.test.authentication.service.local.model.UserDetailsLocalEntity;
 import oleg.sopilnyak.test.school.common.exception.access.SchoolAccessDeniedException;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.authentication.Permission;
@@ -27,21 +29,23 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith(MockitoExtension.class)
-class UserServiceImplTest extends TestModelFactory {
-    @Mock
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {LocalUserService.class})
+class LocalUserServiceTest extends TestModelFactory {
+    @MockitoBean
     PersistenceFacade persistenceFacade;
-    @Mock
+    @MockitoBean
     AccessTokensStorage accessTokensStorage;
-    @Spy
-    @InjectMocks
-    UserServiceImpl service;
+    @MockitoSpyBean
+    @Autowired
+    UserService service;
 
     String username = "username";
 
@@ -64,7 +68,7 @@ class UserServiceImplTest extends TestModelFactory {
         doReturn(Optional.of(person)).when(persistenceFacade).findAuthorityPersonByProfileId(profileId);
         Set<String> authorities = Set.of("ROLE_SUPPORT_STAFF", "EDU_GET");
 
-        Optional<UserDetailsEntity> result = service.prepareUserDetails(username, password);
+        Optional<UserDetailsType> result = service.prepareUserDetails(username, password);
 
         // check the result
         assertThat(result).isNotNull().isNotEmpty();
@@ -133,8 +137,8 @@ class UserServiceImplTest extends TestModelFactory {
     @Test
     void shouldLoadUserByUsername() {
         String token = "token";
-        UserDetailsEntity userDetails = mock(UserDetailsEntity.class);
-        AccessCredentialsEntity credentials = mock(AccessCredentialsEntity.class);
+        UserDetailsLocalEntity userDetails = mock(UserDetailsLocalEntity.class);
+        AccessCredentialsLocalEntity credentials = mock(AccessCredentialsLocalEntity.class);
         doReturn(token).when(credentials).getToken();
         doReturn(userDetails).when(credentials).getUser();
         doReturn(Optional.of(credentials)).when(accessTokensStorage).findCredentials(username);
@@ -165,7 +169,7 @@ class UserServiceImplTest extends TestModelFactory {
     @Test
     void shouldNotLoadUserByUsername_TokenInBlackList() {
         String token = "token";
-        AccessCredentialsEntity credentials = mock(AccessCredentialsEntity.class);
+        AccessCredentialsLocalEntity credentials = mock(AccessCredentialsLocalEntity.class);
         doReturn(token).when(credentials).getToken();
         doReturn(Optional.of(credentials)).when(accessTokensStorage).findCredentials(username);
         doReturn(true).when(accessTokensStorage).isInBlackList(token);

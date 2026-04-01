@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.authentication.service.infinispan;
+package oleg.sopilnyak.test.authentication.service.infinispan.model;
 
 import org.infinispan.protostream.GeneratedSchema;
 import org.infinispan.protostream.annotations.ProtoSchema;
