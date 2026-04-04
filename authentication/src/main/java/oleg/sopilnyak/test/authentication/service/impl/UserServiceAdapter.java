@@ -161,7 +161,7 @@ public abstract class UserServiceAdapter implements UserService {
         profile.getPermissions().stream().map(Enum::name)
                 .map(permission -> new SimpleGrantedAuthority(validAuthority(permission)))
                 .forEach(authorities::add);
-        return authorities;
+        return authorities.stream().toList();
     }
 
     private static String validAuthority(final String authority) {

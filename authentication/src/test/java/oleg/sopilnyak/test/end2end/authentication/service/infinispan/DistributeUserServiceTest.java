@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.end2end.authentication.service.local;
+package oleg.sopilnyak.test.end2end.authentication.service.infinispan;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,7 +11,7 @@ import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.authentication.service.impl.UserServiceAdapter;
-import oleg.sopilnyak.test.authentication.service.local.LocalAccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.infinispan.DistributeAccessTokensStorage;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
@@ -47,8 +47,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-@ActiveProfiles("local")
-class LocalUserServiceTest extends MysqlTestModelFactory {
+@ActiveProfiles("distribute")
+class DistributeUserServiceTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
     @MockitoSpyBean
@@ -73,7 +73,7 @@ class LocalUserServiceTest extends MysqlTestModelFactory {
     void checkAssociatedServices() {
         assertThat(entityMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
-        assertThat(accessTokensStorage).isNotNull().isInstanceOf(LocalAccessTokensStorage.class);
+        assertThat(accessTokensStorage).isNotNull().isInstanceOf(DistributeAccessTokensStorage.class);
         assertThat(service).isNotNull().isInstanceOf(UserServiceAdapter.class);
     }
 

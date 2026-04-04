@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -47,7 +49,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        LocalApplicationAccessFacade.class, LocalAccessTokensStorage.class, LocalUserService.class, JwtServiceImpl.class
+        LocalApplicationAccessFacade.class, LocalAccessTokensStorage.class, LocalUserService.class,
+        JwtServiceImpl.class
 })
 class LocalApplicationAccessFacadeTest extends TestModelFactory {
     @MockitoBean
@@ -109,6 +112,7 @@ class LocalApplicationAccessFacadeTest extends TestModelFactory {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void shouldGrantCredentialsForUsernamePassword() throws NoSuchAlgorithmException {
         // preparing test data
         Long profileId = 1L;
@@ -143,7 +147,9 @@ class LocalApplicationAccessFacadeTest extends TestModelFactory {
         verify(userService).prepareUserDetails(username, password);
         verify(persistenceFacade).findPrincipalProfileByLogin(username);
         verify(persistenceFacade).findAuthorityPersonByProfileId(profileId);
-        verify(userService).toModel(personId, username, password, builtUserDetails.getAuthorities());
+        ArgumentCaptor<Collection> captor = ArgumentCaptor.forClass(Collection.class);
+        verify(userService).toModel(eq(personId), eq(username), eq(password), captor.capture());
+        assertThat(captor.getValue()).containsAll(builtUserDetails.getAuthorities());
         verify(facade).grantCredentialsFor(builtUserDetails);
         verify(facade).buildFor(builtUserDetails);
     }

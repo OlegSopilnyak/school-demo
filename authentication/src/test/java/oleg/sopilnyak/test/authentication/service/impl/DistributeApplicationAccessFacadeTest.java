@@ -1,7 +1,6 @@
-package oleg.sopilnyak.test.end2end.authentication.service.local;
+package oleg.sopilnyak.test.authentication.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -10,8 +9,7 @@ import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConf
 import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 import oleg.sopilnyak.test.authentication.service.AccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.UserService;
-import oleg.sopilnyak.test.authentication.service.impl.UserServiceAdapter;
-import oleg.sopilnyak.test.authentication.service.local.LocalAccessTokensStorage;
+import oleg.sopilnyak.test.authentication.service.infinispan.DistributeAccessTokensStorage;
 import oleg.sopilnyak.test.persistence.configuration.PersistenceConfiguration;
 import oleg.sopilnyak.test.persistence.sql.entity.organization.AuthorityPersonEntity;
 import oleg.sopilnyak.test.persistence.sql.entity.profile.PrincipalProfileEntity;
@@ -29,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +46,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
         "school.spring.jpa.show-sql=true",
         "spring.liquibase.change-log=classpath:/database/changelog/dbChangelog_main.xml"
 })
-@ActiveProfiles("local")
-class LocalUserServiceTest extends MysqlTestModelFactory {
+@ActiveProfiles("distribute")
+class DistributeApplicationAccessFacadeTest extends MysqlTestModelFactory {
     @Autowired
     EntityMapper entityMapper;
     @MockitoSpyBean
@@ -73,7 +72,7 @@ class LocalUserServiceTest extends MysqlTestModelFactory {
     void checkAssociatedServices() {
         assertThat(entityMapper).isNotNull();
         assertThat(persistenceFacade).isNotNull();
-        assertThat(accessTokensStorage).isNotNull().isInstanceOf(LocalAccessTokensStorage.class);
+        assertThat(accessTokensStorage).isNotNull().isInstanceOf(DistributeAccessTokensStorage.class);
         assertThat(service).isNotNull().isInstanceOf(UserServiceAdapter.class);
     }
 
@@ -130,7 +129,7 @@ class LocalUserServiceTest extends MysqlTestModelFactory {
         profileEntity.setPermissions(Set.of(Permission.EDU_GET));
         merge(profileEntity);
 
-        var result = assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
+        var result = Assertions.assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
 
         // check the result
         assertThat(result).isNotNull().isInstanceOf(SchoolAccessDeniedException.class);
@@ -150,7 +149,7 @@ class LocalUserServiceTest extends MysqlTestModelFactory {
         merge(profileEntity);
         Long profileId = profileEntity.getId();
 
-        var result = assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
+        var result = Assertions.assertThrows(Exception.class, () -> service.prepareUserDetails(username, password));
 
         // check the result
         assertThat(result).isNotNull().isInstanceOf(UsernameNotFoundException.class);
