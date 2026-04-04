@@ -59,7 +59,12 @@ public abstract class ApplicationAccessFacadeAdapter implements ApplicationAcces
     public Optional<AccessCredentials> grantCredentialsFor(
             final String username, final String password
     ) throws SchoolAccessDeniedException {
-        return userService.prepareUserDetails(username, password).flatMap(this::grantCredentialsFor);
+        getLogger().debug("Granting credentials for {}...", username);
+        final Optional<AccessCredentials> granted =
+                userService.prepareUserDetails(username, password).flatMap(this::grantCredentialsFor);
+        granted.ifPresent(credentials -> tokenStorage.storeFor(username, credentials));
+        getLogger().debug("{}Granted credentials for {}.", granted.isEmpty() ? "Not " : "", username);
+        return granted;
     }
 
     /**
@@ -143,7 +148,7 @@ public abstract class ApplicationAccessFacadeAdapter implements ApplicationAcces
         final AccessCredentials signedIn = tokenStorage.findCredentials(username)
                 .orElseThrow(() -> new SchoolAccessDeniedException("Person with username: '" + username + "' isn't signed in"));
         // making new credentials tokens pair
-        getLogger().debug("Rebuilding tokens for person with username '{}' using access {}", username,  signedIn);
+        getLogger().debug("Rebuilding tokens for person with username '{}' using access {}", username, signedIn);
         return rebuildCredentialsFor(signedIn, username);
     }
 

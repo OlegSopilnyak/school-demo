@@ -112,7 +112,7 @@ class LocalApplicationAccessFacadeTest extends TestModelFactory {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void shouldGrantCredentialsForUsernamePassword() throws NoSuchAlgorithmException {
         // preparing test data
         Long profileId = 1L;
@@ -291,7 +291,7 @@ class LocalApplicationAccessFacadeTest extends TestModelFactory {
     @Test
     void shouldNotRefreshCredentialsFor_NotSignedIn() {
         // preparing test data
-        String username = "username";
+        String username = "username-not-signed-in";
         String refreshToken = "refresh-token";
         // preparing tokens storage
         doReturn(false).when(jwtService).isTokenExpired(refreshToken);
