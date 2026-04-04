@@ -1,20 +1,33 @@
 package oleg.sopilnyak.test.authentication.service.infinispan.model;
 
 import oleg.sopilnyak.test.authentication.model.AccessCredentialsType;
-import oleg.sopilnyak.test.authentication.model.UserDetailsType;
 
+import org.infinispan.api.annotations.indexing.Indexed;
+import org.infinispan.protostream.annotations.ProtoFactory;
 import org.infinispan.protostream.annotations.ProtoField;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
 
 /**
  * Model: Protobuf Entity for school's services access tokens
  */
+@Setter
+@Indexed
+@EqualsAndHashCode
 public class AccessCredentialsProto implements AccessCredentialsType {
     // the current valid access token
     private String token;
     // valid token for refreshing current one
     private String refreshToken;
     // user-details used for tokens generation
-    private UserDetailsType user;
+    private UserDetailsProto user;
+
+    @Builder
+    @ProtoFactory
+    public static AccessCredentialsProto of(String token, String refreshToken, UserDetailsProto user) {
+        return new AccessCredentialsProto(token, refreshToken, user);
+    }
 
     @ProtoField(number = 1)
     public String getToken() {
@@ -26,20 +39,15 @@ public class AccessCredentialsProto implements AccessCredentialsType {
         return refreshToken;
     }
 
-    @ProtoField(number = 3, javaType =  UserDetailsProto.class)
-    public UserDetailsType getUser() {
+    @ProtoField(number = 3)
+    public UserDetailsProto getUser() {
         return user;
     }
 
-    public void setToken(String token) {
+    // private methods
+    private AccessCredentialsProto(String token, String refreshToken, UserDetailsProto user) {
         this.token = token;
-    }
-
-    public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
-    }
-
-    public void setUser(UserDetailsType user) {
         this.user = user;
     }
 }

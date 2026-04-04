@@ -8,6 +8,7 @@ import oleg.sopilnyak.test.authentication.service.impl.JwtServiceImpl;
 import oleg.sopilnyak.test.authentication.service.infinispan.DistributeAccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.infinispan.DistributeApplicationAccessFacade;
 import oleg.sopilnyak.test.authentication.service.infinispan.DistributeUserService;
+import oleg.sopilnyak.test.authentication.service.infinispan.model.DistributeSchemaImpl;
 import oleg.sopilnyak.test.authentication.service.local.LocalAccessTokensStorage;
 import oleg.sopilnyak.test.authentication.service.local.LocalApplicationAccessFacade;
 import oleg.sopilnyak.test.authentication.service.local.LocalUserService;
@@ -40,12 +41,17 @@ public class JwtConfiguration {
     @Profile("distribute")
     @SneakyThrows
     public DefaultCacheManager infinispanEmbeddedCacheManager() {
-        // Setup up a clustered cache manager
         final GlobalConfigurationBuilder global = GlobalConfigurationBuilder.defaultClusteredBuilder();
+        // Preparing clustered cache manager
         global.transport().defaultTransport()
                 .clusterName(clusterName)
                 .machineId(InetAddress.getLocalHost().getHostName())
         ;
+        // adding model entities serialization schema
+        global.serialization()
+                .addContextInitializer(new DistributeSchemaImpl())
+        ;
+        // Setting up a configured clustered cache manager
         return new DefaultCacheManager(global.build());
     }
 

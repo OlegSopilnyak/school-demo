@@ -6,6 +6,7 @@ import oleg.sopilnyak.test.authentication.service.JwtService;
 import oleg.sopilnyak.test.authentication.service.UserService;
 import oleg.sopilnyak.test.authentication.service.impl.ApplicationAccessFacadeAdapter;
 import oleg.sopilnyak.test.authentication.service.infinispan.model.AccessCredentialsProto;
+import oleg.sopilnyak.test.authentication.service.infinispan.model.UserDetailsProto;
 import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 
 import org.slf4j.Logger;
@@ -28,11 +29,11 @@ public class DistributeApplicationAccessFacade extends ApplicationAccessFacadeAd
      */
     @Override
     protected AccessCredentials buildFor(final UserDetailsType userDetails) {
-        final AccessCredentialsProto entity = new AccessCredentialsProto();
-        entity.setUser(userDetails);
-        entity.setToken(jwtService.generateAccessToken(userDetails));
-        entity.setRefreshToken(jwtService.generateRefreshToken(userDetails));
-        return entity;
+        return AccessCredentialsProto.of(
+                jwtService.generateAccessToken(userDetails),
+                jwtService.generateRefreshToken(userDetails),
+                (UserDetailsProto) userDetails
+        );
     }
 
     /**

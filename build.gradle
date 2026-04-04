@@ -30,9 +30,12 @@ subprojects {
 
     dependencies {
         // distributed cache (infinispan) dependencies
-        implementation "org.infinispan:infinispan-core:+"
-        compileOnly 'org.infinispan:infinispan-component-annotations:+'
-        annotationProcessor "org.infinispan.protostream:protostream-processor:+"
+        // Import the BOM to manage versions
+        implementation platform("org.infinispan:infinispan-bom:+")
+
+        implementation 'org.infinispan:infinispan-api'
+        implementation 'org.infinispan:infinispan-core'
+        compileOnly 'org.infinispan:infinispan-component-annotations'
     }
 
     test {

@@ -7,6 +7,7 @@ import oleg.sopilnyak.test.authentication.service.infinispan.model.UserDetailsPr
 import oleg.sopilnyak.test.school.common.persistence.PersistenceFacade;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.springframework.security.core.GrantedAuthority;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +31,14 @@ public class DistributeUserService extends UserServiceAdapter {
      * @return the instance of user-details-type
      */
     @Override
-    protected UserDetailsType toModel(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
-        final UserDetailsProto entity = new UserDetailsProto();
-        entity.setId(id);
-        entity.setUsername(username);
-        entity.setPassword(password);
-        entity.setAuthorityNames(authorities.stream().map(GrantedAuthority::getAuthority).toList());
-        return entity;
+    protected UserDetailsType toModel(
+            final Long id, final String username, final String password,
+            final Collection<? extends GrantedAuthority> authorities
+    ) {
+        return UserDetailsProto.builder()
+                .id(id).username(username).password(password)
+                .authorityNames(authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet()))
+                .build();
     }
 
     /**

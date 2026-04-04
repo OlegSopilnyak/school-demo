@@ -7,6 +7,8 @@ plugins {
 
 dependencies {
     dependencies {
+        annotationProcessor 'org.infinispan.protostream:protostream-processor'
+
         implementation project(":micro-core")
         implementation project(":persistence")
 
