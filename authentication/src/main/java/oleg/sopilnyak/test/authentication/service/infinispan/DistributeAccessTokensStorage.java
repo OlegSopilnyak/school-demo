@@ -70,7 +70,13 @@ public class DistributeAccessTokensStorage implements AccessTokensStorage {
     @Override
     public void storeFor(final String username, final AccessCredentials credentials) {
         log.debug("Storing access credentials for {}", username);
-        accessCredentials.put(username, (AccessCredentialsProto) credentials);
+        if (credentials instanceof AccessCredentialsProto protoCredentials) {
+            accessCredentials.put(username, protoCredentials);
+            log.debug("Stored access credentials for {}", username);
+        } else {
+            log.warn("Unsupported access credentials for '{}' wrong one is: {}", username, credentials);
+            throw new ClassCastException("Credentials is not of type AccessCredentialsProto");
+        }
     }
 
     /**
