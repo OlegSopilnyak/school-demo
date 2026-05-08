@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration(classes = {PersistenceConfiguration.class})
 @TestPropertySource(properties = {"school.spring.jpa.show-sql=true", "school.hibernate.hbm2ddl.auto=update"})
 @Rollback
+@SuppressWarnings("unchecked")
 class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Autowired
     PersonProfileRepository repository;
@@ -38,7 +39,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldCreateStudentProfileEntity() {
         StudentProfileEntity profile = StudentProfileEntity.builder()
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2"))
                 .build();
 
@@ -52,7 +53,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldDeleteStudentProfileEntity() {
         StudentProfileEntity profile = StudentProfileEntity.builder()
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(Map.of("key-1", "1", "key-2", "2"))
                 .build();
         repository.saveAndFlush(profile);
@@ -68,7 +69,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void shouldUpdateStudentProfileExtras() {
         StudentProfileEntity profile = StudentProfileEntity.builder()
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(new HashMap<>(Map.of("key-1", "1", "key-2", "2")))
                 .build();
         repository.saveAndFlush(profile);
@@ -76,7 +77,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         StudentProfileEntity entity = (StudentProfileEntity) repository.findById(id).orElse(null);
         assertThat(entity).isEqualTo(profile);
         StudentProfileEntity another = StudentProfileEntity.builder()
-                .id(id).photoUrl("photo-url-2").email("e-mail-2").phone("phone-2").location("location-2")
+                .id(id).photoUrl("photo-url-2").email("e-mail-2@test.com").phone("phone-2").location("location-2")
                 .extras(new HashMap<>(Map.of("key-3", "10", "key-4", "20")))
                 .build();
         repository.saveAndFlush(another);
@@ -92,7 +93,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
                 .username("username")
                 .role(Role.SUPPORT_STAFF)
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2"))
                 .build();
 
@@ -108,7 +109,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
                 .username("username")
                 .role(Role.SUPPORT_STAFF)
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2")).build();
         repository.saveAndFlush(profile);
         assertThat(repository.findById(profile.getId())).contains(profile);
@@ -122,7 +123,7 @@ class PersonProfileRepositoryTest extends MysqlTestModelFactory {
         PrincipalProfileEntity profile = PrincipalProfileEntity.builder()
                 .username("username")
                 .role(Role.SUPPORT_STAFF)
-                .photoUrl("photo-url").email("e-mail").phone("phone").location("location")
+                .photoUrl("photo-url").email("e-mail@test.com").phone("phone").location("location")
                 .extras(Map.of("key1", "1", "key2", "2"))
                 .build();
         repository.saveAndFlush(profile);
