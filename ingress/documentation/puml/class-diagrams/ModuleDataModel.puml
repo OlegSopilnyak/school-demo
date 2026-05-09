@@ -3,6 +3,17 @@
 @startuml
 !pragma layout smetana
 
+class AccessCredentialsDto {
+	{field} +id : Long
+	{field} +refreshToken : String
+	{field} +token : String
+	{method}  {static} +builder () : AccessCredentialsDtoBuilder
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
 class AuthorityPersonDto {
 	{field} +faculties : List
 	{field} +title : String
@@ -15,6 +26,8 @@ class AuthorityPersonDto {
 
 abstract class BaseDto {
 	{field} +id : Long
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
 	{method} +toString () : String
 }
 
@@ -77,7 +90,9 @@ class FacultyDto {
 
 
 class PrincipalProfileDto {
-	{field} +login : String
+	{field} +permissions : Set
+	{field} +role : Role
+	{field} +username : String
 	{method}  {static} +builder () : PrincipalProfileDtoBuilder
 	{method} +equals ( o : Object ) : boolean
 	{method} +hashCode () : int

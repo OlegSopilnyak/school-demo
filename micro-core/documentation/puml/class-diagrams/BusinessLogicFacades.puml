@@ -75,11 +75,10 @@ interface OrganizationFacade {
 
 interface PersonProfileFacade {
 	{field} {static} +NAMESPACE : String
-	{method}  {abstract} +createOrUpdateActionId () : String
-	{method}  {abstract} +deleteByIdActionId () : String
 	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
-	{method}  {abstract} +findByIdActionId () : String
 	{method}  {abstract} +personProfileAction ( actionId : String , parameters : Object[] ) : Object
+	{method} +toLong ( argument : Object ) : Long
+	{method} +toPersonProfile ( argument : Object ) : PersonProfile
 }
 
 
@@ -89,9 +88,6 @@ interface PrincipalProfileFacade {
 	{field} {static} +DELETE_BY_ID : String
 	{field} {static} +FIND_BY_ID : String
 	{field} {static} +SUBSPACE : String
-	{method} +createOrUpdateActionId () : String
-	{method} +deleteByIdActionId () : String
-	{method} +findByIdActionId () : String
 	{method} +getName () : String
 	{method} +validActions () : List
 }
@@ -103,9 +99,6 @@ interface StudentProfileFacade {
 	{field} {static} +DELETE_BY_ID : String
 	{field} {static} +FIND_BY_ID : String
 	{field} {static} +SUBSPACE : String
-	{method} +createOrUpdateActionId () : String
-	{method} +deleteByIdActionId () : String
-	{method} +findByIdActionId () : String
 	{method} +getName () : String
 	{method} +validActions () : List
 }

@@ -15,6 +15,7 @@
         <sping.boot.version>[3.5.0,3.5.5)</sping.boot.version>
         <lombok.verion>[1.,)</lombok.verion>
         <map-struct.version>[1.,)</map-struct.version>
+        <version.infinispan>15.2.6.Final</version.infinispan>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.application.version>0.10.0-SNAPSHOT</project.application.version>
@@ -37,7 +38,7 @@
 
     <modules>
         <module>micro-core</module>
-<!--        <module>authentication</module>-->
+        <module>authentication</module>
         <module>bootstrap</module>
         <module>ingress</module>
         <module>business-logic</module>
@@ -56,6 +57,11 @@
             <dependency>
                 <groupId>oleg.sopilnyak.test</groupId>
                 <artifactId>micro-core</artifactId>
+                <version>${project.application.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>oleg.sopilnyak.test</groupId>
+                <artifactId>authentication</artifactId>
                 <version>${project.application.version}</version>
             </dependency>
             <dependency>
@@ -92,6 +98,13 @@
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct</artifactId>
                 <version>${map-struct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-bom</artifactId>
+                <version>${version.infinispan}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

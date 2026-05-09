@@ -3,10 +3,12 @@ package oleg.sopilnyak.test.school.common.test;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
+import oleg.sopilnyak.test.school.common.model.authentication.AccessCredentials;
 import oleg.sopilnyak.test.school.common.model.authentication.Permission;
 import oleg.sopilnyak.test.school.common.model.authentication.Role;
 import oleg.sopilnyak.test.school.common.model.person.profile.PersonProfile;
@@ -275,7 +277,9 @@ public class TestModelFactory {
                 .location("location")
                 .photoUrl("photo-url")
                 .username("login-" + id)
+                .signature("signature-" + id)
                 .role(Role.SUPPORT_STAFF)
+                .permissions(Set.of(Permission.EDU_CREATE, Permission.EDU_UPDATE))
                 .build();
     }
 
@@ -313,6 +317,9 @@ public class TestModelFactory {
         assertPersonProfilesEquals(actual, expected, checkId);
         assertThat(actual.getUsername()).isEqualTo(expected.getUsername());
         assertThat(actual.isPassword("")).isEqualTo(expected.isPassword(""));
+        assertThat(actual.getRole()).isEqualTo(expected.getRole());
+        assertThat(actual.getPermissions()).hasSameSizeAs(expected.getPermissions());
+        assertThat(actual.getPermissions()).containsAll(expected.getPermissions());
     }
 
     protected void assertProfilesEquals(StudentProfile actual, StudentProfile expected) {
@@ -477,6 +484,11 @@ public class TestModelFactory {
         assertStudentsGroupLists(expected, result, true);
     }
 
+    protected void assertAccessCredentialsEquals(AccessCredentials result, AccessCredentials expected) {
+        assertThat(expected.getToken()).isEqualTo(result.getToken());
+        assertThat(expected.getRefreshToken()).isEqualTo(result.getRefreshToken());
+    }
+
 
     @Data
     @Builder
@@ -534,7 +546,6 @@ public class TestModelFactory {
 
     @Data
     @SuperBuilder
-    @NoArgsConstructor
     protected static class FakePersonProfile implements PersonProfile {
         private Long id;
         private String photoUrl;
@@ -552,18 +563,18 @@ public class TestModelFactory {
         }
     }
 
-    @Data
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakeStudentsProfile extends FakePersonProfile implements StudentProfile {
     }
 
-    @Data
+    @Setter
+    @Getter
     @EqualsAndHashCode(callSuper = true)
     @SuperBuilder
     protected static class FakePrincipalProfile extends FakePersonProfile implements PrincipalProfile {
-        // user-name for principal person's sign in
         private String username;
+        private String signature;
         // principal person role in the school
         private Role role;
         // principal person permissions in the school activities
@@ -580,5 +591,17 @@ public class TestModelFactory {
         public boolean isPassword(String password) {
             return false;
         }
+    }
+
+    @Data
+    @Builder
+    protected static class FakeAccessCredentials implements AccessCredentials {
+        // current valid token
+        private String token;
+        // valid token for refreshing expired one
+        private String refreshToken;
+        // System-ID of the model's item
+        @Builder.Default
+        private Long id = 0L;
     }
 }

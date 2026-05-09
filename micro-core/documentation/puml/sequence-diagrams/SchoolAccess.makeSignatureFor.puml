@@ -5,7 +5,7 @@
 participant SchoolAccess
 
 activate SchoolAccess
-	SchoolAccess -> SchoolAccess : getLogin
+	SchoolAccess -> SchoolAccess : getUsername
 	activate SchoolAccess
 		SchoolAccess --> SchoolAccess : String
 	deactivate SchoolAccess

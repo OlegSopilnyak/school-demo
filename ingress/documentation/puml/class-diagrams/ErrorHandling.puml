@@ -21,9 +21,11 @@ class ActionErrorMessage {
 class RestResponseEntityExceptionHandler {
 	{field} {static} -log : Logger
 	{method}  {static} -errorMessageFor ( status : HttpStatus , ex : Throwable , req : WebRequest ) : ActionErrorMessage
+	{method} +onException ( exception : AuthorizationDeniedException , req : WebRequest ) : ActionErrorMessage
 	{method} +onException ( exception : CannotProcessActionException , request : WebRequest ) : ResponseEntity
 	{method} +onException ( exception : EntityNotFoundException , req : WebRequest ) : ActionErrorMessage
 	{method} +onException ( exception : GeneralCannotDeleteException , request : WebRequest ) : ResponseEntity
+	{method} +onException ( exception : MethodArgumentNotValidException , request : WebRequest ) : ResponseEntity
 	{method} +onException ( exception : SchoolAccessDeniedException , req : WebRequest ) : ActionErrorMessage
 	{method} +onException ( exception : UnableProcessEntityException , req : WebRequest ) : ActionErrorMessage
 	{method} -prepareResponseFor ( exception : RuntimeException , request : WebRequest ) : ActionErrorMessage

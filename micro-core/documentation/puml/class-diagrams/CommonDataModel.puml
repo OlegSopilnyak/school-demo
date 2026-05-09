@@ -4,6 +4,7 @@
 !pragma layout smetana
 
 interface AccessCredentials {
+	{method} +getId () : Long
 	{method}  {abstract} +getRefreshToken () : String
 	{method}  {abstract} +getToken () : String
 }
@@ -45,6 +46,23 @@ interface Faculty {
 }
 
 
+enum Permission {
+	{field} +Permission:Can create new instances of AuthorityPersons
+	{field} +Permission:Can create new instances of Faculties or StudentsGroups
+	{field} +Permission:Can create new instances of Students or Courses
+	{field} +Permission:Can get the instance of AuthorityPerson, Faculty or StudentsGroup
+	{field} +Permission:Can get the instance of Profile
+	{field} +Permission:Can get the instance of Student or Course
+	{field} +Permission:Can look for AuthorityPersons, Faculties or StudentsGroups
+	{field} +Permission:Can look for Students or Courses
+	{field} +Permission:Can remove the instance of AuthorityPerson, Faculty or StudentsGroup
+	{field} +Permission:Can remove the instance of Student or Course
+	{field} +Permission:Can update the instance of AuthorityPerson, Faculty or StudentsGroup
+	{field} +Permission:Can update the instance of Profile
+	{field} +Permission:Can update the instance of Student or Course
+}
+
+
 interface Person {
 	{method}  {abstract} +getFirstName () : String
 	{method}  {abstract} +getGender () : String
@@ -68,8 +86,19 @@ interface PrincipalProfile {
 }
 
 
+enum Role {
+	{field} +The staff role: School Deputy Principal
+	{field} +The staff role: School Head Teacher
+	{field} +The staff role: School Principal
+	{field} +The staff role: School Support Staff
+	{field} +The staff role: School Teacher
+}
+
+
 interface SchoolAccess {
-	{method}  {abstract} +getLogin () : String
+	{method}  {abstract} +getPermissions () : Set
+	{method}  {abstract} +getRole () : Role
+	{method}  {abstract} +getUsername () : String
 	{method} +isPassword ( password : String ) : boolean
 	{method} +makeSignatureFor ( password : String ) : String
 }
@@ -95,6 +124,7 @@ interface StudentsGroup {
 
 
 
+AccessCredentials ..|>  BaseType
 AuthorityPerson ..|>  Person
 Course ..|>  BaseType
 Faculty ..|>  BaseType
