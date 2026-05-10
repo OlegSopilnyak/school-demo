@@ -1,0 +1,31 @@
+[plantuml,UserService.loadUserByUsername.puml.png,png]
+----
+@startuml
+
+participant UserServiceAdapter
+participant AccessTokensStorage
+participant AccessCredentials
+participant AccessCredentialsType
+
+activate UserServiceAdapter
+	UserServiceAdapter -> AccessTokensStorage : findCredentials
+	activate AccessTokensStorage
+		AccessTokensStorage --> UserServiceAdapter : Optional
+	deactivate AccessTokensStorage
+	UserServiceAdapter -> AccessCredentials : getToken
+	activate AccessCredentials
+		AccessCredentials --> UserServiceAdapter : String
+	deactivate AccessCredentials
+	UserServiceAdapter -> AccessTokensStorage : isInBlackList
+	activate AccessTokensStorage
+		AccessTokensStorage --> UserServiceAdapter : boolean
+	deactivate AccessTokensStorage
+	UserServiceAdapter -> AccessCredentialsType : getUser
+	activate AccessCredentialsType
+		AccessCredentialsType --> UserServiceAdapter : UserDetailsType
+	deactivate AccessCredentialsType
+deactivate UserServiceAdapter
+
+@enduml
+
+----

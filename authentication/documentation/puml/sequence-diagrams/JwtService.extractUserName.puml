@@ -1,0 +1,25 @@
+[plantuml,JwtService.extractUserName.puml.png,png]
+----
+@startuml
+
+participant JwtServiceImpl
+participant Jwts
+
+activate JwtServiceImpl
+	JwtServiceImpl -> JwtServiceImpl : extractClaim
+	activate JwtServiceImpl
+		JwtServiceImpl -> JwtServiceImpl : extractAllClaims
+		activate JwtServiceImpl
+			JwtServiceImpl -> Jwts : parser
+			activate Jwts
+				Jwts --> JwtServiceImpl : JwtParserBuilder
+			deactivate Jwts
+			JwtServiceImpl --> JwtServiceImpl : Claims
+		deactivate JwtServiceImpl
+		JwtServiceImpl --> JwtServiceImpl : Object
+	deactivate JwtServiceImpl
+deactivate JwtServiceImpl
+
+@enduml
+
+----

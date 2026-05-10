@@ -1,0 +1,35 @@
+[plantuml,DistributeAccessTokensStorage.toBlackList.puml.png,png]
+----
+@startuml
+
+participant DistributeAccessTokensStorage
+participant StringUtils
+participant Cache
+participant ProhibitedTokensProto
+
+activate DistributeAccessTokensStorage
+	DistributeAccessTokensStorage -> StringUtils : hasText
+	activate StringUtils
+		StringUtils --> DistributeAccessTokensStorage : boolean
+	deactivate StringUtils
+	DistributeAccessTokensStorage -> Cache : computeIfAbsent
+	activate Cache
+		Cache -> Cache : computeIfAbsent
+		activate Cache
+			Cache --> Cache : Object
+		deactivate Cache
+		Cache --> DistributeAccessTokensStorage : Object
+	deactivate Cache
+	DistributeAccessTokensStorage -> ProhibitedTokensProto : getProhibitedTokens
+	activate ProhibitedTokensProto
+		ProhibitedTokensProto --> DistributeAccessTokensStorage : Collection
+	deactivate ProhibitedTokensProto
+	DistributeAccessTokensStorage -> ProhibitedTokensProto : of
+	activate ProhibitedTokensProto
+		ProhibitedTokensProto --> DistributeAccessTokensStorage : ProhibitedTokensProto
+	deactivate ProhibitedTokensProto
+deactivate DistributeAccessTokensStorage
+
+@enduml
+
+----

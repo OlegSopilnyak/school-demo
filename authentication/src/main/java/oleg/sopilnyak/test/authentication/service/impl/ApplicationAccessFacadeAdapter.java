@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 /**
  * Service Implementation Adapter: service-facade for access-credentials (abstract storage)
  */
-//@Slf4j
 @RequiredArgsConstructor
 public abstract class ApplicationAccessFacadeAdapter implements ApplicationAccessFacade {
     // service to find user-details for signed-in users

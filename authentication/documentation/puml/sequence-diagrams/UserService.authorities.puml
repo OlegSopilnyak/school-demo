@@ -1,0 +1,29 @@
+[plantuml,UserService.authorities.puml.png,png]
+----
+@startuml
+
+participant UserServiceAdapter
+participant SchoolAccess
+
+activate UserServiceAdapter
+	UserServiceAdapter -> SchoolAccess : getUsername
+	activate SchoolAccess
+		SchoolAccess --> UserServiceAdapter : String
+	deactivate SchoolAccess
+	UserServiceAdapter -> SchoolAccess : getRole
+	activate SchoolAccess
+		SchoolAccess --> UserServiceAdapter : Role
+	deactivate SchoolAccess
+	UserServiceAdapter -> UserServiceAdapter : validAuthority
+	activate UserServiceAdapter
+		UserServiceAdapter --> UserServiceAdapter : String
+	deactivate UserServiceAdapter
+	UserServiceAdapter -> SchoolAccess : getPermissions
+	activate SchoolAccess
+		SchoolAccess --> UserServiceAdapter : Set
+	deactivate SchoolAccess
+deactivate UserServiceAdapter
+
+@enduml
+
+----

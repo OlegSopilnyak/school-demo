@@ -1,0 +1,51 @@
+[plantuml,InfinispanDataModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class AccessCredentialsProto {
+	{field} +refreshToken : String
+	{field} +token : String
+	{method}  {static} +builder () : AccessCredentialsProtoBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method}  {static} +of ( token : String , refreshToken : String , user : UserDetailsProto ) : AccessCredentialsProto
+}
+
+
+interface DistributeSchema {
+}
+
+
+class ProhibitedTokensProto {
+	{field} +prohibitedTokens : Collection
+	{method} +hasToken ( token : String ) : boolean
+	{method} +isEmpty () : boolean
+	{method}  {static} +of ( prohibitedTokens : Collection ) : ProhibitedTokensProto
+}
+
+
+class UserDetailsProto {
+	{field} +authorityNames : Collection
+	{field} +id : Long
+	{field} +password : String
+	{field} +username : String
+	{method} -authority ( authorityName : String ) : SimpleGrantedAuthority
+	{method}  {static} +builder () : UserDetailsProtoBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +getAuthorities () : Collection
+	{method} +hashCode () : int
+	{method}  {static} +of ( id : Long , username : String , password : String , authorityNames : Collection ) : UserDetailsProto
+}
+
+
+
+
+AccessCredentialsProto -->  UserDetailsProto : user
+
+hide methods
+
+@enduml
+----

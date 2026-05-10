@@ -1,0 +1,34 @@
+[plantuml,JwtService.generateAccessToken.puml.png,png]
+----
+@startuml
+
+participant JwtServiceImpl
+participant Jwts
+participant UserDetails
+
+activate JwtServiceImpl
+	JwtServiceImpl -> JwtServiceImpl : builderForUser
+	activate JwtServiceImpl
+		JwtServiceImpl -> Jwts : builder
+		activate Jwts
+			Jwts --> JwtServiceImpl : JwtBuilder
+		deactivate Jwts
+		JwtServiceImpl -> UserDetails : getUsername
+		activate UserDetails
+			UserDetails --> JwtServiceImpl : String
+		deactivate UserDetails
+		JwtServiceImpl -> JwtServiceImpl : nowDate
+		activate JwtServiceImpl
+			JwtServiceImpl --> JwtServiceImpl : Date
+		deactivate JwtServiceImpl
+		JwtServiceImpl --> JwtServiceImpl : JwtBuilder
+	deactivate JwtServiceImpl
+	JwtServiceImpl -> JwtServiceImpl : nowDatePlus
+	activate JwtServiceImpl
+		JwtServiceImpl --> JwtServiceImpl : Date
+	deactivate JwtServiceImpl
+deactivate JwtServiceImpl
+
+@enduml
+
+----

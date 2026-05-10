@@ -1,0 +1,55 @@
+[plantuml,UserService.makeUserDetailsFor.puml.png,png]
+----
+@startuml
+
+participant UserServiceAdapter
+participant SchoolAccess
+participant BaseType
+participant AuthorityPersonPersistenceFacade
+
+activate UserServiceAdapter
+	UserServiceAdapter -> SchoolAccess : getUsername
+	activate SchoolAccess
+		SchoolAccess --> UserServiceAdapter : String
+	deactivate SchoolAccess
+	UserServiceAdapter -> UserServiceAdapter : authorities
+	activate UserServiceAdapter
+		UserServiceAdapter -> SchoolAccess : getUsername
+		activate SchoolAccess
+			SchoolAccess --> UserServiceAdapter : String
+		deactivate SchoolAccess
+		UserServiceAdapter -> SchoolAccess : getRole
+		activate SchoolAccess
+			SchoolAccess --> UserServiceAdapter : Role
+		deactivate SchoolAccess
+		UserServiceAdapter -> UserServiceAdapter : validAuthority
+		activate UserServiceAdapter
+			UserServiceAdapter --> UserServiceAdapter : String
+		deactivate UserServiceAdapter
+		UserServiceAdapter -> SchoolAccess : getPermissions
+		activate SchoolAccess
+			SchoolAccess --> UserServiceAdapter : Set
+		deactivate SchoolAccess
+		UserServiceAdapter --> UserServiceAdapter : Collection
+	deactivate UserServiceAdapter
+	UserServiceAdapter -> BaseType : getId
+	activate BaseType
+		BaseType --> UserServiceAdapter : Long
+	deactivate BaseType
+	UserServiceAdapter -> AuthorityPersonPersistenceFacade : findAuthorityPersonByProfileId
+	activate AuthorityPersonPersistenceFacade
+		AuthorityPersonPersistenceFacade --> UserServiceAdapter : Optional
+	deactivate AuthorityPersonPersistenceFacade
+	UserServiceAdapter -> BaseType : getId
+	activate BaseType
+		BaseType --> UserServiceAdapter : Long
+	deactivate BaseType
+	UserServiceAdapter -> UserServiceAdapter : toModel
+	activate UserServiceAdapter
+		UserServiceAdapter --> UserServiceAdapter : UserDetailsType
+	deactivate UserServiceAdapter
+deactivate UserServiceAdapter
+
+@enduml
+
+----

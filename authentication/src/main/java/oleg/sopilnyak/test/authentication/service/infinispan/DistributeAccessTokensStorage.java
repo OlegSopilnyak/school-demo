@@ -46,7 +46,6 @@ public class DistributeAccessTokensStorage implements AccessTokensStorage {
         final ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.clustering().cacheMode(CacheMode.DIST_SYNC)
                 .encoding().key().mediaType(MediaType.TEXT_PLAIN_TYPE)
-//                .encoding().key().mediaType(MediaType.APPLICATION_PROTOSTREAM_TYPE)
                 .encoding().value().mediaType(MediaType.APPLICATION_PROTOSTREAM_TYPE);
         // prepare caches for infinispan
         accessCredentials = cacheManager.administration()
@@ -87,7 +86,7 @@ public class DistributeAccessTokensStorage implements AccessTokensStorage {
     @Override
     public void deleteCredentials(final String username) {
         log.debug("Deleting access credentials for {}", username);
-        accessCredentials.remove(username);
+        accessCredentials.evict(username);
     }
 
     /**

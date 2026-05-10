@@ -1,0 +1,199 @@
+= Authentication Application Module
+Doc Writer <oleg.sopilnyak@gmail.com>
+:doctype: article
+:toc: left
+:toclevels: 4
+:sectnums:
+:source-highlighter: rouge
+:imagesdir: ./images
+
+== Intro
+Each REST request of **ingress layer** preauthorizes by module's Filter.
+
+== Module parts
+
+=== The Module's Data Model
+
+.Model
+[%collapsible]
+====
+
+.Module Common Data Model
+include::../puml/class-diagrams/CommonDataModel.puml[]
+'''
+
+.Local Data Model
+include::../puml/class-diagrams/LocalDataModel.puml[]
+'''
+
+.Distributed Data Model
+include::../puml/class-diagrams/InfinispanDataModel.puml[]
+====
+
+'''
+=== Filter Requests Handler
+
+.Intercepted Requests Handler
+[%collapsible]
+====
+
+.Filter.doFilterInternal (main entry-point)
+include::../puml/sequence-diagrams/Filter.doFilterInternal.puml[]
+====
+
+'''
+=== Authentication Core
+
+.Core Facade of the Module
+[%collapsible]
+====
+
+.AuthenticationFacade.signIn  Sequence
+include::../puml/sequence-diagrams/AuthenticationFacade.signIn.puml[]
+
+'''
+
+.AuthenticationFacade.signOut Sequence
+include::../puml/sequence-diagrams/AuthenticationFacade.signOut.puml[]
+
+'''
+.AuthenticationFacade.refresh Sequence
+include::../puml/sequence-diagrams/AuthenticationFacade.refresh.puml[]
+====
+
+.Application Access Facade of the Module
+[%collapsible]
+====
+.ApplicationAccessFacade.findCredentialsFor Sequence
+include::../puml/sequence-diagrams/ApplicationAccessFacade.findCredentialsFor.puml[]
+
+'''
+.ApplicationAccessFacade.grantCredentialsFor Sequence
+include::../puml/sequence-diagrams/ApplicationAccessFacade.grantCredentialsFor.puml[]
+
+'''
+.ApplicationAccessFacade.revokeCredentialsFor Sequence
+include::../puml/sequence-diagrams/ApplicationAccessFacade.revokeCredentialsFor.puml[]
+
+'''
+.ApplicationAccessFacade.refreshCredentialsFor Sequence
+include::../puml/sequence-diagrams/ApplicationAccessFacade.refreshCredentialsFor.puml[]
+
+====
+
+'''
+=== UserDetails Service
+
+Service deals with UserDetails stuff
+
+.Actions
+[%collapsible]
+====
+.UserService.loadUserByUsername Sequence
+include::../puml/sequence-diagrams/UserService.loadUserByUsername.puml[]
+
+'''
+
+.UserService.prepareUserDetails Sequence
+include::../puml/sequence-diagrams/UserService.prepareUserDetails.puml[]
+
+'''
+
+.UserService.makeUserDetailsFor Sequence
+include::../puml/sequence-diagrams/UserService.makeUserDetailsFor.puml[]
+
+'''
+
+.UserService.authorities Sequence
+include::../puml/sequence-diagrams/UserService.authorities.puml[]
+====
+
+'''
+=== JWT Service
+
+Service deals with JWT Generation and Validation
+
+.Actions
+[%collapsible]
+====
+.JwtService.initSecurityKey Sequence
+include::../puml/sequence-diagrams/JwtService.initSecurityKey.puml[]
+
+'''
+.JwtService.extractUserName Sequence
+include::../puml/sequence-diagrams/JwtService.extractUserName.puml[]
+
+'''
+.JwtService.generateAccessToken Sequence
+include::../puml/sequence-diagrams/JwtService.generateAccessToken.puml[]
+
+'''
+.JwtService.generateRefreshToken Sequence
+include::../puml/sequence-diagrams/JwtService.generateRefreshToken.puml[]
+
+'''
+.JwtService.isTokenValid Sequence
+include::../puml/sequence-diagrams/JwtService.isTokenValid.puml[]
+
+'''
+.JwtService.isTokenExpired Sequence
+include::../puml/sequence-diagrams/JwtService.isTokenExpired.puml[]
+
+====
+'''
+=== Tokens Storage Service
+
+Service to store and restore JWT and related UserDetails
+
+.Local Tokens Storage Implementation
+[%collapsible]
+====
+.Storage.storeFor Sequence
+include::../puml/sequence-diagrams/LocalAccessTokensStorage.storeFor.puml[]
+
+'''
+.Storage.findCredentials Sequence
+include::../puml/sequence-diagrams/LocalAccessTokensStorage.findCredentials.puml[]
+
+'''
+.Storage.toBlackList Sequence
+include::../puml/sequence-diagrams/LocalAccessTokensStorage.toBlackList.puml[]
+
+'''
+.Storage.deleteCredentials Sequence
+include::../puml/sequence-diagrams/LocalAccessTokensStorage.deleteCredentials.puml[]
+
+'''
+.Storage.deleteCredentialsWithRefreshToken Sequence
+include::../puml/sequence-diagrams/LocalAccessTokensStorage.deleteCredentialsWithRefreshToken.puml[]
+
+====
+'''
+.Distributed Tokens Storage Implementation
+[%collapsible]
+====
+.Storage.buildCaches Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.buildCaches.puml[]
+
+'''
+.Storage.storeFor Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.storeFor.puml[]
+
+'''
+.Storage.findCredentials Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.findCredentials.puml[]
+
+'''
+.Storage.toBlackList Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.toBlackList.puml[]
+
+'''
+.Storage.deleteCredentials Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.deleteCredentials.puml[]
+
+'''
+.Storage.deleteCredentialsWithRefreshToken Sequence
+include::../puml/sequence-diagrams/DistributeAccessTokensStorage.deleteCredentialsWithRefreshToken.puml[]
+
+====
+'''

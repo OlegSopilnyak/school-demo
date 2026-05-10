@@ -1,0 +1,17 @@
+[plantuml,LocalAccessTokensStorage.toBlackList.puml.png,png]
+----
+@startuml
+
+participant LocalAccessTokensStorage
+participant Set
+
+activate LocalAccessTokensStorage
+	LocalAccessTokensStorage -> Set : add
+	activate Set
+		Set --> LocalAccessTokensStorage : boolean
+	deactivate Set
+deactivate LocalAccessTokensStorage
+
+@enduml
+
+----

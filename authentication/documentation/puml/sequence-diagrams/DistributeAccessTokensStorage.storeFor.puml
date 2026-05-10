@@ -1,0 +1,17 @@
+[plantuml,DistributeAccessTokensStorage.storeFor.puml.png,png]
+----
+@startuml
+
+participant DistributeAccessTokensStorage
+participant BasicCache
+
+activate DistributeAccessTokensStorage
+	DistributeAccessTokensStorage -> BasicCache : put
+	activate BasicCache
+		BasicCache --> DistributeAccessTokensStorage : Object
+	deactivate BasicCache
+deactivate DistributeAccessTokensStorage
+
+@enduml
+
+----

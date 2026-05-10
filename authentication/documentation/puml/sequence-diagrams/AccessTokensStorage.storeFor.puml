@@ -1,0 +1,12 @@
+[plantuml,AccessTokensStorage.storeFor.puml.png,png]
+----
+@startuml
+
+participant LocalAccessTokensStorage
+
+activate LocalAccessTokensStorage
+deactivate LocalAccessTokensStorage
+
+@enduml
+
+----

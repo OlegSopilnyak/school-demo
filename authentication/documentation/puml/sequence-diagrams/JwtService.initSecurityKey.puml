@@ -1,0 +1,22 @@
+[plantuml,JwtService.initSecurityKey.puml.png,png]
+----
+@startuml
+
+participant JwtServiceImpl
+participant Decoder
+participant Keys
+
+activate JwtServiceImpl
+	JwtServiceImpl -> Decoder : decode
+	activate Decoder
+		Decoder --> JwtServiceImpl : Object
+	deactivate Decoder
+	JwtServiceImpl -> Keys : hmacShaKeyFor
+	activate Keys
+		Keys --> JwtServiceImpl : SecretKey
+	deactivate Keys
+deactivate JwtServiceImpl
+
+@enduml
+
+----

@@ -1,0 +1,32 @@
+[plantuml,LocalDataModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class AccessCredentialsLocalEntity {
+	{field} +refreshToken : String
+	{field} +token : String
+	{field} +user : UserDetailsType
+	{method}  {static} +builder () : AccessCredentialsLocalEntityBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class UserDetailsLocalEntity {
+	{field} -id : Long
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+}
+
+
+
+
+
+hide methods
+
+@enduml
+----

@@ -1,0 +1,21 @@
+[plantuml,CommonDataModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface AccessCredentialsType {
+	{method}  {abstract} +getUser () : UserDetailsType
+}
+
+
+interface UserDetailsType {
+	{method}  {abstract} +getId () : Long
+}
+
+
+
+
+
+
+@enduml
+----

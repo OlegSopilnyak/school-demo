@@ -1,0 +1,33 @@
+[plantuml,JwtService.isTokenExpired.puml.png,png]
+----
+@startuml
+
+participant JwtServiceImpl
+participant Jwts
+
+activate JwtServiceImpl
+	JwtServiceImpl -> JwtServiceImpl : extractExpiration
+	activate JwtServiceImpl
+		JwtServiceImpl -> JwtServiceImpl : extractClaim
+		activate JwtServiceImpl
+			JwtServiceImpl -> JwtServiceImpl : extractAllClaims
+			activate JwtServiceImpl
+				JwtServiceImpl -> Jwts : parser
+				activate Jwts
+					Jwts --> JwtServiceImpl : JwtParserBuilder
+				deactivate Jwts
+				JwtServiceImpl --> JwtServiceImpl : Claims
+			deactivate JwtServiceImpl
+			JwtServiceImpl --> JwtServiceImpl : Object
+		deactivate JwtServiceImpl
+		JwtServiceImpl --> JwtServiceImpl : Date
+	deactivate JwtServiceImpl
+	JwtServiceImpl -> JwtServiceImpl : nowDate
+	activate JwtServiceImpl
+		JwtServiceImpl --> JwtServiceImpl : Date
+	deactivate JwtServiceImpl
+deactivate JwtServiceImpl
+
+@enduml
+
+----

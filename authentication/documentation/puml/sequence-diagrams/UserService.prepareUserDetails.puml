@@ -1,0 +1,21 @@
+[plantuml,UserService.prepareUserDetails.puml.png,png]
+----
+@startuml
+
+participant UserServiceAdapter
+participant ProfilePersistenceFacade
+
+activate UserServiceAdapter
+	UserServiceAdapter -> ProfilePersistenceFacade : findPrincipalProfileByLogin
+	activate ProfilePersistenceFacade
+		ProfilePersistenceFacade -> ProfilePersistenceFacade : findPersonProfileByLogin
+		activate ProfilePersistenceFacade
+			ProfilePersistenceFacade --> ProfilePersistenceFacade : Optional
+		deactivate ProfilePersistenceFacade
+		ProfilePersistenceFacade --> UserServiceAdapter : Optional
+	deactivate ProfilePersistenceFacade
+deactivate UserServiceAdapter
+
+@enduml
+
+----

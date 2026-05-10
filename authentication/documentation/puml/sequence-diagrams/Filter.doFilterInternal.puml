@@ -1,0 +1,49 @@
+[plantuml,Filter.doFilterInternal.puml.png,png]
+----
+@startuml
+
+participant JwtAuthenticationFilter
+participant HttpServletRequest
+participant FilterChain
+participant JwtService
+participant UserDetailsService
+participant UserDetails
+
+activate JwtAuthenticationFilter
+	JwtAuthenticationFilter -> HttpServletRequest : getHeader
+	activate HttpServletRequest
+		HttpServletRequest --> JwtAuthenticationFilter : String
+	deactivate HttpServletRequest
+	JwtAuthenticationFilter -> FilterChain : doFilter
+	activate FilterChain
+		FilterChain --> JwtAuthenticationFilter : void
+	deactivate FilterChain
+	JwtAuthenticationFilter -> JwtService : extractUserName
+	activate JwtService
+		JwtService --> JwtAuthenticationFilter : String
+	deactivate JwtService
+	JwtAuthenticationFilter -> FilterChain : doFilter
+	activate FilterChain
+		FilterChain --> JwtAuthenticationFilter : void
+	deactivate FilterChain
+	JwtAuthenticationFilter -> UserDetailsService : loadUserByUsername
+	activate UserDetailsService
+		UserDetailsService --> JwtAuthenticationFilter : UserDetails
+	deactivate UserDetailsService
+	JwtAuthenticationFilter -> JwtService : isTokenValid
+	activate JwtService
+		JwtService --> JwtAuthenticationFilter : boolean
+	deactivate JwtService
+	JwtAuthenticationFilter -> UserDetails : getAuthorities
+	activate UserDetails
+		UserDetails --> JwtAuthenticationFilter : Collection
+	deactivate UserDetails
+	JwtAuthenticationFilter -> FilterChain : doFilter
+	activate FilterChain
+		FilterChain --> JwtAuthenticationFilter : void
+	deactivate FilterChain
+deactivate JwtAuthenticationFilter
+
+@enduml
+
+----

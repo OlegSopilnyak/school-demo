@@ -1,0 +1,17 @@
+[plantuml,AuthenticationFacade.signIn.puml.png,png]
+----
+@startuml
+
+participant AuthenticationFacadeImpl
+participant ApplicationAccessFacade
+
+activate AuthenticationFacadeImpl
+	AuthenticationFacadeImpl -> ApplicationAccessFacade : findCredentialsFor
+	activate ApplicationAccessFacade
+		ApplicationAccessFacade --> AuthenticationFacadeImpl : Optional
+	deactivate ApplicationAccessFacade
+deactivate AuthenticationFacadeImpl
+
+@enduml
+
+----

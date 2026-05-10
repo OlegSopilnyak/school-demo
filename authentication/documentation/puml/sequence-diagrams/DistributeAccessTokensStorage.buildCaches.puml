@@ -1,0 +1,49 @@
+[plantuml,DistributeAccessTokensStorage.buildCaches.puml.png,png]
+----
+@startuml
+
+participant DistributeAccessTokensStorage
+participant DefaultCacheManager
+participant CacheContainerAdmin
+participant EmbeddedCacheManagerAdmin
+participant ProhibitedTokensProto
+participant ConcurrentMap
+
+activate DistributeAccessTokensStorage
+	DistributeAccessTokensStorage -> DefaultCacheManager : administration
+	activate DefaultCacheManager
+		DefaultCacheManager --> DistributeAccessTokensStorage : EmbeddedCacheManagerAdmin
+	deactivate DefaultCacheManager
+	DistributeAccessTokensStorage -> CacheContainerAdmin : withFlags
+	activate CacheContainerAdmin
+		CacheContainerAdmin --> DistributeAccessTokensStorage : CacheContainerAdmin
+	deactivate CacheContainerAdmin
+	DistributeAccessTokensStorage -> EmbeddedCacheManagerAdmin : getOrCreateCache
+	activate EmbeddedCacheManagerAdmin
+		EmbeddedCacheManagerAdmin --> DistributeAccessTokensStorage : Cache
+	deactivate EmbeddedCacheManagerAdmin
+	DistributeAccessTokensStorage -> DefaultCacheManager : administration
+	activate DefaultCacheManager
+		DefaultCacheManager --> DistributeAccessTokensStorage : EmbeddedCacheManagerAdmin
+	deactivate DefaultCacheManager
+	DistributeAccessTokensStorage -> CacheContainerAdmin : withFlags
+	activate CacheContainerAdmin
+		CacheContainerAdmin --> DistributeAccessTokensStorage : CacheContainerAdmin
+	deactivate CacheContainerAdmin
+	DistributeAccessTokensStorage -> EmbeddedCacheManagerAdmin : getOrCreateCache
+	activate EmbeddedCacheManagerAdmin
+		EmbeddedCacheManagerAdmin --> DistributeAccessTokensStorage : Cache
+	deactivate EmbeddedCacheManagerAdmin
+	DistributeAccessTokensStorage -> ProhibitedTokensProto : of
+	activate ProhibitedTokensProto
+		ProhibitedTokensProto --> DistributeAccessTokensStorage : ProhibitedTokensProto
+	deactivate ProhibitedTokensProto
+	DistributeAccessTokensStorage -> ConcurrentMap : putIfAbsent
+	activate ConcurrentMap
+		ConcurrentMap --> DistributeAccessTokensStorage : Object
+	deactivate ConcurrentMap
+deactivate DistributeAccessTokensStorage
+
+@enduml
+
+----
