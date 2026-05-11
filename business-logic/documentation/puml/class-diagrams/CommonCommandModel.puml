@@ -1,0 +1,96 @@
+[plantuml,CommonCommandModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+interface AuthorityPersonCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{field} {static} +PERSON_WITH_ID_PREFIX : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : AuthorityPerson ) : AuthorityPersonPayload
+	{method} +commandFamily () : Class
+}
+
+
+interface CourseCommand {
+	{field} {static} +COURSE_WITH_ID_PREFIX : String
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : Course ) : CoursePayload
+	{method} +commandFamily () : Class
+}
+
+
+interface EducationCommand {
+}
+
+
+interface FacultyCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{field} {static} +FACULTY_WITH_ID_PREFIX : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : Faculty ) : FacultyPayload
+	{method} +commandFamily () : Class
+}
+
+
+interface OrganizationCommand {
+}
+
+
+interface PrincipalProfileCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : PersonProfile ) : PersonProfile
+	{method} +commandFamily () : Class
+}
+
+
+interface ProfileCommand {
+	{field} {static} +PROFILE_WITH_ID_PREFIX : String
+	{method} +adoptEntity ( entity : PersonProfile ) : PersonProfile
+}
+
+
+interface StudentCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{field} {static} +STUDENT_WITH_ID_PREFIX : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : Student ) : StudentPayload
+	{method} +commandFamily () : Class
+}
+
+
+interface StudentProfileCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : PersonProfile ) : PersonProfile
+	{method} +commandFamily () : Class
+}
+
+
+interface StudentsGroupCommand {
+	{field} {static} +FACTORY_BEAN_NAME : String
+	{field} {static} +GROUP_WITH_ID_PREFIX : String
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method} +adoptEntity ( entity : StudentsGroup ) : StudentsGroupPayload
+	{method} +commandFamily () : Class
+}
+
+
+
+
+AuthorityPersonCommand ..|>  OrganizationCommand
+CourseCommand ..|>  EducationCommand
+FacultyCommand ..|>  OrganizationCommand
+PrincipalProfileCommand ..|>  ProfileCommand
+StudentCommand ..|>  EducationCommand
+StudentProfileCommand ..|>  ProfileCommand
+StudentsGroupCommand ..|>  OrganizationCommand
+
+
+@enduml
+----

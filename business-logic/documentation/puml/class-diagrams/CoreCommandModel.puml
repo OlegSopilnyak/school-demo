@@ -1,0 +1,111 @@
+[plantuml,CoreCommandModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface CommandExecutable {
+	{method}  {abstract} +createContext () : Context
+	{method}  {abstract} +createContext ( input : Input ) : Context
+	{method}  {abstract} +doCommand ( context : Context ) : void
+	{method} +executeDo ( context : Context ) : void
+	{method} +executeUndo ( context : Context ) : void
+	{method}  {abstract} +self () : CommandExecutable
+	{method}  {abstract} +undoCommand ( context : Context ) : void
+}
+
+
+interface CompositeCommand {
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , mainInputParameter : Input ) : Context
+	{method} +createContext ( input : Input ) : Context
+	{method} +executeDoNested ( context : Context ) : Context
+	{method} +executeDoNested ( context : Context , listener : StateChangedListener ) : Context
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +executeUndoNested ( context : Context ) : Context
+	{method}  {abstract} +fromNest () : Collection
+	{method} +getActionExecutor () : CommandActionExecutor
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method}  {abstract} +toNest ( commands : NestedCommand[] ) : void
+}
+
+
+interface Context {
+	{method}  {abstract} +addStateListener ( listener : StateChangedListener ) : void
+	{method}  {abstract} +failed ( exception : Exception ) : Context
+	{method}  {abstract} +getCommand () : RootCommand
+	{method}  {abstract} +getDuration () : Duration
+	{method}  {abstract} +getException () : Exception
+	{method}  {abstract} +getHistory () : LifeCycleHistory
+	{method}  {abstract} +getRedoParameter () : Input
+	{method}  {abstract} +getResult () : Optional
+	{method}  {abstract} +getStartedAt () : Instant
+	{method}  {abstract} +getState () : State
+	{method}  {abstract} +getUndoParameter () : Input
+	{method} +isDone () : boolean
+	{method} +isFailed () : boolean
+	{method} +isReady () : boolean
+	{method} +isUndone () : boolean
+	{method} +isWorking () : boolean
+	{method}  {abstract} +removeStateListener ( listener : StateChangedListener ) : void
+	{method}  {abstract} +setResult ( value : Object ) : void
+	{method}  {abstract} +setState ( state : State ) : void
+	{method} +stateIs ( state : State ) : boolean
+}
+
+
+interface LifeCycleHistory {
+	{method}  {abstract} +durations () : Deque
+	{method}  {abstract} +started () : Deque
+	{method}  {abstract} +states () : Deque
+}
+
+
+interface NestedCommand {
+	{method}  {abstract} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method}  {abstract} +createFailedContext ( cause : Exception ) : Context
+	{method} +getId () : String
+}
+
+
+interface RootCommand {
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , input : Input ) : Context
+	{method} +afterExecute ( context : Context ) : void
+	{method} +afterRollback ( context : Context ) : void
+	{method} +checkNullParameter ( parameter : Input ) : void
+	{method} +commandFamily () : Class
+	{method} +createContext () : Context
+	{method} +createContext ( parameter : Input ) : Context
+	{method} +createFailedContext ( cause : Exception ) : Context
+	{method} +doCommand ( context : Context ) : void
+	{method}  {abstract} +getLog () : Logger
+	{method} +getPayloadMapper () : BusinessMessagePayloadMapper
+	{method} +self () : RootCommand
+	{method} +springName () : String
+	{method} +undoCommand ( context : Context ) : void
+}
+
+
+enum State {
+	{field} +CANCEL
+	{field} +DONE
+	{field} +FAIL
+	{field} +INIT
+	{field} +READY
+	{field} +UNDONE
+	{field} +WORK
+}
+
+
+interface StateChangedListener {
+	{method}  {abstract} +stateChanged ( context : Context , previous : State , current : State ) : void
+}
+
+
+
+
+CompositeCommand ..|>  RootCommand
+RootCommand ..|>  CommandExecutable
+RootCommand ..|>  NestedCommand
+
+
+@enduml
+----

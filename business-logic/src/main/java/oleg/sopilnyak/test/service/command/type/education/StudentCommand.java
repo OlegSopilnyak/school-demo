@@ -6,16 +6,17 @@ import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.core.nested.PrepareNestedContextVisitor;
+import oleg.sopilnyak.test.service.command.type.education.base.EducationCommand;
 import oleg.sopilnyak.test.service.message.payload.StudentPayload;
 
 /**
  * Type for school-students command
  *
  * @param <T> the type of command execution (do) result
- * @see RootCommand
+ * @see EducationCommand
  * @see Student
  */
-public interface StudentCommand<T> extends RootCommand<T> {
+public interface StudentCommand<T> extends EducationCommand<T> {
     // template of error message
     String STUDENT_WITH_ID_PREFIX = "Student with ID:";
     //

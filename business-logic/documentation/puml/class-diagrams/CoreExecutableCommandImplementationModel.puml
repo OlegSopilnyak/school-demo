@@ -1,0 +1,141 @@
+[plantuml,CoreExecutableCommandImplementationModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface CommandActionExecutor {
+	{field} {static} +IS_DO_MESSAGE_DIRECTION : Predicate
+	{field} {static} +IS_NULL_MESSAGE_DIRECTION : Predicate
+	{field} {static} +IS_UNDO_MESSAGE_DIRECTION : Predicate
+	{field} {static} +IS_VALID_MESSAGE_CONTEXT : Predicate
+	{field} {static} +IS_VALID_MESSAGE_CONTEXT_COMMAND : Predicate
+	{field} {static} +isInvalidMessage : Predicate
+	{field} {static} +isValidMessageDirection : Predicate
+	{method} +commitAction ( actionContext : ActionContext , commandContext : Context ) : Context
+	{method}  {abstract} +getLogger () : Logger
+	{method}  {abstract} +initialize () : void
+	{method} +processActionCommand ( message : CommandMessage ) : CommandMessage
+	{method} +rollbackAction ( actionContext : ActionContext , commandContext : Context ) : Context
+	{method}  {abstract} +shutdown () : void
+	{method} +validateInput ( message : CommandMessage ) : void
+}
+
+
+interface CommandMessageWatchdog {
+	{method}  {abstract} +getResult () : CommandMessage
+	{method}  {abstract} +getState () : State
+	{method}  {abstract} +messageProcessingIsDone () : void
+	{method}  {abstract} +setResult ( result : CommandMessage ) : void
+	{method}  {abstract} +waitForMessageComplete () : void
+}
+
+
+abstract class CommandMessagesExchangeExecutorAdapter {
+	{field} -processorLaunchExecutor : ExecutorService
+	{field} -serviceActive : AtomicBoolean
+	{method} #buildExecutorService () : ExecutorService
+	{method} +initialize () : void
+	{method}  {abstract} #initializeTakenMessagesExecutor () : void
+	{method} +isActive () : boolean
+	{method}  {abstract} #prepareRequestsProcessor () : MessagesProcessor
+	{method}  {abstract} #prepareResponsesProcessor () : MessagesProcessor
+	{method} +processActionCommand ( message : CommandMessage ) : CommandMessage
+	{method}  {static} #serviceThreadFactory ( threadNamePrefix : String ) : ThreadFactory
+	{method} +shutdown () : void
+	{method}  {static} #shutdown ( executor : ExecutorService ) : void
+	{method}  {abstract} #shutdownTakenMessagesExecutor () : void
+}
+
+
+interface CommandThroughMessagesExecutor {
+	{field} {static} +COMMAND_MESSAGE_OBJECT_MAPPER_BEAN_NAME : String
+	{field} {static} +JSON_CONTEXT_MODULE_BEAN_NAME : String
+	{field} {static} +REQUEST_MESSAGES_PROCESSOR_NAME : String
+	{field} {static} +RESPONSE_MESSAGES_PROCESSOR_NAME : String
+	{method}  {abstract} +getLogger () : Logger
+	{method} +initialize () : void
+	{method} +shutdown () : void
+}
+
+
+class LocalQueueCommandExecutor {
+	{field} -executor : ExecutorService
+	{field} {static} -log : Logger
+	{field} -objectMapper : ObjectMapper
+	{method} +getLogger () : Logger
+	{method} #initializeTakenMessagesExecutor () : void
+	{method} #makeMessageInProgress ( correlationId : String , original : CommandMessage ) : boolean
+	{method} #messageWatchdogFor ( correlationId : String ) : Optional
+	{method} #prepareRequestsProcessor () : MessagesProcessor
+	{method} #prepareResponsesProcessor () : MessagesProcessor
+	{method} +runAsync ( commandMessageProcessing : Runnable ) : void
+	{method} #shutdownTakenMessagesExecutor () : void
+	{method} #stopWatchingMessage ( correlationId : String ) : void
+}
+
+
+abstract class MessagesExchange {
+	{field} {static} -logger : Logger
+	{method} #executeWithActionContext ( request : CommandMessage ) : void
+	{method}  {abstract} +getResponsesProcessor () : MessagesProcessor
+	{method}  {abstract} +isActive () : boolean
+	{method} #localExecutionResult ( commandMessage : CommandMessage ) : CommandMessage
+	{method}  {abstract} #makeMessageInProgress ( correlationId : String , original : CommandMessage ) : boolean
+	{method}  {abstract} #messageWatchdogFor ( correlationId : String ) : Optional
+	{method} #onErrorRequestMessage ( message : CommandMessage , error : Throwable ) : void
+	{method} #onTakenRequestMessage ( message : CommandMessage ) : void
+	{method} #onTakenResponseMessage ( message : CommandMessage ) : void
+	{method} +runAsync ( commandMessageProcessing : Runnable ) : void
+	{method}  {abstract} #stopWatchingMessage ( correlationId : String ) : void
+}
+
+
+interface MessagesProcessor {
+	{field} {static} +IS_LAST_MESSAGE : Predicate
+	{method}  {abstract} +accept ( message : CommandMessage ) : boolean
+	{method} +activateProcessor () : void
+	{method} +deActivateProcessor () : void
+	{method} +doingMainLoop () : void
+	{method}  {abstract} +getLogger () : Logger
+	{method}  {abstract} +getProcessorName () : String
+	{method}  {abstract} +isEmpty () : boolean
+	{method}  {abstract} +isOwnerActive () : boolean
+	{method}  {abstract} +isProcessorActive () : boolean
+	{method}  {abstract} +onTakenMessage ( message : CommandMessage ) : void
+	{method}  {abstract} +runAsyncTakenMessage ( onMessageAction : Consumer , taken : CommandMessage ) : void
+	{method}  {abstract} +setProcessorActive ( state : boolean ) : void
+	{method}  {abstract} +shutdown () : void
+	{method}  {abstract} +takeMessage () : CommandMessage
+}
+
+
+abstract class RootMessageProcessor {
+	{field} #logger : Logger
+	{field} -processingTaken : Consumer
+	{field} +processorActive : AtomicBoolean
+	{field} -processorName : String
+	{field} -processorStateMonitor : Object
+	{method} +isOwnerActive () : boolean
+	{method} +onTakenMessage ( message : CommandMessage ) : void
+	{method} +runAsyncTakenMessage ( onMessageAction : Consumer , message : CommandMessage ) : void
+	{method} +shutdown () : void
+}
+
+
+
+
+CommandMessagesExchangeExecutorAdapter -->  MessagesProcessor : requestsProcessor
+CommandMessagesExchangeExecutorAdapter -->  MessagesProcessor : responsesProcessor
+CommandMessagesExchangeExecutorAdapter --|>  MessagesExchange
+CommandMessagesExchangeExecutorAdapter ..|>  CommandThroughMessagesExecutor
+CommandThroughMessagesExecutor ..|>  CommandActionExecutor
+LocalQueueCommandExecutor "1" o-- "0..*"  CommandMessageWatchdog : messageInProgress
+LocalQueueCommandExecutor --|>  CommandMessagesExchangeExecutorAdapter
+MessagesExchange *--  CommandThroughMessagesExecutor : lowLevelActionExecutor
+RootMessageProcessor *--  MessagesExchange : exchange
+RootMessageProcessor ..|>  MessagesProcessor
+
+hide fields
+
+@enduml
+----

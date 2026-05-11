@@ -1,0 +1,51 @@
+[plantuml,CoreExecutableCommandMessageModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+abstract class BaseCommandMessage {
+	{field} {static} -ACTION_CONTEXT_FIELD_NAME : String
+	{field} {static} -COMMAND_CONTEXT_FIELD_NAME : String
+	{field} {static} -CORRELATION_ID_FIELD_NAME : String
+	{field} {static} -DIRECTION_FIELD_NAME : String
+	{field} +actionContext : ActionContext
+	{field} +context : Context
+	{field} +correlationId : String
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+	{method} +validate () : void
+}
+
+
+interface CommandMessage {
+	{method}  {abstract} +getActionContext () : ActionContext
+	{method}  {abstract} +getContext () : Context
+	{method}  {abstract} +getCorrelationId () : String
+	{method}  {abstract} +getDirection () : Direction
+}
+
+
+class DoCommandMessage {
+	{method}  {static} +builder () : DoCommandMessageBuilder
+	{method} +getDirection () : Direction
+}
+
+
+class UndoCommandMessage {
+	{method}  {static} +builder () : UndoCommandMessageBuilder
+	{method} +getDirection () : Direction
+}
+
+
+
+
+BaseCommandMessage ..|>  CommandMessage
+CommandMessage *--  CommandMessage : EMPTY
+DoCommandMessage --|>  BaseCommandMessage
+UndoCommandMessage --|>  BaseCommandMessage
+
+
+@enduml
+----

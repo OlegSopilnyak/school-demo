@@ -55,3 +55,6 @@ for further processing and calling **<ins>persistence layer</ins>** through pers
 || **DeleteStudentProfileCommand**           | `ProfilePersistenceFacade#deleteProfileById(id)`                |
 ### Module Data Model
 ![Business Logic Model Classes Diagram](diagrams/Model%20Classes%20Diagram.png "Business Logic Layer Model")
+
+For more details please go to the folder **documentation/html** and open
+[ModuleDescription.html](documentation/html/ModuleDescription.html)

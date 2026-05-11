@@ -1,0 +1,155 @@
+[plantuml,BusinessExecutableCommandMessageModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+class AccessCredentialsPayload {
+	{field} +refreshToken : String
+	{field} +token : String
+	{method}  {static} +builder () : AccessCredentialsPayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class AuthorityPersonPayload {
+	{field} +faculties : List
+	{field} +title : String
+	{method}  {static} +builder () : AuthorityPersonPayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+abstract class BasePayload {
+	{field} {static} +ITEMS_CAPACITY_FORMAT : String
+	{field} +id : Long
+	{field} +original : BaseType
+	{field} -originalType : String
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+abstract class BasePersonPayload {
+	{field} +firstName : String
+	{field} +gender : String
+	{field} +lastName : String
+	{field} +profileId : Long
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+abstract class BaseProfilePayload {
+	{field} +email : String
+	{field} +extras : Extra[]
+	{field} +location : String
+	{field} +phone : String
+	{field} +photoUrl : String
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +getExtra ( key : String ) : Optional
+	{method} +getExtraKeys () : String[]
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class CoursePayload {
+	{field} +description : String
+	{field} +name : String
+	{field} +students : List
+	{method}  {static} +builder () : CoursePayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class FacultyPayload {
+	{field} +courses : List
+	{field} +dean : AuthorityPerson
+	{field} +name : String
+	{method}  {static} +builder () : FacultyPayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class PrincipalProfilePayload {
+	{field} +permissions : Set
+	{field} +role : Role
+	{field} +signature : String
+	{field} +username : String
+	{method}  {static} +builder () : PrincipalProfilePayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +isPassword ( password : String ) : boolean
+	{method} +toString () : String
+}
+
+
+class StudentPayload {
+	{field} +courses : List
+	{field} +description : String
+	{method}  {static} +builder () : StudentPayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class StudentProfilePayload {
+	{method}  {static} +builder () : StudentProfilePayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+class StudentsGroupPayload {
+	{field} +leader : Student
+	{field} +name : String
+	{field} +students : List
+	{method}  {static} +builder () : StudentsGroupPayloadBuilder
+	{method} #canEqual ( other : Object ) : boolean
+	{method} +equals ( o : Object ) : boolean
+	{method} +hashCode () : int
+	{method} +toString () : String
+}
+
+
+
+
+AccessCredentialsPayload --|>  BasePayload
+AuthorityPersonPayload --|>  BasePersonPayload
+BasePersonPayload --|>  BasePayload
+BaseProfilePayload --|>  BasePayload
+CoursePayload --|>  BasePayload
+FacultyPayload --|>  BasePayload
+PrincipalProfilePayload --|>  BaseProfilePayload
+StudentPayload --|>  BasePersonPayload
+StudentProfilePayload --|>  BaseProfilePayload
+StudentsGroupPayload --|>  BasePayload
+
+
+@enduml
+----

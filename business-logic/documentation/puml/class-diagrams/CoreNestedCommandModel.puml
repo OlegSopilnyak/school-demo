@@ -1,0 +1,52 @@
+[plantuml,CoreNestedCommandModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+interface NestedCommand {
+	{method}  {abstract} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , macroInputParameter : Input ) : Context
+	{method}  {abstract} +createFailedContext ( cause : Exception ) : Context
+	{method} +getId () : String
+}
+
+
+class NestedContextDeque {
+	{field} -deque : Deque
+	{field} -locker : Lock
+	{method} +putToTail ( item : Object ) : void
+}
+
+
+class NestedStateChangedListener {
+	{field} -log : Logger
+	{field} -nestedLatch : CountDownLatch
+	{method} +stateChanged ( context : Context , previous : State , current : State ) : void
+}
+
+
+interface PrepareNestedContextVisitor {
+	{method} +prepareContext ( command : AuthorityPersonCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : CourseCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : FacultyCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : NestedCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : ParallelCommandsTask , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : PrincipalProfileCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : RootCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : SequentialCommandsTask , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentProfileCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentsGroupCommand , mainInputParameter : Input ) : Context
+}
+
+
+
+
+NestedStateChangedListener *--  NestedContextDeque : failedContexts
+NestedStateChangedListener *--  NestedContextDeque : succeedContexts
+
+
+@enduml
+----

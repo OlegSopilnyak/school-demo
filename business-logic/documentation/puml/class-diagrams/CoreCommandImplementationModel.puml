@@ -1,0 +1,102 @@
+[plantuml,CoreCommandImplementationModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+abstract class BasicCommand {
+	{field} #applicationContext : BeanFactory
+	{field} -self : AtomicReference
+	{method} +self () : RootCommand
+}
+
+
+interface CompositeCommand {
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , mainInputParameter : Input ) : Context
+	{method} +createContext ( input : Input ) : Context
+	{method} +executeDoNested ( context : Context ) : Context
+	{method} +executeDoNested ( context : Context , listener : StateChangedListener ) : Context
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +executeUndoNested ( context : Context ) : Context
+	{method}  {abstract} +fromNest () : Collection
+	{method} +getActionExecutor () : CommandActionExecutor
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method}  {abstract} +toNest ( commands : NestedCommand[] ) : void
+}
+
+
+abstract class MacroCommand {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -netsedCommandsList : List
+	{method} #afterExecutionProcessing ( rootContext : Context , successful : Deque , failed : Deque , nestedResultsAfter : Deque ) : void
+	{method} #afterRollbackProcessing ( rootContext : Context , rollbackResult : Deque ) : void
+	{method} +executeDo ( context : Context ) : void
+	{method} +executeUndo ( context : Context ) : void
+	{method} +finalCommandResult ( nested : Deque ) : Object
+	{method} +fromNest () : Collection
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method} +toNest ( commands : NestedCommand[] ) : void
+}
+
+
+abstract class ParallelCommandsTask {
+	{field} {static} +EXECUTOR_BEAN_NAME : String
+	{field} #executor : Executor
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+}
+
+
+interface RootCommand {
+	{method} +acceptPreparedContext ( visitor : PrepareNestedContextVisitor , input : Input ) : Context
+	{method} +afterExecute ( context : Context ) : void
+	{method} +afterRollback ( context : Context ) : void
+	{method} +checkNullParameter ( parameter : Input ) : void
+	{method} +commandFamily () : Class
+	{method} +createContext () : Context
+	{method} +createContext ( parameter : Input ) : Context
+	{method} +createFailedContext ( cause : Exception ) : Context
+	{method} +doCommand ( context : Context ) : void
+	{method}  {abstract} +getLog () : Logger
+	{method} +getPayloadMapper () : BusinessMessagePayloadMapper
+	{method} +self () : RootCommand
+	{method} +springName () : String
+	{method} +undoCommand ( context : Context ) : void
+}
+
+
+abstract class SchoolCommandCache {
+	{field} -entityName : String
+	{field} -entityType : Class
+	{method} #afterEntityPersistenceCheck ( context : Context , rollbackProcess : Runnable , persistedEntityCopy : BaseType , isCreateEntityMode : boolean ) : void
+	{method} #persistRedoEntity ( context : Context , facadeSave : Function ) : Optional
+	{method} #prepareDeleteEntityUndo ( context : Context , undoEntity : BaseType , exceptionSupplier : Supplier ) : void
+	{method} #restoreInitialCommandState ( context : Context , facadeSave : Function ) : void
+	{method} #retrieveEntity ( inputId : Long , findEntityById : LongFunction , adoptEntity : UnaryOperator , exceptionSupplier : Supplier ) : BaseType
+	{method} #rollbackCachedEntity ( context : Context , facadeSave : Function ) : Optional
+	{method} #rollbackCachedEntity ( context : Context , facadeSave : Function , facadeDeleteById : LongConsumer ) : Optional
+}
+
+
+abstract class SequentialCommandsTask {
+	{method} #cancelSequentialNestedCommandContext ( toCancel : Context , listener : StateChangedListener ) : Context
+	{method} #doSequentialNestedCommand ( toExecute : Context , executedHolder : AtomicReference , listener : StateChangedListener , isExecutionFailed : AtomicBoolean ) : Context
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method} #rollbackNestedCommand ( current : Context , isPreviousRollbackFailedHolder : AtomicBoolean ) : Context
+	{method} +transferResult ( executedCommand : RootCommand , toTransfer : Object , toExecute : Context ) : void
+}
+
+
+
+
+BasicCommand ..|>  RootCommand
+CompositeCommand ..|>  RootCommand
+MacroCommand ..|>  CompositeCommand
+ParallelCommandsTask --|>  MacroCommand
+SchoolCommandCache --|>  BasicCommand
+SequentialCommandsTask --|>  MacroCommand
+
+hide fields
+
+@enduml
+----

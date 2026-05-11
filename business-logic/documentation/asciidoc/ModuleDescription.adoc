@@ -1,0 +1,59 @@
+= Application Business Logic Module
+Doc Writer <oleg.sopilnyak@gmail.com>
+:doctype: article
+:toc: left
+:toclevels: 4
+:sectnums:
+:source-highlighter: rouge
+:imagesdir: ./images
+
+== Intro
+Business Logic Command's Oriented Module.
+
+Uses *Command* plus *Strategy* and *Factory* design patterns.
+
+== Module parts
+
+=== The Module's Data Model
+
+.Basic Command Model
+[%collapsible]
+====
+
+.Core Commands Data Model
+include::../puml/class-diagrams/CoreCommandModel.puml[]
+'''
+
+.Core Nested Commands Data Model (using in CompositeCommand see above)
+include::../puml/class-diagrams/CoreNestedCommandModel.puml[]
+'''
+
+.Basic Commands Implementation Data Model
+include::../puml/class-diagrams/CoreCommandImplementationModel.puml[]
+'''
+
+.Core Business Commands According Core Commands Data Model
+include::../puml/class-diagrams/CommonCommandModel.puml[]
+====
+
+.Executable Command Model
+[%collapsible]
+====
+
+.Command Action Execution Engine Data Model
+include::../puml/class-diagrams/CoreExecutableCommandImplementationModel.puml[]
+'''
+
+.Basic Command Action Message Data Model
+include::../puml/class-diagrams/CoreExecutableCommandMessageModel.puml[]
+'''
+====
+
+.Business Action Data Model
+[%collapsible]
+====
+'''
+
+.Business Action Data Model
+include::../puml/class-diagrams/BusinessExecutableCommandMessageModel.puml[]
+====
