@@ -31,7 +31,7 @@ subprojects {
     dependencies {
         // distributed cache (infinispan) dependencies
         // Import the BOM to manage versions
-        implementation platform("org.infinispan:infinispan-bom:+")
+        implementation platform("org.infinispan:infinispan-bom:${infinispanVersion}")
 
         implementation 'org.infinispan:infinispan-api'
         implementation 'org.infinispan:infinispan-core'
