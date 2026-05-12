@@ -3,6 +3,9 @@
 @startuml
 !pragma layout smetana
 
+left to right direction
+
+
 interface AccessCredentials {
 	{method} +getId () : Long
 	{method}  {abstract} +getRefreshToken () : String
@@ -26,16 +29,6 @@ interface Course {
 	{method}  {abstract} +getDescription () : String
 	{method}  {abstract} +getName () : String
 	{method}  {abstract} +getStudents () : List
-}
-
-
-enum ExtraKey {
-	{field} +FACEBOOK
-	{field} +INSTAGRAM
-	{field} +LINKEDIN
-	{field} +TELEGRAM
-	{field} +WEB
-	{field} +YOUTUBE
 }
 
 

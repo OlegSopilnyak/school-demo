@@ -54,11 +54,10 @@ Set of interfaces used to implement business-logic functionality of the applicat
 .Business Logic
 [%collapsible]
 ====
-* General Facade Diagram
+* Application Business Logic Facades Classes Diagram
 
 .Business Logic Facades by Entity Types
 include::../puml/class-diagrams/BusinessLogicFacades.puml[]
-
 '''
 
 * Education Facade Sequences
@@ -90,7 +89,7 @@ Set of interfaces used to implement persistence functionality of the application
 [%collapsible]
 ====
 
-* General Facade Diagram
+* Application Persistence Facades Classes Diagram
 
 .Persistence Facades by Entity Types
 include::../puml/class-diagrams/PersistenceFacades.puml[]

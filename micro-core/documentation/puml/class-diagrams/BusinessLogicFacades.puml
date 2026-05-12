@@ -3,6 +3,9 @@
 @startuml
 !pragma layout smetana
 
+left to right direction
+
+
 interface AuthorityPersonFacade {
 	{field} {static} +ACTION_IDS : List
 	{field} {static} +CREATE_MACRO : String

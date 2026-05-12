@@ -113,9 +113,13 @@
                             <useSmetana>true</useSmetana>
                             <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>CommonDataModel.puml</outputFilename>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.model</scanPackage>
                             </scanPackages>
+                            <blacklistRegexp>.*(ExtraKey)</blacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
@@ -134,6 +138,9 @@
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.business.facade</scanPackage>
                             </scanPackages>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
@@ -150,6 +157,9 @@
                             <useSmetana>true</useSmetana>
                             <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>PersistenceFacades.puml</outputFilename>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
                             <scanPackages>
                                 <scanPackage>oleg.sopilnyak.test.school.common.persistence</scanPackage>
                             </scanPackages>
